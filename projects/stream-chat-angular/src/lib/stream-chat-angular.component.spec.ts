@@ -8,9 +8,8 @@ describe('StreamChatAngularComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StreamChatAngularComponent ]
-    })
-    .compileComponents();
+      declarations: [StreamChatAngularComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

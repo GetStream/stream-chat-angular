@@ -73,9 +73,7 @@
               "projects/sample-app/src/favicon.ico",
               "projects/sample-app/src/assets"
             ],
-            "styles": [
-              "projects/sample-app/src/styles.scss"
-            ],
+            "styles": ["projects/sample-app/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
@@ -141,9 +139,7 @@
               "projects/sample-app/src/favicon.ico",
               "projects/sample-app/src/assets"
             ],
-            "styles": [
-              "projects/sample-app/src/styles.scss"
-            ],
+            "styles": ["projects/sample-app/src/styles.scss"],
             "scripts": []
           }
         },
