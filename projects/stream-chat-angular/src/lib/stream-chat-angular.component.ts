@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'stream-stream-chat-angular',
@@ -10,11 +10,8 @@ import { Component, OnInit } from '@angular/core';
   styles: [
   ]
 })
-export class StreamChatAngularComponent implements OnInit {
+export class StreamChatAngularComponent {
 
   constructor() { }
-
-  ngOnInit(): void {
-  }
 
 }

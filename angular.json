@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -30,6 +33,15 @@
             "main": "projects/stream-chat-angular/src/test.ts",
             "tsConfig": "projects/stream-chat-angular/tsconfig.spec.json",
             "karmaConfig": "projects/stream-chat-angular/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/stream-chat-angular/**/*.ts",
+              "projects/stream-chat-angular/**/*.html"
+            ]
           }
         }
       }
@@ -133,6 +145,15 @@
               "projects/sample-app/src/styles.scss"
             ],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/sample-app/**/*.ts",
+              "projects/sample-app/**/*.html"
+            ]
           }
         }
       }
