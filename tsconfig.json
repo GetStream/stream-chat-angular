@@ -15,6 +15,12 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2017",
+    "paths": {
+      "stream-chat-angular": [
+        "dist/stream-chat-angular/stream-chat-angular",
+        "dist/stream-chat-angular"
+      ]
+    },
     "module": "es2020",
     "lib": [
       "es2018",
