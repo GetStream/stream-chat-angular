@@ -10,6 +10,7 @@
         "createDefaultProgram": true
       },
       "extends": [
+        "eslint:recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:@angular-eslint/all",
         "plugin:prettier/recommended" // This should always be the last in the extends array
