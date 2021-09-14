@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -31,6 +34,15 @@
             "tsConfig": "projects/stream-chat-angular/tsconfig.spec.json",
             "karmaConfig": "projects/stream-chat-angular/karma.conf.js"
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/stream-chat-angular/**/*.ts",
+              "projects/stream-chat-angular/**/*.html"
+            ]
+          }
         }
       }
     },
@@ -38,7 +50,26 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "skipTests": true
+        },
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:module": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
         },
         "@schematics/angular:application": {
           "strict": true
@@ -61,9 +92,7 @@
               "projects/sample-app/src/favicon.ico",
               "projects/sample-app/src/assets"
             ],
-            "styles": [
-              "projects/sample-app/src/styles.scss"
-            ],
+            "styles": ["projects/sample-app/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
@@ -129,10 +158,57 @@
               "projects/sample-app/src/favicon.ico",
               "projects/sample-app/src/assets"
             ],
-            "styles": [
-              "projects/sample-app/src/styles.scss"
-            ],
+            "styles": ["projects/sample-app/src/styles.scss"],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/sample-app/**/*.ts",
+              "projects/sample-app/**/*.html"
+            ]
+          }
+        },
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "watch": true,
+            "headless": false,
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
+          }
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "watch": true,
+            "headless": false,
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
           }
         }
       }

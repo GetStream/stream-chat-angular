@@ -1,0 +1,13 @@
+{
+  "extends": "../../../.eslintrc.json",
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": ["projects/sample-app/cypress/tsconfig.json"],
+        "createDefaultProgram": true
+      }
+    }
+  ]
+}

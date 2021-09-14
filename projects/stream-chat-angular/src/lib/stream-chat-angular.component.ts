@@ -1,20 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'stream-stream-chat-angular',
-  template: `
-    <p>
-      stream-chat-angular works!
-    </p>
-  `,
-  styles: [
-  ]
+  template: ` <p>stream-chat-angular works! and reloads</p> `,
+  styles: [],
 })
-export class StreamChatAngularComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
+export class StreamChatAngularComponent {
+  constructor() {}
 }

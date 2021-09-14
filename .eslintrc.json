@@ -1,0 +1,36 @@
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*"],
+  "plugins": ["unused-imports", "cypress"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": ["tsconfig.json"],
+        "createDefaultProgram": true
+      },
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@angular-eslint/all",
+        "plugin:cypress/recommended",
+        "plugin:prettier/recommended" // This should always be the last in the extends array
+      ],
+      "rules": {
+        "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
+        "@angular-eslint/prefer-on-push-component-change-detection": "off",
+        "unused-imports/no-unused-imports": "error"
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": [
+        "plugin:@angular-eslint/template/all",
+        "plugin:prettier/recommended" // This should always be the last in the extends array
+      ],
+      "rules": {
+        "@angular-eslint/template/i18n": "off"
+      }
+    }
+  ]
+}
