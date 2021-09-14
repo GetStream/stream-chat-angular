@@ -9,7 +9,10 @@
     "test": "ng test",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "e2e": "ng e2e",
+    "cypress:run": "ng run sample-app:cypress-run",
+    "cypress:open": "ng run sample-app:cypress-open"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
@@ -37,12 +40,15 @@
     "@angular-eslint/template-parser": "12.4.1",
     "@angular/cli": "~12.2.4",
     "@angular/compiler-cli": "~12.2.0",
+    "@cypress/schematic": "^1.5.1",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
+    "cypress": "8.4.0",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-cypress": "^2.11.3",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-unused-imports": "^1.1.4",
     "husky": "^7.0.2",

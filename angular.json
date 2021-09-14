@@ -151,6 +151,46 @@
               "projects/sample-app/**/*.html"
             ]
           }
+        },
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "watch": true,
+            "headless": false,
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
+          }
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "sample-app:serve",
+            "watch": true,
+            "headless": false,
+            "configFile": "projects/sample-app/cypress.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "sample-app:serve:production"
+            }
+          }
         }
       }
     }
