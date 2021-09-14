@@ -1,0 +1,14 @@
+<div class="str-chat__list">
+  <div
+    #scrollContainer
+    class="str-chat__reverse-infinite-scroll"
+    (scroll)="scrolled()"
+  >
+    <ul className="str-chat__ul">
+      <!-- eslint @angular-eslint/template/use-track-by-function: "off" -->
+      <li *ngFor="let message of messages$ | async">
+        <stream-message [message]="message"></stream-message>
+      </li>
+    </ul>
+  </div>
+</div>

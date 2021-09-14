@@ -1,0 +1,20 @@
+<button
+  class="str-chat__channel-preview-messenger"
+  [class.str-chat__channel-preview-messenger--active]="isActive"
+  (click)="setAsActiveChannel()"
+>
+  <div class="str-chat__channel-preview-messenger--left">
+    <stream-avatar
+      image="{{ avatarImage }}"
+      name="{{ avatarName }}"
+    ></stream-avatar>
+  </div>
+  <div class="str-chat__channel-preview-messenger--right">
+    <div class="str-chat__channel-preview-messenger--name">
+      <span>{{ title }}</span>
+    </div>
+    <div class="str-chat__channel-preview-messenger--last-message">
+      {{ latestMessage }}
+    </div>
+  </div>
+</button>

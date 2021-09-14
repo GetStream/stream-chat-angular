@@ -1,0 +1,18 @@
+<div
+  class="
+    str-chat str-chat-channel-list
+    messaging
+    light
+    str-chat-channel-list--open
+  "
+>
+  <div class="str-chat__channel-list-messenger">
+    <div class="str-chat__channel-list-messenger__main">
+      <!-- eslint @angular-eslint/template/use-track-by-function: "off" -->
+      <stream-channel-preview
+        *ngFor="let channel of channels$ | async"
+        [channel]="channel"
+      ></stream-channel-preview>
+    </div>
+  </div>
+</div>
