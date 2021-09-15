@@ -1,0 +1,49 @@
+name: Tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm ci
+      - name: Build
+        run: |
+          npm run build:prod
+      - name: Linting
+        run: |
+          npm run lint
+      - name: Unit tests
+        run: |
+          npm run test:ci
+      - name: E2e tests
+        env:
+          STREAM_API_KEY: ${{ secrets.API_KEY }}
+          STREAM_USER_ID: ${{ secrets.USER_ID }}
+          STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
+        run: |
+          npm run e2e:ci
