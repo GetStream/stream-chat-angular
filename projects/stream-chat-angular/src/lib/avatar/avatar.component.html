@@ -1,0 +1,13 @@
+<div class="str-chat__avatar str-chat__avatar--circle" title="{{ name }}">
+  <img
+    *ngIf="image; else fallback"
+    class="str-chat__avatar-image str-chat__avatar-image--loaded"
+    src="{{ image }}"
+    alt="profile image"
+  />
+  <ng-template #fallback>
+    <div className="str-chat__avatar-fallback">
+      {{ initials }}
+    </div>
+  </ng-template>
+</div>

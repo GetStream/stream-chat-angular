@@ -1,0 +1,18 @@
+@import "../../styles/variables";
+
+.container {
+  padding: 10px 20px;
+  background-color: white;
+  .input {
+    width: 100%;
+    font-size: 15px;
+    padding: 13px;
+    border-radius: var(--border-radius-md);
+    border-color: transparent;
+    background-color: $grey;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

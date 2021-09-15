@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { ChatClientService, ChannelService } from 'stream-chat-angular';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +8,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'sample-app';
+  constructor(
+    private chatService: ChatClientService,
+    private channelService: ChannelService
+  ) {
+    this.chatService.init(
+      environment.apiKey,
+      environment.userId,
+      environment.userToken
+    );
+    void this.channelService.init();
+  }
 }

@@ -1,0 +1,15 @@
+<div class="str-chat__header-livestream">
+  <stream-avatar
+    image="{{ activeChannel?.data?.image }}"
+    name="{{ activeChannel?.data?.name }}"
+  ></stream-avatar>
+  <div class="str-chat__header-livestream-left">
+    <p class="str-chat__header-livestream-left--title">
+      {{ activeChannel?.data?.name }}
+    </p>
+    <p class="str-chat__header-livestream-left--members">
+      {{ activeChannel?.data?.member_count }} members,
+      {{ activeChannel?.state?.watcher_count }} online
+    </p>
+  </div>
+</div>

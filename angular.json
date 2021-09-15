@@ -8,6 +8,11 @@
   "projects": {
     "stream-chat-angular": {
       "projectType": "library",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "projects/stream-chat-angular",
       "sourceRoot": "projects/stream-chat-angular/src",
       "prefix": "stream",
