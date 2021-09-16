@@ -1,4 +1,4 @@
-name: Tests
+name: Tests and release
 on:
   push:
     branches:
@@ -47,3 +47,7 @@ jobs:
           STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
         run: |
           npm run e2e:ci
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: npx semantic-release
