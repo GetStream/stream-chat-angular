@@ -1,6 +1,6 @@
 # StreamChatAngular
 
-![tests workflow](https://github.com/GetStream/stream-chat-angular/actions/workflows/tests.yml/badge.svg)
+![tests and release workflow](https://github.com/GetStream/stream-chat-angular/actions/workflows/workflow.yml/badge.svg)
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.4.
 
