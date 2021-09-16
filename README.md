@@ -1,5 +1,7 @@
 # StreamChatAngular
 
+![tests workflow](https://github.com/GetStream/stream-chat-angular/actions/workflows/tests.yml/badge.svg)
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.4.
 
 Stream Chat Angular SDK + sample app
@@ -23,9 +25,9 @@ Run `npm run start:dev` it will start the sample app and watch for changes in th
 Create a file named `.env` in the root directory with the following content:
 
 ```
-API_KEY=<Your API key>
-USER_ID=<Your user ID>
-USER_TOKEN=<Your user token>
+STREAM_API_KEY=<Your API key>
+STREAM_USER_ID=<Your user ID>
+STREAM_USER_TOKEN=<Your user token>
 ```
 
 ## Environment settings
