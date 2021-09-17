@@ -1,4 +1,4 @@
-@import "../../styles/variables";
+// Prototype code, will be removed
 
 .container {
   display: flex;
@@ -14,13 +14,13 @@
   .message {
     font-size: 18px;
     padding: 5px;
-    background-color: $grey;
-    border-radius: var(--border-radius-md);
+    background-color: #f0f0f0;
+    border-radius: 5px;
   }
 
   .sender-info {
     font-size: 10px;
     margin-top: 3px;
-    color: $darken-grey;
+    color: #343434;
   }
 }

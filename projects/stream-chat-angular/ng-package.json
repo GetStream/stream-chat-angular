@@ -4,5 +4,6 @@
   "assets": ["src/styles/**/*.scss", "src/assets/**/*"],
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "allowedNonPeerDependencies": ["stream-chat-css"]
 }
