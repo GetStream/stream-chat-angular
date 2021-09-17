@@ -10,7 +10,8 @@
       "projectType": "library",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "inlineStyle": true
         }
       },
       "root": "projects/stream-chat-angular",

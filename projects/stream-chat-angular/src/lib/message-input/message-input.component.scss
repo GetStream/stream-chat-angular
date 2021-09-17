@@ -1,4 +1,4 @@
-@import "../../styles/variables";
+// Prototype code, will be removed
 
 .container {
   padding: 10px 20px;
@@ -7,9 +7,9 @@
     width: 100%;
     font-size: 15px;
     padding: 13px;
-    border-radius: var(--border-radius-md);
+    border-radius: 5px;
     border-color: transparent;
-    background-color: $grey;
+    background-color: #f0f0f0;
 
     &:focus {
       outline: none;
