@@ -31,7 +31,21 @@
     "branches": [
       "master"
     ],
-    "dryRun": true
+    "dryRun": true,
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/npm",
+        {
+          "pkgRoot": "./dist/stream-chat-angular",
+          "npmPublish": false
+        }
+      ],
+      [
+        "@semantic-release/github"
+      ]
+    ]
   },
   "dependencies": {
     "@angular/animations": "~12.2.0",
