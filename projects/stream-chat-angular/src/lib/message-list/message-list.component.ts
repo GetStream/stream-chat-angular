@@ -40,14 +40,12 @@ export class MessageListComponent implements AfterViewChecked {
         }
         const currentLatestMessageDate =
           messages[messages.length - 1].created_at;
-        console.log(currentLatestMessageDate);
         if (
           !this.latestMessageDate ||
           this.latestMessageDate?.getTime() < currentLatestMessageDate.getTime()
         ) {
           this.latestMessageDate = currentLatestMessageDate;
           this.hasNewMessages = true;
-          console.log('has new messages');
         }
         const currentOldestMessageDate = messages[0].created_at;
         if (!this.oldestMessageDate) {
@@ -65,7 +63,6 @@ export class MessageListComponent implements AfterViewChecked {
   ngAfterViewChecked() {
     if (this.hasNewMessages) {
       if (!this.isUserScrolledUp) {
-        console.log('scroll to bottom');
         this.scrollToBottom();
       }
       this.hasNewMessages = false;
