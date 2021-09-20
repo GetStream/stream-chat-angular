@@ -1,7 +1,10 @@
 {
   "root": true,
   "ignorePatterns": ["projects/**/*"],
-  "plugins": ["unused-imports", "cypress"],
+  "plugins": ["unused-imports", "cypress", "jasmine"],
+  "env": {
+    "jasmine": true
+  },
   "overrides": [
     {
       "files": ["*.ts"],
@@ -14,12 +17,14 @@
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:@angular-eslint/all",
         "plugin:cypress/recommended",
+        "plugin:jasmine/recommended",
         "plugin:prettier/recommended" // This should always be the last in the extends array
       ],
       "rules": {
         "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
         "@angular-eslint/prefer-on-push-component-change-detection": "off",
-        "unused-imports/no-unused-imports": "error"
+        "unused-imports/no-unused-imports": "error",
+        "no-console": ["error", { "allow": ["warn", "error"] }]
       }
     },
     {

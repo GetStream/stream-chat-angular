@@ -11,10 +11,9 @@ export class ChannelComponent {
   activeChannel: Channel | undefined;
 
   constructor(private channelService: ChannelService) {
-    this.channelService.activeChannel$.subscribe((c) => {
-      this.activeChannel = c;
-      console.log(this.activeChannel);
-    });
+    this.channelService.activeChannel$.subscribe(
+      (c) => (this.activeChannel = c)
+    );
     this.activeChannel?.state.messages;
   }
 }
