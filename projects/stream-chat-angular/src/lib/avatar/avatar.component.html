@@ -1,12 +1,33 @@
-<div class="str-chat__avatar str-chat__avatar--circle" title="{{ name }}">
+<div
+  class="str-chat__avatar str-chat__avatar--circle"
+  title="{{ name }}"
+  [style]="{
+    flexBasis: size + 'px',
+    fontSize: size / 2 + 'px',
+    height: size + 'px',
+    lineHeight: size + 'px',
+    width: size + 'px'
+  }"
+>
   <img
-    *ngIf="image; else fallback"
-    class="str-chat__avatar-image str-chat__avatar-image--loaded"
-    src="{{ image }}"
-    alt="profile image"
+    *ngIf="imageUrl && !isError; else fallback"
+    class="str-chat__avatar-image str-chat__avatar-image{{
+      isLoaded ? ' str-chat__avatar-image--loaded' : ''
+    }}"
+    src="{{ imageUrl }}"
+    alt="{{ initials }}"
+    data-testid="avatar-img"
+    (load)="isLoaded = true"
+    (error)="isError = true"
+    [style]="{
+      flexBasis: size + 'px',
+      height: size + 'px',
+      objectFit: 'cover',
+      width: size + 'px'
+    }"
   />
   <ng-template #fallback>
-    <div className="str-chat__avatar-fallback">
+    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
       {{ initials }}
     </div>
   </ng-template>

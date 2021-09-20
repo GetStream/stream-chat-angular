@@ -7,7 +7,10 @@ import { Component, Input } from '@angular/core';
 })
 export class AvatarComponent {
   @Input() name: string | undefined;
-  @Input() image: string | undefined;
+  @Input() imageUrl: string | undefined;
+  @Input() size = 32;
+  isLoaded = false;
+  isError = false;
 
   constructor() {}
 
