@@ -4,17 +4,17 @@ import {
   ElementRef,
   ViewChild,
 } from '@angular/core';
-import { FormatMessageResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { StreamMessage } from '../types';
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
   styleUrls: ['./message-list.component.scss'],
 })
 export class MessageListComponent implements AfterViewChecked {
-  messages$!: Observable<FormatMessageResponse[]>;
+  messages$!: Observable<StreamMessage[]>;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   private latestMessageDate: Date | undefined;

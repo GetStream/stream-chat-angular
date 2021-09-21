@@ -6,7 +6,10 @@
   >
     <ul className="str-chat__ul">
       <!-- eslint @angular-eslint/template/use-track-by-function: "off" -->
-      <li *ngFor="let message of messages$ | async">
+      <li
+        *ngFor="let message of messages$ | async"
+        class="str-chat__li str-chat__li--bottom"
+      >
         <stream-message [message]="message"></stream-message>
       </li>
     </ul>

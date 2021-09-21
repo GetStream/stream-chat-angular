@@ -5,5 +5,5 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["stream-chat-css"]
+  "allowedNonPeerDependencies": ["stream-chat-css", "dayjs"]
 }
