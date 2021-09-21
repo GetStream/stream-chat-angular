@@ -1,0 +1,45 @@
+---
+id: loading-indicator
+sidebar_position: 3
+title: LoadingIndicator
+---
+
+The `LoadingIndicator` component displays a spinner to indicate that an action is in progress.
+
+## Basic usage
+
+A typical use case for the `LoadingIndicator`component would be to use in your custom components that will completely override a message component, or similar.
+
+```typescript
+@Component({
+  selector: "app-custom-message",
+  template: `
+    <stream-loading-indicator
+      *ngIf="message.status === 'sending'"
+      [size]="20"
+    ></stream-loading-indicator>
+    <!-- Other parts of the custom message component -->
+  `,
+})
+export class CustomMessageComponent {
+  @Input() message: StreamMessage;
+}
+```
+
+## Inputs
+
+### color
+
+The color of the indicator
+
+| Type   | Default |
+| ------ | ------- |
+| string | #006CFF |
+
+### size
+
+The size in pixels of the spinner
+
+| Type   | Default |
+| ------ | ------- |
+| number | 15px    |

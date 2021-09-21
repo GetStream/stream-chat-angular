@@ -1,6 +1,117 @@
-<div class="container" [class.right]="isSentByCurrentUser">
-  <div class="message">{{ message?.text }}</div>
-  <div class="sender-info">
-    {{ message?.user?.name }} | {{ message?.created_at | date: "long" }}
+<div
+  class="str-chat__message-simple str-chat__message str-chat__message--{{
+    message?.type
+  }} str-chat__message--{{ message?.status }} {{
+    message?.text ? 'str-chat__message--has-text' : 'has-no-text'
+  }}"
+  [class.str-chat__message--me]="isSentByCurrentUser"
+  [class.str-chat__message-simple--me]="isSentByCurrentUser"
+  data-testid="message-container"
+>
+  <ng-container
+    *ngIf="
+      isSentByCurrentUser &&
+      (message?.status === 'sending' || message?.status === 'received')
+    "
+  >
+    <ng-container *ngIf="message?.status === 'sending'">
+      <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
+    </ng-container>
+    <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
+      <ng-container *ngTemplateOutlet="readStatus"></ng-container>
+    </ng-container>
+  </ng-container>
+  <stream-avatar
+    data-testid="avatar"
+    class="str-chat-angular__avatar-host"
+    [imageUrl]="message?.user?.image"
+    [name]="message?.user?.name || message?.user?.id"
+  ></stream-avatar>
+  <div class="str-chat__message-inner">
+    <div class="str-chat__message-text">
+      <div
+        class="str-chat__message-text-inner str-chat__message-simple-text-inner"
+      >
+        <div
+          data-testid="client-error-message"
+          *ngIf="message?.type === 'error'"
+          class="str-chat__simple-message--error-message"
+        >
+          Message not sent
+        </div>
+        <div
+          data-testid="error-message"
+          *ngIf="message?.status === 'failed'"
+          class="str-chat__simple-message--error-message"
+        >
+          {{
+            message?.errorStatusCode === 403 ? "Unauthorized" : "Message failed"
+          }}
+        </div>
+        <div data-testid="text">{{ message?.text }}</div>
+      </div>
+    </div>
+    <div class="str-chat__message-data str-chat__message-simple-data">
+      <span
+        data-testid="sender"
+        *ngIf="!isSentByCurrentUser"
+        class="str-chat__message-simple-name"
+      >
+        {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
+      </span>
+      <span data-testid="date" class="str-chat__message-simple-timestamp">
+        {{ parsedDate }}
+      </span>
+    </div>
   </div>
 </div>
+
+<ng-template #sendingStatus>
+  <span class="str-chat__message-simple-status" data-testid="sending-indicator">
+    <div class="str-chat__tooltip">Sending...</div>
+    <stream-loading-indicator
+      data-testid="loading-indicator"
+    ></stream-loading-indicator>
+  </span>
+</ng-template>
+<ng-template #readStatus>
+  <span class="str-chat__message-simple-status" data-testid="read-indicator">
+    <div class="str-chat__tooltip" data-testid="read-by-tooltip">
+      {{ readByText }}
+    </div>
+    <stream-avatar
+      class="str-chat-angular__avatar-host"
+      data-test-id="last-read-user-avatar"
+      [size]="15"
+      [imageUrl]="lastReadUser?.image"
+      [name]="lastReadUser?.name || lastReadUser?.id"
+    ></stream-avatar>
+    <span
+      data-test-id="read-by-length"
+      *ngIf="isReadByMultipleUsers"
+      class="str-chat__message-simple-status-number"
+    >
+      {{ (message?.readBy)!.length }}
+    </span>
+  </span>
+</ng-template>
+<ng-template #deliveredStatus>
+  <span
+    class="str-chat__message-simple-status"
+    data-testid="delivered-indicator"
+  >
+    <div class="str-chat__tooltip">Delivered</div>
+    <svg
+      height="16"
+      width="16"
+      xmlns="http://www.w3.org/2000/svg"
+      data-testid="delivered-icon"
+    >
+      <path
+        d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z"
+        fill="#006CFF"
+        fillRule="evenodd"
+      />
+    </svg>
+  </span>
+</ng-template>

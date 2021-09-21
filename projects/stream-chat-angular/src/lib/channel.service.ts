@@ -9,6 +9,8 @@ import {
   MessageResponse,
 } from 'stream-chat';
 import { ChatClientService } from './chat-client.service';
+import { getReadBy } from './read-by';
+import { StreamMessage } from './types';
 
 @Injectable({
   providedIn: 'root',
@@ -16,14 +18,14 @@ import { ChatClientService } from './chat-client.service';
 export class ChannelService {
   channels$: Observable<Channel[]>;
   activeChannel$: Observable<Channel | undefined>;
-  activeChannelMessages$: Observable<FormatMessageResponse[]>;
+  activeChannelMessages$: Observable<StreamMessage[]>;
   private channelsSubject = new BehaviorSubject<Channel[]>([]);
   private activeChannelSubject = new BehaviorSubject<Channel | undefined>(
     undefined
   );
-  private activeChannelMessagesSubject = new BehaviorSubject<
-    FormatMessageResponse[]
-  >([]);
+  private activeChannelMessagesSubject = new BehaviorSubject<StreamMessage[]>(
+    []
+  );
   private channelSubscriptions: { unsubscribe: () => void }[] = [];
 
   constructor(
@@ -41,7 +43,12 @@ export class ChannelService {
     this.stopWatchForChannelEvents(prevActiveChannel);
     this.watchForChannelEvents(channel);
     this.activeChannelSubject.next(channel);
-    this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    channel.state.messages.forEach((m) => {
+      m.readBy = getReadBy(m, channel);
+    });
+    this.activeChannelMessagesSubject.next([
+      ...channel.state.messages,
+    ] as StreamMessage[]);
   }
 
   async loadMoreMessages() {
@@ -56,11 +63,15 @@ export class ChannelService {
       activeChnannel?.data?.id ===
       this.activeChannelSubject.getValue()?.data?.id
     ) {
+      const loadedMessages: FormatMessageResponse[] = result!.messages.map(
+        (m) => this.formatMessage(m)
+      );
+      loadedMessages.forEach((m) => (m.readBy = getReadBy(m, activeChnannel!)));
       const messages = [
         ...result!.messages.map((m) => this.formatMessage(m)),
         ...this.activeChannelMessagesSubject.getValue(),
       ];
-      this.activeChannelMessagesSubject.next(messages);
+      this.activeChannelMessagesSubject.next(messages as StreamMessage[]);
     }
   }
 
@@ -92,7 +103,7 @@ export class ChannelService {
           ...this.activeChannelMessagesSubject.getValue(),
           this.formatMessage(newMessage),
         ];
-        this.activeChannelMessagesSubject.next(messages);
+        this.activeChannelMessagesSubject.next(messages as StreamMessage[]);
         this.appRef.tick();
       })
     );

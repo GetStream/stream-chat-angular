@@ -34,7 +34,8 @@
         "plugin:prettier/recommended" // This should always be the last in the extends array
       ],
       "rules": {
-        "@angular-eslint/template/i18n": "off"
+        "@angular-eslint/template/i18n": "off",
+        "@angular-eslint/template/cyclomatic-complexity": "off"
       }
     }
   ]
