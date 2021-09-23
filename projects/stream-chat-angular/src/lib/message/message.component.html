@@ -1,4 +1,5 @@
 <div
+  #container
   class="str-chat__message-simple str-chat__message str-chat__message--{{
     message?.type
   }} str-chat__message--{{ message?.status }} {{
@@ -6,6 +7,7 @@
   }}"
   [class.str-chat__message--me]="isSentByCurrentUser"
   [class.str-chat__message-simple--me]="isSentByCurrentUser"
+  [class.mobile-press]="isPressedOnMobile"
   data-testid="message-container"
 >
   <ng-container
@@ -28,6 +30,30 @@
     [name]="message?.user?.name || message?.user?.id"
   ></stream-avatar>
   <div class="str-chat__message-inner">
+    <div
+      class="str-chat__message-simple__actions"
+      data-testid="message-options"
+      *ngIf="areOptionsVisible"
+    >
+      <div
+        class="
+          str-chat__message-simple__actions__action
+          str-chat__message-simple__actions__action--options
+        "
+      >
+        <stream-message-actions-box
+          [isOpen]="isActionBoxOpen"
+          [isMine]="isSentByCurrentUser"
+          [enabledActions]="enabledMessageActions"
+        ></stream-message-actions-box>
+        <stream-icon
+          *ngIf="enabledMessageActions.length > 0"
+          data-testid="action-icon"
+          icon="action-icon"
+          (click)="isActionBoxOpen = !isActionBoxOpen"
+        ></stream-icon>
+      </div>
+    </div>
     <div class="str-chat__message-text">
       <div
         class="str-chat__message-text-inner str-chat__message-simple-text-inner"
@@ -48,7 +74,13 @@
             message?.errorStatusCode === 403 ? "Unauthorized" : "Message failed"
           }}
         </div>
-        <div data-testid="text">{{ message?.text }}</div>
+        <div
+          (click)="textClicked()"
+          (keypress.enter)="textClicked()"
+          data-testid="text"
+        >
+          {{ message?.text }}
+        </div>
       </div>
     </div>
     <div class="str-chat__message-data str-chat__message-simple-data">
@@ -101,17 +133,9 @@
     data-testid="delivered-indicator"
   >
     <div class="str-chat__tooltip">Delivered</div>
-    <svg
-      height="16"
-      width="16"
-      xmlns="http://www.w3.org/2000/svg"
+    <stream-icon
       data-testid="delivered-icon"
-    >
-      <path
-        d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z"
-        fill="#006CFF"
-        fillRule="evenodd"
-      />
-    </svg>
+      icon="delivered-icon"
+    ></stream-icon>
   </span>
 </ng-template>

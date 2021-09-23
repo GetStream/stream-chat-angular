@@ -9,6 +9,8 @@ import { MessageInputComponent } from './message-input/message-input.component';
 import { MessageListComponent } from './message-list/message-list.component';
 import { CommonModule } from '@angular/common';
 import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator.component';
+import { IconComponent } from './icon/icon.component';
+import { MessageActionsBoxComponent } from './message-actions-box/message-actions-box.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +23,8 @@ import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator
     MessageInputComponent,
     MessageListComponent,
     LoadingIndicatorComponent,
+    IconComponent,
+    MessageActionsBoxComponent,
   ],
   imports: [CommonModule],
   exports: [
