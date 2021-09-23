@@ -1,0 +1,34 @@
+---
+id: icon
+sidebar_position: 5
+title: Icons
+---
+
+The `Icon` component can be used to display different icons (i. e. message delivered icon).
+
+## Basic usage
+
+A typical use case for the `Icon` component would be to use in your custom components.
+
+```typescript
+@Component({
+  selector: "app-custom-message",
+  template: `
+    <stream-icon icon="delivered-icon"></stream-icon>
+    <!-- Other parts of the custom message component -->
+  `,
+})
+export class CustomMessageComponent {
+  @Input() message: StreamMessage;
+}
+```
+
+## Inputs
+
+### <div class="label required basic">Required</div> icon
+
+The icon to display, the list of supported icons can be found [here](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/icon/icon.component.ts).
+
+| Type                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------- |
+| [`Icon`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/icon/icon.component.ts) |
