@@ -1,0 +1,53 @@
+---
+id: message
+sidebar_position: 2
+title: Message
+---
+
+import MessageScreenshot from "../assets/message-screenshot.png";
+
+The `Message` component displays a message with additional information such as sender and date. Currently only text messages are supported.
+
+**Example 1** - example message:
+
+<img src={MessageScreenshot} width="500" />
+
+## Customization
+
+The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, here is how to do it:
+
+**Example 1** - custom message component:
+
+```typescript
+// TODO in upcoming issue
+```
+
+:::note
+
+If you want to build your own `Message` component, you might find the following building blocks useful:
+
+### Avatar
+
+The `Message` component uses the [`Avatar`](./avatar.mdx) component to display the sender's photo.
+
+### Loading indicator
+
+The `Message` component uses the [`LoadingIndicator`](./loading-indicator.mdx) component to display a spinner while the message is being sent.
+
+### User firendly dates
+
+The `Message` component uses the [`parseDate`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message/parse-date.ts) utility function to create user-firendly dates (for example _Yesterday at 8:15 AM_).
+
+### Read by
+
+The `Message` component uses the [`getReadByText`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message/read-by-text.ts) utility function to display the list of people who have read a particular message in a user friendly way (for example _Bob, Sophie, Jack, Rose, John and 1 more_).
+
+:::
+
+## Inputs
+
+### <div class="label required basic">Required</div> message
+
+| Type                  |
+| --------------------- |
+| StreamMessage \| null |

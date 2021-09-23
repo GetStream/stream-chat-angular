@@ -8,6 +8,7 @@ import { MessageComponent } from './message/message.component';
 import { MessageInputComponent } from './message-input/message-input.component';
 import { MessageListComponent } from './message-list/message-list.component';
 import { CommonModule } from '@angular/common';
+import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { CommonModule } from '@angular/common';
     MessageComponent,
     MessageInputComponent,
     MessageListComponent,
+    LoadingIndicatorComponent,
   ],
   imports: [CommonModule],
   exports: [
