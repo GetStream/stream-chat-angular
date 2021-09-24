@@ -8,6 +8,7 @@
   [class.str-chat__message--me]="isSentByCurrentUser"
   [class.str-chat__message-simple--me]="isSentByCurrentUser"
   [class.mobile-press]="isPressedOnMobile"
+  [class.str-chat__message--has-attachment]="hasAttachment"
   data-testid="message-container"
 >
   <ng-container
@@ -54,6 +55,10 @@
         ></stream-icon>
       </div>
     </div>
+    <stream-attachment-list
+      *ngIf="hasAttachment"
+      [attachments]="message!.attachments!"
+    ></stream-attachment-list>
     <div class="str-chat__message-text">
       <div
         class="str-chat__message-text-inner str-chat__message-simple-text-inner"

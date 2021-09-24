@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator.component';
 import { IconComponent } from './icon/icon.component';
 import { MessageActionsBoxComponent } from './message-actions-box/message-actions-box.component';
+import { AttachmentListComponent } from './attachment-list/attachment-list.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { MessageActionsBoxComponent } from './message-actions-box/message-action
     LoadingIndicatorComponent,
     IconComponent,
     MessageActionsBoxComponent,
+    AttachmentListComponent,
   ],
   imports: [CommonModule],
   exports: [

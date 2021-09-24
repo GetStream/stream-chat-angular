@@ -83,6 +83,10 @@ export class MessageComponent {
     );
   }
 
+  get hasAttachment() {
+    return !!this.message?.attachments && !!this.message.attachments.length;
+  }
+
   textClicked() {
     if (getDeviceWidth().device !== 'mobile') {
       this.isPressedOnMobile = false;
