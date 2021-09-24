@@ -18,8 +18,12 @@ The message list uses the `Message` component to display messages, if you want t
 
 **Example 1** - custom message component:
 
-```typescript
-// TODO in upcoming issue
+```html
+<stream-channel [messageTemplate]="customMessagetemplate"></stream-channel>
+
+<ng-template #customMessagetemplate let-message="message">
+  <app-custom-message [message]="message"></app-custom-message>
+</ng-template>
 ```
 
 :::note

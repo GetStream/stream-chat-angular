@@ -10,7 +10,14 @@
         *ngFor="let message of messages$ | async"
         class="str-chat__li str-chat__li--bottom"
       >
-        <stream-message [message]="message"></stream-message>
+        <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
+          <ng-container
+            *ngTemplateOutlet="messageTemplate; context: { message: message }"
+          ></ng-container>
+        </ng-container>
+        <ng-template #defaultMessageTemplate>
+          <stream-message [message]="message"></stream-message>
+        </ng-template>
       </li>
     </ul>
   </div>
