@@ -11,6 +11,7 @@ import { MessageActionsBoxComponent } from '../message-actions-box/message-actio
 import { By } from '@angular/platform-browser';
 import { mockCurrentUser, mockMessage } from '../mocks';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
+import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -32,6 +33,8 @@ describe('MessageComponent', () => {
   let queryText: () => HTMLElement | null;
   let messageActionsBoxComponent: MessageActionsBoxComponent;
   let queryAttachmentComponent: () => AttachmentListComponent;
+  let queryMessageReactionsComponent: () => MessageReactionsComponent;
+  let queryReactionIcon: () => HTMLElement | null;
 
   beforeEach(() => {
     currentUser = mockCurrentUser();
@@ -43,6 +46,7 @@ describe('MessageComponent', () => {
         IconComponent,
         MessageActionsBoxComponent,
         AttachmentListComponent,
+        MessageReactionsComponent,
       ],
       providers: [
         {
@@ -74,6 +78,8 @@ describe('MessageComponent', () => {
     queryActionIcon = () =>
       nativeElement.querySelector('[data-testid="action-icon"]');
     queryText = () => nativeElement.querySelector('[data-testid="text"]');
+    queryReactionIcon = () =>
+      nativeElement.querySelector('[data-testid="reaction-icon"]');
     message = mockMessage();
     component.message = message;
     fixture.detectChanges();
@@ -83,6 +89,9 @@ describe('MessageComponent', () => {
     queryAttachmentComponent = () =>
       fixture.debugElement.query(By.directive(AttachmentListComponent))
         ?.componentInstance as AttachmentListComponent;
+    queryMessageReactionsComponent = () =>
+      fixture.debugElement.query(By.directive(MessageReactionsComponent))
+        ?.componentInstance as MessageReactionsComponent;
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -428,5 +437,69 @@ describe('MessageComponent', () => {
 
     expect(attachmentComponent).not.toBeUndefined();
     expect(attachmentComponent.attachments).toBe(attachments);
+  });
+
+  it('should display reactions icon, if reactions are enabled', () => {
+    expect(queryReactionIcon()).not.toBeNull();
+
+    component.areReactionsEnabled = false;
+    fixture.detectChanges();
+
+    expect(queryReactionIcon()).toBeNull();
+  });
+
+  it('should display message reactions, if reactions are enabled', () => {
+    const reactions = { angry: 1 };
+    const ownReactions = [
+      {
+        type: 'wow',
+        created_at: '',
+        updated_at: '',
+        user: currentUser,
+      },
+    ];
+    const latestReactions = [
+      {
+        type: 'angry',
+        created_at: '',
+        updated_at: '',
+        user: { id: 'angryuser', name: 'Jack' } as UserResponse,
+      },
+      ...ownReactions,
+    ];
+    component.message = {
+      ...message,
+      ...{
+        reaction_counts: reactions,
+        latest_reactions: latestReactions,
+        own_reactions: ownReactions,
+      },
+    };
+    fixture.detectChanges();
+    const messageReactionsComponent = queryMessageReactionsComponent();
+
+    expect(messageReactionsComponent?.messageReactionCounts).toBe(reactions);
+    expect(messageReactionsComponent?.latestReactions).toBe(latestReactions);
+    expect(messageReactionsComponent?.isSelectorOpen).toBe(
+      component.isReactionSelectorOpen
+    );
+
+    expect(messageReactionsComponent?.messageId).toBe(component.message.id);
+
+    expect(messageReactionsComponent?.ownReactions).toBe(ownReactions);
+
+    component.areReactionsEnabled = false;
+    fixture.detectChanges();
+
+    expect(queryMessageReactionsComponent()).toBeUndefined();
+  });
+
+  it('should toggle reactions selector', () => {
+    expect(component.isReactionSelectorOpen).toBeFalse();
+
+    queryReactionIcon()?.click();
+    fixture.detectChanges();
+
+    expect(component.isReactionSelectorOpen).toBeTrue();
   });
 });

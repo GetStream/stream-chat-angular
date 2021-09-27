@@ -36,6 +36,13 @@ describe('IconComponent', () => {
     expect(queryIcon('delivered-icon')).not.toBeNull();
   });
 
+  it('should display reaction icon', () => {
+    component.icon = 'reaction-icon';
+    fixture.detectChanges();
+
+    expect(queryIcon('reaction-icon')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

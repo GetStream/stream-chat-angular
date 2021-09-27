@@ -5,12 +5,22 @@ title: Message
 ---
 
 import MessageScreenshot from "../assets/message-screenshot.png";
+import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
+import MessageReactionsScreenshot from "../assets/message-reactions-screenshot.png";
 
-The `Message` component displays a message with additional information such as sender and date, and enable interaction with message (i.e. edit). Currently only text messages are supported.
+The `Message` component displays a message with additional information such as sender and date, and enables interaction with the message (i.e. edit or react).
 
 **Example 1** - example message:
 
 <img src={MessageScreenshot} width="500" />
+
+**Example 2** - message with reactions:
+
+<img src={MessageReactionsScreenshot} width="500" />
+
+**Example 3** - message actions:
+
+<img src={MessageActionsScreenshot} width="500" />
 
 ## Customization
 
@@ -19,9 +29,9 @@ The message list uses the `Message` component to display messages, if you want t
 **Example 1** - custom message component:
 
 ```html
-<stream-channel [messageTemplate]="customMessagetemplate"></stream-channel>
+<stream-channel [messageTemplate]="customMessageTemplate"></stream-channel>
 
-<ng-template #customMessagetemplate let-message="message">
+<ng-template #customMessageTemplate let-message="message">
   <app-custom-message [message]="message"></app-custom-message>
 </ng-template>
 ```
@@ -36,7 +46,11 @@ The `Message` component uses the [`Avatar`](./avatar.mdx) component to display t
 
 ### Message actions
 
-The `Message` component uses the [`MessageActionsBox`](./message-actions.mdx) component to enable interaction with the message (i.e. edit)
+The `Message` component uses the [`MessageActionsBox`](./message-actions.mdx) component to enable interaction with the message (i.e. edit).
+
+### Message reactions
+
+The `Message` component uses the [`MessageReactions`](./message-reactions.mdx) component to display reactions of a message, and enable reacting to a message.
 
 ### Attachments
 
@@ -74,3 +88,11 @@ The list of actions that are enabled, more info can be found [here](./message-ac
 | Type            | Default                                            |
 | --------------- | -------------------------------------------------- |
 | MessageAction[] | ['pin', 'delete', 'edit', 'flag', 'mute', 'quote'] |
+
+### areReactionsEnabled
+
+If true, the message reactions are displayed, and the current user can react to messages.
+
+| Type    | Default |
+| ------- | ------- |
+| boolean | true    |

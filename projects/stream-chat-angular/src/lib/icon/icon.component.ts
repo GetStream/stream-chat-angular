@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-export type Icon = 'action-icon' | 'delivered-icon';
+export type Icon = 'action-icon' | 'delivered-icon' | 'reaction-icon';
 
 @Component({
   selector: 'stream-icon',

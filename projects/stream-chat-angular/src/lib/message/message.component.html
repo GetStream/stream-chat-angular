@@ -51,10 +51,31 @@
           *ngIf="enabledMessageActions.length > 0"
           data-testid="action-icon"
           icon="action-icon"
+          (keypress.enter)="isActionBoxOpen = !isActionBoxOpen"
           (click)="isActionBoxOpen = !isActionBoxOpen"
         ></stream-icon>
       </div>
+      <div
+        *ngIf="areReactionsEnabled"
+        class="
+          str-chat__message-simple__actions__action
+          str-chat__message-simple__actions__action--reactions
+        "
+        data-testid="reaction-icon"
+        (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
+        (keypress.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
+      >
+        <stream-icon icon="reaction-icon"></stream-icon>
+      </div>
     </div>
+    <stream-message-reactions
+      *ngIf="areReactionsEnabled"
+      [messageReactionCounts]="message?.reaction_counts || {}"
+      [latestReactions]="message?.latest_reactions || []"
+      [isSelectorOpen]="isReactionSelectorOpen"
+      [messageId]="message?.id"
+      [ownReactions]="message?.own_reactions || []"
+    ></stream-message-reactions>
     <stream-attachment-list
       *ngIf="hasAttachment"
       [attachments]="message!.attachments!"
