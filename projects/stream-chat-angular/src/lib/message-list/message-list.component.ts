@@ -2,6 +2,8 @@ import {
   AfterViewChecked,
   Component,
   ElementRef,
+  Input,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { ChannelService } from '../channel.service';
@@ -14,6 +16,7 @@ import { StreamMessage } from '../types';
   styleUrls: ['./message-list.component.scss'],
 })
 export class MessageListComponent implements AfterViewChecked {
+  @Input() messageTemplate: TemplateRef<any> | undefined;
   messages$!: Observable<StreamMessage[]>;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;

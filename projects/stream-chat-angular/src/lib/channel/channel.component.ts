@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 
@@ -8,6 +8,7 @@ import { ChannelService } from '../channel.service';
   styleUrls: ['./channel.component.scss'],
 })
 export class ChannelComponent {
+  @Input() messageTemplate: TemplateRef<any> | undefined;
   activeChannel: Channel | undefined;
 
   constructor(private channelService: ChannelService) {
