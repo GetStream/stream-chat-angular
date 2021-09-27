@@ -10,6 +10,7 @@ import { IconComponent } from '../icon/icon.component';
 import { MessageActionsBoxComponent } from '../message-actions-box/message-actions-box.component';
 import { By } from '@angular/platform-browser';
 import { mockCurrentUser, mockMessage } from '../mocks';
+import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -30,6 +31,7 @@ describe('MessageComponent', () => {
   let queryActionIcon: () => HTMLElement | null;
   let queryText: () => HTMLElement | null;
   let messageActionsBoxComponent: MessageActionsBoxComponent;
+  let queryAttachmentComponent: () => AttachmentListComponent;
 
   beforeEach(() => {
     currentUser = mockCurrentUser();
@@ -40,6 +42,7 @@ describe('MessageComponent', () => {
         LoadingIndicatorComponent,
         IconComponent,
         MessageActionsBoxComponent,
+        AttachmentListComponent,
       ],
       providers: [
         {
@@ -77,6 +80,9 @@ describe('MessageComponent', () => {
     messageActionsBoxComponent = fixture.debugElement.query(
       By.directive(MessageActionsBoxComponent)
     ).componentInstance as MessageActionsBoxComponent;
+    queryAttachmentComponent = () =>
+      fixture.debugElement.query(By.directive(AttachmentListComponent))
+        ?.componentInstance as AttachmentListComponent;
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -399,5 +405,28 @@ describe('MessageComponent', () => {
 
     expect(component.isPressedOnMobile).toBeFalse();
     expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
+  });
+
+  it('should display attachment if message has attachment', () => {
+    expect(
+      queryContainer()?.classList.contains('str-chat__message--has-attachment')
+    ).toBeFalse();
+
+    expect(queryAttachmentComponent()).toBeUndefined();
+
+    const attachments = [{ image_url: 'image/url' }];
+    component.message = {
+      ...message,
+      ...{ attachments },
+    };
+    fixture.detectChanges();
+    const attachmentComponent = queryAttachmentComponent();
+
+    expect(
+      queryContainer()?.classList.contains('str-chat__message--has-attachment')
+    ).toBeTrue();
+
+    expect(attachmentComponent).not.toBeUndefined();
+    expect(attachmentComponent.attachments).toBe(attachments);
   });
 });
