@@ -1,8 +1,5 @@
-import {
-  DefaultUserType,
-  StreamMessage,
-} from 'dist/stream-chat-angular/lib/types';
 import { UserResponse } from 'stream-chat';
+import { DefaultUserType, StreamMessage } from '../types';
 
 export const mockCurrentUser = () =>
   ({

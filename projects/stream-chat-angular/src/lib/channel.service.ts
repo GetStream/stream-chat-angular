@@ -5,10 +5,12 @@ import {
   ChannelFilters,
   ChannelOptions,
   ChannelSort,
+  Event,
   FormatMessageResponse,
   MessageResponse,
 } from 'stream-chat';
 import { ChatClientService } from './chat-client.service';
+import { MessageReactionType } from './message-reactions/message-reactions.component';
 import { getReadBy } from './read-by';
 import { StreamMessage } from './types';
 
@@ -95,6 +97,18 @@ export class ChannelService {
     }
   }
 
+  async addReaction(messageId: string, reactionType: MessageReactionType) {
+    await this.activeChannelSubject.getValue()?.sendReaction(messageId, {
+      type: reactionType,
+    });
+  }
+
+  async removeReaction(messageId: string, reactionType: MessageReactionType) {
+    await this.activeChannelSubject
+      .getValue()
+      ?.deleteReaction(messageId, reactionType);
+  }
+
   private watchForChannelEvents(channel: Channel) {
     this.channelSubscriptions.push(
       channel.on('message.new', (e) => {
@@ -107,6 +121,26 @@ export class ChannelService {
         this.appRef.tick();
       })
     );
+    channel.on('reaction.new', (e) => this.messageReactionEventReceived(e));
+    channel.on('reaction.deleted', (e) => this.messageReactionEventReceived(e));
+    channel.on('reaction.updated', (e) => this.messageReactionEventReceived(e));
+  }
+
+  private messageReactionEventReceived(e: Event) {
+    const message = this.activeChannelMessagesSubject
+      .getValue()
+      .find((m) => m.id === e.message?.id);
+    if (!message) {
+      return;
+    }
+    message.reaction_counts = { ...e.message?.reaction_counts };
+    message.reaction_scores = { ...e.message?.reaction_scores };
+    message.latest_reactions = [...(e.message?.latest_reactions || [])];
+    message.own_reactions = [...(e.message?.own_reactions || [])];
+    this.activeChannelMessagesSubject.next(
+      this.activeChannelMessagesSubject.getValue()
+    );
+    this.appRef.tick();
   }
 
   private formatMessage(message: MessageResponse) {

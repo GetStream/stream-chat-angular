@@ -18,5 +18,6 @@ export * from './lib/message/read-by-text';
 export * from './lib/message-input/message-input.component';
 export * from './lib/message-list/message-list.component';
 export * from './lib/attachment-list/attachment-list.component';
+export * from './lib/message-reactions/message-reactions.component';
 export * from './lib/stream-chat-angular.module';
 export * from './lib/types';

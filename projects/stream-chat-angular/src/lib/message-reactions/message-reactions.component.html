@@ -1,0 +1,98 @@
+<div
+  *ngIf="existingReactions.length > 0 && !isSelectorOpen"
+  class="str-chat__reaction-list"
+  [class.str-chat__reaction-list--reverse]="true"
+  data-testid="reaction-list"
+>
+  <ul>
+    <li
+      *ngFor="
+        let reactionType of existingReactions;
+        trackBy: trackByMessageReaction
+      "
+      data-testclass="emoji"
+    >
+      <ngx-emoji
+        emoji="{{ getEmojiNameByReaction(reactionType) }}"
+        [size]="16"
+      ></ngx-emoji>
+      &nbsp;
+    </li>
+    <li>
+      <span
+        data-testid="reactions-count"
+        class="str-chat__reaction-list--counter"
+        >{{ reactionsCount }}</span
+      >
+    </li>
+  </ul>
+</div>
+
+<div
+  #selectorContainer
+  class="str-chat__reaction-selector"
+  *ngIf="isSelectorOpen"
+  data-testid="reaction-selector"
+>
+  <div
+    *ngIf="tooltipText"
+    data-testid="tooltip"
+    #selectorTooltip
+    class="str-chat__reaction-selector-tooltip"
+    [ngStyle]="{
+      left: tooltipPositions?.tooltip + 'px',
+      visibility: tooltipPositions ? 'visible' : 'hidden'
+    }"
+  >
+    <div
+      class="arrow"
+      [ngStyle]="{ left: tooltipPositions?.arrow + 'px' }"
+    ></div>
+    <span class="latest-user-username">
+      {{ tooltipText }}
+    </span>
+  </div>
+  <ul class="str-chat__message-reactions-list">
+    <li
+      class="str-chat__message-reactions-list-item"
+      *ngFor="
+        let reactionType of reactionOptions;
+        trackBy: trackByMessageReaction
+      "
+      data-testclass="emoji-option"
+      (click)="react(reactionType)"
+      (keypress.enter)="react(reactionType)"
+    >
+      <div
+        *ngIf="getLatestUserByReaction(reactionType) as user"
+        class="latest-user"
+        (click)="hideTooltip()"
+        (keypress.enter)="hideTooltip()"
+        (mouseenter)="showTooltip($event, reactionType)"
+        (mouseleave)="hideTooltip()"
+        attr.data-testid="{{ reactionType }}-last-user"
+      >
+        <stream-avatar
+          attr.data-testid="{{ reactionType }}-avatar"
+          [imageUrl]="user.image"
+          [name]="user.name || user.id"
+          [size]="20"
+        ></stream-avatar>
+      </div>
+      <ngx-emoji
+        emoji="{{ getEmojiNameByReaction(reactionType) }}"
+        [size]="20"
+      ></ngx-emoji>
+      <span
+        *ngIf="
+          messageReactionCounts[reactionType] &&
+          messageReactionCounts[reactionType]! > 0
+        "
+        class="str-chat__message-reactions-list-item__count"
+        attr.data-testid="{{ reactionType }}-reaction-count"
+      >
+        {{ messageReactionCounts[reactionType] }}
+      </span>
+    </li>
+  </ul>
+</div>
