@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { UserResponse } from 'stream-chat';
 import { ChatClientService } from '../chat-client.service';
+import { getDeviceWidth } from '../device-width';
+import { MessageActions } from '../message-actions-box/message-actions-box.component';
 import { DefaultUserType, StreamMessage } from '../types';
 import { parseDate } from './parse-date';
 import { getReadByText } from './read-by-text';
@@ -12,7 +14,20 @@ import { getReadByText } from './read-by-text';
 })
 export class MessageComponent {
   @Input() message: StreamMessage | undefined;
+  @Input() enabledMessageActions: MessageActions[] = [
+    'pin',
+    'delete',
+    'edit',
+    'flag',
+    'mute',
+    'quote',
+  ];
+  isActionBoxOpen = false;
+  isPressedOnMobile = false;
   private user: UserResponse<DefaultUserType> | undefined;
+  @ViewChild('container') private container:
+    | ElementRef<HTMLElement>
+    | undefined;
 
   constructor(private chatClientService: ChatClientService) {
     this.user = this.chatClientService.chatClient.user;
@@ -52,5 +67,37 @@ export class MessageComponent {
       return;
     }
     return parseDate(this.message.created_at);
+  }
+
+  get areOptionsVisible() {
+    if (!this.message) {
+      return false;
+    }
+    return !(
+      !this.message.type ||
+      this.message.type === 'error' ||
+      this.message.type === 'system' ||
+      this.message.type === 'ephemeral' ||
+      this.message.status === 'failed' ||
+      this.message.status === 'sending'
+    );
+  }
+
+  textClicked() {
+    if (getDeviceWidth().device !== 'mobile') {
+      this.isPressedOnMobile = false;
+      return;
+    }
+    if (this.isPressedOnMobile) {
+      return;
+    }
+    this.isPressedOnMobile = true;
+    const eventHandler = (event: Event) => {
+      if (!this.container?.nativeElement.contains(event.target as Node)) {
+        this.isPressedOnMobile = false;
+        window.removeEventListener('click', eventHandler);
+      }
+    };
+    window.addEventListener('click', eventHandler);
   }
 }

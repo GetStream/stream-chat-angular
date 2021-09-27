@@ -1,19 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FormatMessageResponse, UserResponse } from 'stream-chat';
-import {
-  DefaultAttachmentType,
-  DefaultChannelType,
-  DefaultCommandType,
-  DefaultMessageType,
-  DefaultReactionType,
-  DefaultUserType,
-  StreamMessage,
-} from '../types';
+import { UserResponse } from 'stream-chat';
+import { DefaultUserType, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChatClientService } from '../chat-client.service';
+import { IconComponent } from '../icon/icon.component';
+import { MessageActionsBoxComponent } from '../message-actions-box/message-actions-box.component';
+import { By } from '@angular/platform-browser';
+import { mockCurrentUser, mockMessage } from '../mocks';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -30,14 +26,20 @@ describe('MessageComponent', () => {
   let queryReadByCounter: () => HTMLElement | null;
   let queryAvatar: () => HTMLElement | null;
   let queryLastReadUserAvatar: () => HTMLElement | null;
+  let queryMessageOptions: () => HTMLElement | null;
+  let queryActionIcon: () => HTMLElement | null;
+  let queryText: () => HTMLElement | null;
+  let messageActionsBoxComponent: MessageActionsBoxComponent;
 
   beforeEach(() => {
-    currentUser = { id: 'currentUser', name: 'Bob', image: 'link/to/photo' };
+    currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
       declarations: [
         MessageComponent,
         AvatarComponent,
         LoadingIndicatorComponent,
+        IconComponent,
+        MessageActionsBoxComponent,
       ],
       providers: [
         {
@@ -64,24 +66,17 @@ describe('MessageComponent', () => {
     queryAvatar = () => nativeElement.querySelector('[data-testid="avatar"]');
     queryLastReadUserAvatar = () =>
       nativeElement.querySelector('[data-test-id="last-read-user-avatar"]');
-    message = {
-      id: 'id',
-      text: 'Hello from Angular SDK',
-      user: currentUser,
-      type: 'regular',
-      status: 'received',
-      created_at: new Date('2021-09-14T13:08:30.004112Z'),
-      readBy: [{ id: 'alice', name: 'Alice' }],
-    } as FormatMessageResponse<
-      DefaultAttachmentType,
-      DefaultChannelType,
-      DefaultCommandType,
-      DefaultMessageType,
-      DefaultReactionType,
-      DefaultUserType
-    >;
+    queryMessageOptions = () =>
+      nativeElement.querySelector('[data-testid=message-options]');
+    queryActionIcon = () =>
+      nativeElement.querySelector('[data-testid="action-icon"]');
+    queryText = () => nativeElement.querySelector('[data-testid="text"]');
+    message = mockMessage();
     component.message = message;
     fixture.detectChanges();
+    messageActionsBoxComponent = fixture.debugElement.query(
+      By.directive(MessageActionsBoxComponent)
+    ).componentInstance as MessageActionsBoxComponent;
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -204,7 +199,7 @@ describe('MessageComponent', () => {
       id: 'userwithoutname',
       image: 'photo/about/user',
     };
-    delete currentUser.name;
+    delete message.user?.name;
     component.message = {
       ...message,
       ...{ readBy: [userWithoutName] },
@@ -225,9 +220,7 @@ describe('MessageComponent', () => {
   });
 
   it('should display text message', () => {
-    expect(
-      nativeElement.querySelector('[data-testid="text"]')?.textContent
-    ).toContain(message.text);
+    expect(queryText()?.textContent).toContain(message.text);
   });
 
   describe('should display error message', () => {
@@ -305,5 +298,106 @@ describe('MessageComponent', () => {
 
     expect(senderElement).toBeNull();
     expect(dateElement?.textContent).toContain('09/14/2021');
+  });
+
+  describe('should not display message options', () => {
+    it('if message is being sent', () => {
+      component.message = { ...message, ...{ status: 'sending' } };
+      fixture.detectChanges();
+
+      expect(component.areOptionsVisible).toBe(false);
+      expect(queryMessageOptions()).toBeNull();
+    });
+
+    it('if message sending failed', () => {
+      message.status = 'failed';
+
+      expect(component.areOptionsVisible).toBe(false);
+    });
+
+    it('if message is unsent', () => {
+      message.type = 'error';
+
+      expect(component.areOptionsVisible).toBe(false);
+    });
+
+    it('if message is system message', () => {
+      message.type = 'system';
+
+      expect(component.areOptionsVisible).toBe(false);
+    });
+
+    it('if message is ephemeral message', () => {
+      message.type = 'ephemeral';
+
+      expect(component.areOptionsVisible).toBe(false);
+    });
+  });
+
+  it('should display message options for regular messages', () => {
+    expect(queryMessageOptions()).not.toBeNull();
+  });
+
+  it('should display message actions for regular messages', () => {
+    expect(queryActionIcon()).not.toBeNull();
+  });
+
+  it(`shouldn't display message actions if ther are no enabled message actions`, () => {
+    component.enabledMessageActions = [];
+    fixture.detectChanges();
+
+    expect(queryActionIcon()).toBeNull();
+  });
+
+  it('should open and close message actions box', () => {
+    expect(messageActionsBoxComponent.isOpen).toBeFalse();
+
+    queryActionIcon()?.click();
+    fixture.detectChanges();
+
+    expect(messageActionsBoxComponent.isOpen).toBeTrue();
+  });
+
+  it('should provide #enabledActions to message actions box', () => {
+    expect(messageActionsBoxComponent.enabledActions).toBe(
+      component.enabledMessageActions
+    );
+  });
+
+  it('should provide #isMine to message actions box', () => {
+    expect(messageActionsBoxComponent.isMine).toBeTrue();
+
+    component.message = { ...message, ...{ user: { id: 'notcurrentuser' } } };
+    fixture.detectChanges();
+
+    expect(messageActionsBoxComponent.isMine).toBeFalse();
+  });
+
+  it('should add CSS class if text is clicked on mobile', () => {
+    expect(component.isPressedOnMobile).toBeFalse();
+    spyOnProperty(window, 'innerWidth').and.returnValue(300);
+    const text = queryText();
+    text?.click();
+    fixture.detectChanges();
+
+    expect(component.isPressedOnMobile).toBeTrue();
+    expect(queryContainer()?.classList.contains('mobile-press')).toBeTrue();
+  });
+
+  it('should remove CSS class after message is deselected', () => {
+    component.isPressedOnMobile = false;
+    fixture.detectChanges();
+
+    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
+  });
+
+  it(`shouldn't add CSS class if text was clicked on desktop`, () => {
+    spyOnProperty(window, 'innerWidth').and.returnValue(1200);
+    const text = queryText();
+    text?.click();
+    fixture.detectChanges();
+
+    expect(component.isPressedOnMobile).toBeFalse();
+    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
   });
 });
