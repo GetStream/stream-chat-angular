@@ -1,0 +1,42 @@
+---
+id: message_list
+sidebar_position: 3
+title: Message list
+---
+
+The `MessageList` component renders a scrollable list of messages. The list renders new message notifications, and standard messages containing text and/or attachments.
+
+The `MessageList` displays messages using pagination, new messages are loaded when the user scrolls to the top of the list.
+
+## Customization
+
+**Example 1** - Using a custom message list component
+
+If you want to create a custom message list component, here is how to use it:
+
+```html
+<stream-channel-list></stream-channel-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <custom-message-list></custom-message-list>
+  <stream-message-input></stream-message-input>
+</stream-channel>
+```
+
+:::note
+If you want to create your own message list, you can use the `ChannelService` to receive the necessary messages and interact with the Stream API.
+:::
+
+**Example 2** - Using a custom message component
+
+If you only want to customize the messages (not the whole list), see example [here](./message.mdx/#customization).
+
+## Inputs
+
+### messageTemplate
+
+You can provide your own custom message template, see example [here](./message.mdx/#customization). If nothing is provided, the [default message component](./message.mdx) is used.
+
+| Type        |
+| ----------- |
+| TemplateRef |
