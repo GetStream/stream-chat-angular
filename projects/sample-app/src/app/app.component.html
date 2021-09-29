@@ -1,17 +1,13 @@
 <div id="root">
   <stream-channel-list></stream-channel-list>
-  <div class="str-chat str-chat-channel messaging light">
-    <div class="str-chat__container">
-      <div class="str-chat__main-panel">
-        <stream-channel-header></stream-channel-header>
-        <stream-channel></stream-channel>
-        <stream-message-input></stream-message-input>
-      </div>
-    </div>
-  </div>
+  <stream-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-message-input></stream-message-input>
+  </stream-channel>
 </div>
 
-<!-- To use custom message, add this input to stream-channel: [messageTemplate]="customMessagetemplate"-->
+<!-- To use custom message, add this input to stream-message-list: [messageTemplate]="customMessagetemplate"-->
 <ng-template #customMessagetemplate let-message="message">
   <app-custom-message [message]="message"></app-custom-message>
 </ng-template>

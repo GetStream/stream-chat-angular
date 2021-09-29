@@ -1,13 +1,13 @@
-<div class="str-chat__list">
-  <div
-    #scrollContainer
-    class="str-chat__reverse-infinite-scroll"
-    (scroll)="scrolled()"
-  >
-    <ul className="str-chat__ul">
-      <!-- eslint @angular-eslint/template/use-track-by-function: "off" -->
+<div
+  #scrollContainer
+  data-testid="scroll-container"
+  class="str-chat__list"
+  (scroll)="scrolled()"
+>
+  <div class="str-chat__reverse-infinite-scroll">
+    <ul class="str-chat__ul">
       <li
-        *ngFor="let message of messages$ | async"
+        *ngFor="let message of messages$ | async; trackBy: trackByMessageId"
         class="str-chat__li str-chat__li--bottom"
       >
         <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
@@ -21,4 +21,27 @@
       </li>
     </ul>
   </div>
+</div>
+<div class="str-chat__list-notifications">
+  <button
+    data-testid="scroll-to-bottom"
+    *ngIf="isUserScrolledUp"
+    class="
+      str-chat__message-notification
+      str-chat__message-notification-right
+      str-chat__message-notification-scroll-down
+    "
+    (keypress.enter)="scrollToBottom()"
+    (click)="scrollToBottom()"
+  >
+    <div
+      *ngIf="unreadMessageCount > 0"
+      class="
+        str-chat__message-notification
+        str-chat__message-notification-scroll-down-unread-count
+      "
+    >
+      {{ unreadMessageCount }}
+    </div>
+  </button>
 </div>
