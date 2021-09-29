@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { StreamMessage } from 'dist/stream-chat-angular/lib/types';
 import { mockMessage } from '../mocks';
+import { StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
 

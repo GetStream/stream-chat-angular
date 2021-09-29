@@ -22,7 +22,9 @@ export class MessageComponent {
     'mute',
     'quote',
   ];
+  @Input() areReactionsEnabled = true;
   isActionBoxOpen = false;
+  isReactionSelectorOpen = false;
   isPressedOnMobile = false;
   private user: UserResponse<DefaultUserType> | undefined;
   @ViewChild('container') private container:

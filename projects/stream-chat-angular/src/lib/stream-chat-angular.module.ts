@@ -12,6 +12,8 @@ import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator
 import { IconComponent } from './icon/icon.component';
 import { MessageActionsBoxComponent } from './message-actions-box/message-actions-box.component';
 import { AttachmentListComponent } from './attachment-list/attachment-list.component';
+import { MessageReactionsComponent } from './message-reactions/message-reactions.component';
+import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
 @NgModule({
   declarations: [
@@ -27,8 +29,9 @@ import { AttachmentListComponent } from './attachment-list/attachment-list.compo
     IconComponent,
     MessageActionsBoxComponent,
     AttachmentListComponent,
+    MessageReactionsComponent,
   ],
-  imports: [CommonModule],
+  imports: [CommonModule, EmojiModule],
   exports: [
     AvatarComponent,
     ChannelComponent,

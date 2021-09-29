@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AvatarComponent } from 'stream-chat-angular';
+import { AvatarComponent } from './avatar.component';
 
 describe('AvatarComponent', () => {
   let component: AvatarComponent;
