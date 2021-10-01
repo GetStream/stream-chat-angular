@@ -30,6 +30,9 @@ The message list uses the `Message` component to display messages, if you want t
 
 ```html
 <stream-channel [messageTemplate]="customMessageTemplate"></stream-channel>
+<stream-message-list
+  [messageTemplate]="customMessageTemplate"
+></stream-message-list>
 
 <ng-template #customMessageTemplate let-message="message">
   <app-custom-message [message]="message"></app-custom-message>

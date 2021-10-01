@@ -10,7 +10,7 @@ import { getReadByText } from './read-by-text';
 @Component({
   selector: 'stream-message',
   templateUrl: './message.component.html',
-  styleUrls: ['./message.component.scss'],
+  styles: [],
 })
 export class MessageComponent {
   @Input() message: StreamMessage | undefined;
