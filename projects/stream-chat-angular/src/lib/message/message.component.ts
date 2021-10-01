@@ -23,6 +23,7 @@ export class MessageComponent {
     'quote',
   ];
   @Input() areReactionsEnabled = true;
+  @Input() isLastSentMessage: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
   isPressedOnMobile = false;
@@ -87,6 +88,13 @@ export class MessageComponent {
 
   get hasAttachment() {
     return !!this.message?.attachments && !!this.message.attachments.length;
+  }
+
+  get hasReactions() {
+    return (
+      !!this.message?.reaction_counts &&
+      Object.keys(this.message.reaction_counts).length > 0
+    );
   }
 
   textClicked() {

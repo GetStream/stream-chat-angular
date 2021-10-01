@@ -9,11 +9,15 @@
   [class.str-chat__message-simple--me]="isSentByCurrentUser"
   [class.mobile-press]="isPressedOnMobile"
   [class.str-chat__message--has-attachment]="hasAttachment"
+  [class.str-chat__message--with-reactions]="
+    areReactionsEnabled && hasReactions
+  "
   data-testid="message-container"
 >
   <ng-container
     *ngIf="
       isSentByCurrentUser &&
+      isLastSentMessage &&
       (message?.status === 'sending' || message?.status === 'received')
     "
   >

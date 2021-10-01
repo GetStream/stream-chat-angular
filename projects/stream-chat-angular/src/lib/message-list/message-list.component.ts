@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
+import { getGroupStyles, GroupStyle } from './group-styles';
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
@@ -24,6 +25,8 @@ export class MessageListComponent implements AfterViewChecked {
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
   unreadMessageCount = 0;
   isUserScrolledUp: boolean | undefined;
+  groupStyles: GroupStyle[] = [];
+  lastSentMessageId: string | undefined;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   private latestMessageDate: Date | undefined;
@@ -76,7 +79,20 @@ export class MessageListComponent implements AfterViewChecked {
           this.oldestMessageDate = currentOldestMessageDate;
           this.olderMassagesLoaded = true;
         }
-      })
+      }),
+      tap((messages) => {
+        this.groupStyles = messages.map((m, i) =>
+          getGroupStyles(m, messages[i - 1], messages[i + 1], true)
+        );
+      }),
+      tap(
+        (messages) =>
+          (this.lastSentMessageId = [...messages]
+            .reverse()
+            .find(
+              (m) => m.user?.id === this.chatClientService.chatClient?.user?.id
+            )?.id)
+      )
     );
   }
 
