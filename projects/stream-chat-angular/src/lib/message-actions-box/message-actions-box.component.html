@@ -10,7 +10,9 @@
       *ngIf="isQuoteEnabled"
       (click)="quoteClicked()"
     >
-      <li class="str-chat__message-actions-list-item">Reply</li>
+      <li class="str-chat__message-actions-list-item">
+        {{ "Reply" | translate }}
+      </li>
     </button>
     <button
       data-testid="pin-action"
@@ -18,7 +20,7 @@
       (click)="pinClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ message?.pinned ? "Unpin" : "Pin" }}
+        {{ (message?.pinned ? "Unpin" : "Pin") | translate }}
       </li>
     </button>
     <button
@@ -26,28 +28,36 @@
       *ngIf="isFlagEnabled"
       (click)="flagClicked()"
     >
-      <li class="str-chat__message-actions-list-item">Flag</li>
+      <li class="str-chat__message-actions-list-item">
+        {{ "Flag" | translate }}
+      </li>
     </button>
     <button
       data-testid="mute-action"
       *ngIf="isMuteEnabled"
       (click)="muteClicked()"
     >
-      <li class="str-chat__message-actions-list-item">Mute</li>
+      <li class="str-chat__message-actions-list-item">
+        {{ "Mute" | translate }}
+      </li>
     </button>
     <button
       data-testid="edit-action"
       *ngIf="isEditEnabled"
       (click)="editClicked()"
     >
-      <li class="str-chat__message-actions-list-item">Edit Message</li>
+      <li class="str-chat__message-actions-list-item">
+        {{ "Edit Message" | translate }}
+      </li>
     </button>
     <button
       data-testid="delete-action"
       *ngIf="isDeleteEnabled"
       (click)="deleteClicked()"
     >
-      <li class="str-chat__message-actions-list-item">Delete</li>
+      <li class="str-chat__message-actions-list-item">
+        {{ "Delete" | translate }}
+      </li>
     </button>
   </ul>
 </div>

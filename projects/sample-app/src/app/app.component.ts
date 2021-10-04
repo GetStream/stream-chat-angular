@@ -1,5 +1,10 @@
 import { Component } from '@angular/core';
-import { ChatClientService, ChannelService } from 'stream-chat-angular';
+import { TranslateService } from '@ngx-translate/core';
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+} from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -10,7 +15,9 @@ import { environment } from '../environments/environment';
 export class AppComponent {
   constructor(
     private chatService: ChatClientService,
-    private channelService: ChannelService
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private translateService: TranslateService
   ) {
     this.chatService.init(
       environment.apiKey,
@@ -18,5 +25,6 @@ export class AppComponent {
       environment.userToken
     );
     void this.channelService.init();
+    this.streamI18nService.init();
   }
 }

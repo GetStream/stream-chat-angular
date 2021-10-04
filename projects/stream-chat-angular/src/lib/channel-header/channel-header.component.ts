@@ -15,4 +15,12 @@ export class ChannelHeaderComponent {
       (c) => (this.activeChannel = c)
     );
   }
+
+  get memberCountParam() {
+    return { memberCount: this.activeChannel?.data?.member_count };
+  }
+
+  get watcherCountParam() {
+    return { watcherCount: this.activeChannel?.state?.watcher_count };
+  }
 }

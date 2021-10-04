@@ -12,6 +12,7 @@ import { By } from '@angular/platform-browser';
 import { mockCurrentUser, mockMessage } from '../mocks';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -39,6 +40,7 @@ describe('MessageComponent', () => {
   beforeEach(() => {
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       declarations: [
         MessageComponent,
         AvatarComponent,
@@ -301,7 +303,7 @@ describe('MessageComponent', () => {
       expect(querySendingIndicator()).toBeNull();
       expect(queryDeliveredIndicator()).toBeNull();
       expect(queryReadIndicator()).toBeNull();
-      expect(errorMessage!.textContent).toContain('Message failed');
+      expect(errorMessage!.textContent).toContain('Message Failed');
       expect(errorMessage!.textContent).not.toContain('Unauthorized');
     });
 
@@ -316,7 +318,7 @@ describe('MessageComponent', () => {
       const clientErrorMessage = queryClientErrorMessage();
 
       expect(clientErrorMessage).not.toBeNull();
-      expect(clientErrorMessage!.textContent).toContain('Message not sent');
+      expect(clientErrorMessage!.textContent).toContain('Error · Unsent');
     });
   });
 

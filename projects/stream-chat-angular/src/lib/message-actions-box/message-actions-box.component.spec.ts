@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
 import { mockMessage } from '../mocks';
 import { StreamMessage } from '../types';
 
@@ -19,6 +20,7 @@ describe('MessageActionsBoxComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       declarations: [MessageActionsBoxComponent],
     }).compileComponents();
   });
