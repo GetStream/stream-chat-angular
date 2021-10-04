@@ -24,6 +24,7 @@ describe('MessageListComponent', () => {
   let channelServiceMock: MockChannelService;
   let queryScrollContainer: () => HTMLElement | null;
   let queryMessageComponents: () => MessageComponent[];
+  let queryMessages: () => HTMLElement[];
   let queryScrollToBottomButton: () => HTMLElement | null;
 
   beforeEach(fakeAsync(() => {
@@ -47,22 +48,32 @@ describe('MessageListComponent', () => {
       fixture.debugElement
         .queryAll(By.directive(MessageComponent))
         .map((e) => e.componentInstance as MessageComponent);
+    queryMessages = () =>
+      Array.from(nativeElement.querySelectorAll('[data-testclass="message"]'));
     queryScrollToBottomButton = () =>
       nativeElement.querySelector('[data-testid="scroll-to-bottom"]');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
-    scrollContainer.style.maxHeight = '1000px';
+    scrollContainer.style.maxHeight = '500px';
     scrollContainer.style.overflowY = 'auto';
     tick(600);
     fixture.detectChanges();
   }));
 
   it('should display messages', () => {
-    const messagesComponents = queryMessageComponents();
     const messages = channelServiceMock.activeChannelMessages$.getValue();
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channelServiceMock.activeChannelMessages$.next([...messages]);
+    fixture.detectChanges();
+    const messagesComponents = queryMessageComponents();
 
     expect(messagesComponents.length).toBe(messages.length);
-    messagesComponents.forEach((m, i) => expect(m.message).toBe(messages[i]));
+    messagesComponents.forEach((m, i) => {
+      expect(m.message).toBe(messages[i]);
+      expect(m.isLastSentMessage).toBe(
+        i === messages.length - 2 ? true : false
+      );
+    });
   });
 
   it('should scroll to bottom, after loading the messages', () => {
@@ -203,5 +214,15 @@ describe('MessageListComponent', () => {
         scrollContainer.scrollHeight
       );
     }));
+  });
+
+  it('should apply group styles', () => {
+    const messagesElements = queryMessages();
+
+    /* eslint-disable jasmine/new-line-before-expect */
+    messagesElements.forEach((m) =>
+      expect(m.classList.toString()).toMatch(/middle|top|bottom|single/)
+    );
+    /* eslint-enable jasmine/new-line-before-expect */
   });
 });

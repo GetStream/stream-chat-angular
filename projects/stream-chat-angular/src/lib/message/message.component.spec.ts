@@ -95,6 +95,11 @@ describe('MessageComponent', () => {
   });
 
   it('should apply the correct CSS classes based on #message', () => {
+    component.message = {
+      ...component.message,
+      ...{ reaction_counts: { wow: 1 } },
+    } as StreamMessage;
+    fixture.detectChanges();
     const container = queryContainer();
     let classList = container?.classList;
 
@@ -109,17 +114,24 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message--has-text')).toBeTrue();
     expect(classList?.contains('str-chat__message--me')).toBeTrue();
     expect(classList?.contains('str-chat__message-simple--me')).toBeTrue();
+    expect(classList?.contains('str-chat__message--with-reactions')).toBeTrue();
 
-    message.user = { id: 'notcurrentUser', name: 'Jane' };
+    component.message.user = { id: 'notcurrentUser', name: 'Jane' };
+    component.areReactionsEnabled = false;
     fixture.detectChanges();
     classList = container?.classList;
 
     expect(classList?.contains('str-chat__message--me')).toBeFalse();
     expect(classList?.contains('str-chat__message-simple--me')).toBeFalse();
+    expect(
+      classList?.contains('str-chat__message--with-reactions')
+    ).toBeFalse();
   });
 
   describe('should display the correct message status', () => {
     it('if message is being sent', () => {
+      component.isLastSentMessage = true;
+      fixture.detectChanges();
       let indicator = querySendingIndicator();
 
       expect(indicator).toBeNull();
@@ -136,6 +148,7 @@ describe('MessageComponent', () => {
     });
 
     it('if message is delivered', () => {
+      component.isLastSentMessage = true;
       component.message = { ...message, ...{ readBy: [] } };
       fixture.detectChanges();
       const deliveredIndicator = queryDeliveredIndicator();
@@ -150,6 +163,8 @@ describe('MessageComponent', () => {
     });
 
     it('if message is read - only read by one user', () => {
+      component.isLastSentMessage = true;
+      fixture.detectChanges();
       const readIndicator = queryReadIndicator();
       const deliveredIndicator = queryDeliveredIndicator();
 
@@ -167,6 +182,7 @@ describe('MessageComponent', () => {
     });
 
     it('if message is read - read by multiple user', () => {
+      component.isLastSentMessage = true;
       const readBy = [
         { id: 'sara', name: 'Sara' },
         { id: 'jack', name: 'Jack' },
@@ -185,7 +201,14 @@ describe('MessageComponent', () => {
       expect(component.lastReadUser?.id).toBe(readBy[0].id);
     });
 
-    it('but only for messages sent by the current user', () => {
+    it('but only for last message sent by the current user', () => {
+      component.isLastSentMessage = false;
+      fixture.detectChanges();
+
+      expect(querySendingIndicator()).toBeNull();
+      expect(queryDeliveredIndicator()).toBeNull();
+      expect(queryReadIndicator()).toBeNull();
+
       message.user = { id: 'notcurrentuser', name: 'Daniel' };
       fixture.detectChanges();
 
@@ -215,6 +238,7 @@ describe('MessageComponent', () => {
       image: 'photo/about/user',
     };
     delete message.user?.name;
+    component.isLastSentMessage = true;
     component.message = {
       ...message,
       ...{ readBy: [userWithoutName] },

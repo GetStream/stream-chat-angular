@@ -7,16 +7,34 @@
   <div class="str-chat__reverse-infinite-scroll">
     <ul class="str-chat__ul">
       <li
-        *ngFor="let message of messages$ | async; trackBy: trackByMessageId"
-        class="str-chat__li str-chat__li--bottom"
+        data-testclass="message"
+        *ngFor="
+          let message of messages$ | async;
+          let i = index;
+          trackBy: trackByMessageId
+        "
+        class="str-chat__li str-chat__li--{{ groupStyles[i] }}"
       >
         <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
           <ng-container
-            *ngTemplateOutlet="messageTemplate; context: { message: message }"
+            *ngTemplateOutlet="
+              messageTemplate;
+              context: {
+                message: message,
+                lastSentMessageId: !!(
+                  lastSentMessageId && message?.id === lastSentMessageId
+                )
+              }
+            "
           ></ng-container>
         </ng-container>
         <ng-template #defaultMessageTemplate>
-          <stream-message [message]="message"></stream-message>
+          <stream-message
+            [message]="message"
+            [isLastSentMessage]="
+              !!(lastSentMessageId && message?.id === lastSentMessageId)
+            "
+          ></stream-message>
         </ng-template>
       </li>
     </ul>

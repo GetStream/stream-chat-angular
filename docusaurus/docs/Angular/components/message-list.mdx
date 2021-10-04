@@ -4,6 +4,9 @@ sidebar_position: 3
 title: Message list
 ---
 
+import MessagesWithGroupingsScreenhot from "../assets/messages-with-grouping-screenshot.png";
+import MessagesWithoutGroupingsScreenhot from "../assets/messages-without-groups-screenshot.png";
+
 The `MessageList` component renders a scrollable list of messages. The list renders new message notifications, and standard messages containing text and/or attachments.
 
 The `MessageList` displays messages using pagination, new messages are loaded when the user scrolls to the top of the list.
@@ -25,6 +28,21 @@ If you want to create a custom message list component, here is how to use it:
 
 :::note
 If you want to create your own message list, you can use the `ChannelService` to receive the necessary messages and interact with the Stream API.
+
+Other building blocks, that you might find useful:
+
+### Message group styles
+
+Message group styles makes the message list more readable, by grouping messages from the same author on the same day together. The grouping assigns a CSS class to every message, if you want to take advantage of this functionality, you can use the [`getGroupStyles`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-list/group-styles.ts) utility function.
+
+**Example 1** - Messages with group styles
+
+<img src={MessagesWithGroupingsScreenhot} width="500" />
+
+**Example 2** - Messages without group styles
+
+<img src={MessagesWithoutGroupingsScreenhot} width="500" />
+
 :::
 
 **Example 2** - Using a custom message component
