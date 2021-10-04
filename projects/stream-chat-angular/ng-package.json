@@ -8,6 +8,7 @@
   "allowedNonPeerDependencies": [
     "stream-chat-css",
     "dayjs",
-    "@ctrl/ngx-emoji-mart"
+    "@ctrl/ngx-emoji-mart",
+    "@ngx-translate/core"
   ]
 }

@@ -14,6 +14,7 @@ import { MessageActionsBoxComponent } from './message-actions-box/message-action
 import { AttachmentListComponent } from './attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from './message-reactions/message-reactions.component';
 import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,11 @@ import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
     AttachmentListComponent,
     MessageReactionsComponent,
   ],
-  imports: [CommonModule, EmojiModule],
+  imports: [
+    CommonModule,
+    EmojiModule,
+    TranslateModule.forRoot({ defaultLanguage: 'en' }),
+  ],
   exports: [
     AvatarComponent,
     ChannelComponent,

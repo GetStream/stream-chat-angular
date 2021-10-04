@@ -8,8 +8,8 @@
       {{ activeChannel?.data?.name }}
     </p>
     <p class="str-chat__header-livestream-left--members">
-      {{ activeChannel?.data?.member_count }} members,
-      {{ activeChannel?.state?.watcher_count }} online
+      {{'{{ memberCount }} members' | translate:memberCountParam}}
+      {{'{{ watcherCount }} online' | translate:watcherCountParam}}
     </p>
   </div>
 </div>

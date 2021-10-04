@@ -5,6 +5,7 @@
     "@angular/common": "^12.2.0",
     "@angular/core": "^12.2.0",
     "@ctrl/ngx-emoji-mart": "^6.0.1",
+    "@ngx-translate/core": "^13.0.0",
     "dayjs": "^1.10.7",
     "stream-chat": "^4.1.0"
   },

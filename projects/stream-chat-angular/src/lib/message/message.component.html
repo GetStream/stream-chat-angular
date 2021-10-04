@@ -93,7 +93,7 @@
           *ngIf="message?.type === 'error'"
           class="str-chat__simple-message--error-message"
         >
-          Message not sent
+          {{ "Error · Unsent" | translate }}
         </div>
         <div
           data-testid="error-message"
@@ -101,7 +101,10 @@
           class="str-chat__simple-message--error-message"
         >
           {{
-            message?.errorStatusCode === 403 ? "Unauthorized" : "Message failed"
+            (message?.errorStatusCode === 403
+              ? "Message Failed · Unauthorized"
+              : "Message Failed"
+            ) | translate
           }}
         </div>
         <div
@@ -130,7 +133,7 @@
 
 <ng-template #sendingStatus>
   <span class="str-chat__message-simple-status" data-testid="sending-indicator">
-    <div class="str-chat__tooltip">Sending...</div>
+    <div class="str-chat__tooltip">{{ "Sending..." | translate }}</div>
     <stream-loading-indicator
       data-testid="loading-indicator"
     ></stream-loading-indicator>
@@ -162,7 +165,7 @@
     class="str-chat__message-simple-status"
     data-testid="delivered-indicator"
   >
-    <div class="str-chat__tooltip">Delivered</div>
+    <div class="str-chat__tooltip">{{ "Delivered" | translate }}</div>
     <stream-icon
       data-testid="delivered-icon"
       icon="delivered-icon"
