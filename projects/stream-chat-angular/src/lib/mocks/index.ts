@@ -1,5 +1,5 @@
 import { DefaultUserType, StreamMessage } from '../types';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import { Channel, UserResponse } from 'stream-chat';
 
 export const mockCurrentUser = () =>
@@ -20,7 +20,7 @@ export const mockMessage = () =>
     readBy: [{ id: 'alice', name: 'Alice' }],
   } as any as StreamMessage);
 
-const generateMessages = (offset = 0, isOlder = false) => {
+const generateMockMessages = (offset = 0, isOlder = false) => {
   const messages = new Array(25).fill(null).map((_, index) => {
     const message = mockMessage();
     message.created_at = new Date(
@@ -34,27 +34,53 @@ const generateMessages = (offset = 0, isOlder = false) => {
   return messages;
 };
 
+export const generateMockChannels = () => {
+  /* eslint-disable @typescript-eslint/unbound-method */
+  const channels = new Array(25)
+    .fill(null)
+    .map(
+      (_, index) =>
+        ({ id: index.toString, name: `Channel${index}` } as any as Channel)
+    );
+  /* eslint-enable @typescript-eslint/unbound-method */
+  return channels;
+};
+
 export type MockChannelService = {
+  hasMoreChannels$: Subject<boolean>;
+  channels$: Subject<Channel[] | undefined>;
   activeChannelMessages$: BehaviorSubject<StreamMessage[]>;
   activeChannel$: Subject<Channel>;
   loadMoreMessages: () => void;
+  loadMoreChannels: () => void;
 };
 
 export const mockChannelService = (): MockChannelService => {
-  const messages = generateMessages();
+  const messages = generateMockMessages();
   const activeChannelMessages$ = new BehaviorSubject<StreamMessage[]>(messages);
   const activeChannel$ = new BehaviorSubject<Channel>({
     id: 'channelid',
   } as Channel);
+  const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
+  const hasMoreChannels$ = new ReplaySubject<boolean>(1);
 
   const loadMoreMessages = () => {
     const currentMessages = activeChannelMessages$.getValue();
     const messages = [
-      ...generateMessages(currentMessages.length, true),
+      ...generateMockMessages(currentMessages.length, true),
       ...currentMessages,
     ];
     activeChannelMessages$.next(messages);
   };
 
-  return { activeChannelMessages$, activeChannel$, loadMoreMessages };
+  const loadMoreChannels = () => {};
+
+  return {
+    activeChannelMessages$,
+    activeChannel$,
+    loadMoreMessages,
+    channels$,
+    hasMoreChannels$,
+    loadMoreChannels,
+  };
 };

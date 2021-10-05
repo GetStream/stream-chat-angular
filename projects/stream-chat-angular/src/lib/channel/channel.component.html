@@ -1,4 +1,7 @@
-<div class="str-chat str-chat-channel messaging light">
+<div
+  *ngIf="(isError$ | async) === false && (isInitializing$ | async) === false"
+  class="str-chat str-chat-channel messaging light"
+>
   <div class="str-chat__container">
     <div class="str-chat__main-panel">
       <ng-content></ng-content>

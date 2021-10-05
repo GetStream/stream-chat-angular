@@ -43,6 +43,13 @@ describe('IconComponent', () => {
     expect(queryIcon('reaction-icon')).not.toBeNull();
   });
 
+  it('should display connection error icon', () => {
+    component.icon = 'connection-error';
+    fixture.detectChanges();
+
+    expect(queryIcon('connection-error')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });
