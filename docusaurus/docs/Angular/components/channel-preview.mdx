@@ -1,0 +1,46 @@
+---
+id: channel-preview
+sidebar_position: 5
+title: Channel preview
+---
+
+The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
+
+## Customization
+
+The channel list uses the `ChannelPreview` component to display channels, if you want to replace that with your own custom component, here is how to do it:
+
+**Example 1** - custom channel preview component:
+
+```html
+<stream-channel-list
+  [customChannelPreviewTemplate]="customChannelPreviewTemplate"
+></stream-channel-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list></stream-message-list>
+  <stream-message-input></stream-message-input>
+</stream-channel>
+
+<ng-template #customChannelPreviewTemplate let-channel="channel">
+  <custom-channel-preview [channel]="channel"></custom-channel-preview>
+</ng-template>
+```
+
+:::note
+
+If you want to build your own `ChannelPreview` component, you might find the following building blocks useful:
+
+### Avatar
+
+The `ChannelPreview` component uses the [`Avatar`](./avatar.mdx) component to display the channels's photo.
+
+:::
+
+## Inputs
+
+### <div class="label required basic">Required</div> channel
+
+| Type                                                                                |
+| ----------------------------------------------------------------------------------- |
+| [`Channel`](https://github.com/GetStream/stream-chat-js/blob/master/src/channel.ts) |

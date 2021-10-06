@@ -29,10 +29,13 @@ The message list uses the `Message` component to display messages, if you want t
 **Example 1** - custom message component:
 
 ```html
-<stream-channel [messageTemplate]="customMessageTemplate"></stream-channel>
-<stream-message-list
-  [messageTemplate]="customMessageTemplate"
-></stream-message-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list
+    [messageTemplate]="customMessageTemplate"
+  ></stream-message-list>
+  <stream-message-input></stream-message-input>
+</stream-channel>
 
 <ng-template #customMessageTemplate let-message="message">
   <app-custom-message [message]="message"></app-custom-message>

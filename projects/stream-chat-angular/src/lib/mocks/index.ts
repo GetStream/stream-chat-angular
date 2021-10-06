@@ -1,6 +1,6 @@
 import { DefaultUserType, StreamMessage } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
-import { Channel, UserResponse } from 'stream-chat';
+import { Channel, EventTypes, UserResponse } from 'stream-chat';
 
 export const mockCurrentUser = () =>
   ({
@@ -36,12 +36,31 @@ const generateMockMessages = (offset = 0, isOlder = false) => {
 
 export const generateMockChannels = () => {
   /* eslint-disable @typescript-eslint/unbound-method */
-  const channels = new Array(25)
-    .fill(null)
-    .map(
-      (_, index) =>
-        ({ id: index.toString, name: `Channel${index}` } as any as Channel)
-    );
+  const channels = new Array(25).fill(null).map((_, index) => {
+    const eventHandlers: { [key: string]: Function } = {};
+    const channel = {
+      id: index.toString(),
+      data: {
+        id: index.toString(),
+        name: `Channel${index}`,
+        image: 'link/to/image',
+      },
+      on: (name: EventTypes, handler: () => {}) => {
+        eventHandlers[name as string] = handler;
+        return { unsubscribe: () => {} };
+      },
+      countUnread: () => {},
+      handleEvent: (name: EventTypes, message: StreamMessage) => {
+        eventHandlers[name as string]({ message });
+      },
+      state: {
+        messages: generateMockMessages(),
+      },
+    } as any as Channel & {
+      handleEvent: (s: string, m: StreamMessage) => void;
+    };
+    return channel;
+  });
   /* eslint-enable @typescript-eslint/unbound-method */
   return channels;
 };
@@ -53,6 +72,7 @@ export type MockChannelService = {
   activeChannel$: Subject<Channel>;
   loadMoreMessages: () => void;
   loadMoreChannels: () => void;
+  setAsActiveChannel: (c: Channel) => void;
 };
 
 export const mockChannelService = (): MockChannelService => {
@@ -74,6 +94,9 @@ export const mockChannelService = (): MockChannelService => {
   };
 
   const loadMoreChannels = () => {};
+  const setAsActiveChannel = (channel: Channel) => {
+    channel;
+  };
 
   return {
     activeChannelMessages$,
@@ -82,5 +105,6 @@ export const mockChannelService = (): MockChannelService => {
     channels$,
     hasMoreChannels$,
     loadMoreChannels,
+    setAsActiveChannel,
   };
 };
