@@ -21,7 +21,8 @@
     "pree2e:ci": "npm run config:prod && ng build --configuration production",
     "e2e:ci": "ng run sample-app:cypress-run --configuration production",
     "config:dev": "ANGULAR_ENV=development ts-node set-env.ts",
-    "config:prod": "ANGULAR_ENV=production ts-node set-env.ts"
+    "config:prod": "ANGULAR_ENV=production ts-node set-env.ts",
+    "start:docs": "npx stream-chat-docusaurus -s"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"

@@ -1,0 +1,52 @@
+---
+id: channel_list
+sidebar_position: 4
+title: Channel list
+---
+
+The `ChannelList` component renders the list of channels.
+
+The `ChannelList` displays channels using pagination, new channels are loaded if the user clicks the "Load more" button.
+
+## Customization
+
+**Example 1** - Using a custom channel list component
+
+If you want to create a custom channel list component, here is how to use it:
+
+```html
+<custom-channel-list></custom-channel-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list></stream-message-list>
+  <stream-message-input></stream-message-input>
+</stream-channel>
+```
+
+**Example 2** - Using a custom channel preview component
+
+If you only want to customize the channel preview items (not the whole list), see example here. TBD
+
+:::note
+If you want to create your own message list, you can use the `ChannelService` to receive the channels and interact with the Stream API.
+
+Other building blocks, that you might find useful:
+
+### Loading indicator
+
+The `ChannelList` component uses the [`LoadingIndicator`](./loading-indicator.mdx) component to display a spinner while more channels are being fetched.
+
+### Icons
+
+The `ChannelList` component uses the [`Icon`](./icons.mdx) component to display icons.
+:::
+
+## Inputs
+
+### customChannelPreviewTemplate
+
+By default, the default preview component is used. To change the contents of the channel list, provide your own custom template.
+
+| Type        |
+| ----------- |
+| TemplateRef |

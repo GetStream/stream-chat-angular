@@ -6,13 +6,102 @@
     str-chat-channel-list--open
   "
 >
-  <div class="str-chat__channel-list-messenger">
+  <div
+    *ngIf="
+      (isError$ | async) === false && (isInitializing$ | async) === false;
+      else statusIndicator
+    "
+    class="str-chat__channel-list-messenger"
+  >
     <div class="str-chat__channel-list-messenger__main">
-      <!-- eslint @angular-eslint/template/use-track-by-function: "off" -->
-      <stream-channel-preview
-        *ngFor="let channel of channels$ | async"
-        [channel]="channel"
-      ></stream-channel-preview>
+      <p
+        data-testid="empty-channel-list-indicator"
+        *ngIf="!(channels$ | async)?.length"
+      >
+        {{ "You have no channels currently" | translate }}
+      </p>
+      <ng-container
+        *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
+      >
+        <ng-container
+          *ngIf="customChannelPreviewTemplate; else defaultTemplate"
+        >
+          <ng-container
+            *ngTemplateOutlet="
+              customChannelPreviewTemplate;
+              context: { channel: channel }
+            "
+          ></ng-container>
+        </ng-container>
+        <ng-template #defaultTemplate>
+          <stream-channel-preview
+            data-testclass="channel-preview"
+            [channel]="channel"
+          ></stream-channel-preview>
+        </ng-template>
+      </ng-container>
+      <div
+        *ngIf="hasMoreChannels$ | async"
+        class="str-chat__load-more-button"
+        (click)="loadMoreChannels()"
+        (keypress.enter)="loadMoreChannels()"
+        data-testid="load-more"
+      >
+        <button
+          class="str-chat__load-more-button__button"
+          data-testid="load-more-button"
+          [disabled]="isLoadingMoreChannels"
+        >
+          <span *ngIf="!isLoadingMoreChannels; else loadingIndicator">{{
+            "Load more" | translate
+          }}</span>
+          <ng-template #loadingIndicator
+            ><stream-loading-indicator></stream-loading-indicator
+          ></ng-template>
+        </button>
+      </div>
     </div>
   </div>
 </div>
+
+<ng-template #statusIndicator>
+  <ng-container *ngIf="isError$ | async">
+    <ng-container *ngTemplateOutlet="chatDown"></ng-container>
+  </ng-container>
+  <ng-container *ngIf="isInitializing$ | async">
+    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
+  </ng-container>
+</ng-template>
+
+<ng-template #chatDown>
+  <div data-testid="chatdown-container" class="str-chat__down">
+    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
+    <div class="str-chat__down-main">
+      <stream-icon icon="connection-error"></stream-icon>
+      <h1>{{ "Connection error" | translate }}</h1>
+      <h3>
+        {{
+          "Error connecting to chat, refresh the page to try again." | translate
+        }}
+      </h3>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #loadingChannels>
+  <div data-testid="loading-indicator" class="str-chat__loading-channels">
+    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
+  </div>
+</ng-template>
+
+<ng-template #loadingChannel>
+  <div class="str-chat__loading-channels-item">
+    <div class="str-chat__loading-channels-avatar"></div>
+    <div class="str-chat__loading-channels-meta">
+      <div class="str-chat__loading-channels-username"></div>
+      <div class="str-chat__loading-channels-status"></div>
+    </div>
+  </div>
+</ng-template>

@@ -1,5 +1,5 @@
 import { ApplicationRef, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import {
   Channel,
   ChannelFilters,
@@ -18,17 +18,24 @@ import { StreamMessage } from './types';
   providedIn: 'root',
 })
 export class ChannelService {
-  channels$: Observable<Channel[]>;
+  hasMoreChannels$: Observable<boolean>;
+  channels$: Observable<Channel[] | undefined>;
   activeChannel$: Observable<Channel | undefined>;
   activeChannelMessages$: Observable<StreamMessage[]>;
-  private channelsSubject = new BehaviorSubject<Channel[]>([]);
+  private channelsSubject = new BehaviorSubject<Channel[] | undefined>(
+    undefined
+  );
   private activeChannelSubject = new BehaviorSubject<Channel | undefined>(
     undefined
   );
   private activeChannelMessagesSubject = new BehaviorSubject<StreamMessage[]>(
     []
   );
+  private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private channelSubscriptions: { unsubscribe: () => void }[] = [];
+  private filters: ChannelFilters | undefined;
+  private sort: ChannelSort | undefined;
+  private options: ChannelOptions | undefined;
 
   constructor(
     private chatClientService: ChatClientService,
@@ -38,6 +45,7 @@ export class ChannelService {
     this.activeChannel$ = this.activeChannelSubject.asObservable();
     this.activeChannelMessages$ =
       this.activeChannelMessagesSubject.asObservable();
+    this.hasMoreChannels$ = this.hasMoreChannelsSubject.asObservable();
   }
 
   setAsActiveChannel(channel: Channel) {
@@ -78,23 +86,22 @@ export class ChannelService {
   }
 
   async init() {
-    const filters: ChannelFilters = { type: 'messaging' };
-    const options: ChannelOptions = {
+    this.filters = { type: 'messaging' };
+    this.options = {
+      offset: 0,
+      limit: 25,
       state: true,
       presence: true,
       watch: true,
       message_limit: 25,
     };
-    const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
-    const channels = await this.chatClientService.chatClient.queryChannels(
-      filters,
-      sort,
-      options
-    );
-    this.channelsSubject.next(channels);
-    if (channels.length > 0) {
-      void this.setAsActiveChannel(channels[0]);
-    }
+    this.sort = { last_message_at: -1, updated_at: -1 };
+    await this.queryChannels();
+  }
+
+  async loadMoreChannels() {
+    this.options!.offset! += this.options!.limit!;
+    await this.queryChannels();
   }
 
   async addReaction(messageId: string, reactionType: MessageReactionType) {
@@ -164,5 +171,23 @@ export class ChannelService {
     }
     this.channelSubscriptions.forEach((s) => s.unsubscribe());
     this.channelSubscriptions = [];
+  }
+
+  private async queryChannels() {
+    try {
+      const channels = await this.chatClientService.chatClient.queryChannels(
+        this.filters!,
+        this.sort,
+        this.options
+      );
+      const prevChannels = this.channelsSubject.getValue() || [];
+      this.channelsSubject.next([...prevChannels, ...channels]);
+      if (channels.length > 0 && !this.activeChannelSubject.getValue()) {
+        void this.setAsActiveChannel(channels[0]);
+      }
+      this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
+    } catch (error) {
+      this.channelsSubject.error(error);
+    }
   }
 }

@@ -78,4 +78,6 @@ export const en = {
   '{{ user }} has been unmuted': '{{ user }} has been unmuted',
   '{{ watcherCount }} online': '{{ watcherCount }} online',
   '🏙 Attachment...': '🏙 Attachment...',
+  'Connection error': 'Connection error',
+  'Load more': 'Load more',
 };
