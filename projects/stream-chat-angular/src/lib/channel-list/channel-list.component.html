@@ -1,10 +1,8 @@
 <div
-  class="
-    str-chat str-chat-channel-list
-    messaging
-    light
-    str-chat-channel-list--open
-  "
+  #container
+  data-testid="channel-list-container"
+  class="str-chat str-chat-channel-list messaging light"
+  [class.str-chat-channel-list--open]="(isOpen$ | async) === true"
 >
   <div
     *ngIf="
@@ -26,17 +24,21 @@
         <ng-container
           *ngIf="customChannelPreviewTemplate; else defaultTemplate"
         >
-          <ng-container
-            *ngTemplateOutlet="
-              customChannelPreviewTemplate;
-              context: { channel: channel }
-            "
-          ></ng-container>
+          <div (click)="channelSelected()" (keypress.enter)="channelSelected()">
+            <ng-container
+              *ngTemplateOutlet="
+                customChannelPreviewTemplate;
+                context: { channel: channel }
+              "
+            ></ng-container>
+          </div>
         </ng-container>
         <ng-template #defaultTemplate>
           <stream-channel-preview
             data-testclass="channel-preview"
             [channel]="channel"
+            (click)="channelSelected()"
+            (keypress.enter)="channelSelected()"
           ></stream-channel-preview>
         </ng-template>
       </ng-container>

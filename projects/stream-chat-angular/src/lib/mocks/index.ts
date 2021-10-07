@@ -21,7 +21,7 @@ export const mockMessage = () =>
   } as any as StreamMessage);
 
 const generateMockMessages = (offset = 0, isOlder = false) => {
-  const messages = new Array(25).fill(null).map((_, index) => {
+  const messages = Array.from({ length: 25 }, (_, index) => {
     const message = mockMessage();
     message.created_at = new Date(
       message.created_at.getUTCMilliseconds() +
@@ -36,7 +36,7 @@ const generateMockMessages = (offset = 0, isOlder = false) => {
 
 export const generateMockChannels = () => {
   /* eslint-disable @typescript-eslint/unbound-method */
-  const channels = new Array(25).fill(null).map((_, index) => {
+  const channels = Array.from({ length: 25 }, (_, index) => {
     const eventHandlers: { [key: string]: Function } = {};
     const channel = {
       id: index.toString(),

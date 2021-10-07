@@ -13,6 +13,7 @@ export * from './lib/channel/channel.component';
 export * from './lib/channel-header/channel-header.component';
 export * from './lib/channel-preview/channel-preview.component';
 export * from './lib/channel-list/channel-list.component';
+export * from './lib/channel-list/channel-list-toggle.service';
 export * from './lib/message/message.component';
 export * from './lib/message/parse-date';
 export * from './lib/message/read-by-text';

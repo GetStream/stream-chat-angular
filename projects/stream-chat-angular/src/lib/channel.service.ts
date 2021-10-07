@@ -191,7 +191,7 @@ export class ChannelService {
       const prevChannels = this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
       if (channels.length > 0 && !this.activeChannelSubject.getValue()) {
-        void this.setAsActiveChannel(channels[0]);
+        this.setAsActiveChannel(channels[0]);
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
     } catch (error) {

@@ -1,4 +1,13 @@
 <div class="str-chat__header-livestream">
+  <div
+    class="str-chat__header-hamburger"
+    (click)="toggleMenu($event)"
+    (keypress.enter)="toggleMenu($event)"
+  >
+    <span class="str-chat__header-hamburger--line"></span>
+    <span class="str-chat__header-hamburger--line"></span>
+    <span class="str-chat__header-hamburger--line"></span>
+  </div>
   <stream-avatar
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ activeChannel?.data?.name }}"

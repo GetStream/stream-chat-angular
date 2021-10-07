@@ -8,13 +8,16 @@ import {
   mockChannelService,
   MockChannelService,
 } from '../mocks';
+import { ChannelListToggleService } from './channel-list-toggle.service';
 import { ChannelListComponent } from './channel-list.component';
 
 describe('ChannelListComponent', () => {
   let channelServiceMock: MockChannelService;
   let fixture: ComponentFixture<ChannelListComponent>;
   let nativeElement: HTMLElement;
+  let queryContainer: () => HTMLElement | null;
   let queryChannels: () => ChannelPreviewComponent[];
+  let queryChannelElements: () => HTMLElement[];
   let queryChatdownContainer: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryLoadMoreButton: () => HTMLElement | null;
@@ -33,6 +36,10 @@ describe('ChannelListComponent', () => {
       fixture.debugElement
         .queryAll(By.directive(ChannelPreviewComponent))
         .map((e) => e.componentInstance as ChannelPreviewComponent);
+    queryChannelElements = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="channel-preview"]')
+      );
     queryChatdownContainer = () =>
       nativeElement.querySelector('[data-testid="chatdown-container"]');
     queryLoadingIndicator = () =>
@@ -43,7 +50,8 @@ describe('ChannelListComponent', () => {
       nativeElement.querySelector(
         '[data-testid="empty-channel-list-indicator"]'
       );
-    fixture.detectChanges();
+    queryContainer = () =>
+      nativeElement.querySelector('[data-testid="channel-list-container"]');
   });
 
   it('should display channels', () => {
@@ -72,6 +80,8 @@ describe('ChannelListComponent', () => {
   });
 
   it('should display loading indicator, if loading', () => {
+    fixture.detectChanges();
+
     expect(queryChatdownContainer()).toBeNull();
     expect(queryLoadingIndicator()).not.toBeNull();
 
@@ -120,5 +130,37 @@ describe('ChannelListComponent', () => {
 
     expect(queryLoadingIndicator()).toBeNull();
     expect(channelServiceMock.loadMoreChannels).toHaveBeenCalledWith();
+  });
+
+  it('should apply open class', () => {
+    const service = TestBed.inject(ChannelListToggleService);
+    const openClass = 'str-chat-channel-list--open';
+    service.close();
+    const container = queryContainer();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(openClass)).toBeFalse();
+
+    service.open();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(openClass)).toBeTrue();
+  });
+
+  it('should notify the channelListToggleService if a channel is selected', () => {
+    const service = TestBed.inject(ChannelListToggleService);
+    spyOn(service, 'channelSelected');
+    spyOn(service, 'setMenuElement');
+    fixture.detectChanges();
+
+    expect(service.setMenuElement).toHaveBeenCalledWith(queryContainer()!);
+
+    const channels = generateMockChannels();
+    channelServiceMock.channels$.next(channels);
+    fixture.detectChanges();
+    queryChannelElements()[0].click();
+    fixture.detectChanges();
+
+    expect(service.channelSelected).toHaveBeenCalledWith();
   });
 });
