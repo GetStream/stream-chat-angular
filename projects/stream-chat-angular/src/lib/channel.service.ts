@@ -180,6 +180,14 @@ export class ChannelService {
         this.sort,
         this.options
       );
+      channels.forEach((c) =>
+        c.on(() => {
+          if (c.cid !== this.activeChannelSubject.getValue()?.cid) {
+            // wait for other event handlers to run
+            setTimeout(() => this.appRef.tick(), 0);
+          }
+        })
+      );
       const prevChannels = this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
       if (channels.length > 0 && !this.activeChannelSubject.getValue()) {
