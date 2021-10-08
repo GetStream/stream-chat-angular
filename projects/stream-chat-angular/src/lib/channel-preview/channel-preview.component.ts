@@ -43,6 +43,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.channel!.on('message.deleted', this.handleMessageEvent.bind(this))
     );
+    this.subscriptions.push(
+      this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
+    );
   }
 
   ngOnDestroy(): void {
@@ -66,6 +69,10 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private handleMessageEvent(event: Event) {
+    if (this.channel?.state.messages.length === 0) {
+      this.latestMessage = 'Nothing yet...';
+      return;
+    }
     if (
       !event.message ||
       this.channel?.state.messages[this.channel?.state.messages.length - 1]

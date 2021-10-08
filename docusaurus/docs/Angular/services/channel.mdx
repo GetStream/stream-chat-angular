@@ -1,0 +1,63 @@
+---
+id: channel
+sidebar_position: 2
+title: Channel service
+---
+
+The `ChannelService` provides data and interaction for the channel list and message list.
+
+# Overview
+
+## init
+
+Queries the channels with the given filters, sorts and options. More info about channel querying can be found [here](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript).
+
+## channels$
+
+Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list. Apart from pagination, the channel list is also updated on the following events:
+
+| Event type                          | Behavior                                                           |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `channel.deleted`                   | Remove channel from the list                                       |
+| `channel.hidden`                    | Remove channel from the list                                       |
+| `channel.truncated`                 | Updates the channel                                                |
+| `channel.updated`                   | Updates the channel                                                |
+| `channel.visible`                   | Adds the channel to the list                                       |
+| `message.new`                       | Moves the channel to top of the list                               |
+| `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it |
+| `notification.message_new`          | Adds the new channel to the top of the list and starts watching it |
+| `notification.removed_from_channel` | Removes the channel from the list                                  |
+
+You can read more about events [here](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events).
+
+## activeChannel$
+
+Emits the currently active channel.
+
+## setAsActiveChannel
+
+Sets the given `channel` as active.
+
+## hasMoreChannels$
+
+Emits `false` if there are no more pages of channels that can be loaded.
+
+## loadMoreChannels
+
+Loads the next page of channels. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+
+## activeChannelMessages$
+
+Emits the list of currently loaded messages of the active channel. Apart from pagination, the list is updated if a `message.new`, `reaction.new`, `reaction.deleted`, `reaction.updated` event is received.
+
+## loadMoreMessages
+
+Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+
+## addReaction
+
+Adds a reaction to a message.
+
+## removeReaction
+
+Removes a reaction from a message.

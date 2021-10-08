@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import {
   ChatClientService,
   ChannelService,
@@ -16,10 +15,9 @@ export class AppComponent {
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
-    private translateService: TranslateService
+    private streamI18nService: StreamI18nService
   ) {
-    this.chatService.init(
+    void this.chatService.init(
       environment.apiKey,
       environment.userId,
       environment.userToken
