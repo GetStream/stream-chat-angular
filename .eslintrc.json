@@ -25,7 +25,8 @@
         "@angular-eslint/prefer-on-push-component-change-detection": "off",
         "unused-imports/no-unused-imports": "error",
         "no-console": ["error", { "allow": ["warn", "error"] }],
-        "jasmine/no-spec-dupes": [1, "branch"]
+        "jasmine/no-spec-dupes": [1, "branch"],
+        "@typescript-eslint/unbound-method": "off"
       }
     },
     {
