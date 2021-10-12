@@ -65,6 +65,21 @@ describe('AttachmentListComponent', () => {
       expect(queryImages()[0].src).toContain(thumbUrl);
     });
 
+    it('should display image by image_url', () => {
+      const imageUrl = 'image/url';
+      component.attachments = [
+        {
+          type: 'image',
+          img_url: undefined,
+          thumb_url: undefined,
+          image_url: imageUrl,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(queryImages()[0].src).toContain(imageUrl);
+    });
+
     it('should set alt text for image', () => {
       const fallback = 'Fallback is image can not be displayed';
       component.attachments = [{ type: 'image', img_url: 'url1', fallback }];

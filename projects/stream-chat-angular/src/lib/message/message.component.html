@@ -84,9 +84,13 @@
       *ngIf="hasAttachment"
       [attachments]="message!.attachments!"
     ></stream-attachment-list>
-    <div class="str-chat__message-text">
+    <div class="str-chat__message-text" *ngIf="message?.text">
       <div
+        data-testid="inner-message"
         class="str-chat__message-text-inner str-chat__message-simple-text-inner"
+        [class.str-chat__message-light-text-inner--has-attachment]="
+          hasAttachment
+        "
       >
         <div
           data-testid="client-error-message"

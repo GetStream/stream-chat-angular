@@ -5,13 +5,11 @@
     *ngIf="attachment.type === 'image'"
     class="str-chat__message-attachment str-chat__message-attachment--image"
   >
-    <div class="str-chat__attachment">
-      <img
-        class="str-chat__message-attachment--img"
-        data-testclass="image"
-        [src]="attachment.img_url || attachment.thumb_url"
-        [alt]="attachment?.fallback"
-      />
-    </div>
+    <img
+      class="str-chat__message-attachment--img"
+      data-testclass="image"
+      [src]="attachment.img_url || attachment.thumb_url || attachment.image_url"
+      [alt]="attachment?.fallback"
+    />
   </div>
 </ng-container>
