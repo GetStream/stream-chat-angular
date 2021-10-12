@@ -22,6 +22,54 @@ export class ChannelService {
   channels$: Observable<Channel[] | undefined>;
   activeChannel$: Observable<Channel | undefined>;
   activeChannelMessages$: Observable<StreamMessage[]>;
+  customNewMessageNotificationHandler?: (
+    notification: Notification,
+    channelListSetter: (channels: Channel[]) => void
+  ) => void;
+  customAddedToChannelNotificationHandler?: (
+    notification: Notification,
+    channelListSetter: (channels: Channel[]) => void
+  ) => void;
+  customRemovedFromChannelNotificationHandler?: (
+    notification: Notification,
+    channelListSetter: (channels: Channel[]) => void
+  ) => void;
+  customChannelDeletedHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
+  customChannelUpdatedHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
+  customChannelTruncatedHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
+  customChannelHiddenHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
+  customChannelVisibleHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
+  customNewMessageHandler?: (
+    event: Event,
+    channel: Channel,
+    channelListSetter: (channels: Channel[]) => void,
+    messageListSetter: (messages: StreamMessage[]) => void
+  ) => void;
   private channelsSubject = new BehaviorSubject<Channel[] | undefined>(
     undefined
   );
@@ -36,6 +84,14 @@ export class ChannelService {
   private filters: ChannelFilters | undefined;
   private sort: ChannelSort | undefined;
   private options: ChannelOptions | undefined;
+
+  private channelListSetter = (channels: Channel[]) => {
+    this.channelsSubject.next(channels);
+  };
+
+  private messageListSetter = (messages: StreamMessage[]) => {
+    this.activeChannelMessagesSubject.next(messages);
+  };
 
   constructor(
     private chatClientService: ChatClientService,
@@ -122,29 +178,69 @@ export class ChannelService {
 
   private async handleNotification(notification: Notification) {
     switch (notification.eventType) {
-      case 'notification.message_new':
+      case 'notification.message_new': {
+        if (this.customNewMessageNotificationHandler) {
+          this.customNewMessageNotificationHandler(
+            notification,
+            this.channelListSetter
+          );
+        } else {
+          await this.handleNewMessageNotification(notification);
+        }
+        break;
+      }
       case 'notification.added_to_channel': {
-        const channel = this.chatClientService.chatClient.channel(
-          notification.event.channel?.type!,
-          notification.event.channel?.id
-        );
-        await channel.watch();
-        this.watchForChannelEvents(channel);
-        this.ngZone.run(() => {
-          this.channelsSubject.next([
-            channel,
-            ...(this.channelsSubject.getValue() || []),
-          ]);
-        });
+        if (this.customAddedToChannelNotificationHandler) {
+          this.customAddedToChannelNotificationHandler(
+            notification,
+            this.channelListSetter
+          );
+        } else {
+          await this.handleAddedToChannelNotification(notification);
+        }
         break;
       }
       case 'notification.removed_from_channel': {
-        this.ngZone.run(() => {
-          const channelIdToBeRemoved = notification.event.channel!.cid;
-          this.removeFromChannelList(channelIdToBeRemoved);
-        });
+        if (this.customRemovedFromChannelNotificationHandler) {
+          this.customRemovedFromChannelNotificationHandler(
+            notification,
+            this.channelListSetter
+          );
+        } else {
+          this.handleRemovedFromChannelNotification(notification);
+        }
       }
     }
+  }
+
+  private handleRemovedFromChannelNotification(notification: Notification) {
+    this.ngZone.run(() => {
+      const channelIdToBeRemoved = notification.event.channel!.cid;
+      this.removeFromChannelList(channelIdToBeRemoved);
+    });
+  }
+
+  private async handleNewMessageNotification(notification: Notification) {
+    await this.addChannelFromNotification(notification);
+  }
+
+  private async handleAddedToChannelNotification(notification: Notification) {
+    await this.addChannelFromNotification(notification);
+  }
+
+  private async addChannelFromNotification(notification: Notification) {
+    const channel = this.chatClientService.chatClient.channel(
+      notification.event.channel?.type!,
+      notification.event.channel?.id
+    );
+    await channel.watch();
+    this.watchForChannelEvents(channel);
+    this.ngZone.run(() => {
+      this.channelsSubject.next([
+        channel,
+        ...(this.channelsSubject.getValue() || []),
+      ]);
+    });
   }
 
   private removeFromChannelList(cid: string) {
@@ -166,11 +262,6 @@ export class ChannelService {
           this.formatMessage(newMessage),
         ];
         this.activeChannelMessagesSubject.next(messages as StreamMessage[]);
-        const channelIndex = this.channels.findIndex(
-          (c) => c.cid === channel.cid
-        );
-        this.channels.splice(channelIndex, 1);
-        this.channelsSubject.next([channel, ...this.channels]);
         this.appRef.tick();
       })
     );
@@ -241,34 +332,98 @@ export class ChannelService {
   private watchForChannelEvents(channel: Channel) {
     channel.on((event: Event) => {
       switch (event.type) {
+        case 'message.new': {
+          if (this.customNewMessageHandler) {
+            this.customNewMessageHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleNewMessage(event, channel);
+          }
+          break;
+        }
         case 'channel.hidden': {
-          this.handleChannelHidden(event);
+          if (this.customChannelHiddenHandler) {
+            this.customChannelHiddenHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleChannelHidden(event);
+          }
           this.appRef.tick();
           break;
         }
         case 'channel.deleted': {
-          this.handleChannelDeleted(event);
+          if (this.customChannelDeletedHandler) {
+            this.customChannelDeletedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleChannelDeleted(event);
+          }
           this.appRef.tick();
           break;
         }
         case 'channel.visible': {
-          this.handleChannelVisible(event, channel);
+          if (this.customChannelVisibleHandler) {
+            this.customChannelVisibleHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleChannelVisible(event, channel);
+          }
           this.appRef.tick();
           break;
         }
         case 'channel.updated': {
-          this.handleChannelUpdate(event);
+          if (this.customChannelUpdatedHandler) {
+            this.customChannelUpdatedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleChannelUpdate(event);
+          }
           this.appRef.tick();
           break;
         }
         case 'channel.truncated': {
-          this.handleChannelTruncate(event);
+          if (this.customChannelTruncatedHandler) {
+            this.customChannelTruncatedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter
+            );
+          } else {
+            this.handleChannelTruncate(event);
+          }
           this.appRef.tick();
           break;
         }
       }
       setTimeout(() => this.appRef.tick(), 0);
     });
+  }
+
+  private handleNewMessage(_: Event, channel: Channel) {
+    const channelIndex = this.channels.findIndex((c) => c.cid === channel.cid);
+    this.channels.splice(channelIndex, 1);
+    this.channelsSubject.next([channel, ...this.channels]);
   }
 
   private handleChannelHidden(event: Event) {
