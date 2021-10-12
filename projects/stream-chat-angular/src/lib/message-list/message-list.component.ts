@@ -82,7 +82,7 @@ export class MessageListComponent implements AfterViewChecked {
       }),
       tap((messages) => {
         this.groupStyles = messages.map((m, i) =>
-          getGroupStyles(m, messages[i - 1], messages[i + 1], true)
+          getGroupStyles(m, messages[i - 1], messages[i + 1])
         );
       }),
       tap(

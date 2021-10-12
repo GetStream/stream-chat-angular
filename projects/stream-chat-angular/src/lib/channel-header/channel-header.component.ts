@@ -26,10 +26,10 @@ export class ChannelHeaderComponent {
   }
 
   get memberCountParam() {
-    return { memberCount: this.activeChannel?.data?.member_count };
+    return { memberCount: this.activeChannel?.data?.member_count || 0 };
   }
 
   get watcherCountParam() {
-    return { watcherCount: this.activeChannel?.state?.watcher_count };
+    return { watcherCount: this.activeChannel?.state?.watcher_count || 0 };
   }
 }

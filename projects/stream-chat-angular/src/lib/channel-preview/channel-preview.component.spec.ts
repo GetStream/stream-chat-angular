@@ -210,4 +210,16 @@ describe('ChannelPreviewComponent', () => {
       updatedMessage.text
     );
   });
+
+  it('should update latest message if channel is truncated', () => {
+    const channel = generateMockChannels()[0];
+    channelServiceMock.activeChannel$.next(channel);
+    component.channel = channel;
+    fixture.detectChanges();
+    channel.state.messages = [];
+    channel.handleEvent('channel.truncated', { type: 'channel.truncated' });
+    fixture.detectChanges();
+
+    expect(queryLatestMessage()?.textContent).toContain('Nothing yet...');
+  });
 });
