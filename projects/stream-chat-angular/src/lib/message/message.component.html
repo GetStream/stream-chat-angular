@@ -55,7 +55,7 @@
           *ngIf="enabledMessageActions.length > 0"
           data-testid="action-icon"
           icon="action-icon"
-          (keypress.enter)="isActionBoxOpen = !isActionBoxOpen"
+          (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
           (click)="isActionBoxOpen = !isActionBoxOpen"
         ></stream-icon>
       </div>
@@ -67,7 +67,7 @@
         "
         data-testid="reaction-icon"
         (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
-        (keypress.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
+        (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
       >
         <stream-icon icon="reaction-icon"></stream-icon>
       </div>
@@ -113,7 +113,7 @@
         </div>
         <div
           (click)="textClicked()"
-          (keypress.enter)="textClicked()"
+          (keyup.enter)="textClicked()"
           data-testid="text"
         >
           {{ message?.text }}
