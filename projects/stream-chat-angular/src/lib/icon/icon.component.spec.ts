@@ -57,6 +57,13 @@ describe('IconComponent', () => {
     expect(queryIcon('send')).not.toBeNull();
   });
 
+  it('should display file upload icon', () => {
+    component.icon = 'file-upload';
+    fixture.detectChanges();
+
+    expect(queryIcon('file-upload')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

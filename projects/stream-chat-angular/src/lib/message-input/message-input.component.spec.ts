@@ -13,6 +13,8 @@ describe('MessageInputComponent', () => {
   let fixture: ComponentFixture<MessageInputComponent>;
   let queryTextarea: () => HTMLTextAreaElement | null;
   let querySendButton: () => HTMLButtonElement | null;
+  let queryFileUploadButton: () => HTMLElement | null;
+  let queryFileInput: () => HTMLInputElement | null;
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let sendMessageSpy: jasmine.Spy;
   let channel: Channel;
@@ -48,6 +50,10 @@ describe('MessageInputComponent', () => {
       nativeElement.querySelector('[data-testid="textarea"]');
     querySendButton = () =>
       nativeElement.querySelector('[data-testid="send-button"]');
+    queryFileUploadButton = () =>
+      nativeElement.querySelector('[data-testid="file-upload-button"]');
+    queryFileInput = () =>
+      nativeElement.querySelector('[data-testid="file-input"]');
     fixture.detectChanges();
   });
 
@@ -109,5 +115,42 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(textarea?.value).toBe('');
+  });
+
+  it('should display file upload button, if #isFileUploadEnabled is true', () => {
+    expect(queryFileUploadButton()).not.toBeNull();
+  });
+
+  it(`shouldn't display file upload button, if #isFileUploadEnabled is false`, () => {
+    component.isFileUploadEnabled = false;
+    fixture.detectChanges();
+
+    expect(queryFileUploadButton()).toBeNull();
+  });
+
+  it('should set the accepted file types', () => {
+    const accepted = ['.jpg', '.png'];
+    component.acceptedFileTypes = accepted;
+    fixture.detectChanges();
+    const fileUpload = queryFileInput();
+
+    expect(fileUpload?.getAttribute('accept')).toBe(accepted.join(','));
+  });
+
+  it('should accept every file type if #acceptedFileTypes not provided', () => {
+    const fileUpload = queryFileInput();
+
+    expect(fileUpload?.getAttribute('accept')).toBe('');
+  });
+
+  it('should set multiple attribute on file upload', () => {
+    const fileUpload = queryFileInput();
+
+    expect(fileUpload?.hasAttribute('multiple')).toBeTrue();
+
+    component.isMultipleFileUploadEnabled = false;
+    fixture.detectChanges();
+
+    expect(fileUpload?.hasAttribute('multiple')).toBeFalse();
   });
 });
