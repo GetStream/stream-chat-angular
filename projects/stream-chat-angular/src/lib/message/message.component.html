@@ -17,16 +17,18 @@
   <ng-container
     *ngIf="
       isSentByCurrentUser &&
-      isLastSentMessage &&
-      (message?.status === 'sending' || message?.status === 'received')
+      ((isLastSentMessage && message?.status === 'received') ||
+        message?.status === 'sending')
     "
   >
-    <ng-container *ngIf="message?.status === 'sending'">
+    <ng-container *ngIf="message?.status === 'sending'; else sentStatus">
       <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
     </ng-container>
-    <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
-      <ng-container *ngTemplateOutlet="readStatus"></ng-container>
-    </ng-container>
+    <ng-template #sentStatus>
+      <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
+        <ng-container *ngTemplateOutlet="readStatus"></ng-container>
+      </ng-container>
+    </ng-template>
   </ng-container>
   <stream-avatar
     data-testid="avatar"
