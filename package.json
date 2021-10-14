@@ -66,6 +66,7 @@
     "stream-chat-css": "1.0.17",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.0",
+    "uuidv4": "^6.2.12",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {

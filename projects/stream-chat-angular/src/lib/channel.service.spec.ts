@@ -1,30 +1,38 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
-import { Channel, Event, StreamChat } from 'stream-chat';
-import { StreamMessage } from 'stream-chat-angular';
+import { Channel, Event, StreamChat, UserResponse } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { ChatClientService, Notification } from './chat-client.service';
-import { generateMockChannels, MockChannel, mockMessage, Spied } from './mocks';
+import {
+  generateMockChannels,
+  MockChannel,
+  mockCurrentUser,
+  mockMessage,
+  Spied,
+} from './mocks';
+import { StreamMessage } from './types';
 
 describe('ChannelService', () => {
   let service: ChannelService;
   let mockChatClient: Spied<StreamChat>;
   let notification$: Subject<Notification>;
   let init: (c?: Channel[]) => Promise<void>;
+  let user: UserResponse;
 
   beforeEach(() => {
-    mockChatClient = {} as Spied<StreamChat>;
+    mockChatClient = {} as Spied<StreamChat> & StreamChat;
     mockChatClient.queryChannels = jasmine
       .createSpy()
       .and.returnValue(generateMockChannels());
     mockChatClient.channel = jasmine.createSpy();
+    user = mockCurrentUser();
     notification$ = new Subject();
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ChatClientService,
-          useValue: { chatClient: mockChatClient, notification$ },
+          useValue: { chatClient: { ...mockChatClient, user }, notification$ },
         },
       ],
     });
@@ -610,5 +618,107 @@ describe('ChannelService', () => {
     );
 
     expect(channelsSpy).not.toHaveBeenCalled();
+  });
+
+  it('should send message', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.callThrough();
+    spyOn(channel.state, 'addMessageSorted').and.callThrough();
+    const text = 'Hi';
+    let prevMessageCount!: number;
+    service.activeChannelMessages$
+      .pipe(first())
+      .subscribe((m) => (prevMessageCount = m.length));
+    await service.sendMessage(text);
+    let latestMessage!: StreamMessage;
+    let messageCount!: number;
+    service.activeChannelMessages$.subscribe((m) => {
+      latestMessage = m[m.length - 1];
+      messageCount = m.length;
+    });
+
+    expect(channel.sendMessage).toHaveBeenCalledWith({
+      text,
+      id: jasmine.any(String),
+    });
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({ text, user }),
+      true
+    );
+
+    expect(latestMessage.text).toBe(text);
+    expect(messageCount).toEqual(prevMessageCount + 1);
+  });
+
+  it('should set message state while sending', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage');
+    const text = 'Hi';
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    void service.sendMessage(text);
+
+    expect(latestMessage.status).toBe('sending');
+  });
+
+  it('should set message state after message is sent', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage');
+    const text = 'Hi';
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage(text);
+    (channel as MockChannel).handleEvent('message.new', {
+      id: latestMessage.id,
+    });
+
+    expect(latestMessage.status).toBe('received');
+  });
+
+  it('should set message state, if an error occured', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.callFake(() =>
+      Promise.reject({ status: 500 })
+    );
+    const text = 'Hi';
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage(text);
+
+    expect(latestMessage.status).toBe('failed');
+    expect(latestMessage.errorStatusCode).toBe(500);
+  });
+
+  it(`shouldn't duplicate new message`, async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    await service.sendMessage('Hi');
+    let newMessageId!: string;
+    service.activeChannelMessages$.pipe(first()).subscribe((m) => {
+      newMessageId = m[m.length - 1].id;
+    });
+    (channel as MockChannel).handleEvent('message.new', { id: newMessageId });
+    let messages!: StreamMessage[];
+    service.activeChannelMessages$.pipe(first()).subscribe((m) => {
+      messages = m;
+    });
+
+    expect(messages.filter((m) => m.id === newMessageId).length).toEqual(1);
   });
 });

@@ -61,13 +61,13 @@
       "
       data-testclass="emoji-option"
       (click)="react(reactionType)"
-      (keypress.enter)="react(reactionType)"
+      (keyup.enter)="react(reactionType)"
     >
       <div
         *ngIf="getLatestUserByReaction(reactionType) as user"
         class="latest-user"
         (click)="hideTooltip()"
-        (keypress.enter)="hideTooltip()"
+        (keyup.enter)="hideTooltip()"
         (mouseenter)="showTooltip($event, reactionType)"
         (mouseleave)="hideTooltip()"
         attr.data-testid="{{ reactionType }}-last-user"

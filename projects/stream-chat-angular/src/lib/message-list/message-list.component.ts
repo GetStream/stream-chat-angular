@@ -90,7 +90,9 @@ export class MessageListComponent implements AfterViewChecked {
           (this.lastSentMessageId = [...messages]
             .reverse()
             .find(
-              (m) => m.user?.id === this.chatClientService.chatClient?.user?.id
+              (m) =>
+                m.user?.id === this.chatClientService.chatClient?.user?.id &&
+                m.status !== 'sending'
             )?.id)
       )
     );

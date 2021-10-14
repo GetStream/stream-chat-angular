@@ -1,0 +1,24 @@
+---
+id: message-input
+sidebar_position: 11
+title: Message input
+---
+
+The `MessageInput` component displays an input where users can type their messages, and sends the message to the active channel.
+
+## Customization
+
+If you want to create your own message input, here is how to use it:
+
+```html
+<stream-channel-list></stream-channel-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list></stream-message-list>
+  <custom-message-input></custom-message-input>
+</stream-channel>
+```
+
+:::note
+If you want to create your own message input, you can use the [`ChannelService`](../services/channel.mdx) to send messages.
+:::

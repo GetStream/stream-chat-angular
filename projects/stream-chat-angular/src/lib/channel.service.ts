@@ -1,5 +1,6 @@
 import { ApplicationRef, Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { first, map } from 'rxjs/operators';
 import {
   Channel,
   ChannelFilters,
@@ -10,6 +11,7 @@ import {
   MessageResponse,
 } from 'stream-chat';
 import { ChatClientService, Notification } from './chat-client.service';
+import { createMessagePreview } from './message-preview';
 import { MessageReactionType } from './message-reactions/message-reactions.component';
 import { getReadBy } from './read-by';
 import { StreamMessage } from './types';
@@ -76,9 +78,9 @@ export class ChannelService {
   private activeChannelSubject = new BehaviorSubject<Channel | undefined>(
     undefined
   );
-  private activeChannelMessagesSubject = new BehaviorSubject<StreamMessage[]>(
-    []
-  );
+  private activeChannelMessagesSubject = new BehaviorSubject<
+    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+  >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private channelSubscriptions: { unsubscribe: () => void }[] = [];
   private filters: ChannelFilters | undefined;
@@ -100,8 +102,24 @@ export class ChannelService {
   ) {
     this.channels$ = this.channelsSubject.asObservable();
     this.activeChannel$ = this.activeChannelSubject.asObservable();
-    this.activeChannelMessages$ =
-      this.activeChannelMessagesSubject.asObservable();
+    this.activeChannelMessages$ = this.activeChannelMessagesSubject.pipe(
+      map((messages) => {
+        const channel = this.activeChannelSubject.getValue()!;
+        return messages.map((message) => {
+          if (this.isStreamMessage(message)) {
+            return message;
+          } else if (this.isFormatMessageResponse(message)) {
+            return { ...message, readBy: getReadBy(message, channel) };
+          } else {
+            const formatMessage = this.formatMessage(message);
+            return {
+              ...formatMessage,
+              readBy: getReadBy(formatMessage, channel),
+            };
+          }
+        });
+      })
+    );
     this.hasMoreChannels$ = this.hasMoreChannelsSubject.asObservable();
   }
 
@@ -113,15 +131,13 @@ export class ChannelService {
     channel.state.messages.forEach((m) => {
       m.readBy = getReadBy(m, channel);
     });
-    this.activeChannelMessagesSubject.next([
-      ...channel.state.messages,
-    ] as StreamMessage[]);
+    this.activeChannelMessagesSubject.next([...channel.state.messages]);
   }
 
   async loadMoreMessages() {
     const activeChnannel = this.activeChannelSubject.getValue();
     const lastMessageId = this.activeChannelMessagesSubject.getValue()[0]?.id;
-    const result = await activeChnannel?.query({
+    await activeChnannel?.query({
       messages: { limit: 25, id_lt: lastMessageId },
       members: { limit: 0 },
       watchers: { limit: 0 },
@@ -130,15 +146,9 @@ export class ChannelService {
       activeChnannel?.data?.id ===
       this.activeChannelSubject.getValue()?.data?.id
     ) {
-      const loadedMessages: FormatMessageResponse[] = result!.messages.map(
-        (m) => this.formatMessage(m)
-      );
-      loadedMessages.forEach((m) => (m.readBy = getReadBy(m, activeChnannel!)));
-      const messages = [
-        ...result!.messages.map((m) => this.formatMessage(m)),
-        ...this.activeChannelMessagesSubject.getValue(),
-      ];
-      this.activeChannelMessagesSubject.next(messages as StreamMessage[]);
+      this.activeChannelMessagesSubject.next([
+        ...activeChnannel!.state.messages,
+      ]);
     }
   }
 
@@ -174,6 +184,38 @@ export class ChannelService {
     await this.activeChannelSubject
       .getValue()
       ?.deleteReaction(messageId, reactionType);
+  }
+
+  async sendMessage(text: string) {
+    const preview = createMessagePreview(
+      this.chatClientService.chatClient.user!,
+      text
+    );
+    const channel = this.activeChannelSubject.getValue()!;
+    preview.readBy = [];
+    channel.state.addMessageSorted(preview, true);
+    this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    try {
+      await channel.sendMessage({
+        text,
+        id: preview.id,
+      });
+    } catch (error) {
+      const stringError = JSON.stringify(error);
+      const parsedError: { status?: number } = stringError
+        ? (JSON.parse(stringError) as { status?: number })
+        : {};
+
+      channel.state.addMessageSorted(
+        {
+          ...preview,
+          errorStatusCode: parsedError.status || undefined,
+          status: 'failed',
+        },
+        true
+      );
+      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    }
   }
 
   private async handleNotification(notification: Notification) {
@@ -257,11 +299,23 @@ export class ChannelService {
     this.channelSubscriptions.push(
       channel.on('message.new', (e) => {
         const newMessage = e.message!;
-        const messages = [
-          ...this.activeChannelMessagesSubject.getValue(),
-          this.formatMessage(newMessage),
-        ];
-        this.activeChannelMessagesSubject.next(messages as StreamMessage[]);
+        let currentMessages!: (StreamMessage | MessageResponse)[];
+        let newMessageIndex!: number;
+        this.activeChannelMessages$.pipe(first()).subscribe((messages) => {
+          currentMessages = messages;
+          newMessageIndex = currentMessages.findIndex(
+            (m) => m.id === newMessage?.id
+          );
+        });
+        if (newMessageIndex === -1) {
+          this.activeChannelMessagesSubject.next([
+            ...currentMessages,
+            newMessage,
+          ]);
+        } else {
+          currentMessages[newMessageIndex] = newMessage;
+          this.activeChannelMessagesSubject.next([...currentMessages]);
+        }
         this.appRef.tick();
       })
     );
@@ -271,9 +325,12 @@ export class ChannelService {
   }
 
   private messageReactionEventReceived(e: Event) {
-    const message = this.activeChannelMessagesSubject
-      .getValue()
-      .find((m) => m.id === e.message?.id);
+    let message: StreamMessage | undefined;
+    this.activeChannelMessages$
+      .pipe(first())
+      .subscribe(
+        (messages) => (message = messages.find((m) => m.id === e.message?.id))
+      );
     if (!message) {
       return;
     }
@@ -300,6 +357,18 @@ export class ChannelService {
         : new Date(),
       status: message.status || 'received',
     };
+  }
+
+  private isStreamMessage(
+    message: StreamMessage | FormatMessageResponse | MessageResponse
+  ): message is StreamMessage {
+    return !!message.readBy;
+  }
+
+  private isFormatMessageResponse(
+    message: StreamMessage | FormatMessageResponse | MessageResponse
+  ): message is FormatMessageResponse {
+    return message.created_at instanceof Date;
   }
 
   private stopWatchForActiveChannelEvents(channel: Channel | undefined) {

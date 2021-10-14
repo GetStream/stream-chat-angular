@@ -5,6 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { TranslateModule } from '@ngx-translate/core';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -30,6 +31,7 @@ describe('MessageListComponent', () => {
   beforeEach(fakeAsync(() => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       declarations: [MessageComponent, MessageListComponent],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
@@ -74,6 +76,17 @@ describe('MessageListComponent', () => {
         i === messages.length - 2 ? true : false
       );
     });
+  });
+
+  it(`should display messages - and shouldn't mark unsent messages as last sent message`, () => {
+    const messages = channelServiceMock.activeChannelMessages$.getValue();
+    messages[messages.length - 1].status = 'sending';
+    channelServiceMock.activeChannelMessages$.next([...messages]);
+    fixture.detectChanges();
+    const messagesComponents = queryMessageComponents();
+    const lastMessage = messagesComponents[messagesComponents.length - 1];
+
+    expect(lastMessage.isLastSentMessage).toBeFalse();
   });
 
   it('should scroll to bottom, after loading the messages', () => {

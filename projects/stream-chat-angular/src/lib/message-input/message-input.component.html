@@ -1,8 +1,25 @@
-<div class="container">
-  <input
-    class="input"
-    placeholder="Type your message here"
-    #input
-    (change)="messageSent()"
-  />
+<div class="str-chat__input-flat">
+  <div class="str-chat__input-flat-wrapper">
+    <div class="str-chat__input-flat--textarea-wrapper">
+      <div class="rta str-chat__textarea">
+        <textarea
+          autofocus
+          data-testid="textarea"
+          #input
+          placeholder="{{ 'Type your message' | translate }}"
+          class="rta__textarea str-chat__textarea__textarea"
+          rows="1"
+          (keyup.enter)="messageSent($event)"
+        ></textarea>
+      </div>
+    </div>
+    <button
+      data-testid="send-button"
+      class="str-chat__send-button"
+      (click)="messageSent()"
+      (keyup.enter)="messageSent()"
+    >
+      <stream-icon icon="send"></stream-icon>
+    </button>
+  </div>
 </div>

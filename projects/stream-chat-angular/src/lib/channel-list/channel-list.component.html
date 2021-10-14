@@ -24,7 +24,7 @@
         <ng-container
           *ngIf="customChannelPreviewTemplate; else defaultTemplate"
         >
-          <div (click)="channelSelected()" (keypress.enter)="channelSelected()">
+          <div (click)="channelSelected()" (keyup.enter)="channelSelected()">
             <ng-container
               *ngTemplateOutlet="
                 customChannelPreviewTemplate;
@@ -38,7 +38,7 @@
             data-testclass="channel-preview"
             [channel]="channel"
             (click)="channelSelected()"
-            (keypress.enter)="channelSelected()"
+            (keyup.enter)="channelSelected()"
           ></stream-channel-preview>
         </ng-template>
       </ng-container>
@@ -46,7 +46,7 @@
         *ngIf="hasMoreChannels$ | async"
         class="str-chat__load-more-button"
         (click)="loadMoreChannels()"
-        (keypress.enter)="loadMoreChannels()"
+        (keyup.enter)="loadMoreChannels()"
         data-testid="load-more"
       >
         <button

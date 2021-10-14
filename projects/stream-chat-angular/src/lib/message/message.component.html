@@ -17,16 +17,18 @@
   <ng-container
     *ngIf="
       isSentByCurrentUser &&
-      isLastSentMessage &&
-      (message?.status === 'sending' || message?.status === 'received')
+      ((isLastSentMessage && message?.status === 'received') ||
+        message?.status === 'sending')
     "
   >
-    <ng-container *ngIf="message?.status === 'sending'">
+    <ng-container *ngIf="message?.status === 'sending'; else sentStatus">
       <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
     </ng-container>
-    <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
-      <ng-container *ngTemplateOutlet="readStatus"></ng-container>
-    </ng-container>
+    <ng-template #sentStatus>
+      <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
+        <ng-container *ngTemplateOutlet="readStatus"></ng-container>
+      </ng-container>
+    </ng-template>
   </ng-container>
   <stream-avatar
     data-testid="avatar"
@@ -55,7 +57,7 @@
           *ngIf="enabledMessageActions.length > 0"
           data-testid="action-icon"
           icon="action-icon"
-          (keypress.enter)="isActionBoxOpen = !isActionBoxOpen"
+          (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
           (click)="isActionBoxOpen = !isActionBoxOpen"
         ></stream-icon>
       </div>
@@ -67,7 +69,7 @@
         "
         data-testid="reaction-icon"
         (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
-        (keypress.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
+        (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
       >
         <stream-icon icon="reaction-icon"></stream-icon>
       </div>
@@ -113,7 +115,7 @@
         </div>
         <div
           (click)="textClicked()"
-          (keypress.enter)="textClicked()"
+          (keyup.enter)="textClicked()"
           data-testid="text"
         >
           {{ message?.text }}

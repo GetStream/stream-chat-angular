@@ -37,6 +37,7 @@ describe('MessageComponent', () => {
   let queryMessageReactionsComponent: () => MessageReactionsComponent;
   let queryReactionIcon: () => HTMLElement | null;
   let queryMessageInner: () => HTMLElement | null;
+  let queryLoadingIndicator: () => HTMLElement | null;
 
   beforeEach(() => {
     currentUser = mockCurrentUser();
@@ -85,6 +86,8 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="reaction-icon"]');
     queryMessageInner = () =>
       nativeElement.querySelector('[data-testid="inner-message"]');
+    queryLoadingIndicator = () =>
+      nativeElement.querySelector('[data-testid="loading-indicator"]');
     message = mockMessage();
     component.message = message;
     fixture.detectChanges();
@@ -135,7 +138,7 @@ describe('MessageComponent', () => {
 
   describe('should display the correct message status', () => {
     it('if message is being sent', () => {
-      component.isLastSentMessage = true;
+      component.isLastSentMessage = false;
       fixture.detectChanges();
       let indicator = querySendingIndicator();
 
@@ -147,9 +150,10 @@ describe('MessageComponent', () => {
       indicator = querySendingIndicator();
 
       expect(indicator).not.toBeNull();
-      expect(
-        nativeElement.querySelector('[data-testid="loading-indicator"]')
-      ).not.toBeNull();
+      expect(queryLoadingIndicator()).not.toBeNull();
+
+      expect(queryReadIndicator()).toBeNull();
+      expect(queryDeliveredIndicator()).toBeNull();
     });
 
     it('if message is delivered', () => {
@@ -163,6 +167,7 @@ describe('MessageComponent', () => {
       const readIndicator = queryReadIndicator();
 
       expect(deliveredIndicator).not.toBeNull();
+      expect(queryLoadingIndicator()).toBeNull();
       expect(icon).not.toBeNull();
       expect(readIndicator).toBeNull();
     });
