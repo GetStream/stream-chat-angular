@@ -9,6 +9,7 @@
     "stream-chat-css",
     "dayjs",
     "@ctrl/ngx-emoji-mart",
-    "@ngx-translate/core"
+    "@ngx-translate/core",
+    "uuidv4"
   ]
 }

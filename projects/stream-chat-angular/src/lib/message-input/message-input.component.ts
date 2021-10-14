@@ -1,30 +1,20 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 
 @Component({
   selector: 'stream-message-input',
   templateUrl: './message-input.component.html',
-  styleUrls: ['./message-input.component.scss'],
+  styles: [],
 })
 export class MessageInputComponent {
-  activeChannel: Channel | undefined;
-  @ViewChild('input') messageInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
 
-  constructor(private channelService: ChannelService) {
-    this.channelService.activeChannel$.subscribe(
-      (c) => (this.activeChannel = c)
-    );
-  }
+  constructor(private channelService: ChannelService) {}
 
-  async messageSent() {
-    try {
-      await this.activeChannel?.sendMessage({
-        text: this.messageInput.nativeElement.value,
-      });
-      this.messageInput.nativeElement.value = '';
-    } catch (error) {
-      console.error('Message not sent', error);
-    }
+  messageSent(event?: Event) {
+    event?.preventDefault();
+    const text = this.messageInput.nativeElement.value;
+    this.messageInput.nativeElement.value = '';
+    void this.channelService.sendMessage(text);
   }
 }

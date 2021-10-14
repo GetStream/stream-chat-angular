@@ -4,13 +4,14 @@
   "peerDependencies": {
     "@angular/common": "^12.2.0",
     "@angular/core": "^12.2.0",
-    "@ctrl/ngx-emoji-mart": "^6.0.1",
-    "@ngx-translate/core": "^13.0.0",
-    "dayjs": "^1.10.7",
     "stream-chat": "^4.1.0"
   },
   "dependencies": {
+    "@ctrl/ngx-emoji-mart": "^6.0.1",
+    "@ngx-translate/core": "^13.0.0",
+    "dayjs": "^1.10.7",
     "stream-chat-css": "1.0.17",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "uuidv4": "^6.2.12"
   }
 }

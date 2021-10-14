@@ -50,6 +50,13 @@ describe('IconComponent', () => {
     expect(queryIcon('connection-error')).not.toBeNull();
   });
 
+  it('should display send icon', () => {
+    component.icon = 'send';
+    fixture.detectChanges();
+
+    expect(queryIcon('send')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

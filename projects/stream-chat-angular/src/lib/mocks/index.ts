@@ -1,6 +1,12 @@
 import { DefaultUserType, StreamMessage } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
-import { Channel, Event, EventTypes, UserResponse } from 'stream-chat';
+import {
+  Channel,
+  Event,
+  EventTypes,
+  MessageResponse,
+  UserResponse,
+} from 'stream-chat';
 
 export const mockCurrentUser = () =>
   ({
@@ -55,6 +61,7 @@ export const generateMockChannels = (length = 25) => {
         return { unsubscribe: () => {} };
       },
       watch: () => {},
+      sendMessage: () => {},
       countUnread: () => {},
       handleEvent: (name: EventTypes, payload?: any) => {
         if (eventHandlers[name as string]) {
@@ -66,6 +73,9 @@ export const generateMockChannels = (length = 25) => {
       state: {
         messages: generateMockMessages(),
         read: {},
+        addMessageSorted: function (response: MessageResponse) {
+          this.messages.push(response as any as StreamMessage);
+        },
       },
       query: () => {
         return {
