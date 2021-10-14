@@ -187,14 +187,39 @@ describe('ChannelService', () => {
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
-    service.setAsActiveChannel(channel);
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    (channel as MockChannel).handleEvent('message.new', mockMessage());
+    const event = {
+      message: mockMessage(),
+      type: 'message.new',
+    } as any as Event;
+    (channel as MockChannel).handleEvent('message.new', event);
 
     const firtChannel = (spy.calls.mostRecent().args[0] as Channel[])[0];
 
     expect(firtChannel).toBe(channel);
+  });
+
+  it('should call custom #customNewMessageHandler, if handler is provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.channels$
+      .pipe(first())
+      .subscribe((channels) => (channel = channels![1]));
+    const spy = jasmine.createSpy();
+    service.customNewMessageHandler = spy;
+    const event = {
+      message: mockMessage(),
+      type: 'message.new',
+    } as any as Event;
+    (channel as MockChannel).handleEvent('message.new', event);
+
+    expect(spy).toHaveBeenCalledWith(
+      event,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
   });
 
   it('should handle if channel visibility changes', async () => {
@@ -222,6 +247,41 @@ describe('ChannelService', () => {
     expect(channels.find((c) => c.cid === channel.cid)).not.toBeUndefined();
   });
 
+  it('should handle if channel visibility changes, if custom event handlers are provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const visibleSpy = jasmine.createSpy();
+    const hiddenSpy = jasmine.createSpy();
+    service.customChannelVisibleHandler = visibleSpy;
+    service.customChannelHiddenHandler = hiddenSpy;
+    const hiddenEvent = {
+      type: 'channel.hidden',
+      channel,
+    } as any as Event;
+    (channel as MockChannel).handleEvent('channel.hidden', hiddenEvent);
+
+    expect(hiddenSpy).toHaveBeenCalledWith(
+      hiddenEvent,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
+
+    const visibleEvent = {
+      type: 'channel.visible',
+      channel,
+    } as any as Event;
+    (channel as MockChannel).handleEvent('channel.hidden', visibleEvent);
+
+    expect(visibleSpy).toHaveBeenCalledWith(
+      visibleEvent,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
+  });
+
   it('should remove channel from list, if deleted', async () => {
     await init();
     let channel!: Channel;
@@ -236,6 +296,26 @@ describe('ChannelService', () => {
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
+  });
+
+  it('should call #customChannelDeletedHandler, if channel is deleted and handler is provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const spy = jasmine.createSpy();
+    service.customChannelDeletedHandler = spy;
+    const event = {
+      type: 'channel.deleted',
+      channel,
+    } as any as Event;
+    (channel as MockChannel).handleEvent('channel.deleted', event);
+
+    expect(spy).toHaveBeenCalledWith(
+      event,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
   });
 
   it('should update channel in list, if updated', async () => {
@@ -256,6 +336,29 @@ describe('ChannelService', () => {
 
     expect(channels.find((c) => c.cid === channel.cid)!.data!.name).toBe(
       'New name'
+    );
+  });
+
+  it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const spy = jasmine.createSpy();
+    service.customChannelUpdatedHandler = spy;
+    const event = {
+      type: 'channel.updated',
+      channel: {
+        cid: channel.cid,
+        name: 'New name',
+      },
+    } as any as Event;
+    (channel as MockChannel).handleEvent('channel.updated', event);
+
+    expect(spy).toHaveBeenCalledWith(
+      event,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
     );
   });
 
@@ -282,6 +385,29 @@ describe('ChannelService', () => {
     ).toBe(0);
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
+  });
+
+  it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const spy = jasmine.createSpy();
+    service.customChannelTruncatedHandler = spy;
+    const event = {
+      type: 'channel.truncated',
+      channel: {
+        cid: channel.cid,
+        name: 'New name',
+      },
+    } as any as Event;
+    (channel as MockChannel).handleEvent('channel.truncated', event);
+
+    expect(spy).toHaveBeenCalledWith(
+      event,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
   });
 
   it('should watch for reaction events', async () => {
@@ -405,5 +531,84 @@ describe('ChannelService', () => {
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
     expect(service.setAsActiveChannel).toHaveBeenCalledWith(newActiveChannel);
+  });
+
+  it('should call custom new message notification handler, if custom handler is provided', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.customNewMessageNotificationHandler = spy;
+    let channel!: Channel;
+    service.channels$
+      .pipe(first())
+      .subscribe((channels) => (channel = channels![1]));
+    const event = { channel: channel } as any as Event;
+    const channelsSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    channelsSpy.calls.reset();
+    notification$.next({
+      eventType: 'notification.message_new',
+      event: event,
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      { eventType: 'notification.message_new', event },
+      jasmine.any(Function)
+    );
+
+    expect(channelsSpy).not.toHaveBeenCalled();
+  });
+
+  it('should call custom added to channel notification handler, if custom handler is provided', async () => {
+    await init();
+    const spy = jasmine
+      .createSpy()
+      .and.callFake((_: Notification, setter: (channels: Channel[]) => []) =>
+        setter([])
+      );
+    service.customAddedToChannelNotificationHandler = spy;
+    let channel!: Channel;
+    service.channels$
+      .pipe(first())
+      .subscribe((channels) => (channel = channels![1]));
+    const event = { channel: channel } as any as Event;
+    const channelsSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    channelsSpy.calls.reset();
+    notification$.next({
+      eventType: 'notification.added_to_channel',
+      event: event,
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      { eventType: 'notification.added_to_channel', event },
+      jasmine.any(Function)
+    );
+
+    expect(channelsSpy).toHaveBeenCalledWith([]);
+  });
+
+  it('should call custom removed from channel notification handler, if custom handler is provided', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.customRemovedFromChannelNotificationHandler = spy;
+    let channel!: Channel;
+    service.channels$
+      .pipe(first())
+      .subscribe((channels) => (channel = channels![1]));
+    const event = { channel: channel } as any as Event;
+    const channelsSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    channelsSpy.calls.reset();
+    notification$.next({
+      eventType: 'notification.removed_from_channel',
+      event: event,
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      { eventType: 'notification.removed_from_channel', event },
+      jasmine.any(Function)
+    );
+
+    expect(channelsSpy).not.toHaveBeenCalled();
   });
 });

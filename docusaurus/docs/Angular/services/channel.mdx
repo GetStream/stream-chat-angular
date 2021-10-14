@@ -16,17 +16,19 @@ Queries the channels with the given filters, sorts and options. More info about 
 
 Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list. Apart from pagination, the channel list is also updated on the following events:
 
-| Event type                          | Behavior                                                           |
-| ----------------------------------- | ------------------------------------------------------------------ |
-| `channel.deleted`                   | Remove channel from the list                                       |
-| `channel.hidden`                    | Remove channel from the list                                       |
-| `channel.truncated`                 | Updates the channel                                                |
-| `channel.updated`                   | Updates the channel                                                |
-| `channel.visible`                   | Adds the channel to the list                                       |
-| `message.new`                       | Moves the channel to top of the list                               |
-| `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it |
-| `notification.message_new`          | Adds the new channel to the top of the list and starts watching it |
-| `notification.removed_from_channel` | Removes the channel from the list                                  |
+| Event type                          | Default behavior                                                   | Custom handler to override                    |
+| ----------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+| `channel.deleted`                   | Remove channel from the list                                       | `customChannelDeletedHandler`                 |
+| `channel.hidden`                    | Remove channel from the list                                       | `customChannelHiddenHandler`                  |
+| `channel.truncated`                 | Updates the channel                                                | `customChannelTruncatedHandler`               |
+| `channel.updated`                   | Updates the channel                                                | `customChannelUpdatedHandler`                 |
+| `channel.visible`                   | Adds the channel to the list                                       | `customChannelVisibleHandler`                 |
+| `message.new`                       | Moves the channel to top of the list                               | `customNewMessageHandler`                     |
+| `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it | `customAddedToChannelNotificationHandler`     |
+| `notification.message_new`          | Adds the new channel to the top of the list and starts watching it | `customNewMessageNotificationHandler`         |
+| `notification.removed_from_channel` | Removes the channel from the list                                  | `customRemovedFromChannelNotificationHandler` |
+
+It's important to note that filters don't apply to updates to the list from events.
 
 You can read more about events [here](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events).
 
