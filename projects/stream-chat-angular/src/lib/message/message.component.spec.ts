@@ -36,6 +36,7 @@ describe('MessageComponent', () => {
   let queryAttachmentComponent: () => AttachmentListComponent;
   let queryMessageReactionsComponent: () => MessageReactionsComponent;
   let queryReactionIcon: () => HTMLElement | null;
+  let queryMessageInner: () => HTMLElement | null;
 
   beforeEach(() => {
     currentUser = mockCurrentUser();
@@ -82,6 +83,8 @@ describe('MessageComponent', () => {
     queryText = () => nativeElement.querySelector('[data-testid="text"]');
     queryReactionIcon = () =>
       nativeElement.querySelector('[data-testid="reaction-icon"]');
+    queryMessageInner = () =>
+      nativeElement.querySelector('[data-testid="inner-message"]');
     message = mockMessage();
     component.message = message;
     fixture.detectChanges();
@@ -447,6 +450,12 @@ describe('MessageComponent', () => {
       queryContainer()?.classList.contains('str-chat__message--has-attachment')
     ).toBeFalse();
 
+    expect(
+      queryMessageInner()?.classList.contains(
+        'str-chat__message-light-text-inner--has-attachment'
+      )
+    ).toBeFalse();
+
     expect(queryAttachmentComponent()).toBeUndefined();
 
     const attachments = [{ image_url: 'image/url' }];
@@ -459,6 +468,12 @@ describe('MessageComponent', () => {
 
     expect(
       queryContainer()?.classList.contains('str-chat__message--has-attachment')
+    ).toBeTrue();
+
+    expect(
+      queryMessageInner()?.classList.contains(
+        'str-chat__message-light-text-inner--has-attachment'
+      )
     ).toBeTrue();
 
     expect(attachmentComponent).not.toBeUndefined();
@@ -527,5 +542,12 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(component.isReactionSelectorOpen).toBeTrue();
+  });
+
+  it(`shouldn't display empty text`, () => {
+    component.message = { ...component.message!, ...{ text: '' } };
+    fixture.detectChanges();
+
+    expect(queryText()).toBeNull();
   });
 });
