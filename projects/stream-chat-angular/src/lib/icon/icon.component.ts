@@ -5,7 +5,8 @@ export type Icon =
   | 'delivered-icon'
   | 'reaction-icon'
   | 'connection-error'
-  | 'send';
+  | 'send'
+  | 'file-upload';
 
 @Component({
   selector: 'stream-icon',

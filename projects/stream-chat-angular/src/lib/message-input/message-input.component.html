@@ -12,6 +12,31 @@
           (keyup.enter)="messageSent($event)"
         ></textarea>
       </div>
+      <div
+        *ngIf="isFileUploadEnabled"
+        class="str-chat__fileupload-wrapper"
+        data-testid="file-upload-button"
+      >
+        <div class="str-chat__tooltip">
+          {{ "Attach files" | translate }}
+        </div>
+        <div class="rfu-file-upload-button">
+          <label>
+            <input
+              #fileInput
+              type="file"
+              class="rfu-file-input"
+              data-testid="file-input"
+              [accept]="accept"
+              [multiple]="isMultipleFileUploadEnabled"
+              (change)="filesSelected(fileInput.files)"
+            />
+            <span class="str-chat__input-flat-fileupload">
+              <stream-icon icon="file-upload"></stream-icon>
+            </span>
+          </label>
+        </div>
+      </div>
     </div>
     <button
       data-testid="send-button"
