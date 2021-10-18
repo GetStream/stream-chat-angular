@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ImageLoadService } from '../message-list/image-load.service';
 import { AttachmentListComponent } from './attachment-list.component';
 
 describe('AttachmentListComponent', () => {
@@ -7,6 +8,17 @@ describe('AttachmentListComponent', () => {
   let nativeElement: HTMLElement;
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
+
+  const waitForImgComplete = () => {
+    const img = queryImages()[0];
+    return new Promise((resolve, reject) => {
+      if (!img) {
+        return reject();
+      }
+      img.addEventListener('load', () => resolve(undefined));
+      img.addEventListener('error', () => resolve(undefined));
+    });
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -86,6 +98,22 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
 
       expect(queryImages()[0].alt).toContain(fallback);
+    });
+
+    it('should emit image load event', async () => {
+      const imageLoadService = TestBed.inject(ImageLoadService);
+      const spy = jasmine.createSpy();
+      imageLoadService.imageLoad$.subscribe(spy);
+      component.attachments = [
+        {
+          type: 'image',
+          image_url: 'https://picsum.photos/200/300',
+        },
+      ];
+      fixture.detectChanges();
+      await waitForImgComplete();
+
+      expect(spy).toHaveBeenCalledWith(undefined);
     });
   });
 });

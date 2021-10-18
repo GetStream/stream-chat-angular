@@ -13,6 +13,7 @@ import { tap } from 'rxjs/operators';
 import { StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
+import { ImageLoadService } from './image-load.service';
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
@@ -35,10 +36,12 @@ export class MessageListComponent implements AfterViewChecked {
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
+  private readonly isUserScrolledUpThreshold = 200;
 
   constructor(
     private channelService: ChannelService,
-    private chatClientService: ChatClientService
+    private chatClientService: ChatClientService,
+    private imageLoadService: ImageLoadService
   ) {
     this.channelService.activeChannel$.subscribe(() => {
       this.latestMessageDate = undefined;
@@ -96,6 +99,15 @@ export class MessageListComponent implements AfterViewChecked {
             )?.id)
       )
     );
+    this.imageLoadService.imageLoad$.subscribe(() => {
+      if (!this.isUserScrolledUp) {
+        this.scrollToBottom();
+        // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 300);
+      }
+    });
   }
 
   ngAfterViewChecked() {
@@ -105,7 +117,7 @@ export class MessageListComponent implements AfterViewChecked {
         // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
         setTimeout(() => {
           this.scrollToBottom();
-        }, 600);
+        }, 300);
       }
       this.hasNewMessages = false;
       this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
@@ -125,16 +137,12 @@ export class MessageListComponent implements AfterViewChecked {
       this.scrollContainer.nativeElement.scrollHeight;
   }
 
-  private preserveScrollbarPosition() {
-    this.scrollContainer.nativeElement.scrollTop =
-      this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!;
-  }
-
   scrolled() {
     this.isUserScrolledUp =
-      this.scrollContainer.nativeElement.scrollTop +
-        this.scrollContainer.nativeElement.clientHeight !==
-      this.scrollContainer.nativeElement.scrollHeight;
+      this.scrollContainer.nativeElement.scrollHeight -
+        (this.scrollContainer.nativeElement.scrollTop +
+          this.scrollContainer.nativeElement.clientHeight) >
+      this.isUserScrolledUpThreshold;
     if (!this.isUserScrolledUp) {
       this.unreadMessageCount = 0;
     }
@@ -142,5 +150,10 @@ export class MessageListComponent implements AfterViewChecked {
       this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       void this.channelService.loadMoreMessages();
     }
+  }
+
+  private preserveScrollbarPosition() {
+    this.scrollContainer.nativeElement.scrollTop =
+      this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!;
   }
 }

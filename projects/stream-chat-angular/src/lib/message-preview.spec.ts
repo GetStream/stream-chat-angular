@@ -5,12 +5,17 @@ describe('createMessagePreview', () => {
   it('should create message preview', () => {
     const user = mockCurrentUser();
     const text = 'this is my messge';
-    const preview = createMessagePreview(user, text);
+    const attachments = [
+      { fallback: 'image.png', image_url: 'url/to/image' },
+      { fallback: 'christmas.jpg', image_url: 'url/to/image' },
+    ];
+    const preview = createMessagePreview(user, text, attachments);
 
     expect(preview.created_at).not.toBeUndefined();
     expect(preview.html).toBe(text);
-    expect(preview._html).toBe(text);
+    expect(preview.__html).toBe(text);
     expect(preview.user).toBe(user);
     expect(preview.id).toContain(user.id);
+    expect(preview.attachments).toBe(attachments);
   });
 });

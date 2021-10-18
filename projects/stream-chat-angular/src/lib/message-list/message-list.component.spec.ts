@@ -16,6 +16,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from '../mocks';
+import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
 
 describe('MessageListComponent', () => {
@@ -96,6 +97,24 @@ describe('MessageListComponent', () => {
     expect(scrollContainer.scrollTop).toBe(
       scrollContainer.scrollHeight - scrollContainer.clientHeight
     );
+  });
+
+  it('should scroll to bottom, after an image has been loaded', () => {
+    const imageLoadService = TestBed.inject(ImageLoadService);
+    spyOn(component, 'scrollToBottom');
+    imageLoadService.imageLoad$.next();
+
+    expect(component.scrollToBottom).toHaveBeenCalledWith();
+  });
+
+  it(`shouldn't scroll to bottom, after an image has been loaded, if user is scrolled up`, () => {
+    component.isUserScrolledUp = true;
+    fixture.detectChanges();
+    const imageLoadService = TestBed.inject(ImageLoadService);
+    spyOn(component, 'scrollToBottom');
+    imageLoadService.imageLoad$.next();
+
+    expect(component.scrollToBottom).not.toHaveBeenCalled();
   });
 
   it('should scroll to bottom, if user has new message', () => {
@@ -191,6 +210,17 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(queryScrollToBottomButton()?.textContent).toContain('1');
+    });
+
+    it('should use a treshold when determining if user is scrolled up', () => {
+      const scrollContainer = queryScrollContainer()!;
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight - scrollContainer.clientHeight - 150,
+      });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+
+      expect(queryScrollToBottomButton()).toBeNull();
     });
 
     it('should scroll down if user sends new message', () => {

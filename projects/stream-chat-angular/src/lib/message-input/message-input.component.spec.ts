@@ -17,6 +17,7 @@ describe('MessageInputComponent', () => {
   let queryFileInput: () => HTMLInputElement | null;
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let sendMessageSpy: jasmine.Spy;
+  let uploadAttachmentsSpy: jasmine.Spy;
   let channel: Channel;
   let user: UserResponse;
 
@@ -25,6 +26,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$ = new BehaviorSubject(channel);
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
+    uploadAttachmentsSpy = jasmine.createSpy();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [MessageInputComponent],
@@ -34,6 +36,7 @@ describe('MessageInputComponent', () => {
           useValue: {
             activeChannel$: mockActiveChannel$,
             sendMessage: sendMessageSpy,
+            uploadAttachments: uploadAttachmentsSpy,
           },
         },
         {
@@ -68,7 +71,7 @@ describe('MessageInputComponent', () => {
     const textarea = queryTextarea();
     const message = 'This is my message';
     textarea!.value = message;
-    const event = new KeyboardEvent('keyup', { key: 'Enter' });
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
     spyOn(event, 'preventDefault');
     textarea?.dispatchEvent(event);
     fixture.detectChanges();
@@ -91,7 +94,7 @@ describe('MessageInputComponent', () => {
     const textarea = queryTextarea();
     textarea!.value = 'This is my message';
     textarea?.dispatchEvent(
-      new KeyboardEvent('keyup', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
     );
     fixture.detectChanges();
 
@@ -101,17 +104,17 @@ describe('MessageInputComponent', () => {
   it('should send message', () => {
     const message = 'This is my message';
     queryTextarea()!.value = message;
-    component.messageSent();
+    void component.messageSent();
     fixture.detectChanges();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith(message);
+    expect(sendMessageSpy).toHaveBeenCalledWith(message, []);
   });
 
   it('reset textarea after message is sent', () => {
     const textarea = queryTextarea();
     const message = 'This is my message';
     textarea!.value = message;
-    component.messageSent();
+    void component.messageSent();
     fixture.detectChanges();
 
     expect(textarea?.value).toBe('');
@@ -152,5 +155,51 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(fileUpload?.hasAttribute('multiple')).toBeFalse();
+  });
+
+  it('should filter and upload files', async () => {
+    const imageFiles = [{ type: 'image/png' }, { type: 'image/jpg' }];
+    const files = [
+      ...imageFiles,
+      { type: 'image/vnd.adobe.photoshop' },
+      { type: 'plain/text' },
+    ];
+    await component.filesSelected(files as any as FileList);
+
+    expect(uploadAttachmentsSpy).toHaveBeenCalledWith(imageFiles);
+  });
+
+  it('should reset files, after message is sent', async () => {
+    const file = { name: 'my_image.png', type: 'image/png' };
+    uploadAttachmentsSpy.and.resolveTo([
+      { file, state: 'success', url: 'url/to/image' },
+    ]);
+    const files = [file];
+    await component.filesSelected(files as any as FileList);
+    await component.messageSent();
+    await component.messageSent();
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(jasmine.any(String), []);
+  });
+
+  it(`shouln't send message, if file uploads are in progress`, async () => {
+    uploadAttachmentsSpy.and.resolveTo([]);
+    void component.filesSelected([{ type: 'image/png' }] as any as FileList);
+    await component.messageSent();
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+  });
+
+  it(`should send message, if file uploads are completed`, async () => {
+    const file = { name: 'my_image.png', type: 'image/png' };
+    uploadAttachmentsSpy.and.resolveTo([
+      { file, state: 'success', url: 'url/to/image' },
+    ]);
+    await component.filesSelected([file] as any as FileList);
+    void component.messageSent();
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(jasmine.any(String), [
+      { fallback: 'my_image.png', image_url: 'url/to/image', type: 'image' },
+    ]);
   });
 });
