@@ -57,9 +57,9 @@ describe('MessageListComponent', () => {
       nativeElement.querySelector('[data-testid="scroll-to-bottom"]');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
-    scrollContainer.style.maxHeight = '500px';
+    scrollContainer.style.maxHeight = '300px';
     scrollContainer.style.overflowY = 'auto';
-    tick(600);
+    tick(300);
     fixture.detectChanges();
   }));
 

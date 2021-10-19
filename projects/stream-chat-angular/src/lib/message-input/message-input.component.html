@@ -1,6 +1,43 @@
 <div class="str-chat__input-flat">
   <div class="str-chat__input-flat-wrapper">
     <div class="str-chat__input-flat--textarea-wrapper">
+      <div class="rfu-image-previewer">
+        <div
+          *ngFor="let fileUpload of fileUploads; trackBy: trackByFile"
+          class="rfu-image-previewer__image"
+          [class.rfu-image-previewer__image--loaded]="
+            fileUpload.state === 'success'
+          "
+          data-testclass="attachment-preview"
+        >
+          <div
+            *ngIf="fileUpload.state === 'error'"
+            class="rfu-image-previewer__retry"
+            (click)="retryFileUpload(fileUpload.file)"
+            (keyup.enter)="retryFileUpload(fileUpload.file)"
+            data-testclass="upload-error"
+          >
+            <stream-icon icon="retry"></stream-icon>
+          </div>
+          <div class="rfu-thumbnail__wrapper" style="width: 100; height: 100">
+            <div class="rfu-thumbnail__overlay"></div>
+            <img
+              *ngIf="fileUpload.url || fileUpload.previewUri"
+              src="{{
+                fileUpload.url ? fileUpload.url : fileUpload.previewUri
+              }}"
+              alt="fileUpload.file.name"
+              class="rfu-thumbnail__image"
+              data-testclass="attachment-image"
+            />
+          </div>
+          <stream-loading-indicator
+            data-testclass="loading-indicator"
+            color="rgba(255,255,255,0.7)"
+            *ngIf="fileUpload.state === 'uploading'"
+          ></stream-loading-indicator>
+        </div>
+      </div>
       <div class="rta str-chat__textarea">
         <textarea
           autofocus

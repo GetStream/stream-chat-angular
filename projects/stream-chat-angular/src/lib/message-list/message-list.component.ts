@@ -36,7 +36,7 @@ export class MessageListComponent implements AfterViewChecked {
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
-  private readonly isUserScrolledUpThreshold = 200;
+  private readonly isUserScrolledUpThreshold = 300;
 
   constructor(
     private channelService: ChannelService,
