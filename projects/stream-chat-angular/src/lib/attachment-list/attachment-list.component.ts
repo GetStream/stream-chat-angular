@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Attachment } from 'stream-chat';
+import { ImageLoadService } from '../message-list/image-load.service';
 import { DefaultAttachmentType } from '../types';
 
 @Component({
@@ -10,9 +11,13 @@ import { DefaultAttachmentType } from '../types';
 export class AttachmentListComponent {
   @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
 
-  constructor() {}
+  constructor(private imageLoadService: ImageLoadService) {}
 
-  trackById(index: number, item: Attachment) {
-    return item.id;
+  trackById(index: number) {
+    return index;
+  }
+
+  imageLoaded() {
+    this.imageLoadService.imageLoad$.next();
   }
 }

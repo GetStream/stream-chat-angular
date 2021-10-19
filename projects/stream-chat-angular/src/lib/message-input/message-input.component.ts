@@ -11,22 +11,37 @@ export class MessageInputComponent {
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled = true;
   private files: File[] = [];
+  private isFileUploadInProgress = false;
+  private fileUploadResult: {
+    file: File;
+    state: 'error' | 'success';
+    url?: string;
+  }[] = [];
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
 
   constructor(private channelService: ChannelService) {}
 
-  messageSent(event?: Event) {
+  async messageSent(event?: Event) {
     event?.preventDefault();
+    if (this.isFileUploadInProgress) {
+      return;
+    }
     const text = this.messageInput.nativeElement.value;
+    const attachments = this.fileUploadResult
+      .filter((r) => r.state === 'success')
+      .map((r) => ({ fallback: r.file.name, image_url: r.url, type: 'image' }));
     this.messageInput.nativeElement.value = '';
-    void this.channelService.sendMessage(text);
+    await this.channelService.sendMessage(text, attachments);
+    this.fileUploadResult = [];
+    this.files = [];
   }
 
   get accept() {
     return this.acceptedFileTypes ? this.acceptedFileTypes?.join(',') : '';
   }
 
-  filesSelected(files: FileList | null) {
+  async filesSelected(files: FileList | null) {
+    this.isFileUploadInProgress = true;
     if (!files) {
       return;
     }
@@ -34,5 +49,9 @@ export class MessageInputComponent {
       (file) =>
         file.type.startsWith('image/') && !file.type.endsWith('.photoshop')
     ); // photoshop files begin with 'image/'
+    this.fileUploadResult = await this.channelService.uploadAttachments(
+      this.files
+    );
+    this.isFileUploadInProgress = false;
   }
 }

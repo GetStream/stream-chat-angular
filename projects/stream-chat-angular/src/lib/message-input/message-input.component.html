@@ -9,7 +9,7 @@
           placeholder="{{ 'Type your message' | translate }}"
           class="rta__textarea str-chat__textarea__textarea"
           rows="1"
-          (keyup.enter)="messageSent($event)"
+          (keydown.enter)="messageSent($event)"
         ></textarea>
       </div>
       <div

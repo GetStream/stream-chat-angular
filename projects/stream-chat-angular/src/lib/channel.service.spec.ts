@@ -627,11 +627,12 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
     const text = 'Hi';
+    const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
     let prevMessageCount!: number;
     service.activeChannelMessages$
       .pipe(first())
       .subscribe((m) => (prevMessageCount = m.length));
-    await service.sendMessage(text);
+    await service.sendMessage(text, attachments);
     let latestMessage!: StreamMessage;
     let messageCount!: number;
     service.activeChannelMessages$.subscribe((m) => {
@@ -641,11 +642,12 @@ describe('ChannelService', () => {
 
     expect(channel.sendMessage).toHaveBeenCalledWith({
       text,
+      attachments,
       id: jasmine.any(String),
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
-      jasmine.objectContaining({ text, user }),
+      jasmine.objectContaining({ text, user, attachments }),
       true
     );
 
@@ -720,5 +722,35 @@ describe('ChannelService', () => {
     });
 
     expect(messages.filter((m) => m.id === newMessageId).length).toEqual(1);
+  });
+
+  it('should upload images', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendImage').and.callFake((file: File) => {
+      switch (file.name) {
+        case 'file_error.jpg':
+          return Promise.reject(new Error());
+        default:
+          return Promise.resolve({ file: 'url/to/image', duration: '200ms' });
+      }
+    });
+    const file1 = { name: 'food.png' } as File;
+    const file2 = { name: 'file_error.jpg' } as File;
+    const attachments = [file1, file2];
+    const result = await service.uploadAttachments(attachments);
+    const expectedResult = [
+      {
+        file: file1,
+        state: 'success',
+        url: 'url/to/image',
+      },
+      { file: file2, state: 'error' },
+    ];
+
+    expectedResult.forEach((r, i) => {
+      expect(r).toEqual(result[i]);
+    });
   });
 });

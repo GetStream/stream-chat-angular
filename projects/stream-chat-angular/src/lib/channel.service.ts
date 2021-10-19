@@ -2,6 +2,7 @@ import { ApplicationRef, Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { first, map } from 'rxjs/operators';
 import {
+  Attachment,
   Channel,
   ChannelFilters,
   ChannelOptions,
@@ -186,10 +187,11 @@ export class ChannelService {
       ?.deleteReaction(messageId, reactionType);
   }
 
-  async sendMessage(text: string) {
+  async sendMessage(text: string, attachments: Attachment[] = []) {
     const preview = createMessagePreview(
       this.chatClientService.chatClient.user!,
-      text
+      text,
+      attachments
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
@@ -198,6 +200,7 @@ export class ChannelService {
     try {
       await channel.sendMessage({
         text,
+        attachments,
         id: preview.id,
       });
     } catch (error) {
@@ -216,6 +219,31 @@ export class ChannelService {
       );
       this.activeChannelMessagesSubject.next([...channel.state.messages]);
     }
+  }
+
+  async uploadAttachments(
+    files: File[]
+  ): Promise<{ file: File; state: 'error' | 'success'; url?: string }[]> {
+    const result: { file: File; state: 'error' | 'success'; url?: string }[] =
+      [];
+    const channel = this.activeChannelSubject.getValue()!;
+    const fileUploadResults = await Promise.allSettled(
+      files.map((file) => channel.sendImage(file))
+    );
+    fileUploadResults.forEach((fileUploadResult, i) => {
+      const file = files[i];
+      if (fileUploadResult.status === 'fulfilled') {
+        result.push({
+          file,
+          state: 'success',
+          url: fileUploadResult.value.file,
+        });
+      } else {
+        result.push({ file, state: 'error' });
+      }
+    });
+
+    return result;
   }
 
   private async handleNotification(notification: Notification) {

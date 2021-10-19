@@ -1,7 +1,11 @@
-import { MessageResponse, UserResponse } from 'stream-chat';
+import { Attachment, MessageResponse, UserResponse } from 'stream-chat';
 import { v4 as uuidv4 } from 'uuid';
 
-export const createMessagePreview = (user: UserResponse, text: string) => {
+export const createMessagePreview = (
+  user: UserResponse,
+  text: string,
+  attachments: Attachment[]
+) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
   return {
@@ -14,5 +18,6 @@ export const createMessagePreview = (user: UserResponse, text: string) => {
     text,
     type: 'regular',
     user,
+    attachments,
   } as unknown as MessageResponse;
 };
