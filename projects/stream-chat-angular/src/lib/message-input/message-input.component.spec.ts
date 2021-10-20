@@ -26,6 +26,7 @@ describe('MessageInputComponent', () => {
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let sendMessageSpy: jasmine.Spy;
   let uploadAttachmentsSpy: jasmine.Spy;
+  let deleteAttachmentSpy: jasmine.Spy;
   let channel: Channel;
   let user: UserResponse;
 
@@ -39,6 +40,7 @@ describe('MessageInputComponent', () => {
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
     uploadAttachmentsSpy = jasmine.createSpy();
+    deleteAttachmentSpy = jasmine.createSpy();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [MessageInputComponent],
@@ -49,6 +51,7 @@ describe('MessageInputComponent', () => {
             activeChannel$: mockActiveChannel$,
             sendMessage: sendMessageSpy,
             uploadAttachments: uploadAttachmentsSpy,
+            deleteAttachment: deleteAttachmentSpy,
           },
         },
         {
@@ -181,16 +184,21 @@ describe('MessageInputComponent', () => {
     expect(fileUpload?.hasAttribute('multiple')).toBeFalse();
   });
 
-  it('should filter and upload files', () => {
+  it('should filter and upload files', async () => {
     const imageFiles = [{ type: 'image/png' }, { type: 'image/jpg' }];
     const files = [
       ...imageFiles,
       { type: 'image/vnd.adobe.photoshop' },
       { type: 'plain/text' },
     ];
-    void component.filesSelected(files as any as FileList);
+    uploadAttachmentsSpy.and.resolveTo([
+      { file: imageFiles[0], state: 'success', url: 'url1' },
+      { file: imageFiles[1], state: 'success', url: 'url2' },
+    ]);
+    await component.filesSelected(files as any as FileList);
 
     expect(uploadAttachmentsSpy).toHaveBeenCalledWith(imageFiles);
+    expect(deleteAttachmentSpy).not.toHaveBeenCalled();
     expect(queryFileInput()?.value).toBe('');
   });
 
@@ -378,4 +386,78 @@ describe('MessageInputComponent', () => {
     expect(input.value).toBe('');
     expect(component.fileUploads).toEqual([]);
   });
+
+  it('should delete attachment, if file is already uploaded', async () => {
+    const url = 'url/to/img';
+    component.fileUploads = [
+      {
+        file: { name: 'myimage.jpg' } as any as File,
+        state: 'success',
+        url,
+      },
+    ];
+    fixture.detectChanges();
+    const preview = queryPreviews()[0];
+    const deleteButton = preview.querySelector(
+      '[data-testclass="delete-attachment"]'
+    ) as HTMLButtonElement;
+    deleteButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith(url);
+    expect(component.fileUploads).toEqual([]);
+  });
+
+  it('should delete attachment, if file is uploading', async () => {
+    component.fileUploads = [
+      {
+        file: { name: 'myimage.jpg' } as any as File,
+        state: 'uploading',
+      },
+    ];
+    fixture.detectChanges();
+    const preview = queryPreviews()[0];
+    const deleteButton = preview.querySelector(
+      '[data-testclass="delete-attachment"]'
+    ) as HTMLButtonElement;
+    deleteButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.fileUploads).toEqual([]);
+    expect(queryPreviews().length).toBe(0);
+  });
+
+  it(`shouldn't delete preview, if attachment couldn't be deleted`, async () => {
+    component.fileUploads = [
+      {
+        file: { name: 'myimage.jpg' } as any as File,
+        state: 'success',
+        url: 'url/to/img',
+      },
+    ];
+    fixture.detectChanges();
+    deleteAttachmentSpy.and.rejectWith(new Error('error'));
+    const preview = queryPreviews()[0];
+    const deleteButton = preview.querySelector(
+      '[data-testclass="delete-attachment"]'
+    ) as HTMLButtonElement;
+    deleteButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(preview).not.toBeNull();
+  });
+
+  it('should remove deleted attachments after upload', fakeAsync(() => {
+    const file = { name: 'my_image.png', type: 'image/png' } as File;
+    const url = 'url/to/image';
+    uploadAttachmentsSpy.and.resolveTo([{ file, state: 'success', url }]);
+    void component.filesSelected([file] as any as FileList);
+    component.fileUploads = [];
+    tick();
+
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith(url);
+  }));
 });
