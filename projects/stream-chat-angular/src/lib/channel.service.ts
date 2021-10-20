@@ -153,9 +153,13 @@ export class ChannelService {
     }
   }
 
-  async init() {
-    this.filters = { type: 'messaging' };
-    this.options = {
+  async init(
+    filters: ChannelFilters,
+    sort?: ChannelSort,
+    options?: ChannelOptions
+  ) {
+    this.filters = filters;
+    this.options = options || {
       offset: 0,
       limit: 25,
       state: true,
@@ -163,7 +167,7 @@ export class ChannelService {
       watch: true,
       message_limit: 25,
     };
-    this.sort = { last_message_at: -1, updated_at: -1 };
+    this.sort = sort || { last_message_at: -1, updated_at: -1 };
     await this.queryChannels();
     this.chatClientService.notification$.subscribe(
       (notification) => void this.handleNotification(notification)

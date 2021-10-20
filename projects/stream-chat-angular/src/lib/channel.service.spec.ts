@@ -1,7 +1,14 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
-import { Channel, Event, StreamChat, UserResponse } from 'stream-chat';
+import {
+  Channel,
+  ChannelOptions,
+  ChannelSort,
+  Event,
+  StreamChat,
+  UserResponse,
+} from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { ChatClientService, Notification } from './chat-client.service';
 import {
@@ -17,8 +24,13 @@ describe('ChannelService', () => {
   let service: ChannelService;
   let mockChatClient: Spied<StreamChat>;
   let notification$: Subject<Notification>;
-  let init: (c?: Channel[]) => Promise<void>;
+  let init: (
+    c?: Channel[],
+    sort?: ChannelSort,
+    options?: ChannelOptions
+  ) => Promise<void>;
   let user: UserResponse;
+  const filters = { type: 'messaging' };
 
   beforeEach(() => {
     mockChatClient = {} as Spied<StreamChat> & StreamChat;
@@ -37,13 +49,49 @@ describe('ChannelService', () => {
       ],
     });
     service = TestBed.inject(ChannelService);
-    init = async (channels?: Channel[]) => {
+    init = async (
+      channels?: Channel[],
+      sort?: ChannelSort,
+      options?: ChannelOptions
+    ) => {
       mockChatClient.queryChannels.and.returnValue(
         channels || generateMockChannels()
       );
 
-      await service.init();
+      await service.init(filters, sort, options);
     };
+  });
+
+  it('should use provided sort params', async () => {
+    const sort: ChannelSort = { last_message_at: -1 };
+    await init(undefined, sort);
+
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      sort,
+      jasmine.any(Object)
+    );
+  });
+
+  it('should use provided options params', async () => {
+    const options: ChannelOptions = { offset: 5 };
+    await init(undefined, undefined, options);
+
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      jasmine.any(Object),
+      options
+    );
+  });
+
+  it('should use provided filter params', async () => {
+    await init();
+
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      filters,
+      jasmine.any(Object),
+      jasmine.any(Object)
+    );
   });
 
   it('should emit #channels$', async () => {
