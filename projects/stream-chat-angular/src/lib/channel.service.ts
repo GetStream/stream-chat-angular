@@ -246,6 +246,11 @@ export class ChannelService {
     return result;
   }
 
+  async deleteAttachment(url: string) {
+    const channel = this.activeChannelSubject.getValue()!;
+    await channel.deleteImage(url);
+  }
+
   private async handleNotification(notification: Notification) {
     switch (notification.eventType) {
       case 'notification.message_new': {

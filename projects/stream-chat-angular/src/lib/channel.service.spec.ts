@@ -753,4 +753,15 @@ describe('ChannelService', () => {
       expect(r).toEqual(result[i]);
     });
   });
+
+  it('should delete attachment', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'deleteImage');
+    const url = 'url/to/image';
+    await service.deleteAttachment(url);
+
+    expect(channel.deleteImage).toHaveBeenCalledWith(url);
+  });
 });

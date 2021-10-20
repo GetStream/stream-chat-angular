@@ -63,6 +63,7 @@ export const generateMockChannels = (length = 25) => {
       watch: () => {},
       sendMessage: () => {},
       sendImage: () => {},
+      deleteImage: () => {},
       countUnread: () => {},
       handleEvent: (name: EventTypes, payload?: any) => {
         if (eventHandlers[name as string]) {

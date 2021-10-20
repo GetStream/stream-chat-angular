@@ -7,7 +7,8 @@ export type Icon =
   | 'connection-error'
   | 'send'
   | 'file-upload'
-  | 'retry';
+  | 'retry'
+  | 'close';
 
 @Component({
   selector: 'stream-icon',

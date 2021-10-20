@@ -80,13 +80,31 @@ export class MessageInputComponent implements OnDestroy {
     await this.uploadAttachments(files);
   }
 
-  async retryFileUpload(file: File) {
+  async retryAttachmentUpload(file: File) {
     const upload = this.fileUploads.find((u) => u.file === file);
     if (!upload) {
       return;
     }
     upload.state = 'uploading';
     await this.uploadAttachments([file]);
+  }
+
+  async deleteAttachment(upload: {
+    file: File;
+    state: 'error' | 'success' | 'uploading';
+    url?: string;
+    previewUri?: string | ArrayBuffer;
+  }) {
+    if (upload.state === 'success') {
+      try {
+        await this.channelService.deleteAttachment(upload.url!);
+        this.fileUploads.splice(this.fileUploads.indexOf(upload), 1);
+      } catch (error) {
+        // TODO error handling
+      }
+    } else {
+      this.fileUploads.splice(this.fileUploads.indexOf(upload), 1);
+    }
   }
 
   trackByFile(
@@ -118,6 +136,9 @@ export class MessageInputComponent implements OnDestroy {
     result.forEach((r) => {
       const upload = this.fileUploads.find((upload) => upload.file === r.file);
       if (!upload) {
+        if (r.url) {
+          void this.channelService.deleteAttachment(r.url);
+        }
         return;
       }
       upload.state = r.state;

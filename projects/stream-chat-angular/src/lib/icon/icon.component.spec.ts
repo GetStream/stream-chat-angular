@@ -71,6 +71,13 @@ describe('IconComponent', () => {
     expect(queryIcon('retry')).not.toBeNull();
   });
 
+  it('should display close icon', () => {
+    component.icon = 'close';
+    fixture.detectChanges();
+
+    expect(queryIcon('close')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });
