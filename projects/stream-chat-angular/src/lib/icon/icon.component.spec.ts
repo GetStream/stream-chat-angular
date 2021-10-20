@@ -64,6 +64,13 @@ describe('IconComponent', () => {
     expect(queryIcon('file-upload')).not.toBeNull();
   });
 
+  it('should display retry icon', () => {
+    component.icon = 'retry';
+    fixture.detectChanges();
+
+    expect(queryIcon('retry')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });
