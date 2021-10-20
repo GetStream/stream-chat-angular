@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChannelService } from '../channel.service';
+import { AttachmentUpload } from '../types';
 
 @Component({
   selector: 'stream-message-input',
@@ -17,13 +18,8 @@ export class MessageInputComponent implements OnDestroy {
   @Input() isFileUploadEnabled = true;
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled = true;
-  fileUploads: {
-    file: File;
-    state: 'error' | 'success' | 'uploading';
-    url?: string;
-    previewUri?: string | ArrayBuffer;
-  }[] = [];
-  private isFileUploadInProgressCounter = 0;
+  attachmentUploads: AttachmentUpload[] = [];
+  private attachmentUploadInProgressCounter = 0;
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
@@ -34,7 +30,7 @@ export class MessageInputComponent implements OnDestroy {
         if (this.messageInput) {
           this.messageInput.nativeElement.value = '';
         }
-        this.fileUploads = [];
+        this.attachmentUploads = [];
       })
     );
   }
@@ -44,16 +40,16 @@ export class MessageInputComponent implements OnDestroy {
 
   async messageSent(event?: Event) {
     event?.preventDefault();
-    if (this.isFileUploadInProgressCounter > 0) {
+    if (this.attachmentUploadInProgressCounter > 0) {
       return;
     }
     const text = this.messageInput.nativeElement.value;
-    const attachments = this.fileUploads
+    const attachments = this.attachmentUploads
       .filter((r) => r.state === 'success')
-      .map((r) => ({ fallback: r.file.name, image_url: r.url, type: 'image' }));
+      .map((r) => ({ fallback: r.file.name, image_url: r.url, type: r.type }));
     this.messageInput.nativeElement.value = '';
     await this.channelService.sendMessage(text, attachments);
-    this.fileUploads = [];
+    this.attachmentUploads = [];
   }
 
   get accept() {
@@ -64,46 +60,57 @@ export class MessageInputComponent implements OnDestroy {
     if (!fileList) {
       return;
     }
-    const files = Array.from(fileList).filter(
-      (file) =>
-        file.type.startsWith('image/') && !file.type.endsWith('.photoshop') // photoshop files begin with 'image/'
-    );
-    files.forEach((f) => this.createPreview(f));
-    this.fileUploads = [
-      ...this.fileUploads,
-      ...files.map((file) => ({
+    const imageFiles: File[] = [];
+    const dataFiles: File[] = [];
+
+    Array.from(fileList).forEach((file) => {
+      if (file.type.startsWith('image/') && !file.type.endsWith('.photoshop')) {
+        // photoshop files begin with 'image/'
+        imageFiles.push(file);
+      } else {
+        dataFiles.push(file);
+      }
+    });
+    imageFiles.forEach((f) => this.createPreview(f));
+    const newUploads = [
+      ...imageFiles.map((file) => ({
         file,
         state: 'uploading' as 'uploading',
+        type: 'image' as 'image',
+      })),
+      ...dataFiles.map((file) => ({
+        file,
+        state: 'uploading' as 'uploading',
+        type: 'file' as 'file',
       })),
     ];
+    this.attachmentUploads = [...this.attachmentUploads, ...newUploads];
     this.clearFileInput();
-    await this.uploadAttachments(files);
+    await this.uploadAttachments(newUploads);
   }
 
   async retryAttachmentUpload(file: File) {
-    const upload = this.fileUploads.find((u) => u.file === file);
+    const upload = this.attachmentUploads.find((u) => u.file === file);
     if (!upload) {
       return;
     }
     upload.state = 'uploading';
-    await this.uploadAttachments([file]);
+    await this.uploadAttachments([upload]);
   }
 
-  async deleteAttachment(upload: {
-    file: File;
-    state: 'error' | 'success' | 'uploading';
-    url?: string;
-    previewUri?: string | ArrayBuffer;
-  }) {
+  async deleteAttachment(upload: AttachmentUpload) {
     if (upload.state === 'success') {
       try {
-        await this.channelService.deleteAttachment(upload.url!);
-        this.fileUploads.splice(this.fileUploads.indexOf(upload), 1);
+        await this.channelService.deleteAttachment(upload);
+        this.attachmentUploads.splice(
+          this.attachmentUploads.indexOf(upload),
+          1
+        );
       } catch (error) {
         // TODO error handling
       }
     } else {
-      this.fileUploads.splice(this.fileUploads.indexOf(upload), 1);
+      this.attachmentUploads.splice(this.attachmentUploads.indexOf(upload), 1);
     }
   }
 
@@ -121,7 +128,9 @@ export class MessageInputComponent implements OnDestroy {
   private createPreview(file: File) {
     const reader = new FileReader();
     reader.onload = (event) => {
-      const upload = this.fileUploads.find((upload) => upload.file === file);
+      const upload = this.attachmentUploads.find(
+        (upload) => upload.file === file
+      );
       if (!upload) {
         return;
       }
@@ -130,21 +139,23 @@ export class MessageInputComponent implements OnDestroy {
     reader.readAsDataURL(file as Blob);
   }
 
-  private async uploadAttachments(files: File[]) {
-    this.isFileUploadInProgressCounter++;
-    const result = await this.channelService.uploadAttachments(files);
+  private async uploadAttachments(uploads: AttachmentUpload[]) {
+    this.attachmentUploadInProgressCounter++;
+    const result = await this.channelService.uploadAttachments(uploads);
     result.forEach((r) => {
-      const upload = this.fileUploads.find((upload) => upload.file === r.file);
+      const upload = this.attachmentUploads.find(
+        (upload) => upload.file === r.file
+      );
       if (!upload) {
         if (r.url) {
-          void this.channelService.deleteAttachment(r.url);
+          void this.channelService.deleteAttachment(r);
         }
         return;
       }
       upload.state = r.state;
       upload.url = r.url;
     });
-    this.isFileUploadInProgressCounter--;
+    this.attachmentUploadInProgressCounter--;
   }
 
   private clearFileInput() {

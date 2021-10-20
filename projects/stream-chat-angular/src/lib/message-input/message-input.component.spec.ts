@@ -7,6 +7,7 @@ import {
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 import { Channel, UserResponse } from 'stream-chat';
+import { AttachmentUpload } from 'stream-chat-angular';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { generateMockChannels, mockCurrentUser } from '../mocks';
@@ -18,11 +19,12 @@ describe('MessageInputComponent', () => {
   let fixture: ComponentFixture<MessageInputComponent>;
   let queryTextarea: () => HTMLTextAreaElement | null;
   let querySendButton: () => HTMLButtonElement | null;
-  let queryFileUploadButton: () => HTMLElement | null;
+  let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
-  let queryPreviews: () => HTMLElement[];
+  let queryImagePreviews: () => HTMLElement[];
   let queryLoadingIndicators: () => HTMLElement[];
   let queryPreviewImages: () => HTMLImageElement[];
+  let queryPreviewFiles: () => HTMLElement[];
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let sendMessageSpy: jasmine.Spy;
   let uploadAttachmentsSpy: jasmine.Spy;
@@ -68,13 +70,15 @@ describe('MessageInputComponent', () => {
       nativeElement.querySelector('[data-testid="textarea"]');
     querySendButton = () =>
       nativeElement.querySelector('[data-testid="send-button"]');
-    queryFileUploadButton = () =>
+    queryattachmentUploadButton = () =>
       nativeElement.querySelector('[data-testid="file-upload-button"]');
     queryFileInput = () =>
       nativeElement.querySelector('[data-testid="file-input"]');
-    queryPreviews = () =>
+    queryImagePreviews = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="attachment-preview"]')
+        nativeElement.querySelectorAll(
+          '[data-testclass="attachment-image-preview"]'
+        )
       );
     queryLoadingIndicators = () =>
       Array.from(
@@ -83,6 +87,12 @@ describe('MessageInputComponent', () => {
     queryPreviewImages = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="attachment-image"]')
+      );
+    queryPreviewFiles = () =>
+      Array.from(
+        nativeElement.querySelectorAll(
+          '[data-testclass="attachment-file-preview"]'
+        )
       );
     fixture.detectChanges();
   });
@@ -148,59 +158,69 @@ describe('MessageInputComponent', () => {
   });
 
   it('should display file upload button, if #isFileUploadEnabled is true', () => {
-    expect(queryFileUploadButton()).not.toBeNull();
+    expect(queryattachmentUploadButton()).not.toBeNull();
   });
 
   it(`shouldn't display file upload button, if #isFileUploadEnabled is false`, () => {
     component.isFileUploadEnabled = false;
     fixture.detectChanges();
 
-    expect(queryFileUploadButton()).toBeNull();
+    expect(queryattachmentUploadButton()).toBeNull();
   });
 
   it('should set the accepted file types', () => {
     const accepted = ['.jpg', '.png'];
     component.acceptedFileTypes = accepted;
     fixture.detectChanges();
-    const fileUpload = queryFileInput();
+    const attachmentUpload = queryFileInput();
 
-    expect(fileUpload?.getAttribute('accept')).toBe(accepted.join(','));
+    expect(attachmentUpload?.getAttribute('accept')).toBe(accepted.join(','));
   });
 
   it('should accept every file type if #acceptedFileTypes not provided', () => {
-    const fileUpload = queryFileInput();
+    const attachmentUpload = queryFileInput();
 
-    expect(fileUpload?.getAttribute('accept')).toBe('');
+    expect(attachmentUpload?.getAttribute('accept')).toBe('');
   });
 
   it('should set multiple attribute on file upload', () => {
-    const fileUpload = queryFileInput();
+    const attachmentUpload = queryFileInput();
 
-    expect(fileUpload?.hasAttribute('multiple')).toBeTrue();
+    expect(attachmentUpload?.hasAttribute('multiple')).toBeTrue();
 
     component.isMultipleFileUploadEnabled = false;
     fixture.detectChanges();
 
-    expect(fileUpload?.hasAttribute('multiple')).toBeFalse();
+    expect(attachmentUpload?.hasAttribute('multiple')).toBeFalse();
   });
 
-  it('should filter and upload files', async () => {
+  it('should upload files', fakeAsync(() => {
     const imageFiles = [{ type: 'image/png' }, { type: 'image/jpg' }];
-    const files = [
-      ...imageFiles,
+    const dataFiles = [
       { type: 'image/vnd.adobe.photoshop' },
       { type: 'plain/text' },
     ];
+    const files = [...imageFiles, ...dataFiles];
     uploadAttachmentsSpy.and.resolveTo([
-      { file: imageFiles[0], state: 'success', url: 'url1' },
-      { file: imageFiles[1], state: 'success', url: 'url2' },
+      { file: imageFiles[0], state: 'success', url: 'url1', type: 'image' },
+      { file: imageFiles[1], state: 'success', url: 'url2', type: 'image' },
+      { file: dataFiles[0], state: 'success', url: 'url3', type: 'file' },
+      { file: dataFiles[1], state: 'success', url: 'url4', type: 'file' },
     ]);
-    await component.filesSelected(files as any as FileList);
+    void component.filesSelected(files as any as FileList);
 
-    expect(uploadAttachmentsSpy).toHaveBeenCalledWith(imageFiles);
+    expect(uploadAttachmentsSpy).toHaveBeenCalledWith([
+      { file: imageFiles[0], type: 'image', state: 'uploading' },
+      { file: imageFiles[1], type: 'image', state: 'uploading' },
+      { file: dataFiles[0], type: 'file', state: 'uploading' },
+      { file: dataFiles[1], type: 'file', state: 'uploading' },
+    ]);
+
+    tick();
+
     expect(deleteAttachmentSpy).not.toHaveBeenCalled();
     expect(queryFileInput()?.value).toBe('');
-  });
+  }));
 
   it('should reset files, after message is sent', async () => {
     const file = { name: 'my_image.png', type: 'image/png' };
@@ -235,27 +255,30 @@ describe('MessageInputComponent', () => {
   }));
 
   it(`should send message, if file uploads are completed`, async () => {
-    const file = { name: 'my_image.png', type: 'image/png' };
+    const file1 = { name: 'my_image.png', type: 'image/png' };
+    const file2 = { name: 'homework.pdf', type: 'application/pdf' };
     uploadAttachmentsSpy.and.resolveTo([
-      { file, state: 'success', url: 'url/to/image' },
+      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
+      { file: file2, state: 'success', url: 'url/to/pdf', type: 'file' },
     ]);
-    await component.filesSelected([file] as any as FileList);
+    await component.filesSelected([file1, file2] as any as FileList);
     void component.messageSent();
 
     expect(sendMessageSpy).toHaveBeenCalledWith(jasmine.any(String), [
       { fallback: 'my_image.png', image_url: 'url/to/image', type: 'image' },
+      { fallback: 'homework.pdf', image_url: 'url/to/pdf', type: 'file' },
     ]);
   });
 
   it('should be able to upload files in multiple steps', async () => {
     const file1 = { name: 'my_image.png', type: 'image/png' } as File;
     uploadAttachmentsSpy.and.resolveTo([
-      { file: file1, state: 'success', url: 'url/to/image' },
+      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
     ]);
     await component.filesSelected([file1] as any as FileList);
 
-    expect(component.fileUploads).toEqual([
-      { file: file1, state: 'success', url: 'url/to/image' },
+    expect(component.attachmentUploads).toEqual([
+      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
     ]);
 
     const file2 = { name: 'my_image2.png', type: 'image/png' } as File;
@@ -264,9 +287,9 @@ describe('MessageInputComponent', () => {
     ]);
     await component.filesSelected([file2] as any as FileList);
 
-    expect(component.fileUploads).toEqual([
-      { file: file1, state: 'success', url: 'url/to/image' },
-      { file: file2, state: 'success', url: 'url/to/image2' },
+    expect(component.attachmentUploads).toEqual([
+      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
+      { file: file2, state: 'success', url: 'url/to/image2', type: 'image' },
     ]);
 
     await component.messageSent();
@@ -281,9 +304,10 @@ describe('MessageInputComponent', () => {
     void component.filesSelected([
       { name: 'my_image.png', type: 'image/png' },
       { name: 'my_image2.png', type: 'image/png' },
+      { name: 'note.txt', type: 'plain/text' },
     ] as any as FileList);
     fixture.detectChanges();
-    const previews = queryPreviews();
+    const previews = queryImagePreviews();
 
     expect(previews.length).toBe(2);
     expect(queryLoadingIndicators().length).toBe(2);
@@ -302,7 +326,7 @@ describe('MessageInputComponent', () => {
     ]);
     await component.filesSelected([file] as any as FileList);
     fixture.detectChanges();
-    const previews = queryPreviews();
+    const previews = queryImagePreviews();
 
     expect(previews.length).toBe(1);
     expect(queryLoadingIndicators().length).toBe(0);
@@ -323,7 +347,7 @@ describe('MessageInputComponent', () => {
     ]);
     await component.filesSelected([file1, file2] as any as FileList);
     fixture.detectChanges();
-    const previews = queryPreviews();
+    const previews = queryImagePreviews();
 
     expect(
       previews[0].classList.contains('rfu-image-previewer__image--loaded')
@@ -338,66 +362,224 @@ describe('MessageInputComponent', () => {
     ).not.toBeNull();
   });
 
+  it('should display file preview - uploading', () => {
+    void component.filesSelected([
+      { name: 'my_image2.png', type: 'image/png' },
+      { name: 'note.txt', type: 'plain/text' },
+    ] as any as FileList);
+    fixture.detectChanges();
+    const filePreviews = queryPreviewFiles();
+
+    expect(queryImagePreviews().length).toBe(1);
+    expect(filePreviews.length).toBe(1);
+    filePreviews.forEach((p) =>
+      // eslint-disable-next-line jasmine/new-line-before-expect
+      expect(
+        p.querySelector('.rfu-file-previewer__file--uploading')
+      ).not.toBeNull()
+    );
+  });
+
+  it('should display file preview - success', () => {
+    const fileName = 'note.txt';
+    const url = 'url/to/download';
+    component.attachmentUploads = [
+      {
+        file: { name: fileName, type: 'plain/text' } as File,
+        state: 'success',
+        url,
+        type: 'file',
+      },
+    ];
+    fixture.detectChanges();
+    const filePreviews = queryPreviewFiles();
+
+    filePreviews.forEach((p) => {
+      /* eslint-disable jasmine/new-line-before-expect */
+      expect(
+        p.querySelector('.rfu-file-previewer__file--uploading')
+      ).toBeNull();
+      expect(p.innerHTML).toContain(url);
+      expect(p.innerHTML).toContain(fileName);
+      /* eslint-enable jasmine/new-line-before-expect */
+    });
+  });
+
+  it('should display file preview - error', () => {
+    component.attachmentUploads = [
+      {
+        file: { name: 'note.txt', type: 'plain/text' } as File,
+        state: 'success',
+        url: 'url',
+        type: 'file',
+      },
+      {
+        file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+        state: 'error',
+        type: 'file',
+      },
+    ];
+    fixture.detectChanges();
+    const filePreviews = queryPreviewFiles();
+
+    expect(
+      filePreviews[0].querySelector('.rfu-file-previewer__file--failed')
+    ).toBeNull();
+
+    expect(
+      filePreviews[1].querySelector('.rfu-file-previewer__file--failed')
+    ).not.toBeNull();
+  });
+
   it('should display attachment url or preview', () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
     const previewUri = 'data:...';
-    component.fileUploads = [{ file, state: 'uploading', previewUri }];
+    component.attachmentUploads = [
+      { file, state: 'uploading', previewUri, type: 'image' },
+    ];
     fixture.detectChanges();
     const previewImage = queryPreviewImages()[0];
 
     expect(previewImage.src).toContain(previewUri);
 
     const url = 'url/to/img';
-    component.fileUploads = [{ file, state: 'success', url }];
+    component.attachmentUploads = [
+      { file, state: 'success', url, type: 'image' },
+    ];
     fixture.detectChanges();
 
     expect(previewImage.src).toContain(url);
   });
 
-  it('should retry file upload', async () => {
+  it('should retry file upload', () => {
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'error',
+      type: 'file',
+    } as AttachmentUpload;
+    component.attachmentUploads = [upload];
+    fixture.detectChanges();
+    const filePreviews = queryPreviewFiles();
+    const retryButton = filePreviews[0].querySelector(
+      '[data-testclass="file-upload-retry"]'
+    ) as HTMLButtonElement;
+    spyOn(component, 'retryAttachmentUpload');
+    retryButton.click();
+    fixture.detectChanges();
+
+    expect(component.retryAttachmentUpload).toHaveBeenCalledWith(upload.file);
+  });
+
+  it('should delete file', () => {
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'success',
+      url: 'url',
+      type: 'file',
+    } as AttachmentUpload;
+    component.attachmentUploads = [upload];
+    fixture.detectChanges();
+    const filePreviews = queryPreviewFiles();
+    const deleteButton = filePreviews[0].querySelector(
+      '[data-testclass="file-delete"]'
+    ) as HTMLButtonElement;
+    spyOn(component, 'deleteAttachment');
+    deleteButton.click();
+    fixture.detectChanges();
+
+    expect(component.deleteAttachment).toHaveBeenCalledWith(upload);
+  });
+
+  it('should retry attachment upload', async () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
-    uploadAttachmentsSpy.and.resolveTo([{ file, state: 'error' }]);
+    uploadAttachmentsSpy.and.resolveTo([
+      { file, state: 'error', type: 'file' },
+    ]);
     await component.filesSelected([file] as any as FileList);
     fixture.detectChanges();
-    const retryButton = queryPreviews()[0].querySelector(
+    const retryButton = queryImagePreviews()[0].querySelector(
       '[data-testclass="upload-error"]'
     ) as HTMLButtonElement;
     uploadAttachmentsSpy.and.resolveTo([
-      { file, state: 'success', url: 'image/url' },
+      { file, state: 'success', url: 'image/url', type: 'image' },
     ]);
     retryButton.click();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(component.fileUploads).toEqual([
-      { file, state: 'success', url: 'image/url' },
+    expect(component.attachmentUploads).toEqual([
+      { file, state: 'success', url: 'image/url', type: 'image' },
     ]);
+  });
+
+  it('should download file, if upload was successful', () => {
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'success',
+      url: 'url/to/file',
+      type: 'file',
+    } as AttachmentUpload;
+    component.attachmentUploads = [upload];
+    fixture.detectChanges();
+    const link = queryPreviewFiles()[0].querySelector(
+      '[data-testclass="file-download-link"]'
+    ) as HTMLAnchorElement;
+    const event = new KeyboardEvent('click');
+    spyOn(event, 'preventDefault');
+    link.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(link.hasAttribute('download')).toBeTrue();
+    expect(event.preventDefault).not.toHaveBeenCalledWith();
+  });
+
+  it(`shouldn't download file, if upload wasn't successful`, () => {
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'error',
+      type: 'file',
+    } as AttachmentUpload;
+    component.attachmentUploads = [upload];
+    fixture.detectChanges();
+    const link = queryPreviewFiles()[0].querySelector(
+      '[data-testclass="file-download-link"]'
+    ) as HTMLAnchorElement;
+    const event = new KeyboardEvent('click');
+    spyOn(event, 'preventDefault');
+    link.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
   it('should handle channel change', () => {
     const input = queryTextarea()!;
-    component.fileUploads = [
-      { file: { name: 'img.png' } as any as File, state: 'uploading' },
+    component.attachmentUploads = [
+      {
+        file: { name: 'img.png' } as any as File,
+        state: 'uploading',
+        type: 'image',
+      },
     ];
     input.value = 'text';
     mockActiveChannel$.next({} as Channel);
     fixture.detectChanges();
 
     expect(input.value).toBe('');
-    expect(component.fileUploads).toEqual([]);
+    expect(component.attachmentUploads).toEqual([]);
   });
 
   it('should delete attachment, if file is already uploaded', async () => {
     const url = 'url/to/img';
-    component.fileUploads = [
-      {
-        file: { name: 'myimage.jpg' } as any as File,
-        state: 'success',
-        url,
-      },
-    ];
+    const attachmentUpload = {
+      file: { name: 'myimage.jpg' } as any as File,
+      state: 'success',
+      type: 'image',
+      url,
+    };
+    component.attachmentUploads = [attachmentUpload as AttachmentUpload];
     fixture.detectChanges();
-    const preview = queryPreviews()[0];
+    const preview = queryImagePreviews()[0];
     const deleteButton = preview.querySelector(
       '[data-testclass="delete-attachment"]'
     ) as HTMLButtonElement;
@@ -405,19 +587,20 @@ describe('MessageInputComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(deleteAttachmentSpy).toHaveBeenCalledWith(url);
-    expect(component.fileUploads).toEqual([]);
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith(attachmentUpload);
+    expect(component.attachmentUploads).toEqual([]);
   });
 
   it('should delete attachment, if file is uploading', async () => {
-    component.fileUploads = [
+    component.attachmentUploads = [
       {
         file: { name: 'myimage.jpg' } as any as File,
+        type: 'image',
         state: 'uploading',
       },
     ];
     fixture.detectChanges();
-    const preview = queryPreviews()[0];
+    const preview = queryImagePreviews()[0];
     const deleteButton = preview.querySelector(
       '[data-testclass="delete-attachment"]'
     ) as HTMLButtonElement;
@@ -425,21 +608,22 @@ describe('MessageInputComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(component.fileUploads).toEqual([]);
-    expect(queryPreviews().length).toBe(0);
+    expect(component.attachmentUploads).toEqual([]);
+    expect(queryImagePreviews().length).toBe(0);
   });
 
   it(`shouldn't delete preview, if attachment couldn't be deleted`, async () => {
-    component.fileUploads = [
+    component.attachmentUploads = [
       {
         file: { name: 'myimage.jpg' } as any as File,
         state: 'success',
+        type: 'image',
         url: 'url/to/img',
       },
     ];
     fixture.detectChanges();
     deleteAttachmentSpy.and.rejectWith(new Error('error'));
-    const preview = queryPreviews()[0];
+    const preview = queryImagePreviews()[0];
     const deleteButton = preview.querySelector(
       '[data-testclass="delete-attachment"]'
     ) as HTMLButtonElement;
@@ -453,11 +637,18 @@ describe('MessageInputComponent', () => {
   it('should remove deleted attachments after upload', fakeAsync(() => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
     const url = 'url/to/image';
-    uploadAttachmentsSpy.and.resolveTo([{ file, state: 'success', url }]);
+    uploadAttachmentsSpy.and.resolveTo([
+      { file, state: 'success', url, type: 'image' },
+    ]);
     void component.filesSelected([file] as any as FileList);
-    component.fileUploads = [];
+    component.attachmentUploads = [];
     tick();
 
-    expect(deleteAttachmentSpy).toHaveBeenCalledWith(url);
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith({
+      file,
+      state: 'success',
+      url,
+      type: 'image',
+    });
   }));
 });

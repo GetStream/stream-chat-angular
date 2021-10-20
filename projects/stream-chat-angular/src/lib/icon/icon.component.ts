@@ -8,7 +8,8 @@ export type Icon =
   | 'send'
   | 'file-upload'
   | 'retry'
-  | 'close';
+  | 'close'
+  | 'file';
 
 @Component({
   selector: 'stream-icon',

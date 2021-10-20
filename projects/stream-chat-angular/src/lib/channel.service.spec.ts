@@ -18,7 +18,7 @@ import {
   mockMessage,
   Spied,
 } from './mocks';
-import { StreamMessage } from './types';
+import { AttachmentUpload, StreamMessage } from './types';
 
 describe('ChannelService', () => {
   let service: ChannelService;
@@ -772,7 +772,7 @@ describe('ChannelService', () => {
     expect(messages.filter((m) => m.id === newMessageId).length).toEqual(1);
   });
 
-  it('should upload images', async () => {
+  it('should upload attachments', async () => {
     await init();
     let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
@@ -784,17 +784,40 @@ describe('ChannelService', () => {
           return Promise.resolve({ file: 'url/to/image', duration: '200ms' });
       }
     });
+    spyOn(channel, 'sendFile').and.callFake((file: File) => {
+      switch (file.name) {
+        case 'file_error.pdf':
+          return Promise.reject(new Error());
+        default:
+          return Promise.resolve({ file: 'url/to/pdf', duration: '200ms' });
+      }
+    });
     const file1 = { name: 'food.png' } as File;
     const file2 = { name: 'file_error.jpg' } as File;
-    const attachments = [file1, file2];
+    const file3 = { name: 'menu.pdf' } as File;
+    const file4 = { name: 'file_error.pdf' } as File;
+    const attachments = [
+      { file: file1, type: 'image', state: 'uploading' },
+      { file: file2, type: 'image', state: 'uploading' },
+      { file: file3, type: 'file', state: 'uploading' },
+      { file: file4, type: 'file', state: 'uploading' },
+    ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
     const expectedResult = [
       {
         file: file1,
         state: 'success',
         url: 'url/to/image',
+        type: 'image',
       },
-      { file: file2, state: 'error' },
+      { file: file2, state: 'error', type: 'image' },
+      {
+        file: file3,
+        state: 'success',
+        url: 'url/to/pdf',
+        type: 'file',
+      },
+      { file: file4, state: 'error', type: 'file' },
     ];
 
     expectedResult.forEach((r, i) => {
@@ -802,14 +825,35 @@ describe('ChannelService', () => {
     });
   });
 
-  it('should delete attachment', async () => {
+  it('should delete image attachment', async () => {
     await init();
     let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteImage');
     const url = 'url/to/image';
-    await service.deleteAttachment(url);
+    await service.deleteAttachment({
+      url,
+      type: 'image',
+      state: 'success',
+      file: {} as any as File,
+    });
 
     expect(channel.deleteImage).toHaveBeenCalledWith(url);
+  });
+
+  it('should delete file attachment', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'deleteFile');
+    const url = 'url/to/file';
+    await service.deleteAttachment({
+      url,
+      type: 'file',
+      state: 'success',
+      file: {} as any as File,
+    });
+
+    expect(channel.deleteFile).toHaveBeenCalledWith(url);
   });
 });
