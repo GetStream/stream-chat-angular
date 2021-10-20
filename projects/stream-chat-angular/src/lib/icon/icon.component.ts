@@ -18,5 +18,6 @@ export type Icon =
 })
 export class IconComponent {
   @Input() icon: Icon | undefined;
+  @Input() size: number | undefined;
   constructor() {}
 }

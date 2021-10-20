@@ -8,6 +8,7 @@ describe('AttachmentListComponent', () => {
   let nativeElement: HTMLElement;
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
+  let queryFileLinks: () => HTMLAnchorElement[];
 
   const waitForImgComplete = () => {
     const img = queryImages()[0];
@@ -38,6 +39,10 @@ describe('AttachmentListComponent', () => {
       );
     queryImages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="image"]'));
+    queryFileLinks = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="file-link"]')
+      );
     fixture.detectChanges();
   });
 
@@ -50,10 +55,30 @@ describe('AttachmentListComponent', () => {
     component.attachments = [
       { type: 'image', img_url: 'url1' },
       { type: 'image', img_url: 'url2' },
+      { type: 'file', asset_url: 'url3' },
     ];
     fixture.detectChanges();
+    const attachments = queryAttachments();
 
-    expect(queryAttachments().length).toBe(2);
+    expect(attachments.length).toBe(3);
+    expect(
+      attachments[0].classList.contains('str-chat__message-attachment--image')
+    ).toBeTrue();
+
+    expect(
+      attachments[1].classList.contains('str-chat__message-attachment--image')
+    ).toBeTrue();
+
+    expect(
+      attachments[2].classList.contains('str-chat__message-attachment--image')
+    ).toBeFalse();
+
+    expect(
+      attachments[2].classList.contains('str-chat__message-attachment--file')
+    ).toBeTrue();
+
+    expect(queryImages().length).toBe(2);
+    expect(queryFileLinks().length).toBe(1);
   });
 
   describe('should display image attachment', () => {
@@ -114,6 +139,45 @@ describe('AttachmentListComponent', () => {
       await waitForImgComplete();
 
       expect(spy).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('should display file attachment', () => {
+    it('should display file link', () => {
+      const title = 'contract.pdf';
+      const asset_url = 'url/to/contract';
+      component.attachments = [{ type: 'file', title, asset_url }];
+      fixture.detectChanges();
+      const link = queryFileLinks()[0];
+
+      expect(link.hasAttribute('download')).toBeTrue();
+      expect(link.href).toContain(asset_url);
+      expect(link.textContent).toContain(title);
+    });
+
+    it('should sanitize file link', () => {
+      const asset_url = 'javascript:alert(document.domain)';
+      component.attachments = [
+        { type: 'file', title: 'contract.pdf', asset_url },
+      ];
+      fixture.detectChanges();
+      const link = queryFileLinks()[0];
+
+      expect(link.hasAttribute('download')).toBeTrue();
+      expect(link.href).toContain('unsafe:' + asset_url);
+    });
+
+    it('should display file size, if provided', () => {
+      const title = 'contract.pdf';
+      const asset_url = 'url/to/contract';
+      component.attachments = [
+        { type: 'file', title, asset_url, file_size: 3272969 },
+      ];
+      fixture.detectChanges();
+      const preview = queryAttachments()[0];
+      const fileSize = preview.querySelector('[data-testclass="size"]');
+
+      expect(fileSize?.textContent).toContain('3.27 MB');
     });
   });
 });

@@ -6,6 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { Attachment } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { AttachmentUpload } from '../types';
 
@@ -46,7 +47,21 @@ export class MessageInputComponent implements OnDestroy {
     const text = this.messageInput.nativeElement.value;
     const attachments = this.attachmentUploads
       .filter((r) => r.state === 'success')
-      .map((r) => ({ fallback: r.file.name, image_url: r.url, type: r.type }));
+      .map((r) => {
+        const attachment: Attachment = {
+          type: r.type,
+        };
+        if (r.type === 'image') {
+          attachment.fallback = r.file.name;
+          attachment.image_url = r.url;
+        } else {
+          attachment.asset_url = r.url;
+          attachment.title = r.file.name;
+          attachment.file_size = r.file.size;
+        }
+
+        return attachment;
+      });
     this.messageInput.nativeElement.value = '';
     await this.channelService.sendMessage(text, attachments);
     this.attachmentUploads = [];

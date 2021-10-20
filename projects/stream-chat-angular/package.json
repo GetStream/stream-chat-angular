@@ -10,6 +10,7 @@
     "@ctrl/ngx-emoji-mart": "^6.0.1",
     "@ngx-translate/core": "^13.0.0",
     "dayjs": "^1.10.7",
+    "pretty-bytes": "^5.6.0",
     "stream-chat-css": "1.0.17",
     "tslib": "^2.3.0",
     "uuidv4": "^6.2.12"

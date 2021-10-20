@@ -256,7 +256,11 @@ describe('MessageInputComponent', () => {
 
   it(`should send message, if file uploads are completed`, async () => {
     const file1 = { name: 'my_image.png', type: 'image/png' };
-    const file2 = { name: 'homework.pdf', type: 'application/pdf' };
+    const file2 = {
+      name: 'homework.pdf',
+      type: 'application/pdf',
+      size: 3272969,
+    };
     uploadAttachmentsSpy.and.resolveTo([
       { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
       { file: file2, state: 'success', url: 'url/to/pdf', type: 'file' },
@@ -266,7 +270,12 @@ describe('MessageInputComponent', () => {
 
     expect(sendMessageSpy).toHaveBeenCalledWith(jasmine.any(String), [
       { fallback: 'my_image.png', image_url: 'url/to/image', type: 'image' },
-      { fallback: 'homework.pdf', image_url: 'url/to/pdf', type: 'file' },
+      {
+        title: 'homework.pdf',
+        asset_url: 'url/to/pdf',
+        type: 'file',
+        file_size: 3272969,
+      },
     ]);
   });
 

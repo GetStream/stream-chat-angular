@@ -163,8 +163,8 @@
   *ngIf="icon === 'file'"
   data-testid="file"
   className="rfu-file-icon--small fa-file-fallback"
-  height="20"
-  width="20"
+  [attr.height]="size || 20"
+  [attr.width]="size || 20"
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 384 512"
 >
