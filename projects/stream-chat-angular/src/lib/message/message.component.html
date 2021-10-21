@@ -117,9 +117,8 @@
           (click)="textClicked()"
           (keyup.enter)="textClicked()"
           data-testid="text"
-        >
-          {{ message?.text }}
-        </div>
+          [innerHTML]="message?.html || message?.text"
+        ></div>
       </div>
     </div>
     <div class="str-chat__message-data str-chat__message-simple-data">

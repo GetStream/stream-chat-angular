@@ -18,6 +18,25 @@ export class AttachmentListComponent {
     return index;
   }
 
+  isImage(attachment: Attachment) {
+    return (
+      attachment.type === 'image' &&
+      !attachment.title_link &&
+      !attachment.og_scrape_url
+    );
+  }
+
+  isFile(attachment: Attachment) {
+    return attachment.type === 'file';
+  }
+
+  isCard(attachment: Attachment) {
+    return (
+      !attachment.type ||
+      (attachment.type === 'image' && !this.isImage(attachment))
+    );
+  }
+
   imageLoaded() {
     this.imageLoadService.imageLoad$.next();
   }
@@ -30,5 +49,16 @@ export class AttachmentListComponent {
 
   getFileSize(attachment: Attachment<DefaultAttachmentType>) {
     return prettybytes(attachment.file_size!);
+  }
+
+  trimUrl(url?: string | null) {
+    if (url !== undefined && url !== null) {
+      const [trimmedUrl] = url
+        .replace(/^(?:https?:\/\/)?(?:www\.)?/i, '')
+        .split('/');
+
+      return trimmedUrl;
+    }
+    return null;
   }
 }
