@@ -8,7 +8,8 @@ export type Icon =
   | 'send'
   | 'file-upload'
   | 'retry'
-  | 'close';
+  | 'close'
+  | 'file';
 
 @Component({
   selector: 'stream-icon',
@@ -17,5 +18,6 @@ export type Icon =
 })
 export class IconComponent {
   @Input() icon: Icon | undefined;
+  @Input() size: number | undefined;
   constructor() {}
 }

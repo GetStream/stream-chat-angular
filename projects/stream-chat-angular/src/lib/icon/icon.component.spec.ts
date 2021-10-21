@@ -78,6 +78,17 @@ describe('IconComponent', () => {
     expect(queryIcon('close')).not.toBeNull();
   });
 
+  it('should display file icon', () => {
+    component.icon = 'file';
+    component.size = 30;
+    fixture.detectChanges();
+    const icon = queryIcon('file');
+
+    expect(icon).not.toBeNull();
+    expect(icon?.clientWidth).toBe(component.size);
+    expect(icon?.clientHeight).toBe(component.size);
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

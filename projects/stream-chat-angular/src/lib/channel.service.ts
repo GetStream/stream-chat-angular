@@ -15,7 +15,7 @@ import { ChatClientService, Notification } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
 import { MessageReactionType } from './message-reactions/message-reactions.component';
 import { getReadBy } from './read-by';
-import { StreamMessage } from './types';
+import { AttachmentUpload, StreamMessage } from './types';
 
 @Injectable({
   providedIn: 'root',
@@ -226,33 +226,40 @@ export class ChannelService {
   }
 
   async uploadAttachments(
-    files: File[]
-  ): Promise<{ file: File; state: 'error' | 'success'; url?: string }[]> {
-    const result: { file: File; state: 'error' | 'success'; url?: string }[] =
-      [];
+    uploads: AttachmentUpload[]
+  ): Promise<AttachmentUpload[]> {
+    const result: AttachmentUpload[] = [];
     const channel = this.activeChannelSubject.getValue()!;
-    const fileUploadResults = await Promise.allSettled(
-      files.map((file) => channel.sendImage(file))
+    const uploadResults = await Promise.allSettled(
+      uploads.map((upload) =>
+        upload.type === 'image'
+          ? channel.sendImage(upload.file)
+          : channel.sendFile(upload.file)
+      )
     );
-    fileUploadResults.forEach((fileUploadResult, i) => {
-      const file = files[i];
-      if (fileUploadResult.status === 'fulfilled') {
+    uploadResults.forEach((uploadResult, i) => {
+      const file = uploads[i].file;
+      const type = uploads[i].type;
+      if (uploadResult.status === 'fulfilled') {
         result.push({
           file,
+          type,
           state: 'success',
-          url: fileUploadResult.value.file,
+          url: uploadResult.value.file,
         });
       } else {
-        result.push({ file, state: 'error' });
+        result.push({ file, type, state: 'error' });
       }
     });
 
     return result;
   }
 
-  async deleteAttachment(url: string) {
+  async deleteAttachment(attachmentUpload: AttachmentUpload) {
     const channel = this.activeChannelSubject.getValue()!;
-    await channel.deleteImage(url);
+    await (attachmentUpload.type === 'image'
+      ? channel.deleteImage(attachmentUpload.url!)
+      : channel.deleteFile(attachmentUpload.url!));
   }
 
   private async handleNotification(notification: Notification) {

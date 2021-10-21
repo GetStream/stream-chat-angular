@@ -1,16 +1,36 @@
 <ng-container *ngFor="let attachment of attachments; trackBy: trackById">
-  <!-- Only image attachments are supported at the moment -->
   <div
     data-testclass="attachment-container"
-    *ngIf="attachment.type === 'image'"
-    class="str-chat__message-attachment str-chat__message-attachment--image"
+    class="str-chat__message-attachment str-chat__message-attachment--{{
+      attachment.type
+    }}"
   >
     <img
+      *ngIf="attachment.type === 'image'"
       class="str-chat__message-attachment--img"
       data-testclass="image"
       [src]="attachment.img_url || attachment.thumb_url || attachment.image_url"
       [alt]="attachment?.fallback"
       (load)="imageLoaded()"
     />
+    <div
+      *ngIf="attachment.type === 'file'"
+      class="str-chat__message-attachment-file--item"
+    >
+      <stream-icon icon="file" [size]="30"></stream-icon>
+      <div class="str-chat__message-attachment-file--item-text">
+        <a
+          data-testclass="file-link"
+          download
+          href="{{ attachment.asset_url }}"
+          target="_blank"
+        >
+          {{ attachment.title }}
+        </a>
+        <span data-testclass="size" *ngIf="hasFileSize(attachment)">{{
+          getFileSize(attachment)
+        }}</span>
+      </div>
+    </div>
   </div>
 </ng-container>

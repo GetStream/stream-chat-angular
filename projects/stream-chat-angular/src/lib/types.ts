@@ -75,3 +75,11 @@ export type StreamMessage<
   Re extends DefaultReactionType = DefaultReactionType,
   Us extends DefaultUserType<Us> = DefaultUserType
 > = FormatMessageResponse<At, Ch, Co, Me, Re, Us>;
+
+export type AttachmentUpload = {
+  file: File;
+  state: 'error' | 'success' | 'uploading';
+  url?: string;
+  type: 'image' | 'file';
+  previewUri?: string | ArrayBuffer;
+};

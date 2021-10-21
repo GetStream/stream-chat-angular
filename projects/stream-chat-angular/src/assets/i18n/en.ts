@@ -80,4 +80,6 @@ export const en = {
   '🏙 Attachment...': '🏙 Attachment...',
   'Connection error': 'Connection error',
   'Load more': 'Load more',
+  failed: 'failed',
+  retry: 'retry',
 };
