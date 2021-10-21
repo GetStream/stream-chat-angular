@@ -230,7 +230,9 @@ describe('ChannelService', () => {
     spy.calls.reset();
     let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
-    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+    const newMessage = mockMessage();
+    activeChannel.state.messages.push(newMessage);
+    (activeChannel as MockChannel).handleEvent('message.new', newMessage);
 
     const newCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
 
@@ -703,6 +705,36 @@ describe('ChannelService', () => {
     expect(messageCount).toEqual(prevMessageCount + 1);
   });
 
+  it('should resend message', async () => {
+    await init();
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => {
+      latestMessage = m[m.length - 1];
+    });
+    latestMessage.status = 'failed';
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.callThrough();
+    spyOn(channel.state, 'addMessageSorted').and.callThrough();
+    await service.resendMessage(latestMessage);
+
+    expect(channel.sendMessage).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        id: latestMessage.id,
+      })
+    );
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        status: 'sending',
+        errorStatusCode: undefined,
+      }),
+      true
+    );
+
+    expect(latestMessage.status).toBe('sending');
+  });
+
   it('should set message state while sending', async () => {
     await init();
     let channel!: Channel;
@@ -729,11 +761,33 @@ describe('ChannelService', () => {
       (m) => (latestMessage = m[m.length - 1])
     );
     await service.sendMessage(text);
+    channel.state.messages.push({
+      id: latestMessage.id,
+    } as any as StreamMessage);
     (channel as MockChannel).handleEvent('message.new', {
       id: latestMessage.id,
     });
 
     expect(latestMessage.status).toBe('received');
+  });
+
+  // this could happen when a message was added to the local state while offline
+  it('should handle message order change', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const localMessage = channel.state.messages.splice(
+      channel.state.messages.length - 2,
+      1
+    )[0];
+    channel.state.messages.push(localMessage);
+    (channel as MockChannel).handleEvent('message.new', localMessage);
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+
+    expect(latestMessage.id).toBe(localMessage.id);
   });
 
   it('should set message state, if an error occured', async () => {

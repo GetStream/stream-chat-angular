@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { UserResponse } from 'stream-chat';
+import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { getDeviceWidth } from '../device-width';
 import { MessageActions } from '../message-actions-box/message-actions-box.component';
@@ -32,7 +33,10 @@ export class MessageComponent {
     | ElementRef<HTMLElement>
     | undefined;
 
-  constructor(private chatClientService: ChatClientService) {
+  constructor(
+    private chatClientService: ChatClientService,
+    private channelService: ChannelService
+  ) {
     this.user = this.chatClientService.chatClient.user;
   }
 
@@ -95,6 +99,10 @@ export class MessageComponent {
       !!this.message?.reaction_counts &&
       Object.keys(this.message.reaction_counts).length > 0
     );
+  }
+
+  resendMessage() {
+    void this.channelService.resendMessage(this.message!);
   }
 
   textClicked() {
