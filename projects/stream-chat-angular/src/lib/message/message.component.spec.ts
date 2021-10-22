@@ -13,6 +13,7 @@ import { mockCurrentUser, mockMessage } from '../mocks';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { ChannelService } from '../channel.service';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -38,8 +39,10 @@ describe('MessageComponent', () => {
   let queryReactionIcon: () => HTMLElement | null;
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
+  let resendMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
+    resendMessageSpy = jasmine.createSpy('resendMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -56,6 +59,10 @@ describe('MessageComponent', () => {
         {
           provide: ChatClientService,
           useValue: { chatClient: { user: currentUser } },
+        },
+        {
+          provide: ChannelService,
+          useValue: { resendMessage: resendMessageSpy },
         },
       ],
     });
@@ -563,5 +570,42 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(queryText()?.innerHTML).toEqual(htmlContent);
+  });
+
+  it('should resend message, if sending is failed', () => {
+    component.message = { ...component.message!, status: 'failed' };
+    fixture.detectChanges();
+    spyOn(component, 'resendMessage');
+    queryMessageInner()!.click();
+
+    expect(component.resendMessage).toHaveBeenCalledWith();
+  });
+
+  it(`shouldn't resend message, if message could be sent`, () => {
+    component.message = { ...component.message!, status: 'received' };
+    fixture.detectChanges();
+    spyOn(component, 'resendMessage');
+    queryMessageInner()!.click();
+
+    expect(component.resendMessage).not.toHaveBeenCalled();
+  });
+
+  it(`shouldn't resend unathorized message`, () => {
+    component.message = {
+      ...component.message!,
+      status: 'failed',
+      errorStatusCode: 403,
+    };
+    fixture.detectChanges();
+    spyOn(component, 'resendMessage');
+    queryMessageInner()!.click();
+
+    expect(component.resendMessage).not.toHaveBeenCalledWith();
+  });
+
+  it('should resend message', () => {
+    component.resendMessage();
+
+    expect(resendMessageSpy).toHaveBeenCalledWith(component.message);
   });
 });

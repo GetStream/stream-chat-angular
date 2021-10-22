@@ -93,6 +93,16 @@
         [class.str-chat__message-light-text-inner--has-attachment]="
           hasAttachment
         "
+        (click)="
+          message?.status === 'failed' && message?.errorStatusCode !== 403
+            ? resendMessage()
+            : undefined
+        "
+        (keyup.enter)="
+          message?.status === 'failed' && message?.errorStatusCode !== 403
+            ? resendMessage()
+            : undefined
+        "
       >
         <div
           data-testid="client-error-message"
@@ -109,7 +119,7 @@
           {{
             (message?.errorStatusCode === 403
               ? "Message Failed · Unauthorized"
-              : "Message Failed"
+              : "Message Failed · Click to try again"
             ) | translate
           }}
         </div>

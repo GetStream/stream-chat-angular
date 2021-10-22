@@ -200,29 +200,20 @@ export class ChannelService {
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
     channel.state.addMessageSorted(preview, true);
-    this.activeChannelMessagesSubject.next([...channel.state.messages]);
-    try {
-      await channel.sendMessage({
-        text,
-        attachments,
-        id: preview.id,
-      });
-    } catch (error) {
-      const stringError = JSON.stringify(error);
-      const parsedError: { status?: number } = stringError
-        ? (JSON.parse(stringError) as { status?: number })
-        : {};
+    await this.sendMessageRequest(preview);
+  }
 
-      channel.state.addMessageSorted(
-        {
-          ...preview,
-          errorStatusCode: parsedError.status || undefined,
-          status: 'failed',
-        },
-        true
-      );
-      this.activeChannelMessagesSubject.next([...channel.state.messages]);
-    }
+  async resendMessage(message: StreamMessage) {
+    const channel = this.activeChannelSubject.getValue()!;
+    channel.state.addMessageSorted(
+      {
+        ...(message as any as MessageResponse),
+        errorStatusCode: undefined,
+        status: 'sending',
+      },
+      true
+    );
+    await this.sendMessageRequest(message);
   }
 
   async uploadAttachments(
@@ -260,6 +251,33 @@ export class ChannelService {
     await (attachmentUpload.type === 'image'
       ? channel.deleteImage(attachmentUpload.url!)
       : channel.deleteFile(attachmentUpload.url!));
+  }
+
+  private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
+    const channel = this.activeChannelSubject.getValue()!;
+    this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    try {
+      await channel.sendMessage({
+        text: preview.text,
+        attachments: preview.attachments,
+        id: preview.id,
+      });
+    } catch (error) {
+      const stringError = JSON.stringify(error);
+      const parsedError: { status?: number } = stringError
+        ? (JSON.parse(stringError) as { status?: number })
+        : {};
+
+      channel.state.addMessageSorted(
+        {
+          ...(preview as MessageResponse),
+          errorStatusCode: parsedError.status || undefined,
+          status: 'failed',
+        },
+        true
+      );
+      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    }
   }
 
   private async handleNotification(notification: Notification) {
@@ -341,25 +359,8 @@ export class ChannelService {
 
   private watchForActiveChannelEvents(channel: Channel) {
     this.channelSubscriptions.push(
-      channel.on('message.new', (e) => {
-        const newMessage = e.message!;
-        let currentMessages!: (StreamMessage | MessageResponse)[];
-        let newMessageIndex!: number;
-        this.activeChannelMessages$.pipe(first()).subscribe((messages) => {
-          currentMessages = messages;
-          newMessageIndex = currentMessages.findIndex(
-            (m) => m.id === newMessage?.id
-          );
-        });
-        if (newMessageIndex === -1) {
-          this.activeChannelMessagesSubject.next([
-            ...currentMessages,
-            newMessage,
-          ]);
-        } else {
-          currentMessages[newMessageIndex] = newMessage;
-          this.activeChannelMessagesSubject.next([...currentMessages]);
-        }
+      channel.on('message.new', () => {
+        this.activeChannelMessagesSubject.next([...channel.state.messages]);
         this.appRef.tick();
       })
     );
