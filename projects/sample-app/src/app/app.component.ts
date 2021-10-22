@@ -22,7 +22,10 @@ export class AppComponent {
       environment.userId,
       environment.userToken
     );
-    void this.channelService.init({ type: 'messaging' });
+    void this.channelService.init({
+      type: 'messaging',
+      members: { $in: [environment.userId] },
+    });
     this.streamI18nService.init();
   }
 }

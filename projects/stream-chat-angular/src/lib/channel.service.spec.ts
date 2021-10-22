@@ -149,11 +149,14 @@ describe('ChannelService', () => {
     const messagesSpy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
-    service.setAsActiveChannel(mockChannels[1]);
+    const newActiveChannel = mockChannels[1];
+    spyOn(newActiveChannel, 'markRead');
+    service.setAsActiveChannel(newActiveChannel);
     result = spy.calls.mostRecent().args[0] as Channel;
 
-    expect(result.cid).toBe(mockChannels[1].cid);
+    expect(result.cid).toBe(newActiveChannel.cid);
     expect(messagesSpy).toHaveBeenCalledWith(jasmine.any(Object));
+    expect(newActiveChannel.markRead).toHaveBeenCalledWith();
   });
 
   it('should emit #activeChannelMessages$', async () => {
@@ -232,11 +235,13 @@ describe('ChannelService', () => {
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const newMessage = mockMessage();
     activeChannel.state.messages.push(newMessage);
+    spyOn(activeChannel, 'markRead');
     (activeChannel as MockChannel).handleEvent('message.new', newMessage);
 
     const newCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
 
     expect(newCount).toBe(prevCount + 1);
+    expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
   it('should move channel to the top of the list', async () => {
@@ -476,17 +481,17 @@ describe('ChannelService', () => {
     spy.calls.reset();
     let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
-    (activeChannel as MockChannel).handleEvent('reaction.new', message);
+    (activeChannel as MockChannel).handleEvent('reaction.new', { message });
 
     expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
 
     spy.calls.reset();
-    (activeChannel as MockChannel).handleEvent('reaction.updated', message);
+    (activeChannel as MockChannel).handleEvent('reaction.updated', { message });
 
     expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
 
     spy.calls.reset();
-    (activeChannel as MockChannel).handleEvent('reaction.deleted', message);
+    (activeChannel as MockChannel).handleEvent('reaction.deleted', { message });
 
     expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
   });
@@ -909,5 +914,48 @@ describe('ChannelService', () => {
     });
 
     expect(channel.deleteFile).toHaveBeenCalledWith(url);
+  });
+
+  it('should update #readBy array, if active channel is read', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (messages) => (latestMessage = messages[messages.length - 1])
+    );
+
+    expect(latestMessage.readBy.length).toBe(0);
+
+    const user = { id: 'jack', name: 'Jack' } as UserResponse;
+    channel.state.read = { [user.id]: { last_read: new Date(), user } };
+    (channel as MockChannel).handleEvent('message.read', {
+      user,
+    });
+
+    expect(
+      latestMessage.readBy.find((u) => u.id === 'jack')
+    ).not.toBeUndefined();
+  });
+
+  it(`should unsubscribe from active channel events, after active channel changed`, async () => {
+    await init();
+    const spy = jasmine.createSpy('activeMessagesSpy');
+    service.activeChannelMessages$.subscribe(spy);
+    let prevActiveChannel!: Channel;
+    service.activeChannel$
+      .pipe(first())
+      .subscribe((c) => (prevActiveChannel = c!));
+    const newActiveChannel = generateMockChannels()[1];
+    service.setAsActiveChannel(newActiveChannel);
+    spy.calls.reset();
+    (prevActiveChannel as MockChannel).handleEvent('message.new', {
+      user: { id: 'jill' },
+    });
+    (prevActiveChannel as MockChannel).handleEvent('reaction.new', {
+      message: mockMessage(),
+    });
+
+    expect(spy).not.toHaveBeenCalled();
   });
 });

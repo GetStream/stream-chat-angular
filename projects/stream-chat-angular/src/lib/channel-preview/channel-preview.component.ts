@@ -46,6 +46,12 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
     );
+    this.subscriptions.push(
+      this.channel!.on(
+        'message.read',
+        () => (this.isUnread = !!this.channel!.countUnread())
+      )
+    );
   }
 
   ngOnDestroy(): void {
