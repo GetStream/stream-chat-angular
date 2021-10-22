@@ -9,6 +9,8 @@ describe('AttachmentListComponent', () => {
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
   let queryFileLinks: () => HTMLAnchorElement[];
+  let queryUrlLinks: () => HTMLAnchorElement[];
+  let queryCardImages: () => HTMLImageElement[];
 
   const waitForImgComplete = () => {
     const img = queryImages()[0];
@@ -43,6 +45,10 @@ describe('AttachmentListComponent', () => {
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="file-link"]')
       );
+    queryUrlLinks = () =>
+      Array.from(nativeElement.querySelectorAll('[data-testclass="url-link"]'));
+    queryCardImages = () =>
+      Array.from(nativeElement.querySelectorAll('[data-testclass="card-img"]'));
     fixture.detectChanges();
   });
 
@@ -56,11 +62,26 @@ describe('AttachmentListComponent', () => {
       { type: 'image', img_url: 'url1' },
       { type: 'image', img_url: 'url2' },
       { type: 'file', asset_url: 'url3' },
+      {
+        title: 'BBC - Homepage',
+        title_link: 'https://www.bbc.com/',
+        og_scrape_url: 'https://www.bbc.com/',
+        image_url: 'https://assets/images/favicons/favicon-194x194.png',
+      },
+      {
+        image_url: 'https://getstream.io/images/og/OG_Home.png',
+        og_scrape_url: 'https://getstream.io/',
+        text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
+        thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+        title: 'The #1 Chat Messaging + Activity Feed Infrastructure',
+        title_link: '/',
+        type: 'image',
+      },
     ];
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(3);
+    expect(attachments.length).toBe(5);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
@@ -77,8 +98,25 @@ describe('AttachmentListComponent', () => {
       attachments[2].classList.contains('str-chat__message-attachment--file')
     ).toBeTrue();
 
+    expect(
+      attachments[3].classList.contains('str-chat__message-attachment--image')
+    ).toBeFalse();
+
+    expect(
+      attachments[3].classList.contains('str-chat__message-attachment--card')
+    ).toBeTrue();
+
+    expect(
+      attachments[4].classList.contains('str-chat__message-attachment--image')
+    ).toBeTrue();
+
+    expect(
+      attachments[4].classList.contains('str-chat__message-attachment--card')
+    ).toBeTrue();
+
     expect(queryImages().length).toBe(2);
     expect(queryFileLinks().length).toBe(1);
+    expect(queryUrlLinks().length).toBe(2);
   });
 
   describe('should display image attachment', () => {
@@ -178,6 +216,130 @@ describe('AttachmentListComponent', () => {
       const fileSize = preview.querySelector('[data-testclass="size"]');
 
       expect(fileSize?.textContent).toContain('3.27 MB');
+    });
+  });
+
+  describe('should display URL attachment as card', () => {
+    it('should trim URL', () => {
+      expect(component.trimUrl('https://angular.io/')).toBe('angular.io');
+      expect(component.trimUrl('https://www.youtube.com/')).toBe('youtube.com');
+    });
+
+    it('should display image by #image_url', () => {
+      const imageUrl = 'https://getstream.io/images/og/OG_Home.png';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: imageUrl,
+          og_scrape_url: 'https://getstream.io',
+          thumb_url: 'not' + imageUrl,
+          title: 'Stream',
+          title_link: '/',
+          type: 'image',
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(queryCardImages()[0].src).toBe(imageUrl);
+    });
+
+    it('should display image by #thumb_url', () => {
+      const thumbUrl = 'https://getstream.io/images/og/OG_Home.png';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: undefined,
+          og_scrape_url: 'https://getstream.io',
+          thumb_url: thumbUrl,
+          title: 'Stream',
+          title_link: '/',
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(queryCardImages()[0].src).toBe(thumbUrl);
+    });
+
+    it('should display attachment #title, if exists', () => {
+      const title = 'Stream';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: undefined,
+          og_scrape_url: 'https://getstream.io',
+          thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+          title,
+          title_link: '/',
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(
+        queryAttachments()[0].querySelector('[data-testclass="card-title"]')
+          ?.textContent
+      ).toContain(title);
+    });
+
+    it('should display attachment #text, if exists', () => {
+      const text =
+        'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: undefined,
+          og_scrape_url: 'https://getstream.io',
+          thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+          title: 'Stream',
+          text,
+          title_link: '/',
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(
+        queryAttachments()[0].querySelector('[data-testclass="card-text"]')
+          ?.textContent
+      ).toContain(text);
+    });
+
+    it('should display attachment #title_link', () => {
+      const titleLink = 'https://getstream.io';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: undefined,
+          og_scrape_url: 'https://getstream.io/home',
+          thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+          title: 'Stream',
+          text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
+          title_link: titleLink,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(queryUrlLinks()[0].href).toContain(titleLink);
+      expect(queryUrlLinks()[0].textContent).toContain('getstream.io');
+    });
+
+    it('should display attachment #og_scrape_url', () => {
+      const scrapeUrl = 'https://getstream.io';
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: undefined,
+          og_scrape_url: scrapeUrl,
+          thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+          title: 'Stream',
+          text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
+          title_link: undefined,
+        },
+      ];
+      fixture.detectChanges();
+
+      expect(queryUrlLinks()[0].href).toContain(scrapeUrl);
+      expect(queryUrlLinks()[0].textContent).toContain(
+        component.trimUrl('getstream.io')
+      );
     });
   });
 });

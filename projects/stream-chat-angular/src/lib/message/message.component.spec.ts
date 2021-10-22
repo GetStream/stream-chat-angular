@@ -555,4 +555,13 @@ describe('MessageComponent', () => {
 
     expect(queryText()).toBeNull();
   });
+
+  it('should display HTML content', () => {
+    const htmlContent =
+      '<a href="https://getstream.io/">https://getstream.io/</a>';
+    component.message = { ...component.message!, ...{ html: htmlContent } };
+    fixture.detectChanges();
+
+    expect(queryText()?.innerHTML).toEqual(htmlContent);
+  });
 });

@@ -4,9 +4,10 @@
     class="str-chat__message-attachment str-chat__message-attachment--{{
       attachment.type
     }}"
+    [class.str-chat__message-attachment--card]="isCard(attachment)"
   >
     <img
-      *ngIf="attachment.type === 'image'"
+      *ngIf="isImage(attachment)"
       class="str-chat__message-attachment--img"
       data-testclass="image"
       [src]="attachment.img_url || attachment.thumb_url || attachment.image_url"
@@ -14,7 +15,7 @@
       (load)="imageLoaded()"
     />
     <div
-      *ngIf="attachment.type === 'file'"
+      *ngIf="isFile(attachment)"
       class="str-chat__message-attachment-file--item"
     >
       <stream-icon icon="file" [size]="30"></stream-icon>
@@ -30,6 +31,52 @@
         <span data-testclass="size" *ngIf="hasFileSize(attachment)">{{
           getFileSize(attachment)
         }}</span>
+      </div>
+    </div>
+    <div
+      *ngIf="isCard(attachment)"
+      class="str-chat__message-attachment-card str-chat__message-attachment-card--{{
+        attachment.type
+      }}"
+    >
+      <div
+        *ngIf="attachment.image_url || attachment.thumb_url"
+        class="str-chat__message-attachment-card--header"
+      >
+        <img
+          data-testclass="card-img"
+          alt="{{ attachment.image_url || attachment.thumb_url }}"
+          src="{{ attachment.image_url || attachment.thumb_url }}"
+        />
+      </div>
+      <div class="str-chat__message-attachment-card--content">
+        <div class="str-chat__message-attachment-card--flex">
+          <div
+            *ngIf="attachment.title"
+            data-testclass="card-title"
+            class="str-chat__message-attachment-card--title"
+          >
+            {{ attachment.title }}
+          </div>
+          <div
+            *ngIf="attachment.text"
+            class="str-chat__message-attachment-card--text"
+            data-testclass="card-text"
+          >
+            {{ attachment.text }}
+          </div>
+          <a
+            class="str-chat__message-attachment-card--url"
+            *ngIf="attachment.title_link || attachment.og_scrape_url"
+            data-testclass="url-link"
+            noopener
+            noreferrer
+            href="{{ attachment.title_link || attachment.og_scrape_url }}"
+            target="_blank"
+          >
+            {{ trimUrl(attachment.title_link || attachment.og_scrape_url) }}
+          </a>
+        </div>
       </div>
     </div>
   </div>
