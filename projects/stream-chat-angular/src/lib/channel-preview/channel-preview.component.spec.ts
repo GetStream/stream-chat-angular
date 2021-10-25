@@ -68,16 +68,37 @@ describe('ChannelPreviewComponent', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
     component.channel = channel;
-    let undreadCount = 0;
-    spyOn(channel, 'countUnread').and.callFake(() => undreadCount);
+    const countUnreadSpy = spyOn(channel, 'countUnread');
+    countUnreadSpy.and.returnValue(0);
     const unreadClass = 'str-chat__channel-preview-messenger--unread';
     const container = queryContainer();
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeFalse();
 
-    undreadCount = 1;
-    channel.handleEvent('message.new', mockMessage());
+    countUnreadSpy.and.returnValue(1);
+    const newMessage = mockMessage();
+    channel.state.messages.push(newMessage);
+    channel.handleEvent('message.new', { message: newMessage });
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(unreadClass)).toBeTrue();
+  });
+
+  it('should remove unread class, if user marked channel as read', () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    component.channel = channel;
+    let undreadCount = 1;
+    spyOn(channel, 'countUnread').and.callFake(() => undreadCount);
+    const unreadClass = 'str-chat__channel-preview-messenger--unread';
+    const container = queryContainer();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(unreadClass)).toBeTrue();
+
+    undreadCount = 0;
+    channel.handleEvent('message.read', {});
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeFalse();
@@ -158,7 +179,7 @@ describe('ChannelPreviewComponent', () => {
       const newMessage = mockMessage();
       newMessage.text = 'this is the text of  new message';
       channel.state.messages.push(newMessage);
-      channel.handleEvent('message.new', newMessage);
+      channel.handleEvent('message.new', { message: newMessage });
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(newMessage.text);
@@ -173,7 +194,7 @@ describe('ChannelPreviewComponent', () => {
       updatedMessage.text = 'this is the text of  new message';
       channel.state.messages[channel.state.messages.length - 1] =
         updatedMessage;
-      channel.handleEvent('message.updated', updatedMessage);
+      channel.handleEvent('message.updated', { message: updatedMessage });
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(updatedMessage.text);
@@ -188,7 +209,7 @@ describe('ChannelPreviewComponent', () => {
       deletedMessage.deleted_at = new Date().toISOString();
       channel.state.messages[channel.state.messages.length - 1] =
         deletedMessage;
-      channel.handleEvent('message.updated', deletedMessage);
+      channel.handleEvent('message.updated', { message: deletedMessage });
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain('Message deleted');

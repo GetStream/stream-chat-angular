@@ -23,6 +23,7 @@ export const mockMessage = () =>
     type: 'regular',
     status: 'received',
     created_at: new Date('2021-09-14T13:08:30.004112Z'),
+    updated_at: new Date('2021-09-14T13:08:30.004112Z'),
     readBy: [{ id: 'alice', name: 'Alice' }],
   } as any as StreamMessage);
 
@@ -58,7 +59,11 @@ export const generateMockChannels = (length = 25) => {
       on: (arg1: EventTypes | Function, handler: () => {}) => {
         eventHandlers[typeof arg1 === 'string' ? (arg1 as string) : 'on'] =
           handler || arg1;
-        return { unsubscribe: () => {} };
+        return {
+          unsubscribe: () =>
+            (eventHandlers[typeof arg1 === 'string' ? (arg1 as string) : 'on'] =
+              () => {}),
+        };
       },
       watch: () => {},
       sendMessage: () => {},
@@ -67,9 +72,10 @@ export const generateMockChannels = (length = 25) => {
       deleteImage: () => {},
       deleteFile: () => {},
       countUnread: () => {},
+      markRead: () => {},
       handleEvent: (name: EventTypes, payload?: any) => {
         if (eventHandlers[name as string]) {
-          eventHandlers[name as string]({ message: payload as StreamMessage });
+          eventHandlers[name as string](payload as StreamMessage);
         } else {
           eventHandlers['on'](payload);
         }

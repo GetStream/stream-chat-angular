@@ -83,7 +83,7 @@ export class ChannelService {
     (StreamMessage | MessageResponse | FormatMessageResponse)[]
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
-  private channelSubscriptions: { unsubscribe: () => void }[] = [];
+  private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
   private filters: ChannelFilters | undefined;
   private sort: ChannelSort | undefined;
   private options: ChannelOptions | undefined;
@@ -132,6 +132,7 @@ export class ChannelService {
     channel.state.messages.forEach((m) => {
       m.readBy = getReadBy(m, channel);
     });
+    void channel.markRead();
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
   }
 
@@ -358,15 +359,42 @@ export class ChannelService {
   }
 
   private watchForActiveChannelEvents(channel: Channel) {
-    this.channelSubscriptions.push(
+    this.activeChannelSubscriptions.push(
       channel.on('message.new', () => {
         this.activeChannelMessagesSubject.next([...channel.state.messages]);
+        this.activeChannel$.pipe(first()).subscribe((c) => void c?.markRead());
         this.appRef.tick();
       })
     );
-    channel.on('reaction.new', (e) => this.messageReactionEventReceived(e));
-    channel.on('reaction.deleted', (e) => this.messageReactionEventReceived(e));
-    channel.on('reaction.updated', (e) => this.messageReactionEventReceived(e));
+    this.activeChannelSubscriptions.push(
+      channel.on('reaction.new', (e) => this.messageReactionEventReceived(e))
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('reaction.deleted', (e) =>
+        this.messageReactionEventReceived(e)
+      )
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('reaction.updated', (e) =>
+        this.messageReactionEventReceived(e)
+      )
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('message.read', (e) => {
+        let latestMessage!: StreamMessage;
+        this.activeChannelMessages$.pipe(first()).subscribe((messages) => {
+          latestMessage = messages[messages.length - 1];
+        });
+        if (!latestMessage || !e.user) {
+          return;
+        }
+        latestMessage.readBy = getReadBy(latestMessage, channel);
+
+        this.activeChannelMessagesSubject.next(
+          this.activeChannelMessagesSubject.getValue()
+        );
+      })
+    );
   }
 
   private messageReactionEventReceived(e: Event) {
@@ -420,8 +448,8 @@ export class ChannelService {
     if (!channel) {
       return;
     }
-    this.channelSubscriptions.forEach((s) => s.unsubscribe());
-    this.channelSubscriptions = [];
+    this.activeChannelSubscriptions.forEach((s) => s.unsubscribe());
+    this.activeChannelSubscriptions = [];
   }
 
   private async queryChannels() {
