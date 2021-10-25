@@ -1,0 +1,41 @@
+---
+id: notifications
+sidebar_position: 12
+title: Notifications
+---
+
+The `NotificationList` component displays the list of active notifications.
+
+## Basic Usage
+
+You can use the `NotificationList` component to display the active notifications:
+
+```html
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <stream-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-notification-list></stream-notification-list>
+    <stream-message-input></stream-message-input>
+  </stream-channel>
+</div>
+```
+
+## Customization
+
+If you want to create a custom notification list, you can use the [`NotificationService`](../services/notifications.mdx) to receive the currently active notifications.
+
+Here is how to use the custom notification list:
+
+```html
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <stream-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <custom-notification-list></custom-notification-list>
+    <stream-message-input></stream-message-input>
+  </stream-channel>
+</div>
+```
