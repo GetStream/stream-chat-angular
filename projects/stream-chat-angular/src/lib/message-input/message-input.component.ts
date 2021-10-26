@@ -8,6 +8,7 @@ import {
 import { Subscription } from 'rxjs';
 import { Attachment } from 'stream-chat';
 import { ChannelService } from '../channel.service';
+import { NotificationService } from '../notification.service';
 import { AttachmentUpload } from '../types';
 
 @Component({
@@ -25,7 +26,10 @@ export class MessageInputComponent implements OnDestroy {
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
 
-  constructor(private channelService: ChannelService) {
+  constructor(
+    private channelService: ChannelService,
+    private notificationService: NotificationService
+  ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe(() => {
         if (this.messageInput) {
@@ -169,6 +173,13 @@ export class MessageInputComponent implements OnDestroy {
       }
       upload.state = r.state;
       upload.url = r.url;
+      if (upload.state === 'error') {
+        this.notificationService.addTemporaryNotification(
+          upload.type === 'image'
+            ? 'Error uploading image'
+            : 'Error uploading file'
+        );
+      }
     });
     this.attachmentUploadInProgressCounter--;
   }
