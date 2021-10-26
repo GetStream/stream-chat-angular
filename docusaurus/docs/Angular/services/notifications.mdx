@@ -1,0 +1,44 @@
+---
+id: notifications
+sidebar_position: 3
+title: Notification service
+---
+
+The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](../components/notifications.mdx) component displays the currently active notifications.
+
+# Overview
+
+## notifications$
+
+A stream of currently active [notifications](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/notification.service.ts).
+
+## addTemporaryNotification
+
+Displays a notification for the given amount of time.
+
+### Params:
+
+| Name    | Type                 | Description                                                         | Default |
+| ------- | -------------------- | ------------------------------------------------------------------- | ------- |
+| text    | string               | The text of the notification                                        | -       |
+| type    | `error` or `success` | The type of the notification                                        | `error` |
+| timeout | number               | The number of milliseconds while the notification should be visible | 5000ms  |
+
+### Returns
+
+A method to clear the notification (before the timeout).
+
+## addPermanentNotification
+
+Displays a notification, the notification can be hidden by the [`removeNotification`](./notifications.mdx/#removenotification) method.
+
+### Params:
+
+| Name | Type                 | Description                  | Default |
+| ---- | -------------------- | ---------------------------- | ------- |
+| text | string               | The text of the notification | -       |
+| type | `error` or `success` | The type of the notification | `error` |
+
+### Returns
+
+A method to clear the notification.

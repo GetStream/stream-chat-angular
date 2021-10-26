@@ -1,0 +1,9 @@
+<div class="str-chat__list-notifications">
+  <stream-notification
+    *ngFor="let notification of notifications$ | async; trackBy: trackByItem"
+    [type]="notification.type"
+    ><div data-testclass="notification-content" translate>
+      {{ notification.text }}
+    </div></stream-notification
+  >
+</div>
