@@ -1,4 +1,6 @@
 import { Component, Input } from '@angular/core';
+import { ChatClientService } from '../chat-client.service';
+import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
 
 export type MessageActions =
@@ -20,7 +22,10 @@ export class MessageActionsBoxComponent {
   @Input() message: StreamMessage | undefined;
   @Input() enabledActions: MessageActions[] = [];
 
-  constructor() {}
+  constructor(
+    private chatClientService: ChatClientService,
+    private notificationService: NotificationService
+  ) {}
 
   get isQuoteEnabled() {
     return this.enabledActions.indexOf('quote') !== -1;
@@ -50,8 +55,16 @@ export class MessageActionsBoxComponent {
     alert('Feature not yet implemented');
   }
 
-  flagClicked() {
-    alert('Feature not yet implemented');
+  async flagClicked() {
+    try {
+      await this.chatClientService.flagMessage(this.message!.id);
+      this.notificationService.addTemporaryNotification(
+        'Message has been successfully flagged',
+        'success'
+      );
+    } catch (err) {
+      this.notificationService.addTemporaryNotification('Error adding flag');
+    }
   }
 
   muteClicked() {

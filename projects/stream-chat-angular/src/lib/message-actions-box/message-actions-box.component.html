@@ -25,7 +25,7 @@
     </button>
     <button
       data-testid="flag-action"
-      *ngIf="isFlagEnabled"
+      *ngIf="isFlagEnabled && !isMine"
       (click)="flagClicked()"
     >
       <li class="str-chat__message-actions-list-item">

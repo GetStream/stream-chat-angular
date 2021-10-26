@@ -15,14 +15,7 @@ import { getReadByText } from './read-by-text';
 })
 export class MessageComponent {
   @Input() message: StreamMessage | undefined;
-  @Input() enabledMessageActions: MessageActions[] = [
-    'pin',
-    'delete',
-    'edit',
-    'flag',
-    'mute',
-    'quote',
-  ];
+  @Input() enabledMessageActions: MessageActions[] = ['flag'];
   @Input() areReactionsEnabled = true;
   @Input() isLastSentMessage: boolean | undefined;
   isActionBoxOpen = false;
