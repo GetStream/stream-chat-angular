@@ -21,8 +21,25 @@ describe('I18nService', () => {
   it('should init translations', () => {
     const translateService = TestBed.inject(TranslateService);
     spyOn(translateService, 'setTranslation');
-    service.init();
+    service.setTranslation('en');
 
-    expect(translateService['setTranslation']).toHaveBeenCalledWith('en', en);
+    expect(translateService['setTranslation']).toHaveBeenCalledWith(
+      'en',
+      en,
+      true
+    );
+  });
+
+  it('should override translation', () => {
+    const translateService = TestBed.inject(TranslateService);
+    spyOn(translateService, 'setTranslation');
+    const translationOverride = { Pin: 'Custom translation for pin' };
+    service.setTranslation('en', translationOverride);
+
+    expect(translateService['setTranslation']).toHaveBeenCalledWith(
+      'en',
+      { streamChat: jasmine.objectContaining(translationOverride) },
+      true
+    );
   });
 });

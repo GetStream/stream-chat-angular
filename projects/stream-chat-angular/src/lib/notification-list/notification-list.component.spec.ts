@@ -33,8 +33,8 @@ describe('NotificationListComponent', () => {
 
   it('should display notifications', () => {
     const service = TestBed.inject(NotificationService);
-    service.addTemporaryNotification('Message flaged', 'success');
-    service.addPermanentNotification('Connection failure', 'error');
+    service.addTemporaryNotification('streamChat.Message flaged', 'success');
+    service.addPermanentNotification('streamChat.Connection failure', 'error');
     fixture.detectChanges();
     const notificationComponents = queryNotificationComponents();
     const notificationContents = queryNotificationContents();

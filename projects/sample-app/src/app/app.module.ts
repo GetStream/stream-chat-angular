@@ -1,13 +1,14 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { StreamChatAngularModule } from 'stream-chat-angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { AppComponent } from './app.component';
 import { CustomMessageComponent } from './custom-message/custom-message.component';
+import { StreamChatModule } from 'stream-chat-angular';
 
 @NgModule({
   declarations: [AppComponent, CustomMessageComponent],
-  imports: [BrowserModule, StreamChatAngularModule],
+  imports: [BrowserModule, TranslateModule.forRoot(), StreamChatModule],
   providers: [],
   bootstrap: [AppComponent],
 })

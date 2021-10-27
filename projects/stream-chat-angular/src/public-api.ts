@@ -24,5 +24,5 @@ export * from './lib/attachment-list/attachment-list.component';
 export * from './lib/message-reactions/message-reactions.component';
 export * from './lib/notification/notification.component';
 export * from './lib/notification-list/notification-list.component';
-export * from './lib/stream-chat-angular.module';
+export * from './lib/stream-chat.module';
 export * from './lib/types';

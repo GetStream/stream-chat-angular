@@ -16,7 +16,7 @@
         data-testid="empty-channel-list-indicator"
         *ngIf="!(channels$ | async)?.length"
       >
-        {{ "You have no channels currently" | translate }}
+        {{ "streamChat.You have no channels currently" | translate }}
       </p>
       <ng-container
         *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
@@ -80,10 +80,11 @@
     <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
     <div class="str-chat__down-main">
       <stream-icon icon="connection-error"></stream-icon>
-      <h1>{{ "Connection error" | translate }}</h1>
+      <h1>{{ "streamChat.Connection error" | translate }}</h1>
       <h3>
         {{
-          "Error connecting to chat, refresh the page to try again." | translate
+          "streamChat.Error connecting to chat, refresh the page to try again."
+            | translate
         }}
       </h3>
     </div>

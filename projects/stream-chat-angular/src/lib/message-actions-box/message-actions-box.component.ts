@@ -59,11 +59,13 @@ export class MessageActionsBoxComponent {
     try {
       await this.chatClientService.flagMessage(this.message!.id);
       this.notificationService.addTemporaryNotification(
-        'Message has been successfully flagged',
+        'streamChat.Message has been successfully flagged',
         'success'
       );
     } catch (err) {
-      this.notificationService.addTemporaryNotification('Error adding flag');
+      this.notificationService.addTemporaryNotification(
+        'streamChat.Error adding flag'
+      );
     }
   }
 

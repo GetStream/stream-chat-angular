@@ -176,8 +176,8 @@ export class MessageInputComponent implements OnDestroy {
       if (upload.state === 'error') {
         this.notificationService.addTemporaryNotification(
           upload.type === 'image'
-            ? 'Error uploading image'
-            : 'Error uploading file'
+            ? 'streamChat.Error uploading image'
+            : 'streamChat.Error uploading file'
         );
       }
     });

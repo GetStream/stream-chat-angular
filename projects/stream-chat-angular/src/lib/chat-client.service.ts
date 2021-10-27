@@ -65,7 +65,7 @@ export class ChatClientService {
         }
       } else {
         removeNotification = this.notificationService.addPermanentNotification(
-          'Connection failure, reconnecting now...'
+          'streamChat.Connection failure, reconnecting now...'
         );
       }
       this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
