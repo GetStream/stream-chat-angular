@@ -39,6 +39,7 @@ describe('MessageComponent', () => {
   let queryReactionIcon: () => HTMLElement | null;
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
+  let queryDeletedMessageContainer: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
@@ -107,6 +108,8 @@ describe('MessageComponent', () => {
     queryMessageReactionsComponent = () =>
       fixture.debugElement.query(By.directive(MessageReactionsComponent))
         ?.componentInstance as MessageReactionsComponent;
+    queryDeletedMessageContainer = () =>
+      nativeElement.querySelector('[data-testid="message-deleted-component"]');
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -613,5 +616,16 @@ describe('MessageComponent', () => {
     component.resendMessage();
 
     expect(resendMessageSpy).toHaveBeenCalledWith(component.message);
+  });
+
+  it('should display deleted message placeholder', () => {
+    expect(queryDeletedMessageContainer()).toBeNull();
+
+    component.message = { ...message, deleted_at: new Date().toISOString() };
+    fixture.detectChanges();
+
+    expect(queryDeletedMessageContainer()).not.toBeNull();
+    expect(queryAvatar()).toBeNull();
+    expect(queryMessageOptions()).toBeNull();
   });
 });
