@@ -72,4 +72,8 @@ export class ChatClientService {
       this.appRef.tick();
     });
   }
+
+  async flagMessage(messageId: string) {
+    await this.chatClient.flagMessage(messageId);
+  }
 }

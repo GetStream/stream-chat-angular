@@ -99,4 +99,10 @@ describe('ChatClientService', () => {
     expect(removeNotificationSpy).toHaveBeenCalledWith();
     expect(stateSpy).toHaveBeenCalledWith('online');
   });
+
+  it('should flag message', async () => {
+    await service.flagMessage('messageId');
+
+    expect(mockChatClient.flagMessage).toHaveBeenCalledWith('messageId');
+  });
 });

@@ -52,6 +52,7 @@
           [isOpen]="isActionBoxOpen"
           [isMine]="isSentByCurrentUser"
           [enabledActions]="enabledMessageActions"
+          [message]="message"
         ></stream-message-actions-box>
         <stream-icon
           *ngIf="enabledMessageActions.length > 0"

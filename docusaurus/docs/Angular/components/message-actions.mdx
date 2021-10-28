@@ -6,7 +6,7 @@ title: Message actions
 
 import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
 
-The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. The following actions are supported: edit, delete, flag or pin message and mute sender. The actions and authorization are not yet implemented.
+The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. The following actions are supported: [flag](https://getstream.io/chat/docs/javascript/moderation/?language=javascript). The following actions are accepted by the component, but not yet implemented: edit, delete or pin message and mute sender.
 
 **Example 1** - example message actions with the message component:
 
@@ -60,7 +60,7 @@ Indicates if the message actions are belonging to a message that was sent by the
 
 ### <div class="label required basic">Required</div> enabledActions
 
-The list of actions that are enabled. To disable all actions, provide an empty array.
+The list of actions that are enabled. To disable all actions, provide an empty array. Currently only message [flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) are implemented.
 
 | Type                                                                                                                                                                        | Default |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |

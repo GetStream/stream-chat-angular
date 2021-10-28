@@ -149,12 +149,14 @@ export type MockStreamChatClient = {
   connectUser: jasmine.Spy;
   on: (name: EventTypes, handler: () => {}) => void;
   handleEvent: (name: EventTypes, event: Event) => void;
+  flagMessage: jasmine.Spy;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
   const eventHandlers: { [key: string]: Function } = {};
   /* eslint-disable jasmine/no-unsafe-spy */
   const connectUser = jasmine.createSpy();
+  const flagMessage = jasmine.createSpy();
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes, handler: () => {}) => {
@@ -164,7 +166,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     eventHandlers[name as string](event);
   };
 
-  return { connectUser, user, on, handleEvent };
+  return { connectUser, user, on, handleEvent, flagMessage };
 };
 
 export type Spied<T> = {

@@ -429,6 +429,12 @@ describe('MessageComponent', () => {
     expect(messageActionsBoxComponent.isMine).toBeFalse();
   });
 
+  it('should provide #message to message actions box', () => {
+    fixture.detectChanges();
+
+    expect(messageActionsBoxComponent.message).toBe(message);
+  });
+
   it('should add CSS class if text is clicked on mobile', () => {
     expect(component.isPressedOnMobile).toBeFalse();
     spyOnProperty(window, 'innerWidth').and.returnValue(300);

@@ -1,6 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
-import { mockMessage } from '../mocks';
+import { ChatClientService } from '../chat-client.service';
+import {
+  mockMessage,
+  mockStreamChatClient,
+  MockStreamChatClient,
+} from '../mocks';
+import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
@@ -17,11 +23,14 @@ describe('MessageActionsBoxComponent', () => {
   let queryDeleteAction: () => HTMLElement | null;
   let message: StreamMessage;
   let nativeElement: HTMLElement;
+  let mockChatClient: MockStreamChatClient;
 
   beforeEach(async () => {
+    mockChatClient = mockStreamChatClient();
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [MessageActionsBoxComponent],
+      providers: [{ provide: ChatClientService, useValue: mockChatClient }],
     }).compileComponents();
   });
 
@@ -97,6 +106,19 @@ describe('MessageActionsBoxComponent', () => {
     expect(queryQuoteAction()).toBeNull();
   });
 
+  it(`should only display 'flag' action for other user's messages`, () => {
+    component.enabledActions = ['flag'];
+    component.isMine = false;
+    fixture.detectChanges();
+
+    expect(queryFlagAction()).not.toBeNull();
+
+    component.isMine = true;
+    fixture.detectChanges();
+
+    expect(queryFlagAction()).toBeNull();
+  });
+
   it('should handle quote action', () => {
     component.enabledActions = ['quote'];
     fixture.detectChanges();
@@ -164,5 +186,39 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
 
     expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
+  });
+
+  it('should handle flag action', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    component.enabledActions = ['flag'];
+    fixture.detectChanges();
+    const action = queryFlagAction();
+    action?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Message has been successfully flagged',
+      'success'
+    );
+  });
+
+  it(`should display error message, if flag action wasn't successful`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    mockChatClient.flagMessage.and.rejectWith();
+    component.enabledActions = ['flag'];
+    fixture.detectChanges();
+    const action = queryFlagAction();
+    action?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Error adding flag'
+    );
   });
 });
