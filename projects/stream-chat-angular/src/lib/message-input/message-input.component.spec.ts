@@ -11,6 +11,7 @@ import { AttachmentUpload } from 'stream-chat-angular';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { generateMockChannels, mockCurrentUser } from '../mocks';
+import { NotificationService } from '../notification.service';
 import { MessageInputComponent } from './message-input.component';
 
 describe('MessageInputComponent', () => {
@@ -660,4 +661,24 @@ describe('MessageInputComponent', () => {
       type: 'image',
     });
   }));
+
+  it('should display error message, if upload was unsuccessful', async () => {
+    const image = { name: 'my_image.png', type: 'image/png' } as File;
+    const file = { name: 'user_guide.pdf', type: 'application/pdf' } as File;
+    uploadAttachmentsSpy.and.resolveTo([
+      { file: image, state: 'error', type: 'image' },
+      { file, state: 'error', type: 'file' },
+    ]);
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    await component.filesSelected([image, file] as any as FileList);
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Error uploading image'
+    );
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Error uploading file'
+    );
+  });
 });
