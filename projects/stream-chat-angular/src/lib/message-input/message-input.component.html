@@ -94,7 +94,7 @@
                       "
                       translate
                     >
-                      failed
+                      streamChat.failed
                     </div>
                     <div
                       class="rfu-file-previewer__retry"
@@ -104,7 +104,7 @@
                       "
                       translate
                     >
-                      retry
+                      streamChat.retry
                     </div>
                   </ng-container>
                 </a>
@@ -133,7 +133,7 @@
           autofocus
           data-testid="textarea"
           #input
-          placeholder="{{ 'Type your message' | translate }}"
+          placeholder="{{ 'streamChat.Type your message' | translate }}"
           class="rta__textarea str-chat__textarea__textarea"
           rows="1"
           (keydown.enter)="messageSent($event)"
@@ -145,7 +145,7 @@
         data-testid="file-upload-button"
       >
         <div class="str-chat__tooltip">
-          {{ "Attach files" | translate }}
+          {{ "streamChat.Attach files" | translate }}
         </div>
         <div class="rfu-file-upload-button">
           <label>

@@ -92,11 +92,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
 
   private setLatestMessage(message?: FormatMessageResponse | MessageResponse) {
     if (message?.deleted_at) {
-      this.latestMessage = 'Message deleted';
+      this.latestMessage = 'streamChat.Message deleted';
     } else if (message?.text) {
       this.latestMessage = message.text;
     } else if (message?.attachments && message.attachments.length) {
-      this.latestMessage = '🏙 Attachment...';
+      this.latestMessage = 'streamChat.🏙 Attachment...';
     }
   }
 }

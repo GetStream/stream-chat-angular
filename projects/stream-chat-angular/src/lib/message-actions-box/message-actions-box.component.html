@@ -11,7 +11,7 @@
       (click)="quoteClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ "Reply" | translate }}
+        {{ "streamChat.Reply" | translate }}
       </li>
     </button>
     <button
@@ -20,7 +20,9 @@
       (click)="pinClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ (message?.pinned ? "Unpin" : "Pin") | translate }}
+        {{
+          (message?.pinned ? "streamChat.Unpin" : "streamChat.Pin") | translate
+        }}
       </li>
     </button>
     <button
@@ -29,7 +31,7 @@
       (click)="flagClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ "Flag" | translate }}
+        {{ "streamChat.Flag" | translate }}
       </li>
     </button>
     <button
@@ -38,7 +40,7 @@
       (click)="muteClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ "Mute" | translate }}
+        {{ "streamChat.Mute" | translate }}
       </li>
     </button>
     <button
@@ -47,7 +49,7 @@
       (click)="editClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ "Edit Message" | translate }}
+        {{ "streamChat.Edit Message" | translate }}
       </li>
     </button>
     <button
@@ -56,7 +58,7 @@
       (click)="deleteClicked()"
     >
       <li class="str-chat__message-actions-list-item">
-        {{ "Delete" | translate }}
+        {{ "streamChat.Delete" | translate }}
       </li>
     </button>
   </ul>

@@ -674,11 +674,11 @@ describe('MessageInputComponent', () => {
     await component.filesSelected([image, file] as any as FileList);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Error uploading image'
+      'streamChat.Error uploading image'
     );
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Error uploading file'
+      'streamChat.Error uploading file'
     );
   });
 });

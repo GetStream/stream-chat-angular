@@ -200,7 +200,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Message has been successfully flagged',
+      'streamChat.Message has been successfully flagged',
       'success'
     );
   });
@@ -218,7 +218,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Error adding flag'
+      'streamChat.Error adding flag'
     );
   });
 });

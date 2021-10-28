@@ -26,6 +26,6 @@ export class AppComponent {
       type: 'messaging',
       members: { $in: [environment.userId] },
     });
-    this.streamI18nService.init();
+    this.streamI18nService.setTranslation();
   }
 }

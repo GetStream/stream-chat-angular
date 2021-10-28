@@ -77,7 +77,7 @@ describe('ChatClientService', () => {
 
     expect(spy).toHaveBeenCalledWith('offline');
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
-      'Connection failure, reconnecting now...'
+      'streamChat.Connection failure, reconnecting now...'
     );
   });
 

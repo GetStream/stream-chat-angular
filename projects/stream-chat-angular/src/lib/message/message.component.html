@@ -113,7 +113,7 @@
             *ngIf="message?.type === 'error'"
             class="str-chat__simple-message--error-message"
           >
-            {{ "Error · Unsent" | translate }}
+            {{ "streamChat.Error · Unsent" | translate }}
           </div>
           <div
             data-testid="error-message"
@@ -122,8 +122,8 @@
           >
             {{
               (message?.errorStatusCode === 403
-                ? "Message Failed · Unauthorized"
-                : "Message Failed · Click to try again"
+                ? "streamChat.Message Failed · Unauthorized"
+                : "streamChat.Message Failed · Click to try again"
               ) | translate
             }}
           </div>
@@ -153,7 +153,9 @@
 
 <ng-template #sendingStatus>
   <span class="str-chat__message-simple-status" data-testid="sending-indicator">
-    <div class="str-chat__tooltip">{{ "Sending..." | translate }}</div>
+    <div class="str-chat__tooltip">
+      {{ "streamChat.Sending..." | translate }}
+    </div>
     <stream-loading-indicator
       data-testid="loading-indicator"
     ></stream-loading-indicator>
@@ -185,7 +187,9 @@
     class="str-chat__message-simple-status"
     data-testid="delivered-indicator"
   >
-    <div class="str-chat__tooltip">{{ "Delivered" | translate }}</div>
+    <div class="str-chat__tooltip">
+      {{ "streamChat.Delivered" | translate }}
+    </div>
     <stream-icon
       data-testid="delivered-icon"
       icon="delivered-icon"
@@ -196,7 +200,7 @@
 <ng-template #deletedMessage>
   <div data-testid="message-deleted-component">
     <div class="str-chat__message--deleted-inner" translate>
-      This message was deleted...
+      streamChat.This message was deleted...
     </div>
   </div>
 </ng-template>

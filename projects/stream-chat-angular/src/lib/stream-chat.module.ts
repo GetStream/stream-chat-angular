@@ -14,9 +14,9 @@ import { MessageActionsBoxComponent } from './message-actions-box/message-action
 import { AttachmentListComponent } from './attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from './message-reactions/message-reactions.component';
 import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
-import { TranslateModule } from '@ngx-translate/core';
 import { NotificationComponent } from './notification/notification.component';
 import { NotificationListComponent } from './notification-list/notification-list.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
   declarations: [
@@ -36,11 +36,7 @@ import { NotificationListComponent } from './notification-list/notification-list
     NotificationComponent,
     NotificationListComponent,
   ],
-  imports: [
-    CommonModule,
-    EmojiModule,
-    TranslateModule.forRoot({ defaultLanguage: 'en' }),
-  ],
+  imports: [CommonModule, EmojiModule, TranslateModule],
   exports: [
     AvatarComponent,
     ChannelComponent,
@@ -59,4 +55,4 @@ import { NotificationListComponent } from './notification-list/notification-list
     NotificationListComponent,
   ],
 })
-export class StreamChatAngularModule {}
+export class StreamChatModule {}
