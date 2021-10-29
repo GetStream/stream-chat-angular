@@ -237,12 +237,31 @@ describe('MessageInputComponent', () => {
   });
 
   it(`shouldn't send message, if file uploads are in progress`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
     uploadAttachmentsSpy.and.resolveTo([]);
     void component.filesSelected([{ type: 'image/png' }] as any as FileList);
     await component.messageSent();
 
     expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
+      'streamChat.Wait until all attachments have uploaded'
+    );
   });
+
+  it('should hide "Wait for upload" notification, if upload is finished', fakeAsync(() => {
+    const notificationService = TestBed.inject(NotificationService);
+    const removeNotificationSpy = jasmine.createSpy();
+    spyOn(notificationService, 'addPermanentNotification').and.returnValue(
+      removeNotificationSpy
+    );
+    uploadAttachmentsSpy.and.resolveTo([]);
+    void component.filesSelected([{ type: 'image/png' }] as any as FileList);
+    void component.messageSent();
+    tick();
+
+    expect(removeNotificationSpy).toHaveBeenCalledWith();
+  }));
 
   it(`shouldn't send message, if file uploads are in progress - multiple uploads`, fakeAsync(() => {
     uploadAttachmentsSpy.and.resolveTo([]);

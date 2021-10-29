@@ -25,6 +25,7 @@ export class MessageInputComponent implements OnDestroy {
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
+  private hideNotification: Function | undefined;
 
   constructor(
     private channelService: ChannelService,
@@ -46,6 +47,12 @@ export class MessageInputComponent implements OnDestroy {
   async messageSent(event?: Event) {
     event?.preventDefault();
     if (this.attachmentUploadInProgressCounter > 0) {
+      if (!this.hideNotification) {
+        this.hideNotification =
+          this.notificationService.addPermanentNotification(
+            'streamChat.Wait until all attachments have uploaded'
+          );
+      }
       return;
     }
     const text = this.messageInput.nativeElement.value;
@@ -182,6 +189,10 @@ export class MessageInputComponent implements OnDestroy {
       }
     });
     this.attachmentUploadInProgressCounter--;
+    if (this.attachmentUploadInProgressCounter === 0 && this.hideNotification) {
+      this.hideNotification();
+      this.hideNotification = undefined;
+    }
   }
 
   private clearFileInput() {
