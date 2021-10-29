@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { Attachment } from 'stream-chat';
 import { ImageLoadService } from '../message-list/image-load.service';
 import { DefaultAttachmentType } from '../types';
@@ -9,10 +9,19 @@ import prettybytes from 'pretty-bytes';
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
-export class AttachmentListComponent {
+export class AttachmentListComponent implements OnChanges {
   @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
+  orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
 
   constructor(private imageLoadService: ImageLoadService) {}
+
+  ngOnChanges(): void {
+    this.orderedAttachments = [
+      ...this.attachments.filter((a) => this.isImage(a)),
+      ...this.attachments.filter((a) => this.isFile(a)),
+      ...this.attachments.filter((a) => this.isCard(a)),
+    ];
+  }
 
   trackById(index: number) {
     return index;

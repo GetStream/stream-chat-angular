@@ -1,10 +1,13 @@
-<ng-container *ngFor="let attachment of attachments; trackBy: trackById">
+<ng-container *ngFor="let attachment of orderedAttachments; trackBy: trackById">
   <div
     data-testclass="attachment-container"
     class="str-chat__message-attachment str-chat__message-attachment--{{
       attachment.type
     }}"
     [class.str-chat__message-attachment--card]="isCard(attachment)"
+    [class.str-chat-angular__message-attachment-file-single]="
+      isFile(attachment)
+    "
   >
     <img
       *ngIf="isImage(attachment)"
@@ -16,7 +19,10 @@
     />
     <div
       *ngIf="isFile(attachment)"
-      class="str-chat__message-attachment-file--item"
+      class="
+        str-chat__message-attachment-file--item
+        str-chat-angular__message-attachment-file-single
+      "
     >
       <stream-icon icon="file" [size]="30"></stream-icon>
       <div class="str-chat__message-attachment-file--item-text">
