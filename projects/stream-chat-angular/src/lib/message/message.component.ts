@@ -21,6 +21,7 @@ export class MessageComponent {
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
   isPressedOnMobile = false;
+  visibleMessageActionsCount = 0;
   private user: UserResponse<DefaultUserType> | undefined;
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>

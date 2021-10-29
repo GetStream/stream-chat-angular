@@ -54,9 +54,10 @@
             [isMine]="isSentByCurrentUser"
             [enabledActions]="enabledMessageActions"
             [message]="message"
+            (displayedActionsCount)="visibleMessageActionsCount = $event"
           ></stream-message-actions-box>
           <stream-icon
-            *ngIf="enabledMessageActions.length > 0"
+            *ngIf="visibleMessageActionsCount > 0"
             data-testid="action-icon"
             icon="action-icon"
             (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"

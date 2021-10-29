@@ -398,17 +398,30 @@ describe('MessageComponent', () => {
   });
 
   it('should display message actions for regular messages', () => {
+    component.enabledMessageActions = ['delete'];
+    fixture.detectChanges();
+
     expect(queryActionIcon()).not.toBeNull();
   });
 
-  it(`shouldn't display message actions if ther are no enabled message actions`, () => {
+  it(`shouldn't display message actions if there are no enabled message actions`, () => {
     component.enabledMessageActions = [];
     fixture.detectChanges();
 
     expect(queryActionIcon()).toBeNull();
   });
 
+  it(`shouldn't display message actions if there is no visible message action`, () => {
+    component.enabledMessageActions = ['flag'];
+    fixture.detectChanges();
+
+    expect(queryActionIcon()).toBeNull();
+  });
+
   it('should open and close message actions box', () => {
+    component.enabledMessageActions = ['edit', 'flag'];
+    fixture.detectChanges();
+
     expect(messageActionsBoxComponent.isOpen).toBeFalse();
 
     queryActionIcon()?.click();
