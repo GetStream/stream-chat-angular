@@ -4,6 +4,7 @@
 
 export * from './lib/chat-client.service';
 export * from './lib/channel.service';
+export * from './lib/theme.service';
 export * from './lib/stream-i18n.service';
 export * from './lib/avatar/avatar.component';
 export * from './lib/icon/icon.component';

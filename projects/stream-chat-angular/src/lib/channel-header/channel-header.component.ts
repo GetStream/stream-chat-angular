@@ -6,7 +6,7 @@ import { ChannelService } from '../channel.service';
 @Component({
   selector: 'stream-channel-header',
   templateUrl: './channel-header.component.html',
-  styleUrls: ['./channel-header.component.scss'],
+  styles: [],
 })
 export class ChannelHeaderComponent {
   activeChannel: Channel | undefined;

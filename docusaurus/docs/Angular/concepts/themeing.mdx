@@ -1,0 +1,57 @@
+---
+id: themeing
+sidebar_position: 1
+title: Themeing
+---
+
+import LightThemeScreenshot from "../assets/light-theme-screenshot.png";
+import DarkThemeScreenshot from "../assets/dark-theme-screenshot.png";
+import CustomLightThemeScreenshot from "../assets/custom-light-theme-screenshot.png";
+import CustomDarkThemeScreenshot from "../assets/custom-dark-theme-screenshot.png";
+
+## Changing the theme
+
+Our library supports light and dark themes. You can change between the different themes using the `ThemeService`:
+
+```typescript
+import { ThemeService } from 'stream-chat-angular';
+
+constructor(themeService: ThemeService) {
+  themeService.theme$.next('dark');
+}
+```
+
+The default theme is `light`.
+
+**Example 1** - Light theme
+
+<img src={LightThemeScreenshot} width="900" />
+
+**Example 2** - Dark theme
+
+<img src={DarkThemeScreenshot} width="900" />
+
+## Customizing the theme
+
+You can customize the theme by overriding the CSS variables. The complete list of variables can be found [here](https://github.com/GetStream/stream-chat-css/blob/main/src/styles/_variables.scss).
+
+You can override the variables using the `ThemeService`. Here is an example:
+
+```typescript
+this.themeService.customLightThemeVariables = {
+  "--primary-color": "lightgreen",
+};
+this.themeService.customDarkThemeVariables = {
+  "--primary-color": "darkgreen",
+};
+```
+
+The result:
+
+**Example 1** - Custom light theme
+
+<img src={CustomLightThemeScreenshot} width="900" />
+
+**Example 2** - Custom dark theme
+
+<img src={CustomDarkThemeScreenshot} width="900" />
