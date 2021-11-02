@@ -52,22 +52,22 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should display received #attachments', () => {
+  it('should display received #attachments ordered', () => {
     component.attachments = [];
+    component.ngOnChanges();
     fixture.detectChanges();
 
     expect(queryAttachments().length).toBe(0);
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
-      { type: 'image', img_url: 'url2' },
-      { type: 'file', asset_url: 'url3' },
       {
         title: 'BBC - Homepage',
         title_link: 'https://www.bbc.com/',
         og_scrape_url: 'https://www.bbc.com/',
         image_url: 'https://assets/images/favicons/favicon-194x194.png',
       },
+      { type: 'file', asset_url: 'url3' },
       {
         image_url: 'https://getstream.io/images/og/OG_Home.png',
         og_scrape_url: 'https://getstream.io/',
@@ -77,7 +77,9 @@ describe('AttachmentListComponent', () => {
         title_link: '/',
         type: 'image',
       },
+      { type: 'image', img_url: 'url2' },
     ];
+    component.ngOnChanges();
     fixture.detectChanges();
     const attachments = queryAttachments();
 
@@ -91,20 +93,20 @@ describe('AttachmentListComponent', () => {
     ).toBeTrue();
 
     expect(
-      attachments[2].classList.contains('str-chat__message-attachment--image')
-    ).toBeFalse();
-
-    expect(
       attachments[2].classList.contains('str-chat__message-attachment--file')
     ).toBeTrue();
 
     expect(
-      attachments[3].classList.contains('str-chat__message-attachment--image')
+      attachments[2].classList.contains('str-chat__message-attachment--image')
     ).toBeFalse();
 
     expect(
       attachments[3].classList.contains('str-chat__message-attachment--card')
     ).toBeTrue();
+
+    expect(
+      attachments[3].classList.contains('str-chat__message-attachment--image')
+    ).toBeFalse();
 
     expect(
       attachments[4].classList.contains('str-chat__message-attachment--image')
@@ -125,6 +127,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: imageUrl, thumb_url: 'thumb/url' },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(imageUrl);
@@ -135,6 +138,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: undefined, thumb_url: thumbUrl },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(thumbUrl);
@@ -150,6 +154,7 @@ describe('AttachmentListComponent', () => {
           image_url: imageUrl,
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(imageUrl);
@@ -158,6 +163,7 @@ describe('AttachmentListComponent', () => {
     it('should set alt text for image', () => {
       const fallback = 'Fallback is image can not be displayed';
       component.attachments = [{ type: 'image', img_url: 'url1', fallback }];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryImages()[0].alt).toContain(fallback);
@@ -173,6 +179,7 @@ describe('AttachmentListComponent', () => {
           image_url: 'https://picsum.photos/200/300',
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
       await waitForImgComplete();
 
@@ -185,6 +192,7 @@ describe('AttachmentListComponent', () => {
       const title = 'contract.pdf';
       const asset_url = 'url/to/contract';
       component.attachments = [{ type: 'file', title, asset_url }];
+      component.ngOnChanges();
       fixture.detectChanges();
       const link = queryFileLinks()[0];
 
@@ -193,11 +201,33 @@ describe('AttachmentListComponent', () => {
       expect(link.textContent).toContain(title);
     });
 
+    it('should add CSS class for files', () => {
+      component.attachments = [
+        { type: 'file', title: 'contract.pdf', asset_url: 'url/to/contract' },
+        { type: 'file', title: 'contract2.pdf', asset_url: 'url/to/contract2' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(
+        queryAttachments()[0].classList.contains(
+          'str-chat-angular__message-attachment-file-single'
+        )
+      ).toBeTrue();
+
+      expect(
+        queryAttachments()[1].classList.contains(
+          'str-chat-angular__message-attachment-file-single'
+        )
+      ).toBeTrue();
+    });
+
     it('should sanitize file link', () => {
       const asset_url = 'javascript:alert(document.domain)';
       component.attachments = [
         { type: 'file', title: 'contract.pdf', asset_url },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
       const link = queryFileLinks()[0];
 
@@ -211,6 +241,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'file', title, asset_url, file_size: 3272969 },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
       const preview = queryAttachments()[0];
       const fileSize = preview.querySelector('[data-testclass="size"]');
@@ -238,6 +269,7 @@ describe('AttachmentListComponent', () => {
           type: 'image',
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(imageUrl);
@@ -255,6 +287,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(thumbUrl);
@@ -272,6 +305,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(
@@ -294,6 +328,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(
@@ -315,6 +350,7 @@ describe('AttachmentListComponent', () => {
           title_link: titleLink,
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryUrlLinks()[0].href).toContain(titleLink);
@@ -334,6 +370,7 @@ describe('AttachmentListComponent', () => {
           title_link: undefined,
         },
       ];
+      component.ngOnChanges();
       fixture.detectChanges();
 
       expect(queryUrlLinks()[0].href).toContain(scrapeUrl);
