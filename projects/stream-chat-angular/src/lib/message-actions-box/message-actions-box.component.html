@@ -7,7 +7,7 @@
   <ul class="str-chat__message-actions-list">
     <button
       data-testid="quote-action"
-      *ngIf="isQuoteEnabled"
+      *ngIf="isQuoteVisible"
       (click)="quoteClicked()"
     >
       <li class="str-chat__message-actions-list-item">
@@ -16,7 +16,7 @@
     </button>
     <button
       data-testid="pin-action"
-      *ngIf="isPinEnabled"
+      *ngIf="isPinVisible"
       (click)="pinClicked()"
     >
       <li class="str-chat__message-actions-list-item">
@@ -27,7 +27,7 @@
     </button>
     <button
       data-testid="flag-action"
-      *ngIf="isFlagEnabled && !isMine"
+      *ngIf="isFlagVisible"
       (click)="flagClicked()"
     >
       <li class="str-chat__message-actions-list-item">
@@ -36,7 +36,7 @@
     </button>
     <button
       data-testid="mute-action"
-      *ngIf="isMuteEnabled"
+      *ngIf="isMuteVisible"
       (click)="muteClicked()"
     >
       <li class="str-chat__message-actions-list-item">
@@ -45,7 +45,7 @@
     </button>
     <button
       data-testid="edit-action"
-      *ngIf="isEditEnabled"
+      *ngIf="isEditVisible"
       (click)="editClicked()"
     >
       <li class="str-chat__message-actions-list-item">
@@ -54,7 +54,7 @@
     </button>
     <button
       data-testid="delete-action"
-      *ngIf="isDeleteEnabled"
+      *ngIf="isDeleteVisible"
       (click)="deleteClicked()"
     >
       <li class="str-chat__message-actions-list-item">

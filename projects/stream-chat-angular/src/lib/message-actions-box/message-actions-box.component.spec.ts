@@ -1,3 +1,4 @@
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChatClientService } from '../chat-client.service';
@@ -220,5 +221,36 @@ describe('MessageActionsBoxComponent', () => {
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Error adding flag'
     );
+  });
+
+  it('should emit the number of displayed actions', () => {
+    component.enabledActions = ['pin', 'edit', 'delete', 'flag'];
+    component.isMine = true;
+    const spy = jasmine.createSpy();
+    component.displayedActionsCount.subscribe(spy);
+    component.ngOnChanges({
+      isMine: {} as any as SimpleChange,
+      enabledActions: {} as any as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(3);
+
+    component.enabledActions = [
+      'pin',
+      'edit',
+      'delete',
+      'flag',
+      'quote',
+      'mute',
+    ];
+    component.isMine = false;
+    component.ngOnChanges({
+      isMine: {} as any as SimpleChange,
+      enabledActions: {} as any as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(6);
   });
 });
