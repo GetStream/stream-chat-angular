@@ -1,0 +1,56 @@
+---
+id: channel-header
+sidebar_position: 12
+title: Channel header
+---
+
+import ChannelHeaderScreenshot from "../assets/channel-header-screenshot.png";
+
+The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about the difference between members and watchers [here](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript#watchers-vs-members).
+
+**Example 1** - Channel header:
+
+<img src={ChannelHeaderScreenshot} width="500" />
+
+## Customization
+
+If you want to, you can create your own custom channel header, here is how to use it:
+
+```html
+<stream-channel-list></stream-channel-list>
+<stream-channel>
+  <custom-channel-header></custom-channel-header>
+  <stream-message-list></stream-message-list>
+  <stream-notification-list></stream-notification-list>
+  <stream-message-input></stream-message-input>
+</stream-channel>
+```
+
+If you create your own channel header, you can use the [`ChannelService`](../services/channel.mdx) to access the currently active channel. Please note that, the default channel header also contains the menu button to [toggle the channel list](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts). Here is a simple implementation of a custom channel header to guide you:
+
+```typescript
+@Component({
+  selector: "custom-channel-header",
+  template: `
+    <button (click)="toggleMenu()">Menu</button>
+    {{ activeChannel?.data?.name }}
+  `,
+  styles: [],
+})
+export class ChannelHeaderComponent {
+  activeChannel: Channel | undefined;
+
+  constructor(
+    private channelService: ChannelService,
+    private channelListToggleService: ChannelListToggleService
+  ) {
+    this.channelService.activeChannel$.subscribe(
+      (c) => (this.activeChannel = c)
+    );
+  }
+
+  toggleMenu() {
+    this.channelListToggleService.toggle();
+  }
+}
+```
