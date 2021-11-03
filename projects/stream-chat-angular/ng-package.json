@@ -6,7 +6,6 @@
     "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": [
-    "stream-chat-css",
     "dayjs",
     "@ctrl/ngx-emoji-mart",
     "uuidv4",
