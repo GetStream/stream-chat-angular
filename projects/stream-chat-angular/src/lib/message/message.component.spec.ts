@@ -567,6 +567,14 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(queryMessageReactionsComponent()).toBeUndefined();
+
+    component.isReactionSelectorOpen = true;
+    component.areReactionsEnabled = true;
+    fixture.detectChanges();
+    queryMessageReactionsComponent().isSelectorOpenChange.emit(false);
+    fixture.detectChanges();
+
+    expect(component.isReactionSelectorOpen).toBeFalse();
   });
 
   it('should toggle reactions selector', () => {
