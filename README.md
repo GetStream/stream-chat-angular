@@ -1,26 +1,48 @@
-# StreamChatAngular
+# Official Angular SDK for [Stream Chat](https://getstream.io/chat/sdk/react/)
+
+> The official Angular components for Stream Chat, a service for building chat applications.
 
 ![tests and release workflow](https://github.com/GetStream/stream-chat-angular/actions/workflows/workflow.yml/badge.svg)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.4.
+<img align="right" src="https://getstream.imgix.net/images/chat/chattutorialart@3x.png?auto=format,enhance" width="50%" />
 
-Stream Chat Angular SDK + sample app
+**Quick Links**
 
-## Run sample app
+- [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
+- [Angular Chat Tutorial](TBD)
+- [Demo Apps](https://getstream.io/chat/demos/)
+- [Docs](https://getstream.io/chat/docs/sdk/angular/)
+- [Chat UI Kit](https://getstream.io/chat/ui-kit/)
 
-Run `npm install` before first start
+With our component library, you can build a variety of chat use cases, including:
 
-Set Stream credentials, see below
+- In-game chat like Overwatch or Fortnite
+- Team-style chat like Slack
+- Messaging-style chat like WhatsApp or Facebook's Messenger
+- Customer support chat like Drift or Intercom
 
-Run `npm start` and navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the sample app source files.
+## Angular Chat Tutorial
 
-## Library development
+The best way to get started is to follow the [Angular Chat Tutorial](TBD). It shows you how to use this SDK to build a fully functional chat application and includes common customizations.
 
-Set Stream credentials, see below
+## Free for Makers
 
-Run `npm run start:dev` it will start the sample app and watch for changes in the sample app or library source files.
+Stream is free for most side and hobby projects. To qualify, your project/company must have no more than 5 team members and earn less than $10k in monthly revenue.
+For complete pricing and details visit our [Chat Pricing Page](https://getstream.io/chat/pricing/).
 
-## Stream credentials
+## Installation
+
+### Install with NPM
+
+```
+npm install npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
+```
+
+## Sample App
+
+This repository includes a sample app to test our library.
+
+To test the app:
 
 Create a file named `.env` in the root directory with the following content:
 
@@ -30,26 +52,21 @@ STREAM_USER_ID=<Your user ID>
 STREAM_USER_TOKEN=<Your user token>
 ```
 
-## Environment settings
+Run `npm start` and navigate to `http://localhost:4200/`.
 
-Use the `set-env` script and `.env` file to set environment config for development
+## Docs
 
-## Code scaffolding
+The [docs](https://getstream.io/chat/docs/sdk/angular/) provide a brief description about the components and services in the library.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+The Angular library is created using the [stream-chat-js](https://github.com/getstream/stream-chat-js) library. For the most common use cases our services should give a nice abstraction over this library, however you might need it for more advanced customization, the [documentation](https://getstream.io/chat/docs/js/) is on our website.
 
-## Lint
+## Contributing
 
-Run `npm run lint`
+We welcome code changes that improve this library or fix a problem. Please make sure to follow all best practices and add tests, if applicable, before submitting a pull request on GitHub. We are pleased to merge your code into the official repository if it meets a need. Make sure to sign our [Contributor License Agreement (CLA)](https://docs.google.com/forms/d/e/1FAIpQLScFKsKkAJI7mhCr7K9rEIOpqIDThrWxuvxnwUq2XkHyG154vQ/viewform) first. See our license file for more details.
 
-## Build
+## We are hiring!
 
-Run `npm run build` to build the project. The build artifacts will be stored in the `dist/` directory.
+We recently closed a [$38 million Series B funding round](https://techcrunch.com/2021/03/04/stream-raises-38m-as-its-chat-and-activity-feed-apis-power-communications-for-1b-users/) and are actively growing.
+Our APIs are used by more than a billion end-users, and by working at Stream, you have the chance to make a huge impact on a team of very strong engineers.
 
-## Running unit tests
-
-Run `npm run test` to execute the unit tests of the library via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `npm run e2e` to execute the end-to-end tests of the sample app via Cypress.
+Check out our current openings and apply via [Stream's website](https://getstream.io/team/#jobs).
