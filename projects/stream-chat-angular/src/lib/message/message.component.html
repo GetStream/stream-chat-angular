@@ -15,140 +15,142 @@
   data-testid="message-container"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
-    <ng-container
-      *ngIf="
-        isSentByCurrentUser &&
-        ((isLastSentMessage && message?.status === 'received') ||
-          message?.status === 'sending')
-      "
-    >
-      <ng-container *ngIf="message?.status === 'sending'; else sentStatus">
-        <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
-      </ng-container>
-      <ng-template #sentStatus>
-        <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
-          <ng-container *ngTemplateOutlet="readStatus"></ng-container>
-        </ng-container>
-      </ng-template>
-    </ng-container>
-    <stream-avatar
-      data-testid="avatar"
-      class="str-chat-angular__avatar-host"
-      [imageUrl]="message?.user?.image"
-      [name]="message?.user?.name || message?.user?.id"
-    ></stream-avatar>
-    <div class="str-chat__message-inner">
-      <div
-        class="str-chat__message-simple__actions"
-        data-testid="message-options"
-        *ngIf="areOptionsVisible"
+    <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
+      <ng-container
+        *ngIf="
+          isSentByCurrentUser &&
+          ((isLastSentMessage && message?.status === 'received') ||
+            message?.status === 'sending')
+        "
       >
+        <ng-container *ngIf="message?.status === 'sending'; else sentStatus">
+          <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
+        </ng-container>
+        <ng-template #sentStatus>
+          <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
+            <ng-container *ngTemplateOutlet="readStatus"></ng-container>
+          </ng-container>
+        </ng-template>
+      </ng-container>
+      <stream-avatar
+        data-testid="avatar"
+        class="str-chat-angular__avatar-host"
+        [imageUrl]="message?.user?.image"
+        [name]="message?.user?.name || message?.user?.id"
+      ></stream-avatar>
+      <div class="str-chat__message-inner">
         <div
-          class="
-            str-chat__message-simple__actions__action
-            str-chat__message-simple__actions__action--options
-          "
+          class="str-chat__message-simple__actions"
+          data-testid="message-options"
+          *ngIf="areOptionsVisible"
         >
-          <stream-message-actions-box
-            [isOpen]="isActionBoxOpen"
-            [isMine]="isSentByCurrentUser"
-            [enabledActions]="enabledMessageActions"
-            [message]="message"
-            (displayedActionsCount)="visibleMessageActionsCount = $event"
-          ></stream-message-actions-box>
-          <stream-icon
-            *ngIf="visibleMessageActionsCount > 0"
-            data-testid="action-icon"
-            icon="action-icon"
-            (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
-            (click)="isActionBoxOpen = !isActionBoxOpen"
-          ></stream-icon>
+          <div
+            class="
+              str-chat__message-simple__actions__action
+              str-chat__message-simple__actions__action--options
+            "
+          >
+            <stream-message-actions-box
+              [isOpen]="isActionBoxOpen"
+              [isMine]="isSentByCurrentUser"
+              [enabledActions]="enabledMessageActions"
+              [message]="message"
+              (displayedActionsCount)="visibleMessageActionsCount = $event"
+            ></stream-message-actions-box>
+            <stream-icon
+              *ngIf="visibleMessageActionsCount > 0"
+              data-testid="action-icon"
+              icon="action-icon"
+              (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
+              (click)="isActionBoxOpen = !isActionBoxOpen"
+            ></stream-icon>
+          </div>
+          <div
+            *ngIf="areReactionsEnabled"
+            class="
+              str-chat__message-simple__actions__action
+              str-chat__message-simple__actions__action--reactions
+            "
+            data-testid="reaction-icon"
+            (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
+            (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
+          >
+            <stream-icon icon="reaction-icon"></stream-icon>
+          </div>
         </div>
-        <div
+        <stream-message-reactions
           *ngIf="areReactionsEnabled"
-          class="
-            str-chat__message-simple__actions__action
-            str-chat__message-simple__actions__action--reactions
-          "
-          data-testid="reaction-icon"
-          (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
-          (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
-        >
-          <stream-icon icon="reaction-icon"></stream-icon>
+          [messageReactionCounts]="message?.reaction_counts || {}"
+          [latestReactions]="message?.latest_reactions || []"
+          [(isSelectorOpen)]="isReactionSelectorOpen"
+          [messageId]="message?.id"
+          [ownReactions]="message?.own_reactions || []"
+        ></stream-message-reactions>
+        <stream-attachment-list
+          *ngIf="hasAttachment"
+          [attachments]="message!.attachments!"
+        ></stream-attachment-list>
+        <div class="str-chat__message-text" *ngIf="message?.text">
+          <div
+            data-testid="inner-message"
+            class="
+              str-chat__message-text-inner str-chat__message-simple-text-inner
+            "
+            [class.str-chat__message-light-text-inner--has-attachment]="
+              hasAttachment
+            "
+            (click)="
+              message?.status === 'failed' && message?.errorStatusCode !== 403
+                ? resendMessage()
+                : undefined
+            "
+            (keyup.enter)="
+              message?.status === 'failed' && message?.errorStatusCode !== 403
+                ? resendMessage()
+                : undefined
+            "
+          >
+            <div
+              data-testid="client-error-message"
+              *ngIf="message?.type === 'error'"
+              class="str-chat__simple-message--error-message"
+            >
+              {{ "streamChat.Error · Unsent" | translate }}
+            </div>
+            <div
+              data-testid="error-message"
+              *ngIf="message?.status === 'failed'"
+              class="str-chat__simple-message--error-message"
+            >
+              {{
+                (message?.errorStatusCode === 403
+                  ? "streamChat.Message Failed · Unauthorized"
+                  : "streamChat.Message Failed · Click to try again"
+                ) | translate
+              }}
+            </div>
+            <div
+              (click)="textClicked()"
+              (keyup.enter)="textClicked()"
+              data-testid="text"
+              [innerHTML]="message?.html || message?.text"
+            ></div>
+          </div>
+        </div>
+        <div class="str-chat__message-data str-chat__message-simple-data">
+          <span
+            data-testid="sender"
+            *ngIf="!isSentByCurrentUser"
+            class="str-chat__message-simple-name"
+          >
+            {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
+          </span>
+          <span data-testid="date" class="str-chat__message-simple-timestamp">
+            {{ parsedDate }}
+          </span>
         </div>
       </div>
-      <stream-message-reactions
-        *ngIf="areReactionsEnabled"
-        [messageReactionCounts]="message?.reaction_counts || {}"
-        [latestReactions]="message?.latest_reactions || []"
-        [(isSelectorOpen)]="isReactionSelectorOpen"
-        [messageId]="message?.id"
-        [ownReactions]="message?.own_reactions || []"
-      ></stream-message-reactions>
-      <stream-attachment-list
-        *ngIf="hasAttachment"
-        [attachments]="message!.attachments!"
-      ></stream-attachment-list>
-      <div class="str-chat__message-text" *ngIf="message?.text">
-        <div
-          data-testid="inner-message"
-          class="
-            str-chat__message-text-inner str-chat__message-simple-text-inner
-          "
-          [class.str-chat__message-light-text-inner--has-attachment]="
-            hasAttachment
-          "
-          (click)="
-            message?.status === 'failed' && message?.errorStatusCode !== 403
-              ? resendMessage()
-              : undefined
-          "
-          (keyup.enter)="
-            message?.status === 'failed' && message?.errorStatusCode !== 403
-              ? resendMessage()
-              : undefined
-          "
-        >
-          <div
-            data-testid="client-error-message"
-            *ngIf="message?.type === 'error'"
-            class="str-chat__simple-message--error-message"
-          >
-            {{ "streamChat.Error · Unsent" | translate }}
-          </div>
-          <div
-            data-testid="error-message"
-            *ngIf="message?.status === 'failed'"
-            class="str-chat__simple-message--error-message"
-          >
-            {{
-              (message?.errorStatusCode === 403
-                ? "streamChat.Message Failed · Unauthorized"
-                : "streamChat.Message Failed · Click to try again"
-              ) | translate
-            }}
-          </div>
-          <div
-            (click)="textClicked()"
-            (keyup.enter)="textClicked()"
-            data-testid="text"
-            [innerHTML]="message?.html || message?.text"
-          ></div>
-        </div>
-      </div>
-      <div class="str-chat__message-data str-chat__message-simple-data">
-        <span
-          data-testid="sender"
-          *ngIf="!isSentByCurrentUser"
-          class="str-chat__message-simple-name"
-        >
-          {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
-        </span>
-        <span data-testid="date" class="str-chat__message-simple-timestamp">
-          {{ parsedDate }}
-        </span>
-      </div>
-    </div>
+    </ng-container>
   </ng-container>
 </div>
 
@@ -202,6 +204,19 @@
   <div data-testid="message-deleted-component">
     <div class="str-chat__message--deleted-inner" translate>
       streamChat.This message was deleted...
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #systemMessage>
+  <div data-testid="system-message" class="str-chat__message--system">
+    <div class="str-chat__message--system__text">
+      <div class="str-chat__message--system__line"></div>
+      <p>{{ message?.text }}</p>
+      <div class="str-chat__message--system__line"></div>
+    </div>
+    <div class="str-chat__message--system__date">
+      {{ parsedDate }}
     </div>
   </div>
 </ng-template>
