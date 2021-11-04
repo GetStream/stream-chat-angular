@@ -40,6 +40,7 @@ describe('MessageComponent', () => {
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
+  let querySystemMessageContainer: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
@@ -110,6 +111,8 @@ describe('MessageComponent', () => {
         ?.componentInstance as MessageReactionsComponent;
     queryDeletedMessageContainer = () =>
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
+    querySystemMessageContainer = () =>
+      nativeElement.querySelector('[data-testid="system-message"]');
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -648,5 +651,15 @@ describe('MessageComponent', () => {
     expect(queryDeletedMessageContainer()).not.toBeNull();
     expect(queryAvatar()).toBeNull();
     expect(queryMessageOptions()).toBeNull();
+  });
+
+  it('should display system message', () => {
+    expect(querySystemMessageContainer()).toBeNull();
+
+    component.message = { ...message, type: 'system' };
+    fixture.detectChanges();
+    const systemMessage = querySystemMessageContainer();
+
+    expect(systemMessage?.innerHTML).toContain(message.text);
   });
 });
