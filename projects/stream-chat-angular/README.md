@@ -35,7 +35,7 @@ For complete pricing and details visit our [Chat Pricing Page](https://getstream
 ### Install with NPM
 
 ```
-npm install npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
+npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
 ```
 
 ## Sample App
