@@ -3,7 +3,6 @@ import {
   ChatClientService,
   ChannelService,
   StreamI18nService,
-  ThemeService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -16,8 +15,7 @@ export class AppComponent {
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
-    private themeService: ThemeService
+    private streamI18nService: StreamI18nService
   ) {
     void this.chatService.init(
       environment.apiKey,
@@ -29,12 +27,5 @@ export class AppComponent {
       members: { $in: [environment.userId] },
     });
     this.streamI18nService.setTranslation();
-    this.themeService.customLightThemeVariables = {
-      '--primary-color': 'lightgreen',
-    };
-    this.themeService.customDarkThemeVariables = {
-      '--primary-color': 'darkgreen',
-    };
-    this.themeService.theme$.next('dark');
   }
 }

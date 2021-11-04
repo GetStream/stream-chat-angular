@@ -3,7 +3,11 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { ReactionResponse } from 'stream-chat';
@@ -31,11 +35,12 @@ const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
   templateUrl: './message-reactions.component.html',
   styles: [],
 })
-export class MessageReactionsComponent implements AfterViewChecked {
+export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   @Input() messageId: string | undefined;
   @Input() messageReactionCounts: { [key in MessageReactionType]?: number } =
     {};
   @Input() isSelectorOpen: boolean = false;
+  @Output() readonly isSelectorOpenChange = new EventEmitter<boolean>();
   @Input() latestReactions: ReactionResponse<
     DefaultReactionType,
     DefaultUserType
@@ -58,6 +63,14 @@ export class MessageReactionsComponent implements AfterViewChecked {
     private cdRef: ChangeDetectorRef,
     private channelService: ChannelService
   ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.isSelectorOpen) {
+      this.isSelectorOpen
+        ? setTimeout(() => this.watchForOutsideClicks()) // setTimeout: wait for current click to bubble up, and only watch for clicks after that
+        : this.stopWatchForOutsideClicks();
+    }
+  }
 
   ngAfterViewChecked(): void {
     if (this.tooltipText && !this.tooltipPositions) {
@@ -119,6 +132,20 @@ export class MessageReactionsComponent implements AfterViewChecked {
     this.ownReactions.find((r) => r.type === type)
       ? void this.channelService.removeReaction(this.messageId!, type)
       : void this.channelService.addReaction(this.messageId!, type);
+  }
+
+  private eventHandler = (event: Event) => {
+    if (!this.selectorContainer?.nativeElement.contains(event.target as Node)) {
+      this.isSelectorOpenChange.emit(false);
+    }
+  };
+
+  private watchForOutsideClicks() {
+    window.addEventListener('click', this.eventHandler);
+  }
+
+  private stopWatchForOutsideClicks() {
+    window.removeEventListener('click', this.eventHandler);
   }
 
   private setTooltipPosition() {

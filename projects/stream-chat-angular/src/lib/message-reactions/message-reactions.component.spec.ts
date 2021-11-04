@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
 import { ReactionResponse } from 'stream-chat';
 import { By } from '@angular/platform-browser';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -9,6 +14,7 @@ import {
 } from './message-reactions.component';
 import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { ChannelService } from '../channel.service';
+import { SimpleChange } from '@angular/core';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -214,6 +220,42 @@ describe('MessageReactionsComponent', () => {
     expect(channelServiceMock.removeReaction).toHaveBeenCalledWith(
       component.messageId,
       'like'
+    );
+  });
+
+  it('should emit #isSelectorOpenChange, if outside click happens', fakeAsync(() => {
+    let eventHandler: Function | undefined;
+    spyOn(window, 'addEventListener').and.callFake(
+      (_: string, handler: any) => {
+        eventHandler = handler as Function;
+      }
+    );
+    const spy = jasmine.createSpy();
+    component.isSelectorOpenChange.subscribe(spy);
+    component.isSelectorOpen = true;
+    component.ngOnChanges({
+      isSelectorOpen: {} as any as SimpleChange,
+    });
+    tick();
+    fixture.detectChanges();
+    eventHandler!(queryReactionsSelector());
+
+    expect(spy).toHaveBeenCalledWith(false);
+  }));
+
+  it('should only watch for outside clicks if selector is open', () => {
+    const addEventListenerSpy = spyOn(window, 'addEventListener');
+    const removeEventListenerSpy = spyOn(window, 'removeEventListener');
+    component.isSelectorOpen = false;
+    component.ngOnChanges({
+      isSelectorOpen: {} as any as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'click',
+      jasmine.any(Function)
     );
   });
 });

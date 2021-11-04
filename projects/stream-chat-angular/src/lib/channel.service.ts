@@ -361,9 +361,12 @@ export class ChannelService {
   private watchForActiveChannelEvents(channel: Channel) {
     this.activeChannelSubscriptions.push(
       channel.on('message.new', () => {
-        this.activeChannelMessagesSubject.next([...channel.state.messages]);
-        this.activeChannel$.pipe(first()).subscribe((c) => void c?.markRead());
-        this.appRef.tick();
+        this.ngZone.run(() => {
+          this.activeChannelMessagesSubject.next([...channel.state.messages]);
+          this.activeChannel$
+            .pipe(first())
+            .subscribe((c) => void c?.markRead());
+        });
       })
     );
     this.activeChannelSubscriptions.push(
@@ -398,12 +401,9 @@ export class ChannelService {
   }
 
   private messageReactionEventReceived(e: Event) {
-    let message: StreamMessage | undefined;
-    this.activeChannelMessages$
-      .pipe(first())
-      .subscribe(
-        (messages) => (message = messages.find((m) => m.id === e.message?.id))
-      );
+    let messages!: StreamMessage[];
+    this.activeChannelMessages$.pipe(first()).subscribe((m) => (messages = m));
+    const message = messages.find((m) => m.id === e?.message?.id);
     if (!message) {
       return;
     }
@@ -411,9 +411,7 @@ export class ChannelService {
     message.reaction_scores = { ...e.message?.reaction_scores };
     message.latest_reactions = [...(e.message?.latest_reactions || [])];
     message.own_reactions = [...(e.message?.own_reactions || [])];
-    this.activeChannelMessagesSubject.next(
-      this.activeChannelMessagesSubject.getValue()
-    );
+    this.activeChannelMessagesSubject.next([...messages]);
     this.appRef.tick();
   }
 

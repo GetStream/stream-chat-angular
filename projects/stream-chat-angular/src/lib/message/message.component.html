@@ -81,7 +81,7 @@
         *ngIf="areReactionsEnabled"
         [messageReactionCounts]="message?.reaction_counts || {}"
         [latestReactions]="message?.latest_reactions || []"
-        [isSelectorOpen]="isReactionSelectorOpen"
+        [(isSelectorOpen)]="isReactionSelectorOpen"
         [messageId]="message?.id"
         [ownReactions]="message?.own_reactions || []"
       ></stream-message-reactions>
