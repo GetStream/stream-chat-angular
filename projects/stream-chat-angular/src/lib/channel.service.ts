@@ -401,18 +401,21 @@ export class ChannelService {
   }
 
   private messageReactionEventReceived(e: Event) {
-    let messages!: StreamMessage[];
-    this.activeChannelMessages$.pipe(first()).subscribe((m) => (messages = m));
-    const message = messages.find((m) => m.id === e?.message?.id);
-    if (!message) {
-      return;
-    }
-    message.reaction_counts = { ...e.message?.reaction_counts };
-    message.reaction_scores = { ...e.message?.reaction_scores };
-    message.latest_reactions = [...(e.message?.latest_reactions || [])];
-    message.own_reactions = [...(e.message?.own_reactions || [])];
-    this.activeChannelMessagesSubject.next([...messages]);
-    this.appRef.tick();
+    this.ngZone.run(() => {
+      let messages!: StreamMessage[];
+      this.activeChannelMessages$
+        .pipe(first())
+        .subscribe((m) => (messages = m));
+      const message = messages.find((m) => m.id === e?.message?.id);
+      if (!message) {
+        return;
+      }
+      message.reaction_counts = { ...e.message?.reaction_counts };
+      message.reaction_scores = { ...e.message?.reaction_scores };
+      message.latest_reactions = [...(e.message?.latest_reactions || [])];
+      message.own_reactions = [...(e.message?.own_reactions || [])];
+      this.activeChannelMessagesSubject.next([...messages]);
+    });
   }
 
   private formatMessage(message: MessageResponse) {
