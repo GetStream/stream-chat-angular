@@ -14,7 +14,9 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Cache node modules
         uses: actions/cache@v1
@@ -51,3 +53,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npx semantic-release
+      - name: Verify docs changed
+        uses: tj-actions/changed-files@v11.5
+        with:
+          files: |
+            docusaurus
+        id: changed_files
+      - name: Push to docusaurus
+        if: steps.changed_files.outputs.any_changed == 'true'
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: ${{ github.ref == 'refs/heads/master' && 'staging' || 'staging' }}
+        env:
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
