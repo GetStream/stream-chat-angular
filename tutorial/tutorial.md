@@ -186,10 +186,9 @@ export class AppComponent {
     private streamI18nService: StreamI18nService,
     private themeService: ThemeService
   ) {
-    const apiKey = "dz5f4d5kzrue";
-    const userId = "ancient-smoke-7";
-    const userToken =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiYW5jaWVudC1zbW9rZS03IiwiZXhwIjoxNjM1ODU5MjYwfQ.R_IfzT1WnnYj5M0lsasuasuD4OTlpyfEzum65XN05ig";
+    const apiKey = "YOUR_API_KEY";
+    const userId = "USER_ID";
+    const userToken = "USERT_TOKEN";
     void this.chatService.init(apiKey, userId, userToken);
     this.chatService.chatClient.channel("messaging", "talking-about-angular", {
       // add as many custom fields as you'd like
