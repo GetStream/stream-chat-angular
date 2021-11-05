@@ -1,7 +1,7 @@
 ---
 id: themeing
 sidebar_position: 1
-title: Themeing
+title: Themeing and CSS
 ---
 
 import LightThemeScreenshot from "../assets/light-theme-screenshot.png";
@@ -55,3 +55,37 @@ The result:
 **Example 2** - Custom dark theme
 
 <img src={CustomDarkThemeScreenshot} width="900" />
+
+## Overriding CSS
+
+To override pre-defined library styles, follow this simple process:
+
+- Import our bundled CSS into your root stylesheet. We maintain a separate repository, [stream-chat-css](https://github.com/GetStream/stream-chat-css), which houses all of the SCSS files for the components.
+
+- Use the browser inspector or view the library code and locate default styles you wish to override
+
+- Add selectors to your local CSS file to override our defaults.
+
+- Add your local CSS selectors after Stream's bundled CSS
+
+For example:
+
+```scss
+import 'stream-chat-css/dist/css/index.css';
+
+/* Your CSS here */
+```
+
+## Importing scss Files
+
+As an alternative to importing our entire style sheet (perhaps, due to it's size), there's also the option to easily assemble only
+what you need by importing individual scss files. The imports should happen in your root stylesheet.
+
+Here's a complete [list of scss files](https://unpkg.com/browse/stream-chat-css@1.0.17/dist/scss/) broken down by size and with the
+option of filtering by version.
+
+:::note
+If not importing our entire bundled CSS, individually importing the SDK's scss files is the better alternative to copy and pasting
+our stylesheets and then customizing that code in your application. The CSS in the library does change occasionally, and you want
+to keep up to date with these to ensure no problems arise by falling behind in important styling updates.
+:::
