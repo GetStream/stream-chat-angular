@@ -52,6 +52,7 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
       - name: Verify docs changed
         uses: tj-actions/changed-files@v11.5
