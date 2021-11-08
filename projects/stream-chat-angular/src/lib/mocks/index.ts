@@ -150,6 +150,8 @@ export type MockStreamChatClient = {
   on: (name: EventTypes, handler: () => {}) => void;
   handleEvent: (name: EventTypes, event: Event) => void;
   flagMessage: jasmine.Spy;
+  setUserAgent: jasmine.Spy;
+  getUserAgent: () => string;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
@@ -157,6 +159,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   /* eslint-disable jasmine/no-unsafe-spy */
   const connectUser = jasmine.createSpy();
   const flagMessage = jasmine.createSpy();
+  const setUserAgent = jasmine.createSpy();
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes, handler: () => {}) => {
@@ -165,8 +168,17 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const handleEvent = (name: EventTypes, event: Event) => {
     eventHandlers[name as string](event);
   };
+  const getUserAgent = () => 'stream-chat-javascript-client-browser-2.2.2';
 
-  return { connectUser, user, on, handleEvent, flagMessage };
+  return {
+    connectUser,
+    user,
+    on,
+    handleEvent,
+    flagMessage,
+    getUserAgent,
+    setUserAgent,
+  };
 };
 
 export type Spied<T> = {

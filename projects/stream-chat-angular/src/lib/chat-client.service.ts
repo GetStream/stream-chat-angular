@@ -1,6 +1,7 @@
 import { ApplicationRef, Injectable, NgZone } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Event, StreamChat } from 'stream-chat';
+import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 
 export type Notification = {
@@ -32,9 +33,12 @@ export class ChatClientService {
 
   async init(apiKey: string, userId: string, userToken: string) {
     this.chatClient = StreamChat.getInstance(apiKey);
-    await this.ngZone.runOutsideAngular(
-      async () => await this.chatClient.connectUser({ id: userId }, userToken)
-    );
+    await this.ngZone.runOutsideAngular(async () => {
+      await this.chatClient.connectUser({ id: userId }, userToken);
+      this.chatClient.setUserAgent(
+        `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
+      );
+    });
     this.chatClient.on('notification.added_to_channel', (e) => {
       this.notificationSubject.next({
         eventType: 'notification.added_to_channel',
