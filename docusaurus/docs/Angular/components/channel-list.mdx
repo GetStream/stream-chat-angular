@@ -1,6 +1,6 @@
 ---
 id: channel_list
-sidebar_position: 4
+sidebar_position: 5
 title: Channel list
 ---
 
@@ -8,7 +8,7 @@ The `ChannelList` component renders the list of channels.
 
 The `ChannelList` displays channels using pagination, new channels are loaded if the user clicks the "Load more" button.
 
-The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the `ChannelHeader` component.
+The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the [`ChannelHeader`](./channel-header.mdx) component.
 
 ## Customization
 
@@ -32,7 +32,7 @@ Other building blocks, that you might find useful:
 
 ### Toggle
 
-The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the `ChannelHeader` component. The open/close mechanism is implemented by the [`ChannelListToggleService`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts).
+The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the `ChannelHeader` component. The open/close mechanism is implemented by the [`ChannelListToggleService`](../services/channel-list-toggle.mdx).
 
 ### Loading indicator
 
@@ -45,7 +45,7 @@ The `ChannelList` component uses the [`Icon`](./icons.mdx) component to display 
 
 **Example 2** - Using a custom channel preview component
 
-If you only want to customize the channel preview items (not the whole list), see example [here](./channel-preview.mdx/#customization).
+If you only want to customize the channel preview items (not the whole list), see the [channel preview customization](./channel-preview.mdx/#customization) guide.
 
 ## Inputs
 

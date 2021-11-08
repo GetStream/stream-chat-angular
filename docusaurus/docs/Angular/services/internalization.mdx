@@ -1,0 +1,24 @@
+---
+id: internalization
+sidebar_position: 4
+title: Internalization service
+---
+
+The `StreamI18nService` can be used to customize the labels of the chat UI. Our [translation guide](../concepts/translation.mdx) covers this topic in detail.
+
+# Overview
+
+## setTranslation
+
+Registers the translation to the [ngx-translate](https://github.com/ngx-translate/core) TranslateService.
+
+### Params
+
+| Name      | Type   | Description                                                                       | Default |
+| --------- | ------ | --------------------------------------------------------------------------------- | ------- |
+| lang      | String | The language key to register the translation to                                   | 'en'    |
+| overrides | Object | An object which keys are translation keys, and the values are custom translations | {}      |
+
+### Returns
+
+void
