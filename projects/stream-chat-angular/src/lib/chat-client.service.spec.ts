@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Event, StreamChat } from 'stream-chat';
+import { version } from '../assets/version';
 import { ChatClientService } from './chat-client.service';
 import { mockStreamChatClient, MockStreamChatClient } from './mocks';
 import { NotificationService } from './notification.service';
@@ -29,6 +30,12 @@ describe('ChatClientService', () => {
       { id: userId },
       userToken
     );
+  });
+
+  it('should set SDK information', () => {
+    const userAgent = `stream-chat-angular-${version}-${mockChatClient.getUserAgent()}`;
+
+    expect(mockChatClient.setUserAgent).toHaveBeenCalledWith(userAgent);
   });
 
   it('should watch for added to channel events', () => {

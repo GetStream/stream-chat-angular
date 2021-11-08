@@ -44,7 +44,23 @@
         }
       ],
       [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "./set-version.sh ${nextRelease.version}"
+        }
+      ],
+      [
         "@semantic-release/github"
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "./projects/stream-chat-angular/package.json",
+            "./projects/stream-chat-angular/src/assets/version.ts"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
       ]
     ]
   },
@@ -81,6 +97,8 @@
     "@angular/cli": "~12.2.4",
     "@angular/compiler-cli": "~12.2.0",
     "@cypress/schematic": "^1.5.1",
+    "@semantic-release/exec": "^6.0.2",
+    "@semantic-release/git": "^10.0.1",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
@@ -104,7 +122,7 @@
     "prettier": "^2.4.0",
     "prettier-eslint": "^13.0.0",
     "puppeteer": "^10.2.0",
-    "semantic-release": "^17.4.7",
+    "semantic-release": "^18.0.0",
     "typescript": "~4.3.5",
     "wait-on": "^6.0.0"
   }
