@@ -1,0 +1,65 @@
+---
+id: theme
+sidebar_position: 6
+title: Theme service
+---
+
+The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [themeing guide](../concepts/themeing-and-css.mdx) gives a complete overview about the topic.
+
+# Overview
+
+## theme$
+
+A Subject that can be used to get or set the currently active theme.
+
+## customLightThemeVariables
+
+A getter that returns the currently set custom light theme variables.
+
+### Params
+
+None
+
+### Returns
+
+An object where the keys are theme variables, and the values are the currently set CSS values.
+
+## customLightThemeVariables
+
+A setter that can be used to overwrite the values of the CSS theme variables of the light theme.
+
+### Params
+
+| Name     | Type   | Description                                                                  | Default |
+| -------- | ------ | ---------------------------------------------------------------------------- | ------- |
+| variable | Object | An object where the keys are theme variables, and the values are CSS values. | -       |
+
+### Returns
+
+void
+
+## customDarkThemeVariables
+
+A getter that returns the currently set custom dark theme variables.
+
+### Params
+
+None
+
+### Returns
+
+An object where the keys are theme variables, and the values are the currently set CSS values.
+
+## customDarkThemeVariables
+
+A setter that can be used to overwrite the values of the CSS theme variables of the dark theme.
+
+### Params
+
+| Name     | Type   | Description                                                                  | Default |
+| -------- | ------ | ---------------------------------------------------------------------------- | ------- |
+| variable | Object | An object where the keys are theme variables, and the values are CSS values. | -       |
+
+### Returns
+
+void

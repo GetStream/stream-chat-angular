@@ -1,0 +1,23 @@
+---
+id: channel
+sidebar_position: 3
+title: Channel
+---
+
+The `Channel` component is a container component that displays the [`ChannelHeader`](./channel-header.mdx), [`MessageList`](./message-list.mdx), [`NotificationList`](./notifications.mdx) and [`MessageInput`](./message-input.mdx) components.
+
+## Customization
+
+If you want to create a custom channel component, here is how to use it:
+
+```html
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <custom-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-notification-list></stream-notification-list>
+    <stream-message-input></stream-message-input>
+  </custom-channel>
+</div>
+```
