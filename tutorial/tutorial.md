@@ -56,14 +56,14 @@ import { StreamChatModule } from 'stream-chat-angular';
 export class AppModule { }
 ```
 
-If you already use [ngx-translate](https://github.com/ngx-translate/core) in your application, follow [this](https://getstream.io/chat/docs/sdk/angular/concepts/translation/) guide to set up translation.
+If you already use [ngx-translate](https://github.com/ngx-translate/core) in your application, follow [our translation guide](https://getstream.io/chat/docs/sdk/angular/concepts/translation/) to set up translation.
 
 2. Init the chat application
 
 Replace the content of your `app.component.ts` with the following code:
 
 ```typescript
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import {
   ChatClientService,
   ChannelService,
@@ -75,7 +75,7 @@ import {
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
@@ -84,27 +84,35 @@ export class AppComponent {
     const apiKey = "YOUR_API_KEY";
     const userId = "USER_ID";
     const userToken = "USERT_TOKEN";
-    void this.chatService.init(apiKey, userId, userToken);
-    this.chatService.chatClient.channel("messaging", "talking-about-angular", {
-      // add as many custom fields as you'd like
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/2048px-Angular_full_color_logo.svg.png",
-      name: "Talking about Angular",
-    });
-    void this.channelService.init({
+    this.chatService.init(apiKey, userId, userToken);
+    this.streamI18nService.setTranslation();
+  }
+
+  async ngOnInit() {
+    const channel = this.chatService.chatClient.channel(
+      "messaging",
+      "talking-about-angular",
+      {
+        // add as many custom fields as you'd like
+        image:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/2048px-Angular_full_color_logo.svg.png",
+        name: "Talking about Angular",
+      }
+    );
+    await channel.create();
+    this.channelService.init({
       type: "messaging",
       id: { $eq: "talking-about-angular" },
     });
-    this.streamI18nService.setTranslation();
   }
 }
 ```
 
 First, we connect a user to the chat client. Further information about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) is available in our platform documentation.
 
-Next, we create a channel (if doesn't not exist) to test with. You can read more about [channel creation](https://getstream.io/chat/docs/javascript/creating_channels/?language=javascript) in out platform documentation.
+Next, we create a channel (if doesn't exist) to test with. You can read more about [channel creation](https://getstream.io/chat/docs/javascript/creating_channels/?language=javascript) in out platform documentation.
 
-Lastly, we provide a filter condition for loading channels. If you want to more about [filtering channels](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript), our platform documentation got you covered.
+Lastly, we provide a filter condition for loading channels. If you want to know more about [filtering channels](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript), our platform documentation got you covered.
 
 We also set up the translation for the application. If you want to customize it, check out our [translation guide](https://getstream.io/chat/docs/sdk/angular/concepts/translation/).
 
@@ -166,7 +174,7 @@ Once you have the app running, you’ll notice the following out-of-the-box feat
 Stream Chat Angular supports dark and light themes, the default is the light theme, here is how you can switch to dark:
 
 ```typescript
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import {
   ChatClientService,
   ChannelService,
@@ -179,7 +187,7 @@ import {
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
@@ -189,19 +197,27 @@ export class AppComponent {
     const apiKey = "YOUR_API_KEY";
     const userId = "USER_ID";
     const userToken = "USERT_TOKEN";
-    void this.chatService.init(apiKey, userId, userToken);
-    this.chatService.chatClient.channel("messaging", "talking-about-angular", {
-      // add as many custom fields as you'd like
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/2048px-Angular_full_color_logo.svg.png",
-      name: "Talking about Angular",
-    });
-    void this.channelService.init({
+    this.chatService.init(apiKey, userId, userToken);
+    this.streamI18nService.setTranslation();
+    this.themeService.theme$.next("dark");
+  }
+
+  async ngOnInit() {
+    const channel = this.chatService.chatClient.channel(
+      "messaging",
+      "talking-about-angular",
+      {
+        // add as many custom fields as you'd like
+        image:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/2048px-Angular_full_color_logo.svg.png",
+        name: "Talking about Angular",
+      }
+    );
+    await channel.create();
+    this.channelService.init({
       type: "messaging",
       id: { $eq: "talking-about-angular" },
     });
-    this.streamI18nService.setTranslation();
-    this.themeService.theme$.next("dark");
   }
 }
 ```
