@@ -9,9 +9,9 @@
     "url": "https://github.com/GetStream/stream-chat-angular.git"
   },
   "peerDependencies": {
-    "@angular/common": "^12.2.0",
-    "@angular/core": "^12.2.0",
-    "@ngx-translate/core": "^13.0.0",
+    "@angular/common": "^12.2.0 || ^13.0.0",
+    "@angular/core": "^12.2.0 || ^13.0.0",
+    "@ngx-translate/core": "^13.0.0 || ^14.0.0",
     "stream-chat": "^4.3.0",
     "stream-chat-css": "1.0.18"
   },
