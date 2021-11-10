@@ -4,6 +4,8 @@ import {
   ElementRef,
   HostBinding,
   Input,
+  OnChanges,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -14,14 +16,22 @@ import { StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
+import { MessageActions } from '../message-actions-box/message-actions-box.component';
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
   styles: [],
 })
-export class MessageListComponent implements AfterViewChecked {
+export class MessageListComponent implements AfterViewChecked, OnChanges {
   @Input() messageTemplate: TemplateRef<any> | undefined;
+  @Input() areReactionsEnabled = true;
+  /* eslint-disable-next-line @angular-eslint/no-input-rename */
+  @Input('enabledMessageActions') enabledMessageActionsInput:
+    | MessageActions[]
+    | undefined;
   messages$!: Observable<StreamMessage[]>;
+  canReactToMessage: boolean | undefined;
+  enabledMessageActions: MessageActions[] = ['flag'];
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
   unreadMessageCount = 0;
@@ -36,6 +46,7 @@ export class MessageListComponent implements AfterViewChecked {
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
+  private authorizedMessageActions: MessageActions[] = ['flag'];
   private readonly isUserScrolledUpThreshold = 300;
 
   constructor(
@@ -43,7 +54,7 @@ export class MessageListComponent implements AfterViewChecked {
     private chatClientService: ChatClientService,
     private imageLoadService: ImageLoadService
   ) {
-    this.channelService.activeChannel$.subscribe(() => {
+    this.channelService.activeChannel$.subscribe((channel) => {
       this.latestMessageDate = undefined;
       this.hasNewMessages = true;
       this.isUserScrolledUp = false;
@@ -52,6 +63,15 @@ export class MessageListComponent implements AfterViewChecked {
       this.oldestMessageDate = undefined;
       this.unreadMessageCount = 0;
       this.isNewMessageSentByUser = undefined;
+      const capabilites = channel?.data?.own_capabilities as string[];
+      if (capabilites) {
+        this.canReactToMessage = capabilites.indexOf('send-reaction') !== -1;
+        this.authorizedMessageActions = [];
+        if (capabilites.indexOf('flag-message') !== -1) {
+          this.authorizedMessageActions.push('flag');
+        }
+        this.setEnabledActions();
+      }
     });
     this.messages$ = this.channelService.activeChannelMessages$.pipe(
       tap((messages) => {
@@ -110,6 +130,12 @@ export class MessageListComponent implements AfterViewChecked {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.enabledMessageActionsInput) {
+      this.setEnabledActions();
+    }
+  }
+
   ngAfterViewChecked() {
     if (this.hasNewMessages) {
       if (!this.isUserScrolledUp || this.isNewMessageSentByUser) {
@@ -155,5 +181,18 @@ export class MessageListComponent implements AfterViewChecked {
   private preserveScrollbarPosition() {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!;
+  }
+
+  private setEnabledActions() {
+    if (!this.enabledMessageActionsInput) {
+      return;
+    }
+    this.enabledMessageActions = [];
+    this.enabledMessageActionsInput.forEach((action) => {
+      const isAuthorized = this.authorizedMessageActions.indexOf(action) !== -1;
+      if (isAuthorized) {
+        this.enabledMessageActions.push(action);
+      }
+    });
   }
 }

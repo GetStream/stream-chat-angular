@@ -37,8 +37,19 @@ The message list uses the `Message` component to display messages, if you want t
   <stream-message-input></stream-message-input>
 </stream-channel>
 
-<ng-template #customMessageTemplate let-message="message">
-  <app-custom-message [message]="message"></app-custom-message>
+<ng-template
+  #customMessageTemplate
+  let-message="message"
+  let-enabledMessageActions="enabledMessageActions"
+  let-areReactionsEnabled="areReactionsEnabled"
+  let-canReactToMessage="canReactToMessage"
+>
+  <app-custom-message
+    [message]="message"
+    [enabledMessageActions]="enabledMessageActions"
+    [areReactionsEnabled]="areReactionsEnabled"
+    [canReactToMessage]="canReactToMessage"
+  ></app-custom-message>
 </ng-template>
 ```
 
@@ -89,19 +100,33 @@ The `Message` component uses the [`Icon`](./icons.mdx) component to display icon
 
 ### enabledMessageActions
 
-The list of [actions that are enabled](./message-actions.mdx).
+The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI.
 
-| Type            | Default  |
-| --------------- | -------- |
-| MessageAction[] | ['flag'] |
+If you use the default chat UI you can also set this using the [`MessageList`](./message-list.mdx) component.
+
+| Type            |
+| --------------- |
+| MessageAction[] |
 
 ### areReactionsEnabled
 
-If true, the message reactions are displayed, and the current user can react to messages.
+If true, the message reactions are displayed.
 
-| Type    | Default |
-| ------- | ------- |
-| boolean | true    |
+If you use the default chat UI you can also set this using the [`MessageList`](./message-list.mdx) component.
+
+| Type    |
+| ------- |
+| boolean |
+
+### canReactToMessage
+
+If true, the user can add reactions to the message.
+
+If you use the default chat UI the [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+| Type   |
+| ------ |
+| boolen |
 
 ### isLastSentMessage
 

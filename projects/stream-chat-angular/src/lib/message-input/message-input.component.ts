@@ -21,6 +21,7 @@ export class MessageInputComponent implements OnDestroy {
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled = true;
   attachmentUploads: AttachmentUpload[] = [];
+  isFileUploadAuthorized: boolean | undefined;
   private attachmentUploadInProgressCounter = 0;
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
@@ -32,11 +33,16 @@ export class MessageInputComponent implements OnDestroy {
     private notificationService: NotificationService
   ) {
     this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe(() => {
+      this.channelService.activeChannel$.subscribe((channel) => {
         if (this.messageInput) {
           this.messageInput.nativeElement.value = '';
         }
         this.attachmentUploads = [];
+        const capabilities = channel?.data?.own_capabilities as string[];
+        if (capabilities) {
+          this.isFileUploadAuthorized =
+            capabilities.indexOf('upload-file') !== -1;
+        }
       })
     );
   }
