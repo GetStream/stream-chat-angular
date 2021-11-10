@@ -140,7 +140,7 @@
         ></textarea>
       </div>
       <div
-        *ngIf="isFileUploadEnabled"
+        *ngIf="isFileUploadEnabled && isFileUploadAuthorized"
         class="str-chat__fileupload-wrapper"
         data-testid="file-upload-button"
       >

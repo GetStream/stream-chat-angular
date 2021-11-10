@@ -58,3 +58,19 @@ By default, the [default message component](./message.mdx) is used. To change th
 | Type        |
 | ----------- |
 | TemplateRef |
+
+### areReactionsEnabled
+
+If true, the message reactions are displayed. Users can also react to messages if they have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+| Type    | Default |
+| ------- | ------- |
+| boolean | true    |
+
+### enabledMessageActions
+
+The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI.
+
+| Type            | Default  |
+| --------------- | -------- |
+| MessageAction[] | ['flag'] |

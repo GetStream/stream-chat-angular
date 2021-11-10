@@ -113,6 +113,9 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
     querySystemMessageContainer = () =>
       nativeElement.querySelector('[data-testid="system-message"]');
+    component.areReactionsEnabled = true;
+    component.canReactToMessage = true;
+    fixture.detectChanges();
   });
 
   it('should apply the correct CSS classes based on #message', () => {
@@ -517,9 +520,15 @@ describe('MessageComponent', () => {
     expect(attachmentComponent.attachments).toBe(attachments);
   });
 
-  it('should display reactions icon, if reactions are enabled', () => {
+  it('should display reactions icon, if reactions are enabled and user can react to message', () => {
     expect(queryReactionIcon()).not.toBeNull();
 
+    component.canReactToMessage = false;
+    fixture.detectChanges();
+
+    expect(queryReactionIcon()).toBeNull();
+
+    component.canReactToMessage = true;
     component.areReactionsEnabled = false;
     fixture.detectChanges();
 
@@ -553,6 +562,7 @@ describe('MessageComponent', () => {
         own_reactions: ownReactions,
       },
     };
+    component.canReactToMessage = true;
     fixture.detectChanges();
     const messageReactionsComponent = queryMessageReactionsComponent();
 

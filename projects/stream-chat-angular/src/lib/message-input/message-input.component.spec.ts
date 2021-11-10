@@ -158,8 +158,16 @@ describe('MessageInputComponent', () => {
     expect(textarea?.value).toBe('');
   });
 
-  it('should display file upload button, if #isFileUploadEnabled is true', () => {
+  it('should display file upload button, if #isFileUploadEnabled is true and has permission to upload file', () => {
     expect(queryattachmentUploadButton()).not.toBeNull();
+
+    mockActiveChannel$.next({
+      ...channel,
+      data: { own_capabilities: [] },
+    } as any as Channel);
+    fixture.detectChanges();
+
+    expect(queryattachmentUploadButton()).toBeNull();
   });
 
   it(`shouldn't display file upload button, if #isFileUploadEnabled is false`, () => {

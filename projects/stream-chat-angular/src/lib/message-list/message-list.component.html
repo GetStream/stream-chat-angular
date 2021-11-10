@@ -21,6 +21,8 @@
               messageTemplate;
               context: {
                 message: message,
+                areReactionsEnabled: areReactionsEnabled,
+                canReactToMessage: canReactToMessage,
                 lastSentMessageId: !!(
                   lastSentMessageId && message?.id === lastSentMessageId
                 )
@@ -31,9 +33,12 @@
         <ng-template #defaultMessageTemplate>
           <stream-message
             [message]="message"
+            [areReactionsEnabled]="areReactionsEnabled"
+            [canReactToMessage]="canReactToMessage"
             [isLastSentMessage]="
               !!(lastSentMessageId && message?.id === lastSentMessageId)
             "
+            [enabledMessageActions]="enabledMessageActions"
           ></stream-message>
         </ng-template>
       </li>
