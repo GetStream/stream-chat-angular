@@ -144,6 +144,12 @@ body {
 }
 ```
 
+**Important note** If you are using **CSS** stylesheets, you should add the following import instead:
+
+```css
+@import "~stream-chat-css/dist/css/index.css";
+```
+
 5. Modify `tsconfig.json`
 
 Add the following option to the `compilerOptions` in `tsconfig.json` file:
