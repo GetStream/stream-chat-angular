@@ -38,6 +38,8 @@ For complete pricing and details visit our [Chat Pricing Page](https://getstream
 npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
 ```
 
+**Important note** If you are using **Angular 12** you will need to add `--legacy-peer-deps` flag as `@ngx-translate/core`'s newest version only supports Angular 13.
+
 ## Sample App
 
 This repository includes a sample app to test our library.

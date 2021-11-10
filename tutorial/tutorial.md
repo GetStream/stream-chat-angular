@@ -18,6 +18,8 @@ Install the necessary dependencies:
 npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
 ```
 
+**Important note** If you are using **Angular 12** you will need to add `--legacy-peer-deps` flag as `@ngx-translate/core`'s newest version only supports Angular 13.
+
 ## Create a WhatsApp or Facebook Messenger Style Chat App
 
 Stream's Angular Chat messaging SDK component library includes everything you need to build a fully functioning chat experience, supporting rich messages, reactions, image uploads, and more. This library was designed to enable you to get an application up and running quickly and efficiently while supporting customization for complex use cases.
