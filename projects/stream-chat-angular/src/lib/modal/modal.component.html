@@ -1,0 +1,18 @@
+<div
+  data-testid="modal"
+  class="str-chat__modal str-chat__modal--{{ isOpen ? 'open' : 'close' }}"
+>
+  <div
+    data-testid="close"
+    class="str-chat__modal__close-button"
+    (click)="close()"
+    (keyup.enter)="close()"
+    translate
+  >
+    streamChat.Close
+    <stream-icon icon="close"></stream-icon>
+  </div>
+  <div class="str-chat__modal__inner" #content>
+    <ng-content></ng-content>
+  </div>
+</div>

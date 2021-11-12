@@ -1,28 +1,36 @@
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
+  Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Attachment } from 'stream-chat';
+import { Observable, Subscription } from 'rxjs';
+import { first } from 'rxjs/operators';
+import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload } from '../types';
+import { AttachmentUpload, StreamMessage } from '../types';
+import { MessageInputConfigService } from './message-input-config.service';
 
 @Component({
   selector: 'stream-message-input',
   templateUrl: './message-input.component.html',
   styles: [],
+  providers: [AttachmentService],
 })
-export class MessageInputComponent implements OnDestroy {
-  @Input() isFileUploadEnabled = true;
+export class MessageInputComponent implements OnChanges, OnDestroy {
+  @Input() isFileUploadEnabled: boolean | undefined;
   @Input() acceptedFileTypes: string[] | undefined;
-  @Input() isMultipleFileUploadEnabled = true;
-  attachmentUploads: AttachmentUpload[] = [];
+  @Input() isMultipleFileUploadEnabled: boolean | undefined;
+  @Input() message: StreamMessage | undefined;
+  @Output() readonly messageUpdate = new EventEmitter<void>();
   isFileUploadAuthorized: boolean | undefined;
-  private attachmentUploadInProgressCounter = 0;
+  attachmentUploads$: Observable<AttachmentUpload[]>;
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
@@ -30,14 +38,16 @@ export class MessageInputComponent implements OnDestroy {
 
   constructor(
     private channelService: ChannelService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private attachmentService: AttachmentService,
+    private configService: MessageInputConfigService
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         if (this.messageInput) {
           this.messageInput.nativeElement.value = '';
         }
-        this.attachmentUploads = [];
+        this.attachmentService.resetAttachmentUploads();
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
           this.isFileUploadAuthorized =
@@ -45,14 +55,54 @@ export class MessageInputComponent implements OnDestroy {
         }
       })
     );
+    this.subscriptions.push(
+      this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
+        (counter) => {
+          if (counter === 0 && this.hideNotification) {
+            this.hideNotification();
+            this.hideNotification = undefined;
+          }
+        }
+      )
+    );
+    this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
+    this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
+    this.acceptedFileTypes = this.configService.acceptedFileTypes;
+    this.isMultipleFileUploadEnabled =
+      this.configService.isMultipleFileUploadEnabled;
   }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.message) {
+      this.attachmentService.resetAttachmentUploads();
+      if (this.isUpdate) {
+        this.attachmentService.createFromAttachments(
+          this.message!.attachments || []
+        );
+      }
+    }
+    if (changes.isFileUploadEnabled) {
+      this.configService.isFileUploadEnabled = this.isFileUploadEnabled;
+    }
+    if (changes.acceptedFileTypes) {
+      this.configService.acceptedFileTypes = this.acceptedFileTypes;
+    }
+    if (changes.isMultipleFileUploadEnabled) {
+      this.configService.isMultipleFileUploadEnabled =
+        this.isMultipleFileUploadEnabled;
+    }
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   async messageSent(event?: Event) {
     event?.preventDefault();
-    if (this.attachmentUploadInProgressCounter > 0) {
+    let attachmentUploadInProgressCounter!: number;
+    this.attachmentService.attachmentUploadInProgressCounter$
+      .pipe(first())
+      .subscribe((counter) => (attachmentUploadInProgressCounter = counter));
+    if (attachmentUploadInProgressCounter > 0) {
       if (!this.hideNotification) {
         this.hideNotification =
           this.notificationService.addPermanentNotification(
@@ -62,26 +112,29 @@ export class MessageInputComponent implements OnDestroy {
       return;
     }
     const text = this.messageInput.nativeElement.value;
-    const attachments = this.attachmentUploads
-      .filter((r) => r.state === 'success')
-      .map((r) => {
-        const attachment: Attachment = {
-          type: r.type,
-        };
-        if (r.type === 'image') {
-          attachment.fallback = r.file.name;
-          attachment.image_url = r.url;
-        } else {
-          attachment.asset_url = r.url;
-          attachment.title = r.file.name;
-          attachment.file_size = r.file.size;
-        }
-
-        return attachment;
-      });
-    this.messageInput.nativeElement.value = '';
-    await this.channelService.sendMessage(text, attachments);
-    this.attachmentUploads = [];
+    const attachments = this.attachmentService.mapToAttachments();
+    if (!this.isUpdate) {
+      this.messageInput.nativeElement.value = '';
+    }
+    try {
+      await (this.isUpdate
+        ? this.channelService.updateMessage({
+            ...this.message!,
+            text: text,
+            attachments: attachments,
+          })
+        : this.channelService.sendMessage(text, attachments));
+      this.messageUpdate.emit();
+      if (!this.isUpdate) {
+        this.attachmentService.resetAttachmentUploads();
+      }
+    } catch (error) {
+      if (this.isUpdate) {
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Edit message request failed'
+        );
+      }
+    }
   }
 
   get accept() {
@@ -89,119 +142,15 @@ export class MessageInputComponent implements OnDestroy {
   }
 
   async filesSelected(fileList: FileList | null) {
-    if (!fileList) {
-      return;
-    }
-    const imageFiles: File[] = [];
-    const dataFiles: File[] = [];
-
-    Array.from(fileList).forEach((file) => {
-      if (file.type.startsWith('image/') && !file.type.endsWith('.photoshop')) {
-        // photoshop files begin with 'image/'
-        imageFiles.push(file);
-      } else {
-        dataFiles.push(file);
-      }
-    });
-    imageFiles.forEach((f) => this.createPreview(f));
-    const newUploads = [
-      ...imageFiles.map((file) => ({
-        file,
-        state: 'uploading' as 'uploading',
-        type: 'image' as 'image',
-      })),
-      ...dataFiles.map((file) => ({
-        file,
-        state: 'uploading' as 'uploading',
-        type: 'file' as 'file',
-      })),
-    ];
-    this.attachmentUploads = [...this.attachmentUploads, ...newUploads];
+    await this.attachmentService.filesSelected(fileList);
     this.clearFileInput();
-    await this.uploadAttachments(newUploads);
-  }
-
-  async retryAttachmentUpload(file: File) {
-    const upload = this.attachmentUploads.find((u) => u.file === file);
-    if (!upload) {
-      return;
-    }
-    upload.state = 'uploading';
-    await this.uploadAttachments([upload]);
-  }
-
-  async deleteAttachment(upload: AttachmentUpload) {
-    if (upload.state === 'success') {
-      try {
-        await this.channelService.deleteAttachment(upload);
-        this.attachmentUploads.splice(
-          this.attachmentUploads.indexOf(upload),
-          1
-        );
-      } catch (error) {
-        // TODO error handling
-      }
-    } else {
-      this.attachmentUploads.splice(this.attachmentUploads.indexOf(upload), 1);
-    }
-  }
-
-  trackByFile(
-    _: number,
-    item: {
-      file: File;
-      state: 'error' | 'success' | 'uploading';
-      url?: string;
-    }
-  ) {
-    return item.file;
-  }
-
-  private createPreview(file: File) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const upload = this.attachmentUploads.find(
-        (upload) => upload.file === file
-      );
-      if (!upload) {
-        return;
-      }
-      upload.previewUri = event.target?.result || undefined;
-    };
-    reader.readAsDataURL(file as Blob);
-  }
-
-  private async uploadAttachments(uploads: AttachmentUpload[]) {
-    this.attachmentUploadInProgressCounter++;
-    const result = await this.channelService.uploadAttachments(uploads);
-    result.forEach((r) => {
-      const upload = this.attachmentUploads.find(
-        (upload) => upload.file === r.file
-      );
-      if (!upload) {
-        if (r.url) {
-          void this.channelService.deleteAttachment(r);
-        }
-        return;
-      }
-      upload.state = r.state;
-      upload.url = r.url;
-      if (upload.state === 'error') {
-        this.notificationService.addTemporaryNotification(
-          upload.type === 'image'
-            ? 'streamChat.Error uploading image'
-            : 'streamChat.Error uploading file'
-        );
-      }
-    });
-    this.attachmentUploadInProgressCounter--;
-    if (this.attachmentUploadInProgressCounter === 0 && this.hideNotification) {
-      this.hideNotification();
-      this.hideNotification = undefined;
-    }
   }
 
   private clearFileInput() {
     this.fileInput.nativeElement.value = '';
+  }
+
+  private get isUpdate() {
+    return !!this.message;
   }
 }

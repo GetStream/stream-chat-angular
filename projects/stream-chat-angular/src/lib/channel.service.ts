@@ -10,6 +10,7 @@ import {
   Event,
   FormatMessageResponse,
   MessageResponse,
+  UpdatedMessage,
 } from 'stream-chat';
 import { ChatClientService, Notification } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
@@ -107,7 +108,10 @@ export class ChannelService {
       map((messages) => {
         const channel = this.activeChannelSubject.getValue()!;
         return messages.map((message) => {
-          if (this.isStreamMessage(message)) {
+          if (
+            this.isStreamMessage(message) &&
+            this.isFormatMessageResponse(message)
+          ) {
             return message;
           } else if (this.isFormatMessageResponse(message)) {
             return { ...message, readBy: getReadBy(message, channel) };
@@ -215,6 +219,16 @@ export class ChannelService {
       true
     );
     await this.sendMessageRequest(message);
+  }
+
+  async updateMessage(message: StreamMessage) {
+    await this.chatClientService.chatClient.updateMessage(
+      message as UpdatedMessage
+    );
+  }
+
+  async deleteMessage(message: StreamMessage) {
+    await this.chatClientService.chatClient.deleteMessage(message.id);
   }
 
   async uploadAttachments(
@@ -370,6 +384,12 @@ export class ChannelService {
       })
     );
     this.activeChannelSubscriptions.push(
+      channel.on('message.updated', (event) => this.messageUpdated(event))
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('message.deleted', (event) => this.messageUpdated(event))
+    );
+    this.activeChannelSubscriptions.push(
       channel.on('reaction.new', (e) => this.messageReactionEventReceived(e))
     );
     this.activeChannelSubscriptions.push(
@@ -398,6 +418,19 @@ export class ChannelService {
         );
       })
     );
+  }
+
+  private messageUpdated(event: Event) {
+    this.ngZone.run(() => {
+      const messages = this.activeChannelMessagesSubject.getValue();
+      const messageIndex = messages.findIndex(
+        (m) => m.id === event.message?.id
+      );
+      if (messageIndex !== -1 && event.message) {
+        messages[messageIndex] = event.message;
+        this.activeChannelMessagesSubject.next([...messages]);
+      }
+    });
   }
 
   private messageReactionEventReceived(e: Event) {

@@ -26,12 +26,11 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
   @Input() messageTemplate: TemplateRef<any> | undefined;
   @Input() areReactionsEnabled = true;
   /* eslint-disable-next-line @angular-eslint/no-input-rename */
-  @Input('enabledMessageActions') enabledMessageActionsInput:
-    | MessageActions[]
-    | undefined;
+  @Input('enabledMessageActions') enabledMessageActionsInput: MessageActions[] =
+    ['flag', 'edit', 'edit-any', 'delete', 'delete-any'];
   messages$!: Observable<StreamMessage[]>;
   canReactToMessage: boolean | undefined;
-  enabledMessageActions: MessageActions[] = ['flag'];
+  enabledMessageActions: MessageActions[] = [];
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
   unreadMessageCount = 0;
@@ -69,6 +68,20 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
         this.authorizedMessageActions = [];
         if (capabilites.indexOf('flag-message') !== -1) {
           this.authorizedMessageActions.push('flag');
+        }
+        if (capabilites.indexOf('update-own-message') !== -1) {
+          this.authorizedMessageActions.push('edit');
+        }
+        if (capabilites.indexOf('update-any-message') !== -1) {
+          this.authorizedMessageActions.push('edit');
+          this.authorizedMessageActions.push('edit-any');
+        }
+        if (capabilites.indexOf('delete-own-message') !== -1) {
+          this.authorizedMessageActions.push('delete');
+        }
+        if (capabilites.indexOf('delete-any-message') !== -1) {
+          this.authorizedMessageActions.push('delete');
+          this.authorizedMessageActions.push('delete-any');
         }
         this.setEnabledActions();
       }
@@ -184,10 +197,10 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
   }
 
   private setEnabledActions() {
+    this.enabledMessageActions = [];
     if (!this.enabledMessageActionsInput) {
       return;
     }
-    this.enabledMessageActions = [];
     this.enabledMessageActionsInput.forEach((action) => {
       const isAuthorized = this.authorizedMessageActions.indexOf(action) !== -1;
       if (isAuthorized) {

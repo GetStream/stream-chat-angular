@@ -41,6 +41,7 @@ describe('MessageComponent', () => {
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
   let querySystemMessageContainer: () => HTMLElement | null;
+  let queryMessageActionsContainer: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
@@ -97,6 +98,8 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
       nativeElement.querySelector('[data-testid="loading-indicator"]');
+    queryMessageActionsContainer = () =>
+      nativeElement.querySelector('[data-testid="message-actions-container"]');
     message = mockMessage();
     component.message = message;
     fixture.detectChanges();
@@ -671,5 +674,27 @@ describe('MessageComponent', () => {
     const systemMessage = querySystemMessageContainer();
 
     expect(systemMessage?.innerHTML).toContain(message.text);
+  });
+
+  it('should apply CSS class to actions if message is being edited', () => {
+    const cssClass =
+      'str-chat-angular__message-simple__actions__action--options--editing';
+    const container = queryMessageActionsContainer();
+
+    expect(container?.classList.contains(cssClass)).toBeFalse();
+
+    component.isEditing = true;
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(cssClass)).toBeTrue();
+  });
+
+  it('should watch for #isEditing event', () => {
+    component.isEditing = false;
+    fixture.detectChanges();
+    messageActionsBoxComponent.isEditing.emit(true);
+    fixture.detectChanges();
+
+    expect(component.isEditing).toBeTrue();
   });
 });

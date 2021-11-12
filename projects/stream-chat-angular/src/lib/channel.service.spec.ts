@@ -38,6 +38,8 @@ describe('ChannelService', () => {
       .createSpy()
       .and.returnValue(generateMockChannels());
     mockChatClient.channel = jasmine.createSpy();
+    mockChatClient.updateMessage = jasmine.createSpy();
+    mockChatClient.deleteMessage = jasmine.createSpy();
     user = mockCurrentUser();
     notification$ = new Subject();
     TestBed.configureTestingModule({
@@ -225,7 +227,7 @@ describe('ChannelService', () => {
     );
   });
 
-  it('should watch for message events', async () => {
+  it('should watch for new message events', async () => {
     await init();
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
@@ -238,10 +240,44 @@ describe('ChannelService', () => {
     spyOn(activeChannel, 'markRead');
     (activeChannel as MockChannel).handleEvent('message.new', newMessage);
 
-    const newCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
+    const newCount = (spy.calls.mostRecent().args[0] as StreamMessage[]).length;
 
     expect(newCount).toBe(prevCount + 1);
     expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('should watch for message update events', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(spy);
+    spy.calls.reset();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const message =
+      activeChannel.state.messages[activeChannel.state.messages.length - 1];
+    message.text = 'updated';
+    (activeChannel as MockChannel).handleEvent('message.updated', { message });
+
+    const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const updatedMessage = messages[messages.length - 1];
+
+    expect(updatedMessage.text).toBe('updated');
+  });
+
+  it('should watch for message deleted events', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(spy);
+    spy.calls.reset();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const message = {
+      ...activeChannel.state.messages[activeChannel.state.messages.length - 1],
+    };
+    message.deleted_at = new Date().toISOString();
+    (activeChannel as MockChannel).handleEvent('message.deleted', { message });
+
+    expect(spy).toHaveBeenCalledWith(jasmine.arrayContaining([message]));
   });
 
   it('should move channel to the top of the list', async () => {
@@ -708,6 +744,20 @@ describe('ChannelService', () => {
 
     expect(latestMessage.text).toBe(text);
     expect(messageCount).toEqual(prevMessageCount + 1);
+  });
+
+  it('should update message', () => {
+    const message = mockMessage();
+    void service.updateMessage(message);
+
+    expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('should delete message', () => {
+    const message = mockMessage();
+    void service.deleteMessage(message);
+
+    expect(mockChatClient.deleteMessage).toHaveBeenCalledWith(message.id);
   });
 
   it('should resend message', async () => {

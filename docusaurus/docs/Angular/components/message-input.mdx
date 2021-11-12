@@ -1,10 +1,10 @@
 ---
 id: message-input
-sidebar_position: 11
+sidebar_position: 12
 title: Message input
 ---
 
-The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel.
+The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones.
 
 ## Customization
 
@@ -20,7 +20,31 @@ If you want to create your own message input, here is how to use it:
 ```
 
 :::note
-If you want to create your own message input, you can use the [`ChannelService`](../services/channel.mdx) to send messages.
+If you want to create your own message input, you can use the following building blocks:
+
+### Send and update messages
+
+You can use [`ChannelService`](../services/channel.mdx) to send and update messages.
+
+### File uploads
+
+You can use the [`AttachmentService`](../services/attachment.mdx) to manage file uploads.
+
+If more than one message input component can exist on your chat UI you should provide the `AttachmentService` on the component level:
+
+```typescript
+@Component({
+  selector: 'custom-message-input',
+  templateUrl: './message-input.component.html',
+  styles: [],
+  providers: [AttachmentService],
+})
+```
+
+:::
+
+:::important
+Currently it is not possible to provide a custom component for message edit in the [`MessageActionsBox`](./message-actions.mdx) component. Please consider this limitation when creating your own custom message input.
 :::
 
 ## Inputs
@@ -29,22 +53,46 @@ If you want to create your own message input, you can use the [`ChannelService`]
 
 If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
-| Type    | Default |
-| ------- | ------- |
-| boolean | true    |
+If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type    |
+| ------- |
+| boolean |
 
 ### acceptedFileTypes
 
 You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
 
-| Type       | Default   |
-| ---------- | --------- |
-| `string[]` | undefined |
+If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type       |
+| ---------- |
+| `string[]` |
 
 ### isMultipleFileUploadEnabled
 
 If true, users can select multiple files to upload.
 
-| Type    | Default |
-| ------- | ------- |
-| boolean | true    |
+If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type    |
+| ------- |
+| boolean |
+
+### message
+
+The message to edit
+
+| Type                                           | Default   |
+| ---------------------------------------------- | --------- |
+| [`StreamMessage`](../types/stream-message.mdx) | undefined |
+
+## Outputs
+
+### messageUpdate
+
+Emits when a message was successfuly sent or updated
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [`EventEmitter`](https://angular.io/api/core/EventEmitter) |

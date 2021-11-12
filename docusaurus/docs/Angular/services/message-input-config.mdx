@@ -1,0 +1,19 @@
+---
+id: message-input-config
+sidebar_position: 6
+title: Message input config service
+---
+
+The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/message-input.mdx) components if your UI has more than one input component.
+
+# Overview
+
+The configuration options:
+
+| Name                        | Type       | Description                                                                                                                                                                                                                                        | Default   |
+| --------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| isFileUploadEnabled         | boolean    | If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). | true      |
+| acceptedFileTypes           | `string[]` | You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.                                                     | undefined |
+| isMultipleFileUploadEnabled | boolean    | If true, users can select multiple files to upload.                                                                                                                                                                                                | true      |
+
+If any of these set through the input of a [`MessageInput`](../components/message-input.mdx) component, that will be override the corresponding value in the service.

@@ -3,6 +3,7 @@ import { Attachment } from 'stream-chat';
 import { ImageLoadService } from '../message-list/image-load.service';
 import { DefaultAttachmentType } from '../types';
 import prettybytes from 'pretty-bytes';
+import { isImageAttachment } from '../is-image-attachment';
 
 @Component({
   selector: 'stream-attachment-list',
@@ -28,11 +29,7 @@ export class AttachmentListComponent implements OnChanges {
   }
 
   isImage(attachment: Attachment) {
-    return (
-      attachment.type === 'image' &&
-      !attachment.title_link &&
-      !attachment.og_scrape_url
-    );
+    return isImageAttachment(attachment);
   }
 
   isFile(attachment: Attachment) {
