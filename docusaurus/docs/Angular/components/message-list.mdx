@@ -1,6 +1,6 @@
 ---
 id: message_list
-sidebar_position: 12
+sidebar_position: 13
 title: Message list
 ---
 
@@ -69,8 +69,8 @@ If true, the message reactions are displayed. Users can also react to messages i
 
 ### enabledMessageActions
 
-The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI.
+The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI. The `MessgaeList` component makes the necessary checks before passing the actions to the `Message` component.
 
-| Type            | Default  |
-| --------------- | -------- |
-| MessageAction[] | ['flag'] |
+| Type            | Default                                              |
+| --------------- | ---------------------------------------------------- |
+| MessageAction[] | ['flag', 'edit', 'edit-any', 'delete', 'delete-any'] |

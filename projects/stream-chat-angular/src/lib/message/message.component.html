@@ -45,9 +45,13 @@
           *ngIf="areOptionsVisible"
         >
           <div
+            data-testid="message-actions-container"
             class="
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--options
+            "
+            [class.str-chat-angular__message-simple__actions__action--options--editing]="
+              isEditing
             "
           >
             <stream-message-actions-box
@@ -56,6 +60,7 @@
               [enabledActions]="enabledMessageActions"
               [message]="message"
               (displayedActionsCount)="visibleMessageActionsCount = $event"
+              (isEditing)="isEditing = $event; isActionBoxOpen = !isEditing"
             ></stream-message-actions-box>
             <stream-icon
               *ngIf="visibleMessageActionsCount > 0"

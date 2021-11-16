@@ -25,6 +25,7 @@ export const en = {
     'Error unmuting a user ...': 'Error unmuting a user ...',
     'Error uploading file': 'Error uploading file',
     'Error uploading image': 'Error uploading image',
+    'Error deleting attachment': 'Error deleting attachment',
     'Error · Unsent': 'Error · Unsent',
     'Error: {{ errorMessage }}': 'Error: {{ errorMessage }}',
     Flag: 'Flag',

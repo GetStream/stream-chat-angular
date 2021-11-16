@@ -1,12 +1,24 @@
 import { SimpleChange } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
-import { ChatClientService } from '../chat-client.service';
 import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { TranslateModule } from '@ngx-translate/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { Channel } from 'stream-chat';
+import { ChannelService } from '../channel.service';
+import { ChatClientService } from '../chat-client.service';
+import { MessageInputComponent } from '../message-input/message-input.component';
+import {
+  generateMockChannels,
   mockMessage,
   mockStreamChatClient,
   MockStreamChatClient,
 } from '../mocks';
+import { ModalComponent } from '../modal/modal.component';
 import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
 
@@ -22,16 +34,37 @@ describe('MessageActionsBoxComponent', () => {
   let queryMuteAction: () => HTMLElement | null;
   let queryEditAction: () => HTMLElement | null;
   let queryDeleteAction: () => HTMLElement | null;
+  let queryEditModal: () => ModalComponent;
+  let queryModalCancelButton: () => HTMLElement | null;
+  let queryModalSendButton: () => HTMLElement | null;
+  let queryMessageInputComponent: () => MessageInputComponent;
   let message: StreamMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
+  let channelService: {
+    updateMessage: jasmine.Spy;
+    activeChannel$: Observable<Channel>;
+    deleteMessage: jasmine.Spy;
+  };
 
   beforeEach(async () => {
     mockChatClient = mockStreamChatClient();
+    channelService = {
+      updateMessage: jasmine.createSpy(),
+      activeChannel$: new BehaviorSubject(generateMockChannels(1)[0]),
+      deleteMessage: jasmine.createSpy(),
+    };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageActionsBoxComponent],
-      providers: [{ provide: ChatClientService, useValue: mockChatClient }],
+      declarations: [
+        MessageActionsBoxComponent,
+        ModalComponent,
+        MessageInputComponent,
+      ],
+      providers: [
+        { provide: ChatClientService, useValue: mockChatClient },
+        { provide: ChannelService, useValue: channelService },
+      ],
     }).compileComponents();
   });
 
@@ -55,6 +88,16 @@ describe('MessageActionsBoxComponent', () => {
       nativeElement.querySelector('[data-testid="edit-action"]');
     queryDeleteAction = () =>
       nativeElement.querySelector('[data-testid="delete-action"]');
+    queryEditModal = () =>
+      fixture.debugElement.query(By.directive(ModalComponent))
+        .componentInstance as ModalComponent;
+    queryModalCancelButton = () =>
+      nativeElement.querySelector('[data-testid="cancel-button"]');
+    queryModalSendButton = () =>
+      nativeElement.querySelector('[data-testid="send-button"]');
+    queryMessageInputComponent = () =>
+      fixture.debugElement.query(By.directive(MessageInputComponent))
+        .componentInstance as MessageInputComponent;
   });
 
   it('should apply the necessary CSS classes based on #isOpen', () => {
@@ -96,7 +139,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(queryFlagAction()).toBeNull();
     expect(queryQuoteAction()).toBeNull();
 
-    component.enabledActions = ['pin', 'edit', 'delete'];
+    component.enabledActions = ['pin', 'edit-any', 'delete-any'];
     fixture.detectChanges();
 
     expect(queryDeleteAction()).not.toBeNull();
@@ -167,28 +210,6 @@ describe('MessageActionsBoxComponent', () => {
     expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
   });
 
-  it('should handle edit action', () => {
-    component.enabledActions = ['edit'];
-    fixture.detectChanges();
-    spyOn(window, 'alert').and.callThrough();
-    const action = queryEditAction();
-    action?.click();
-    fixture.detectChanges();
-
-    expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
-  });
-
-  it('should handle delete action', () => {
-    component.enabledActions = ['delete'];
-    fixture.detectChanges();
-    spyOn(window, 'alert').and.callThrough();
-    const action = queryDeleteAction();
-    action?.click();
-    fixture.detectChanges();
-
-    expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
-  });
-
   it('should handle flag action', async () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -236,9 +257,10 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(spy).toHaveBeenCalledWith(3);
 
+    spy.calls.reset();
     component.enabledActions = [
       'pin',
-      'edit',
+      'edit-any',
       'delete',
       'flag',
       'quote',
@@ -251,6 +273,171 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith(6);
+    expect(spy).toHaveBeenCalledWith(5);
   });
+
+  describe('should display edit action', () => {
+    it('if #enabledActions contains "edit" and #isMine', () => {
+      component.enabledActions = ['edit'];
+      component.isMine = false;
+      fixture.detectChanges();
+
+      expect(queryEditAction()).toBeNull();
+
+      component.isMine = true;
+      fixture.detectChanges();
+
+      expect(queryEditAction()).not.toBeNull();
+    });
+
+    it('if #enabledActions contains "edit-any"', () => {
+      component.enabledActions = ['edit-any'];
+      component.isMine = false;
+      fixture.detectChanges();
+
+      expect(queryEditAction()).not.toBeNull();
+    });
+  });
+
+  describe('should display delete action', () => {
+    it('if #enabledActions contains "delete" and #isMine', () => {
+      component.enabledActions = ['delete'];
+      component.isMine = false;
+      fixture.detectChanges();
+
+      expect(queryDeleteAction()).toBeNull();
+
+      component.isMine = true;
+      fixture.detectChanges();
+
+      expect(queryDeleteAction()).not.toBeNull();
+    });
+
+    it('if #enabledActions contains "delete-any"', () => {
+      component.enabledActions = ['delete-any'];
+      component.isMine = false;
+      fixture.detectChanges();
+
+      expect(queryDeleteAction()).not.toBeNull();
+    });
+  });
+
+  it('should emit #isEditing if user starts to edit', () => {
+    const spy = jasmine.createSpy();
+    component.isEditing.subscribe(spy);
+    component.enabledActions = ['pin', 'edit-any', 'delete', 'flag'];
+    fixture.detectChanges();
+    queryEditAction()?.click();
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(true);
+  });
+
+  it('should open modal if user starts to edit', () => {
+    component.enabledActions = ['edit'];
+    component.isMine = true;
+    fixture.detectChanges();
+    queryEditAction()?.click();
+    fixture.detectChanges();
+
+    expect(queryEditModal().isOpen).toBeTrue();
+  });
+
+  it('should display message input if user starts to edit', () => {
+    component.enabledActions = ['edit-any'];
+    fixture.detectChanges();
+    queryEditAction()?.click();
+    fixture.detectChanges();
+
+    expect(queryMessageInputComponent().message).toBe(component.message);
+  });
+
+  it('should call update message if "Send" button is clicked', () => {
+    component.enabledActions = ['edit-any'];
+    fixture.detectChanges();
+    const messageInputComponent = queryMessageInputComponent();
+    spyOn(messageInputComponent, 'messageSent');
+    queryEditAction()?.click();
+    fixture.detectChanges();
+    queryModalSendButton()?.click();
+    fixture.detectChanges();
+
+    expect(messageInputComponent.messageSent).toHaveBeenCalledWith();
+  });
+
+  it('should close modal with "Cancel" button', () => {
+    component.enabledActions = ['edit'];
+    component.isMine = true;
+    fixture.detectChanges();
+    const spy = jasmine.createSpy();
+    component.isEditing.subscribe(spy);
+    queryEditAction()?.click();
+    fixture.detectChanges();
+    queryModalCancelButton()?.click();
+    fixture.detectChanges();
+
+    expect(queryEditModal().isOpen).toBeFalse();
+    expect(spy).toHaveBeenCalledWith(false);
+  });
+
+  it('should update #isEditModalOpen if modal is closed', () => {
+    component.enabledActions = ['edit'];
+    component.isMine = true;
+    component.isEditModalOpen = true;
+    fixture.detectChanges();
+    const spy = jasmine.createSpy();
+    component.isEditing.subscribe(spy);
+    queryEditAction()?.click();
+    fixture.detectChanges();
+    queryEditModal().close();
+    fixture.detectChanges();
+
+    expect(component.isEditModalOpen).toBeFalse();
+    expect(spy).toHaveBeenCalledWith(false);
+  });
+
+  it('should close modal if message was updated successfully', () => {
+    component.enabledActions = ['edit'];
+    component.isMine = true;
+    fixture.detectChanges();
+    queryEditAction()?.click();
+    fixture.detectChanges();
+    const spy = jasmine.createSpy();
+    component.isEditing.subscribe(spy);
+    const messageInputComponent = queryMessageInputComponent();
+
+    messageInputComponent.messageUpdate.emit();
+    fixture.detectChanges();
+
+    expect(queryEditModal().isOpen).toBeFalse();
+    expect(spy).toHaveBeenCalledWith(false);
+  });
+
+  it('should delete message', () => {
+    component.enabledActions = ['delete'];
+    component.isMine = true;
+    fixture.detectChanges();
+    queryDeleteAction()?.click();
+    fixture.detectChanges();
+
+    expect(channelService.deleteMessage).toHaveBeenCalledWith(
+      component.message
+    );
+  });
+
+  it(`should display error notification if message couldn't be deleted`, fakeAsync(() => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    channelService.deleteMessage.and.rejectWith(new Error('Error'));
+    component.enabledActions = ['delete-any'];
+    fixture.detectChanges();
+    queryDeleteAction()?.click();
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Error deleting message'
+    );
+  }));
 });

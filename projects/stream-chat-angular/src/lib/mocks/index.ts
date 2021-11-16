@@ -55,7 +55,13 @@ export const generateMockChannels = (length = 25) => {
         id: index.toString(),
         name: `Channel${index}`,
         image: 'link/to/image',
-        own_capabilities: ['upload-file', 'flag-message', 'send-reaction'],
+        own_capabilities: [
+          'upload-file',
+          'flag-message',
+          'send-reaction',
+          'update-any-message',
+          'delete-any-message',
+        ],
       },
       on: (arg1: EventTypes | Function, handler: () => {}) => {
         eventHandlers[typeof arg1 === 'string' ? (arg1 as string) : 'on'] =
@@ -116,7 +122,15 @@ export const mockChannelService = (): MockChannelService => {
   const activeChannelMessages$ = new BehaviorSubject<StreamMessage[]>(messages);
   const activeChannel$ = new BehaviorSubject<Channel>({
     id: 'channelid',
-    data: { own_capabilities: ['send-reaction', 'upload-file'] },
+    data: {
+      own_capabilities: [
+        'upload-file',
+        'flag-message',
+        'send-reaction',
+        'update-any-message',
+        'delete-any-message',
+      ],
+    },
   } as Channel);
   const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);

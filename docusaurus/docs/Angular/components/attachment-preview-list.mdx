@@ -1,0 +1,32 @@
+---
+id: attachment-preview-list
+sidebar_position: 3
+title: Attachment previews
+---
+
+import Screenshot from "../assets/attachment-preview-list-screenshot.png";
+
+The `AttachmentPreviewList` compontent displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
+
+**Example 1** - attachment previews
+
+<img src={Screenshot} width="1000" />
+
+## Basic Usage
+
+A typical use case for the `AttachmentPreviewList` component would be to use in your custom components that will completely override the message input component.
+
+**Example 1** - a basic example:
+
+```typescript
+@Component({
+  selector: "app-custom-message-input",
+  template: `
+    <stream-attachment-preview-list></stream-attachment-list>
+    <!-- Other parts of the custom message input component -->
+  `,
+})
+export class CustomMessageInputComponent {}
+```
+
+The `AttachmentPreviewList` uses the [`AttachmentService`](../services/attachment.mdx) to display the attachment previews.

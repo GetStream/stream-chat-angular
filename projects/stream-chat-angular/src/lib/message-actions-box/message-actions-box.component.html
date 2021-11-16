@@ -63,3 +63,35 @@
     </button>
   </ul>
 </div>
+
+<stream-modal
+  [isOpen]="isEditModalOpen"
+  (isOpenChange)="
+    isEditModalOpen = $event; isEditModalOpen ? '' : modalClosed()
+  "
+>
+  <div class="str-chat__edit-message-form">
+    <stream-message-input
+      [message]="message"
+      (messageUpdate)="modalClosed()"
+    ></stream-message-input>
+    <stream-notification-list></stream-notification-list>
+    <div class="str-chat__message-team-form-footer">
+      <div></div>
+      <div>
+        <button translate data-testid="cancel-button" (click)="modalClosed()">
+          streamChat.Cancel
+        </button>
+        <button
+          type="submit"
+          translate
+          data-testid="send-button"
+          (click)="sendClicked()"
+          (keyup.enter)="sendClicked()"
+        >
+          streamChat.Send
+        </button>
+      </div>
+    </div>
+  </div>
+</stream-modal>

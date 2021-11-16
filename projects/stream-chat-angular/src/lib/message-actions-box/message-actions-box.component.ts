@@ -5,14 +5,19 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
+import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
+import { MessageInputComponent } from '../message-input/message-input.component';
 import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
 
 export type MessageActions =
   | 'edit'
   | 'delete'
+  | 'edit-any'
+  | 'delete-any'
   | 'pin'
   | 'quote'
   | 'flag'
@@ -29,10 +34,16 @@ export class MessageActionsBoxComponent implements OnChanges {
   @Input() message: StreamMessage | undefined;
   @Input() enabledActions: MessageActions[] = [];
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
+  @Output() readonly isEditing = new EventEmitter<boolean>();
+  isEditModalOpen = false;
+  @ViewChild(MessageInputComponent) private messageInput:
+    | MessageInputComponent
+    | undefined;
 
   constructor(
     private chatClientService: ChatClientService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private channelService: ChannelService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -65,11 +76,17 @@ export class MessageActionsBoxComponent implements OnChanges {
   }
 
   get isEditVisible() {
-    return this.enabledActions.indexOf('edit') !== -1;
+    return (
+      (this.enabledActions.indexOf('edit') !== -1 && this.isMine) ||
+      this.enabledActions.indexOf('edit-any') !== -1
+    );
   }
 
   get isDeleteVisible() {
-    return this.enabledActions.indexOf('delete') !== -1;
+    return (
+      (this.enabledActions.indexOf('delete') !== -1 && this.isMine) ||
+      this.enabledActions.indexOf('delete-any') !== -1
+    );
   }
 
   get isMuteVisible() {
@@ -111,10 +128,26 @@ export class MessageActionsBoxComponent implements OnChanges {
   }
 
   editClicked() {
-    alert('Feature not yet implemented');
+    this.isEditing.emit(true);
+    this.isEditModalOpen = true;
   }
 
-  deleteClicked() {
-    alert('Feature not yet implemented');
+  sendClicked() {
+    this.messageInput?.messageSent();
+  }
+
+  modalClosed() {
+    this.isEditModalOpen = false;
+    this.isEditing.emit(false);
+  }
+
+  async deleteClicked() {
+    try {
+      await this.channelService.deleteMessage(this.message!);
+    } catch (error) {
+      this.notificationService.addTemporaryNotification(
+        'streamChat.Error deleting message'
+      );
+    }
   }
 }

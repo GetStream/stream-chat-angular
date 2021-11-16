@@ -17,6 +17,8 @@ import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { NotificationComponent } from './notification/notification.component';
 import { NotificationListComponent } from './notification-list/notification-list.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { AttachmentPreviewListComponent } from './attachment-preview-list/attachment-preview-list.component';
+import { ModalComponent } from './modal/modal.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +37,8 @@ import { TranslateModule } from '@ngx-translate/core';
     MessageReactionsComponent,
     NotificationComponent,
     NotificationListComponent,
+    AttachmentPreviewListComponent,
+    ModalComponent,
   ],
   imports: [CommonModule, EmojiModule, TranslateModule],
   exports: [
@@ -53,6 +57,8 @@ import { TranslateModule } from '@ngx-translate/core';
     MessageReactionsComponent,
     NotificationComponent,
     NotificationListComponent,
+    AttachmentPreviewListComponent,
+    ModalComponent,
   ],
 })
 export class StreamChatModule {}

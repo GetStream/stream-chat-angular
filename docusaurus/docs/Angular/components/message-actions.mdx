@@ -1,12 +1,23 @@
 ---
 id: message-actions
-sidebar_position: 10
+sidebar_position: 11
 title: Message actions
 ---
 
 import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
 
-The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. The following actions are supported: [flag](https://getstream.io/chat/docs/javascript/moderation/?language=javascript). The following actions are accepted by the component, but not yet implemented: edit, delete or pin message and mute sender.
+The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. The following actions are supported:
+
+| Name         | Description                                                                                          | Necessary channel capability             |
+| ------------ | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `flag`       | [Flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) the given message | flag-message                             |
+| `edit`       | Edits a message that belongs to the user                                                             | update-own-message or update-any-message |
+| `edit-any`   | Edits any message                                                                                    | update-any-message                       |
+| `delete`     | Deletes a message that belongs to the user                                                           | delete-own-message or delete-any-message |
+| `delete-any` | Deletes any message                                                                                  | delete-any-message                       |
+| `pin`        | Not yet impelemented                                                                                 | -                                        |
+| `quoute`     | Not yet impelemented                                                                                 | -                                        |
+| `mute`       | Not yet impelemented                                                                                 | -                                        |
 
 **Example 1** - example message actions with the message component:
 
@@ -23,6 +34,7 @@ A typical use case for the `MessageActionsBox` component would be to use in your
     <stream-message-actions-box
       [isOpen]="isActionBoxOpen"
       [isMine]="isMessageSentByCurrentUser"
+      [enabledActions]="actions"
     ></stream-message-actions-box>
     <!-- Other parts of the custom message component -->
   `,
@@ -31,8 +43,17 @@ export class CustomMessageComponent {
   @Input() message: StreamMessage;
   isActionBoxOpen: boolean;
   isMessageSentByCurrentUser: boolean;
+  actions = ["flag", "edit", "edit-any", "delete", "delete-any"];
 }
 ```
+
+:::important
+Currently it is not possible to provide a custom component for message edit.
+:::
+
+:::important
+The `MessageActionBox` component doesn't check if the user has the necessary capabilities to perform a given aciton, it is done by the [`MessageList`](./message-list.mdx/#enabledmessageactions) component.
+:::
 
 ## Inputs
 
@@ -65,3 +86,13 @@ The list of actions that are enabled. To disable all actions, provide an empty a
 | Type                                                                                                                                                                        | Default |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | [`MessageAction`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts)[] | []      |
+
+## Outputs
+
+### isEditing
+
+An event which emits `true` if the edit message modal is open, and `false` when it is closed.
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [`EventEmitter`](https://angular.io/api/core/EventEmitter) |
