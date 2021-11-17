@@ -1,4 +1,9 @@
-<div class="str-chat__input-flat">
+<div
+  class="str-chat__input-flat"
+  [class.str-chat__input-flat-has-attachments]="
+    (attachmentUploads$ | async)!.length > 0
+  "
+>
   <div class="str-chat__input-flat-wrapper">
     <div class="str-chat__input-flat--textarea-wrapper">
       <stream-attachment-preview-list
