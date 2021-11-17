@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Notification, NotificationService } from '../notification.service';
+import {
+  NotificationPayload,
+  NotificationService,
+} from '../notification.service';
 
 @Component({
   selector: 'stream-notification-list',
@@ -8,13 +11,13 @@ import { Notification, NotificationService } from '../notification.service';
   styles: [],
 })
 export class NotificationListComponent {
-  notifications$: Observable<Notification[]>;
+  notifications$: Observable<NotificationPayload[]>;
 
   constructor(private notificationService: NotificationService) {
     this.notifications$ = this.notificationService.notifications$;
   }
 
-  trackByItem(_: number, item: Notification) {
+  trackByItem(_: number, item: NotificationPayload) {
     return item;
   }
 }

@@ -11,7 +11,8 @@
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss",
-          "inlineStyle": true
+          "inlineStyle": true,
+          "export": true
         }
       },
       "root": "projects/stream-chat-angular",

@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 export type NotificationType = 'success' | 'error';
 
-export type Notification = {
+export type NotificationPayload = {
   type: NotificationType;
   text: string;
 };
@@ -12,8 +12,8 @@ export type Notification = {
   providedIn: 'root',
 })
 export class NotificationService {
-  notifications$: Observable<Notification[]>;
-  private notificationsSubject = new BehaviorSubject<Notification[]>([]);
+  notifications$: Observable<NotificationPayload[]>;
+  private notificationsSubject = new BehaviorSubject<NotificationPayload[]>([]);
 
   constructor() {
     this.notifications$ = this.notificationsSubject.asObservable();
