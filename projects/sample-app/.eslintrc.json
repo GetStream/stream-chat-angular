@@ -27,6 +27,12 @@
             "prefix": "app",
             "style": "kebab-case"
           }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["dist/*", "public-api"]
+          }
         ]
       }
     },

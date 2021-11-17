@@ -27,6 +27,13 @@
             "prefix": "stream",
             "style": "kebab-case"
           }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": ["stream-chat-angular"],
+            "patterns": ["dist/*", "public-api"]
+          }
         ]
       }
     },

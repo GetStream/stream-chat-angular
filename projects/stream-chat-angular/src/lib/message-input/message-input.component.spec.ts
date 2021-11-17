@@ -3,12 +3,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Channel, UserResponse } from 'stream-chat';
-import { AttachmentUpload } from 'stream-chat-angular';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { generateMockChannels, mockCurrentUser, mockMessage } from '../mocks';
 import { NotificationService } from '../notification.service';
+import { AttachmentUpload } from '../types';
 import { MessageInputComponent } from './message-input.component';
 
 describe('MessageInputComponent', () => {
