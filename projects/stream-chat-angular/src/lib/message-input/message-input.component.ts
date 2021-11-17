@@ -111,8 +111,11 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
       }
       return;
     }
-    const text = this.messageInput.nativeElement.value;
     const attachments = this.attachmentService.mapToAttachments();
+    const text = this.messageInput.nativeElement.value;
+    if (!text && (!attachments || attachments.length === 0)) {
+      return;
+    }
     if (!this.isUpdate) {
       this.messageInput.nativeElement.value = '';
     }

@@ -135,6 +135,7 @@ describe('MessageInputComponent', () => {
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
     component.message = mockMessage();
+    fixture.detectChanges();
     updateMessageSpy.and.rejectWith(new Error('Error'));
     await component.messageSent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
@@ -147,6 +148,7 @@ describe('MessageInputComponent', () => {
 
   it('should emit #messageUpdate event if message update was successful', async () => {
     component.message = mockMessage();
+    fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
     await component.messageSent(new KeyboardEvent('keydown', { key: 'Enter' }));
@@ -265,13 +267,10 @@ describe('MessageInputComponent', () => {
       { file, state: 'success', url: 'url/to/image' },
     ]);
     const files = [file];
-    attachmentService.resetAttachmentUploads.and.returnValue([]);
-    attachmentService.mapToAttachments.and.returnValue([]);
     await component.filesSelected(files as any as FileList);
     await component.messageSent();
-    await component.messageSent();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith(jasmine.any(String), []);
+    expect(attachmentService.resetAttachmentUploads).toHaveBeenCalledWith();
   });
 
   it(`shouldn't send message, if file uploads are in progress`, async () => {
@@ -371,5 +370,27 @@ describe('MessageInputComponent', () => {
     expect(attachmentService.createFromAttachments).toHaveBeenCalledWith(
       attachments
     );
+  });
+
+  it(`shouldn't send empty message`, () => {
+    const textarea = queryTextarea();
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+    spyOn(event, 'preventDefault');
+    textarea?.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledWith();
+  });
+
+  it('should apply CSS class if attachments are present', () => {
+    const cssClass = 'str-chat__input-flat-has-attachments';
+
+    expect(nativeElement.querySelector(`.${cssClass}`)).toBeNull();
+
+    attachmentService.attachmentUploads$.next([{} as any as AttachmentUpload]);
+    fixture.detectChanges();
+
+    expect(nativeElement.querySelector(`.${cssClass}`)).not.toBeNull();
   });
 });
