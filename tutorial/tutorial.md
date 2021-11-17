@@ -44,19 +44,26 @@ To get started:
 
 1. Import the modules
 
-In your `AppModule` add the following imports:
+Replace the content of your `AppModule` with the following code:
 
 ```typescript
-import { TranslateModule } from '@ngx-translate/core';
-import { StreamChatModule } from 'stream-chat-angular';
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { TranslateModule } from "@ngx-translate/core";
+
+import { AppComponent } from "./app.component";
+import { StreamChatModule } from "stream-chat-angular";
 
 @NgModule({
-  imports: [
-    TranslateModule.forRoot(),
-    StreamChatModule
+  declarations: [AppComponent],
+  imports: [BrowserModule, TranslateModule.forRoot(), StreamChatModule],
+  providers: [],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
 ```
+
+This will import the `TranslateModule` and the `StreamChatModule`.
 
 If you already use [ngx-translate](https://github.com/ngx-translate/core) in your application, follow [our translation guide](https://getstream.io/chat/docs/sdk/angular/concepts/translation/) to set up translation.
 
@@ -157,6 +164,8 @@ Add the following option to the `compilerOptions` in `tsconfig.json` file:
 ```
 "allowSyntheticDefaultImports": true
 ```
+
+We need to enable [synthetic default imports](https://www.typescriptlang.org/tsconfig#allowSyntheticDefaultImports) becuase the `stream-chat` library uses them.
 
 6. Start the application
 
