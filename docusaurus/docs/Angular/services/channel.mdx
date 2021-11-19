@@ -36,6 +36,10 @@ Our platform documentation covers the topic of [channel events](https://getstrea
 
 Emits the currently active channel.
 
+:::important
+Please note that for performance reaasons the client is connected [outside of the NgZone](https://angular.io/guide/zone#ngzone-1), if you want to subscribe to [notification or channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript), you will need to [reenter the NgZone](https://angular.io/guide/zone#ngzone-run-and-runoutsideofangular) or call change detection manually (you can use the [`ChangeDetectorRef`](https://angular.io/api/core/ChangeDetectorRef) or the [`ApplicationRef`](https://angular.io/api/core/ApplicationRef) for that).
+:::
+
 ## setAsActiveChannel
 
 Sets the given `channel` as active.

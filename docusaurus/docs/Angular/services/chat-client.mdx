@@ -8,9 +8,21 @@ The `ChatClient` service connects the user to the Stream chat.
 
 # Overview
 
+## chatClient
+
+The [StreamChat client](https://github.com/GetStream/stream-chat-js/blob/master/src/client.ts) instance. In general you shouldn't need to access the client, but it's there if you want to use it.
+
+:::important
+Please note that for performance reaasons the client is connected [outside of the NgZone](https://angular.io/guide/zone#ngzone-1), if you want to subscribe to [notification or channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript), you will need to [reenter the NgZone](https://angular.io/guide/zone#ngzone-run-and-runoutsideofangular) or call change detection manually (you can use the [`ChangeDetectorRef`](https://angular.io/api/core/ChangeDetectorRef) or the [`ApplicationRef`](https://angular.io/api/core/ApplicationRef) for that).
+:::
+
 ## init
 
 Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given `userId` and `userToken`. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
+
+:::important
+Calling the `init` method creates a new [WebSocket connection](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript#websocket-connections), you should only call it once.
+:::
 
 ## notification$
 
@@ -22,4 +34,4 @@ Emits the current connection state of the user (`online` or `offline`)
 
 ## flagMessage
 
-Flag the message with the given ID. If you want to know [more about falgs](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) check out the platform documentation.
+Flag the message with the given ID. If you want to know [more about flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) check out the platform documentation.
