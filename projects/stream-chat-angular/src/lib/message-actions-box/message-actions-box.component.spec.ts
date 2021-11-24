@@ -9,9 +9,12 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Channel } from 'stream-chat';
+import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
+import { textareaInjectionToken } from '../injection-tokens';
 import { MessageInputComponent } from '../message-input/message-input.component';
+import { TextareaDirective } from '../message-input/textarea.directive';
 import {
   generateMockChannels,
   mockMessage,
@@ -60,10 +63,16 @@ describe('MessageActionsBoxComponent', () => {
         MessageActionsBoxComponent,
         ModalComponent,
         MessageInputComponent,
+        TextareaComponent,
+        TextareaDirective,
       ],
       providers: [
         { provide: ChatClientService, useValue: mockChatClient },
         { provide: ChannelService, useValue: channelService },
+        {
+          provide: textareaInjectionToken,
+          useValue: TextareaComponent,
+        },
       ],
     }).compileComponents();
   });

@@ -1,21 +1,29 @@
 import {
   Component,
+  ComponentFactoryResolver,
+  ComponentRef,
   ElementRef,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
+  Type,
   ViewChild,
 } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
+import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
 import { AttachmentUpload, StreamMessage } from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
+import { TextareaDirective } from './textarea.directive';
+import { TextareaInterface } from './textarea.interface';
 
 @Component({
   selector: 'stream-message-input',
@@ -23,7 +31,7 @@ import { MessageInputConfigService } from './message-input-config.service';
   styles: [],
   providers: [AttachmentService],
 })
-export class MessageInputComponent implements OnChanges, OnDestroy {
+export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isFileUploadEnabled: boolean | undefined;
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
@@ -31,8 +39,11 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
   @Output() readonly messageUpdate = new EventEmitter<void>();
   isFileUploadAuthorized: boolean | undefined;
   attachmentUploads$: Observable<AttachmentUpload[]>;
-  @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
+  textareaValue = '';
+  textareaRef: ComponentRef<TextareaInterface> | undefined;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(TextareaDirective, { static: true })
+  private textareaAnchor!: TextareaDirective;
   private subscriptions: Subscription[] = [];
   private hideNotification: Function | undefined;
 
@@ -40,13 +51,14 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
     private channelService: ChannelService,
     private notificationService: NotificationService,
     private attachmentService: AttachmentService,
-    private configService: MessageInputConfigService
+    private configService: MessageInputConfigService,
+    @Inject(textareaInjectionToken)
+    private textareaType: Type<TextareaInterface>,
+    private componentFactoryResolver: ComponentFactoryResolver
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        if (this.messageInput) {
-          this.messageInput.nativeElement.value = '';
-        }
+        this.textareaValue = '';
         this.attachmentService.resetAttachmentUploads();
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
@@ -71,6 +83,16 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
   }
+
+  ngOnInit(): void {
+    const componentFactory =
+      this.componentFactoryResolver.resolveComponentFactory(this.textareaType);
+    this.textareaRef =
+      this.textareaAnchor.viewContainerRef.createComponent<any>(
+        componentFactory
+      );
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
       this.attachmentService.resetAttachmentUploads();
@@ -78,6 +100,7 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
         this.attachmentService.createFromAttachments(
           this.message!.attachments || []
         );
+        this.textareaValue = this.message!.text || '';
       }
     }
     if (changes.isFileUploadEnabled) {
@@ -96,8 +119,7 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  async messageSent(event?: Event) {
-    event?.preventDefault();
+  async messageSent() {
     let attachmentUploadInProgressCounter!: number;
     this.attachmentService.attachmentUploadInProgressCounter$
       .pipe(first())
@@ -112,12 +134,12 @@ export class MessageInputComponent implements OnChanges, OnDestroy {
       return;
     }
     const attachments = this.attachmentService.mapToAttachments();
-    const text = this.messageInput.nativeElement.value;
+    const text = this.textareaValue;
     if (!text && (!attachments || attachments.length === 0)) {
       return;
     }
     if (!this.isUpdate) {
-      this.messageInput.nativeElement.value = '';
+      this.textareaValue = '';
     }
     try {
       await (this.isUpdate

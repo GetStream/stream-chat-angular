@@ -1,21 +1,25 @@
-import { SimpleChange } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
+import { textareaInjectionToken } from '../injection-tokens';
 import { generateMockChannels, mockCurrentUser, mockMessage } from '../mocks';
 import { NotificationService } from '../notification.service';
 import { AttachmentUpload } from '../types';
 import { MessageInputComponent } from './message-input.component';
+import { TextareaDirective } from './textarea.directive';
+import { TextareaComponent } from './textarea/textarea.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
   let component: MessageInputComponent;
   let fixture: ComponentFixture<MessageInputComponent>;
-  let queryTextarea: () => HTMLTextAreaElement | null;
+  let queryTextarea: () => TextareaComponent | null;
   let querySendButton: () => HTMLButtonElement | null;
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
@@ -54,12 +58,20 @@ describe('MessageInputComponent', () => {
             provide: AttachmentService,
             useValue: attachmentService,
           },
+          {
+            provide: textareaInjectionToken,
+            useValue: TextareaComponent,
+          },
         ],
       },
     });
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageInputComponent],
+      declarations: [
+        MessageInputComponent,
+        TextareaDirective,
+        TextareaComponent,
+      ],
       providers: [
         {
           provide: ChannelService,
@@ -74,59 +86,57 @@ describe('MessageInputComponent', () => {
           useValue: { chatClient: { user } },
         },
       ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
     fixture = TestBed.createComponent(MessageInputComponent);
     component = fixture.componentInstance;
     spyOn(component, 'messageSent').and.callThrough();
     nativeElement = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
     queryTextarea = () =>
-      nativeElement.querySelector('[data-testid="textarea"]');
+      fixture.debugElement.query(By.directive(TextareaComponent))
+        .componentInstance as TextareaComponent;
     querySendButton = () =>
       nativeElement.querySelector('[data-testid="send-button"]');
     queryattachmentUploadButton = () =>
       nativeElement.querySelector('[data-testid="file-upload-button"]');
     queryFileInput = () =>
       nativeElement.querySelector('[data-testid="file-input"]');
-    fixture.detectChanges();
   });
 
-  it('should display textarea, and focus it', () => {
+  it('should display textarea', () => {
+    component.textareaValue = 'Hi';
+    fixture.detectChanges();
     const textarea = queryTextarea();
 
-    expect(textarea).not.toBeNull();
-    expect(textarea?.value).toBe('');
-    expect(textarea?.hasAttribute('autofocus')).toBeTrue();
-  });
+    expect(textarea?.value).toEqual('Hi');
 
-  it('should send message if enter is hit', () => {
-    const textarea = queryTextarea();
-    const message = 'This is my message';
-    textarea!.value = message;
-    const event = new KeyboardEvent('keydown', { key: 'Enter' });
-    spyOn(event, 'preventDefault');
-    textarea?.dispatchEvent(event);
+    textarea?.valueChange.next('Hi, how are you?');
     fixture.detectChanges();
 
-    expect(component.messageSent).toHaveBeenCalledWith(event);
-    expect(event.preventDefault).toHaveBeenCalledWith();
+    expect(component.textareaValue).toBe('Hi, how are you?');
   });
 
-  it('should update message if enter is hit and #message is provided', () => {
+  it('should send message if send is triggered from textarea', () => {
+    const textarea = queryTextarea();
+    textarea?.send.next();
+    fixture.detectChanges();
+
+    expect(component.messageSent).toHaveBeenCalledWith();
+  });
+
+  it('should update message send is triggered and #message is provided', () => {
     component.message = mockMessage();
     fixture.detectChanges();
     const textarea = queryTextarea();
     const message = 'This is my new message';
-    textarea!.value = message;
-    const event = new KeyboardEvent('keydown', { key: 'Enter' });
-    spyOn(event, 'preventDefault');
-    textarea?.dispatchEvent(event);
+    component.textareaValue = message;
+    textarea?.send.next();
     fixture.detectChanges();
 
     expect(updateMessageSpy).toHaveBeenCalledWith(
       jasmine.objectContaining({ id: component.message.id, text: message })
     );
-
-    expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
   it('should show error message if message update failed', async () => {
@@ -135,9 +145,10 @@ describe('MessageInputComponent', () => {
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
     component.message = mockMessage();
+    component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
     updateMessageSpy.and.rejectWith(new Error('Error'));
-    await component.messageSent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await component.messageSent();
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Edit message request failed'
@@ -148,10 +159,11 @@ describe('MessageInputComponent', () => {
 
   it('should emit #messageUpdate event if message update was successful', async () => {
     component.message = mockMessage();
+    component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
-    await component.messageSent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await component.messageSent();
 
     expect(spy).toHaveBeenCalledWith(undefined);
   });
@@ -166,20 +178,9 @@ describe('MessageInputComponent', () => {
     expect(component.messageSent).toHaveBeenCalledWith();
   });
 
-  it(`shouldn't send message if shift+enter is hit`, () => {
-    const textarea = queryTextarea();
-    textarea!.value = 'This is my message';
-    textarea?.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
-    );
-    fixture.detectChanges();
-
-    expect(component.messageSent).not.toHaveBeenCalled();
-  });
-
   it('should send message', () => {
     const message = 'This is my message';
-    queryTextarea()!.value = message;
+    component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
     void component.messageSent();
     fixture.detectChanges();
@@ -188,13 +189,12 @@ describe('MessageInputComponent', () => {
   });
 
   it('reset textarea after message is sent', () => {
-    const textarea = queryTextarea();
     const message = 'This is my message';
-    textarea!.value = message;
+    component.textareaValue = message;
     void component.messageSent();
     fixture.detectChanges();
 
-    expect(textarea?.value).toBe('');
+    expect(component.textareaValue).toBe('');
   });
 
   it('should display file upload button, if #isFileUploadEnabled is true and has permission to upload file', () => {
@@ -329,7 +329,6 @@ describe('MessageInputComponent', () => {
   });
 
   it('should handle channel change', () => {
-    const input = queryTextarea()!;
     attachmentService.attachmentUploads$.next([
       {
         file: { name: 'img.png' } as any as File,
@@ -337,16 +336,17 @@ describe('MessageInputComponent', () => {
         type: 'image',
       },
     ]);
-    input.value = 'text';
+    component.textareaValue = 'text';
     mockActiveChannel$.next({} as Channel);
     fixture.detectChanges();
 
-    expect(input.value).toBe('');
+    expect(component.textareaValue).toBe('');
     expect(attachmentService.resetAttachmentUploads).toHaveBeenCalledWith();
   });
 
   it('should accept #message as input', () => {
     component.message = mockMessage();
+    component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
 
     expect(queryTextarea()?.value).toBe(component.message.text);
@@ -374,13 +374,10 @@ describe('MessageInputComponent', () => {
 
   it(`shouldn't send empty message`, () => {
     const textarea = queryTextarea();
-    const event = new KeyboardEvent('keydown', { key: 'Enter' });
-    spyOn(event, 'preventDefault');
-    textarea?.dispatchEvent(event);
+    textarea?.send.next();
     fixture.detectChanges();
 
     expect(sendMessageSpy).not.toHaveBeenCalled();
-    expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
   it('should apply CSS class if attachments are present', () => {

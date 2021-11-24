@@ -19,6 +19,10 @@ import { NotificationListComponent } from './notification-list/notification-list
 import { TranslateModule } from '@ngx-translate/core';
 import { AttachmentPreviewListComponent } from './attachment-preview-list/attachment-preview-list.component';
 import { ModalComponent } from './modal/modal.component';
+import { TextareaComponent } from './message-input/textarea/textarea.component';
+import { AutocompleteTextareaComponent } from './message-input/autocomplete-textarea/autocomplete-textarea.component';
+import { textareaInjectionToken } from './injection-tokens';
+import { TextareaDirective } from './message-input/textarea.directive';
 
 @NgModule({
   declarations: [
@@ -39,6 +43,9 @@ import { ModalComponent } from './modal/modal.component';
     NotificationListComponent,
     AttachmentPreviewListComponent,
     ModalComponent,
+    TextareaComponent,
+    AutocompleteTextareaComponent,
+    TextareaDirective,
   ],
   imports: [CommonModule, EmojiModule, TranslateModule],
   exports: [
@@ -59,6 +66,9 @@ import { ModalComponent } from './modal/modal.component';
     NotificationListComponent,
     AttachmentPreviewListComponent,
     ModalComponent,
+    TextareaComponent,
+    AutocompleteTextareaComponent,
   ],
+  providers: [{ provide: textareaInjectionToken, useValue: TextareaComponent }],
 })
 export class StreamChatModule {}
