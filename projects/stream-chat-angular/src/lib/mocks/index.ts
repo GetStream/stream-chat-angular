@@ -2,6 +2,8 @@ import { DefaultUserType, StreamMessage } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import {
   Channel,
+  ChannelMemberResponse,
+  ChannelState,
   Event,
   EventTypes,
   MessageResponse,
@@ -101,6 +103,15 @@ export const generateMockChannels = (length = 25) => {
       },
       sendReaction: () => {},
       deleteReaction: () => {},
+      queryMembers: () => ({
+        members: {
+          jack: {
+            user: {
+              id: 'jack',
+            },
+          },
+        },
+      }),
     } as any as MockChannel;
     return channel;
   });
@@ -115,6 +126,7 @@ export type MockChannelService = {
   loadMoreMessages: () => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
+  autocompleteMembers: (s: string) => ChannelMemberResponse[];
 };
 
 export const mockChannelService = (): MockChannelService => {
@@ -131,9 +143,22 @@ export const mockChannelService = (): MockChannelService => {
         'delete-any-message',
       ],
     },
+    state: {
+      members: {
+        jack: { user: { id: 'jack', name: 'Jack' } },
+        sara: { user: { id: 'sara', name: 'Sara' } },
+        eddie: { user: { id: 'eddie' } },
+      },
+    } as any as ChannelState,
   } as Channel);
   const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);
+
+  const autocompleteMembers = () => [
+    { user: { id: 'jack', name: 'Jack' } },
+    { user: { id: 'sara', name: 'Sara' } },
+    { user: { id: 'eddie' } },
+  ];
 
   const loadMoreMessages = () => {
     const currentMessages = activeChannelMessages$.getValue();
@@ -157,6 +182,7 @@ export const mockChannelService = (): MockChannelService => {
     hasMoreChannels$,
     loadMoreChannels,
     setAsActiveChannel,
+    autocompleteMembers,
   };
 };
 
@@ -167,6 +193,7 @@ export type MockStreamChatClient = {
   handleEvent: (name: EventTypes, event: Event) => void;
   flagMessage: jasmine.Spy;
   setUserAgent: jasmine.Spy;
+  queryUsers: jasmine.Spy;
   getUserAgent: () => string;
 };
 
@@ -176,6 +203,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const connectUser = jasmine.createSpy();
   const flagMessage = jasmine.createSpy();
   const setUserAgent = jasmine.createSpy();
+  const queryUsers = jasmine.createSpy();
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes, handler: () => {}) => {
@@ -194,6 +222,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     flagMessage,
     getUserAgent,
     setUserAgent,
+    queryUsers,
   };
 };
 

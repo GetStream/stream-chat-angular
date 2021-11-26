@@ -112,4 +112,20 @@ describe('ChatClientService', () => {
 
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith('messageId');
   });
+
+  it('should query members', async () => {
+    mockChatClient.queryUsers.and.returnValue({ users: [{}, {}] });
+    const result = await service.autocompleteUsers('zi');
+
+    expect(mockChatClient.queryUsers).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        $or: [
+          { id: { $autocomplete: 'zi' } },
+          { name: { $autocomplete: 'zi' } },
+        ],
+      })
+    );
+
+    expect(result.length).toBe(2);
+  });
 });

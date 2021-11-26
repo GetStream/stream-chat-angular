@@ -12,3 +12,8 @@
 <ng-template #customMessagetemplate let-message="message">
   <app-custom-message [message]="message"></app-custom-message>
 </ng-template>
+
+<!-- To use custom template for mention autocomplete list item, add this input to stream-message-input: [mentionAutocompleteItemTemplate]="mentionTemplate""-->
+<ng-template #mentionTemplate let-item="item">
+  {{ item.autocompleteLabel }}
+</ng-template>

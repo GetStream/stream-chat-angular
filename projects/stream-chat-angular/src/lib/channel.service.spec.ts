@@ -3,10 +3,10 @@ import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
 import {
   Channel,
+  ChannelMemberResponse,
   ChannelOptions,
   ChannelSort,
   Event,
-  StreamChat,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -16,13 +16,18 @@ import {
   MockChannel,
   mockCurrentUser,
   mockMessage,
-  Spied,
 } from './mocks';
 import { AttachmentUpload, StreamMessage } from './types';
 
 describe('ChannelService', () => {
   let service: ChannelService;
-  let mockChatClient: Spied<StreamChat>;
+  let mockChatClient: {
+    queryChannels: jasmine.Spy;
+    channel: jasmine.Spy;
+    updateMessage: jasmine.Spy;
+    deleteMessage: jasmine.Spy;
+    userID: string;
+  };
   let notification$: Subject<Notification>;
   let init: (
     c?: Channel[],
@@ -33,14 +38,16 @@ describe('ChannelService', () => {
   const filters = { type: 'messaging' };
 
   beforeEach(() => {
-    mockChatClient = {} as Spied<StreamChat> & StreamChat;
-    mockChatClient.queryChannels = jasmine
-      .createSpy()
-      .and.returnValue(generateMockChannels());
-    mockChatClient.channel = jasmine.createSpy();
-    mockChatClient.updateMessage = jasmine.createSpy();
-    mockChatClient.deleteMessage = jasmine.createSpy();
     user = mockCurrentUser();
+    mockChatClient = {
+      queryChannels: jasmine
+        .createSpy()
+        .and.returnValue(generateMockChannels()),
+      channel: jasmine.createSpy(),
+      updateMessage: jasmine.createSpy(),
+      deleteMessage: jasmine.createSpy(),
+      userID: user.id,
+    };
     notification$ = new Subject();
     TestBed.configureTestingModule({
       providers: [
@@ -719,11 +726,12 @@ describe('ChannelService', () => {
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
     const text = 'Hi';
     const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
+    const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
     let prevMessageCount!: number;
     service.activeChannelMessages$
       .pipe(first())
       .subscribe((m) => (prevMessageCount = m.length));
-    await service.sendMessage(text, attachments);
+    await service.sendMessage(text, attachments, mentionedUsers);
     let latestMessage!: StreamMessage;
     let messageCount!: number;
     service.activeChannelMessages$.subscribe((m) => {
@@ -734,6 +742,7 @@ describe('ChannelService', () => {
     expect(channel.sendMessage).toHaveBeenCalledWith({
       text,
       attachments,
+      mentioned_users: ['sara'],
       id: jasmine.any(String),
     });
 
@@ -1007,5 +1016,45 @@ describe('ChannelService', () => {
     });
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should query members, less than 100 members', async () => {
+    await init();
+    const channel = generateMockChannels(1)[0];
+    channel.state.members = {
+      jack: { user: { id: 'jack', name: 'Jack' } },
+      john: { user: { id: 'john' } },
+      [user.id]: { user },
+    } as any as Record<string, ChannelMemberResponse>;
+    service.setAsActiveChannel(channel);
+    const result = await service.autocompleteMembers('ja');
+    const expectedResult = [
+      { user: { id: 'jack', name: 'Jack' } },
+      { user: { id: 'john' } },
+    ];
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('should query members, more than 100 members', async () => {
+    await init();
+    const channel = generateMockChannels(1)[0];
+    spyOn(channel, 'queryMembers').and.callThrough();
+    const users = Array.from({ length: 101 }, (_, i) => ({ id: `${i}` }));
+    channel.state.members = {} as any as Record<string, ChannelMemberResponse>;
+    users.forEach((u) => (channel.state.members[u.id] = { user: u }));
+    service.setAsActiveChannel(channel);
+    const result = await service.autocompleteMembers('ja');
+
+    expect(channel.queryMembers).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        $or: [
+          { id: { $autocomplete: 'ja' } },
+          { name: { $autocomplete: 'ja' } },
+        ],
+      })
+    );
+
+    expect(result.length).toBe(1);
   });
 });

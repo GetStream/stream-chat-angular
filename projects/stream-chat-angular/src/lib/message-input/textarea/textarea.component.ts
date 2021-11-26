@@ -4,6 +4,7 @@ import {
   EventEmitter,
   HostBinding,
   Input,
+  OnChanges,
   Output,
   ViewChild,
 } from '@angular/core';
@@ -14,7 +15,7 @@ import { TextareaInterface } from '../textarea.interface';
   templateUrl: './textarea.component.html',
   styles: [],
 })
-export class TextareaComponent implements TextareaInterface {
+export class TextareaComponent implements TextareaInterface, OnChanges {
   @HostBinding() class = 'str-chat__textarea';
   @Input() value = '';
   @Output() readonly valueChange = new EventEmitter<string>();
@@ -22,6 +23,9 @@ export class TextareaComponent implements TextareaInterface {
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
 
   constructor() {}
+
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+  ngOnChanges(): void {}
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);

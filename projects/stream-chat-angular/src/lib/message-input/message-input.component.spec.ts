@@ -13,13 +13,13 @@ import { NotificationService } from '../notification.service';
 import { AttachmentUpload } from '../types';
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
-import { TextareaComponent } from './textarea/textarea.component';
+import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
   let component: MessageInputComponent;
   let fixture: ComponentFixture<MessageInputComponent>;
-  let queryTextarea: () => TextareaComponent | null;
+  let queryTextarea: () => AutocompleteTextareaComponent | null;
   let querySendButton: () => HTMLButtonElement | null;
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
@@ -60,7 +60,7 @@ describe('MessageInputComponent', () => {
           },
           {
             provide: textareaInjectionToken,
-            useValue: TextareaComponent,
+            useValue: AutocompleteTextareaComponent,
           },
         ],
       },
@@ -70,7 +70,7 @@ describe('MessageInputComponent', () => {
       declarations: [
         MessageInputComponent,
         TextareaDirective,
-        TextareaComponent,
+        AutocompleteTextareaComponent,
       ],
       providers: [
         {
@@ -94,8 +94,8 @@ describe('MessageInputComponent', () => {
     nativeElement = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
     queryTextarea = () =>
-      fixture.debugElement.query(By.directive(TextareaComponent))
-        .componentInstance as TextareaComponent;
+      fixture.debugElement.query(By.directive(AutocompleteTextareaComponent))
+        .componentInstance as AutocompleteTextareaComponent;
     querySendButton = () =>
       nativeElement.querySelector('[data-testid="send-button"]');
     queryattachmentUploadButton = () =>
@@ -106,10 +106,12 @@ describe('MessageInputComponent', () => {
 
   it('should display textarea', () => {
     component.textareaValue = 'Hi';
+    component.areMentionsEnabled = true;
     fixture.detectChanges();
     const textarea = queryTextarea();
 
     expect(textarea?.value).toEqual('Hi');
+    expect(textarea?.areMentionsEnabled).toBeTrue();
 
     textarea?.valueChange.next('Hi, how are you?');
     fixture.detectChanges();
@@ -182,10 +184,12 @@ describe('MessageInputComponent', () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
+    const mentionedUsers = [{ id: 'john', name: 'John' }];
+    component.mentionedUsers = mentionedUsers;
     void component.messageSent();
     fixture.detectChanges();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith(message, []);
+    expect(sendMessageSpy).toHaveBeenCalledWith(message, [], mentionedUsers);
   });
 
   it('reset textarea after message is sent', () => {
@@ -324,7 +328,8 @@ describe('MessageInputComponent', () => {
 
     expect(sendMessageSpy).toHaveBeenCalledWith(
       jasmine.any(String),
-      attachments
+      attachments,
+      []
     );
   });
 

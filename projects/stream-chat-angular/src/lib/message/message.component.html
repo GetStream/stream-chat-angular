@@ -138,7 +138,10 @@
               (click)="textClicked()"
               (keyup.enter)="textClicked()"
               data-testid="text"
-              [innerHTML]="message?.html || message?.text"
+              [innerHTML]="
+                message?.html || message?.text
+                  | highlightMentions: message?.mentioned_users
+              "
             ></div>
           </div>
         </div>

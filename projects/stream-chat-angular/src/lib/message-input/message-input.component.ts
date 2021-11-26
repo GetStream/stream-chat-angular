@@ -11,16 +11,22 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
   Type,
   ViewChild,
 } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
+import { UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload, StreamMessage } from '../types';
+import {
+  AttachmentUpload,
+  MentionAutcompleteListItemContext,
+  StreamMessage,
+} from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
@@ -33,6 +39,11 @@ import { TextareaInterface } from './textarea.interface';
 })
 export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isFileUploadEnabled: boolean | undefined;
+  @Input() areMentionsEnabled: boolean | undefined;
+  @Input() mentionScope: 'channel' | 'application' | undefined;
+  @Input() mentionAutocompleteItemTemplate:
+    | TemplateRef<MentionAutcompleteListItemContext>
+    | undefined;
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
   @Input() message: StreamMessage | undefined;
@@ -41,6 +52,7 @@ export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
   attachmentUploads$: Observable<AttachmentUpload[]>;
   textareaValue = '';
   textareaRef: ComponentRef<TextareaInterface> | undefined;
+  mentionedUsers: UserResponse[] = [];
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: true })
   private textareaAnchor!: TextareaDirective;
@@ -82,6 +94,10 @@ export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
     this.acceptedFileTypes = this.configService.acceptedFileTypes;
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
+    this.areMentionsEnabled = this.configService.areMentionsEnabled;
+    this.mentionAutocompleteItemTemplate =
+      this.configService.mentionAutocompleteItemTemplate;
+    this.mentionScope = this.configService.mentionScope;
   }
 
   ngOnInit(): void {
@@ -112,6 +128,16 @@ export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.isMultipleFileUploadEnabled) {
       this.configService.isMultipleFileUploadEnabled =
         this.isMultipleFileUploadEnabled;
+    }
+    if (changes.areMentionsEnabled) {
+      this.configService.areMentionsEnabled = this.areMentionsEnabled;
+    }
+    if (changes.mentionAutocompleteItemTemplate) {
+      this.configService.mentionAutocompleteItemTemplate =
+        this.mentionAutocompleteItemTemplate;
+    }
+    if (changes.mentionScope) {
+      this.configService.mentionScope = this.mentionScope;
     }
   }
 
@@ -148,7 +174,11 @@ export class MessageInputComponent implements OnInit, OnChanges, OnDestroy {
             text: text,
             attachments: attachments,
           })
-        : this.channelService.sendMessage(text, attachments));
+        : this.channelService.sendMessage(
+            text,
+            attachments,
+            this.mentionedUsers
+          ));
       this.messageUpdate.emit();
       if (!this.isUpdate) {
         this.attachmentService.resetAttachmentUploads();

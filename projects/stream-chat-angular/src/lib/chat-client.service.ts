@@ -80,4 +80,18 @@ export class ChatClientService {
   async flagMessage(messageId: string) {
     await this.chatClient.flagMessage(messageId);
   }
+
+  async autocompleteUsers(searchTerm: string) {
+    if (!searchTerm) {
+      return [];
+    }
+    const result = await this.chatClient.queryUsers({
+      $or: [
+        { id: { $autocomplete: searchTerm } },
+        { name: { $autocomplete: searchTerm } },
+      ],
+      id: { $ne: this.chatClient.userID! },
+    });
+    return result.users;
+  }
 }

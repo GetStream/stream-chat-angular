@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 export const createMessagePreview = (
   user: UserResponse,
   text: string,
-  attachments: Attachment[]
+  attachments: Attachment[],
+  mentionedUsers: UserResponse[]
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
@@ -19,5 +20,6 @@ export const createMessagePreview = (
     type: 'regular',
     user,
     attachments,
+    mentioned_users: mentionedUsers,
   } as unknown as MessageResponse;
 };

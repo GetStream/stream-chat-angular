@@ -4,11 +4,19 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { AppComponent } from './app.component';
 import { CustomMessageComponent } from './custom-message/custom-message.component';
-import { StreamChatModule } from 'stream-chat-angular';
+import {
+  StreamChatModule,
+  StreamAutocompleteTextareaModule,
+} from 'stream-chat-angular';
 
 @NgModule({
   declarations: [AppComponent, CustomMessageComponent],
-  imports: [BrowserModule, TranslateModule.forRoot(), StreamChatModule],
+  imports: [
+    BrowserModule,
+    TranslateModule.forRoot(),
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })

@@ -1,10 +1,14 @@
 ---
 id: message-input
-sidebar_position: 12
+sidebar_position: 13
 title: Message input
 ---
 
 The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones.
+
+## Configuration
+
+The `MessageInput` component can use the [`Textarea`](./textarea.mdx) or the [`AutocompleteTextarea`](./autocomplete-textarea.mdx) component for displaying an HTML input for the users to type. You need to [provide your chosen component at module import](../concepts/opt-in-architecture.mdx).
 
 ## Customization
 
@@ -41,6 +45,10 @@ If more than one message input component can exist on your chat UI you should pr
 })
 ```
 
+### Textarea
+
+You can use the [`Textarea`](./textarea.mdx) or the [`AutocompleteTextarea`](./autocomplete-textarea.mdx) component to display the input HTML element for the users to type.
+
 :::
 
 :::important
@@ -53,7 +61,7 @@ Currently it is not possible to provide a custom component for message edit in t
 
 If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
-If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
 
 | Type    |
 | ------- |
@@ -63,7 +71,7 @@ If value not provided, it is set from the [`MessageInputConfigService`](../servi
 
 You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
 
-If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
 
 | Type       |
 | ---------- |
@@ -73,11 +81,41 @@ If value not provided, it is set from the [`MessageInputConfigService`](../servi
 
 If true, users can select multiple files to upload.
 
-If value not provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
 
 | Type    |
 | ------- |
 | boolean |
+
+### areMentionsEnabled
+
+If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecure.mdx) for this feature to work.
+
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type    |
+| ------- |
+| boolean |
+
+### mentionAutocompleteItemTemplate
+
+You can provide your own template for the autocomplete list for user mentions. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecure.mdx) for this feature to work.
+
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`TemplateRef<MentionAutcompleteListItemContext>`](<(https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)>) |
+
+### mentionScope
+
+The scope for user mentions, either members of the current channel of members of the application.
+
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type                       |
+| -------------------------- |
+| 'application' or 'channel' |
 
 ### message
 

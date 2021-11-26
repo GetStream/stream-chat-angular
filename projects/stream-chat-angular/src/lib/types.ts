@@ -1,4 +1,5 @@
 import type {
+  ChannelMemberResponse,
   Event,
   FormatMessageResponse,
   LiteralStringForUnion,
@@ -82,4 +83,15 @@ export type AttachmentUpload = {
   url?: string;
   type: 'image' | 'file';
   previewUri?: string | ArrayBuffer;
+};
+
+export type MentionAutcompleteListItemContext = {
+  item: MentionAutcompleteListItem;
+};
+
+export type MentionAutcompleteListItem = (
+  | ChannelMemberResponse
+  | UserResponse
+) & {
+  autocompleteLabel: string;
 };
