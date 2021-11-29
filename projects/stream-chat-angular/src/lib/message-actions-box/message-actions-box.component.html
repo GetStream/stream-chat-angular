@@ -70,7 +70,7 @@
     isEditModalOpen = $event; isEditModalOpen ? '' : modalClosed()
   "
 >
-  <div class="str-chat__edit-message-form">
+  <div class="str-chat__edit-message-form" *ngIf="isEditModalOpen">
     <stream-message-input
       [message]="message"
       (messageUpdate)="modalClosed()"

@@ -363,6 +363,7 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should call update message if "Send" button is clicked', () => {
     component.enabledActions = ['edit-any'];
+    component.isEditModalOpen = true;
     fixture.detectChanges();
     const messageInputComponent = queryMessageInputComponent();
     spyOn(messageInputComponent, 'messageSent');
