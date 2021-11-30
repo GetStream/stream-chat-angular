@@ -79,6 +79,7 @@
     "@ctrl/ngx-emoji-mart": "^6.0.1",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
+    "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "^1.4.0",
     "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",

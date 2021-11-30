@@ -22,6 +22,7 @@ import { ChannelService } from '../../channel.service';
 import { TextareaInterface } from '../textarea.interface';
 import { ChatClientService } from '../../chat-client.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { TransliterationService } from '../../transliteration.service';
 
 @Component({
   selector: 'stream-autocomplete-textarea',
@@ -53,14 +54,18 @@ export class AutocompleteTextareaComponent
     triggerChar: this.triggerChar,
     dropUp: true,
     labelKey: this.labelKey,
-    mentionFilter: this.filter,
+    mentionFilter: (
+      searchString: string,
+      items: { autocompleteLabel: string }[]
+    ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) => this.mentioned(item, triggerChar),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
 
   constructor(
     private channelService: ChannelService,
-    private chatClientService: ChatClientService
+    private chatClientService: ChatClientService,
+    private transliterationService: TransliterationService
   ) {
     this.searchTerm$
       .pipe(debounceTime(300), distinctUntilChanged())
@@ -89,9 +94,11 @@ export class AutocompleteTextareaComponent
     }
   }
 
-  filter(searchString: string, items: { autocompleteLabel: string }[]): any[] {
+  filter(searchString: string, items: { autocompleteLabel: string }[]) {
     return items.filter((item) =>
-      item.autocompleteLabel.toLowerCase().includes(searchString.toLowerCase())
+      this.transliterate(item.autocompleteLabel.toLowerCase()).includes(
+        this.transliterate(searchString.toLowerCase())
+      )
     );
   }
 
@@ -117,6 +124,14 @@ export class AutocompleteTextareaComponent
     event.preventDefault();
     this.updateMentionedUsersFromText();
     this.send.next();
+  }
+
+  private transliterate(s: string) {
+    if (this.transliterationService) {
+      return this.transliterationService.transliterate(s);
+    } else {
+      return s;
+    }
   }
 
   private async updateMentionOptions(searchTerm?: string) {
