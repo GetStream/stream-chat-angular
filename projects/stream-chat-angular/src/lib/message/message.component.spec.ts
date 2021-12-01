@@ -14,6 +14,7 @@ import { AttachmentListComponent } from '../attachment-list/attachment-list.comp
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
+import { HighlightMentionsPipe } from './highlight-mentions.pipe';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -57,6 +58,7 @@ describe('MessageComponent', () => {
         MessageActionsBoxComponent,
         AttachmentListComponent,
         MessageReactionsComponent,
+        HighlightMentionsPipe,
       ],
       providers: [
         {

@@ -52,11 +52,20 @@ import { BrowserModule } from "@angular/platform-browser";
 import { TranslateModule } from "@ngx-translate/core";
 
 import { AppComponent } from "./app.component";
-import { StreamChatModule } from "stream-chat-angular";
+import { CustomMessageComponent } from "./custom-message/custom-message.component";
+import {
+  StreamChatModule,
+  StreamAutocompleteTextareaModule,
+} from "stream-chat-angular";
 
 @NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, TranslateModule.forRoot(), StreamChatModule],
+  declarations: [AppComponent, CustomMessageComponent],
+  imports: [
+    BrowserModule,
+    TranslateModule.forRoot(),
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })
@@ -66,6 +75,8 @@ export class AppModule {}
 This will import the `TranslateModule` and the `StreamChatModule`.
 
 If you already use [ngx-translate](https://github.com/ngx-translate/core) in your application, follow [our translation guide](https://getstream.io/chat/docs/sdk/angular/concepts/translation/) to set up translation.
+
+In an effort to keep our bundle size small in the long run our SDK uses an architecture where integrators can decide to opt-out of certain costly (in terms of bundle size) features, this decision happens at module import, in the above example we chose what type of textarea component we want to use. You can find more information about this topic in our [opt-in architecture guide](https://getstream.io/chat/docs/sdk/angular/concepts/opt-in-architecture/).
 
 2. Init the chat application
 

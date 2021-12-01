@@ -8,4 +8,36 @@
   rows="1"
   (input)="inputChanged()"
   (keydown.enter)="sent($event)"
+  [mentionConfig]="autocompleteConfig"
+  (searchTerm)="autcompleteSearchTermChanged($event)"
+  [mentionListTemplate]="autocompleteItem"
+  (blur)="inputLeft()"
 ></textarea>
+<ng-template #autocompleteItem let-item="item">
+  <div class="rta rta__item str-chat__emojisearch__item" [ngSwitch]="item.type">
+    <div class="rta__entity" *ngSwitchCase="'mention'">
+      <ng-container
+        *ngTemplateOutlet="
+          mentionAutocompleteItemTemplate || defaultMentionTemplate;
+          context: { item: item }
+        "
+      ></ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #defaultMentionTemplate let-item="item">
+  <div class="str-chat__user-item">
+    <stream-avatar
+      data-testclass="avatar"
+      class="str-chat__avatar str-chat__avatar--circle"
+      style="height: 20px"
+      [size]="20"
+      [imageUrl]="item.image || item.user?.image"
+      [name]="item.autocompleteLabel"
+    ></stream-avatar>
+    <span data-testclass="username" class="str-chat__user-item--name">{{
+      item.autocompleteLabel
+    }}</span>
+  </div>
+</ng-template>

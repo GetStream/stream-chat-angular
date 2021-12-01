@@ -11,6 +11,7 @@ import {
   FormatMessageResponse,
   MessageResponse,
   UpdatedMessage,
+  UserResponse,
 } from 'stream-chat';
 import { ChatClientService, Notification } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
@@ -196,11 +197,16 @@ export class ChannelService {
       ?.deleteReaction(messageId, reactionType);
   }
 
-  async sendMessage(text: string, attachments: Attachment[] = []) {
+  async sendMessage(
+    text: string,
+    attachments: Attachment[] = [],
+    mentionedUsers: UserResponse[] = []
+  ) {
     const preview = createMessagePreview(
       this.chatClientService.chatClient.user!,
       text,
-      attachments
+      attachments,
+      mentionedUsers
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
@@ -268,6 +274,30 @@ export class ChannelService {
       : channel.deleteFile(attachmentUpload.url!));
   }
 
+  async autocompleteMembers(searchTerm: string) {
+    const activeChannel = this.activeChannelSubject.getValue();
+    if (!activeChannel) {
+      return [];
+    }
+    if (Object.keys(activeChannel.state.members).length <= 100) {
+      return Object.values(activeChannel.state.members).filter(
+        (m) => m.user?.id !== this.chatClientService.chatClient.userID!
+      );
+    } else {
+      if (!searchTerm) {
+        return [];
+      }
+      const result = await activeChannel.queryMembers({
+        $or: [
+          { id: { $autocomplete: searchTerm } },
+          { name: { $autocomplete: searchTerm } },
+        ],
+        id: { $ne: this.chatClientService.chatClient.userID! },
+      });
+      return Object.values(result.members);
+    }
+  }
+
   private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
     const channel = this.activeChannelSubject.getValue()!;
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
@@ -275,6 +305,7 @@ export class ChannelService {
       await channel.sendMessage({
         text: preview.text,
         attachments: preview.attachments,
+        mentioned_users: preview.mentioned_users?.map((u) => u.id),
         id: preview.id,
       });
     } catch (error) {

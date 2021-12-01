@@ -91,3 +91,7 @@ Uploads files to the channel. If you want to know more about [file uploads](http
 ## deleteAttachment
 
 Deletes an uploaded file by URL. If you want to know more about [file uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript) check out the platform documentation
+
+## autcompleteMembers
+
+Returns the autocomplete options for channel members. If channel has less than 100 members, it return the channel members, otherwise sends a [search request](https://getstream.io/chat/docs/javascript/query_members/?language=javascript#pagination-and-ordering) with the given search term.

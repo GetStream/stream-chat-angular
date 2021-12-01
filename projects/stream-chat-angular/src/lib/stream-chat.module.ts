@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { AvatarComponent } from './avatar/avatar.component';
 import { ChannelComponent } from './channel/channel.component';
 import { ChannelHeaderComponent } from './channel-header/channel-header.component';
 import { ChannelListComponent } from './channel-list/channel-list.component';
@@ -19,14 +18,12 @@ import { NotificationListComponent } from './notification-list/notification-list
 import { TranslateModule } from '@ngx-translate/core';
 import { AttachmentPreviewListComponent } from './attachment-preview-list/attachment-preview-list.component';
 import { ModalComponent } from './modal/modal.component';
-import { TextareaComponent } from './message-input/textarea/textarea.component';
-import { AutocompleteTextareaComponent } from './message-input/autocomplete-textarea/autocomplete-textarea.component';
-import { textareaInjectionToken } from './injection-tokens';
 import { TextareaDirective } from './message-input/textarea.directive';
+import { HighlightMentionsPipe } from './message/highlight-mentions.pipe';
+import { StreamAvatarModule } from './stream-avatar.module';
 
 @NgModule({
   declarations: [
-    AvatarComponent,
     ChannelComponent,
     ChannelHeaderComponent,
     ChannelListComponent,
@@ -43,13 +40,11 @@ import { TextareaDirective } from './message-input/textarea.directive';
     NotificationListComponent,
     AttachmentPreviewListComponent,
     ModalComponent,
-    TextareaComponent,
-    AutocompleteTextareaComponent,
     TextareaDirective,
+    HighlightMentionsPipe,
   ],
-  imports: [CommonModule, EmojiModule, TranslateModule],
+  imports: [CommonModule, EmojiModule, TranslateModule, StreamAvatarModule],
   exports: [
-    AvatarComponent,
     ChannelComponent,
     ChannelHeaderComponent,
     ChannelListComponent,
@@ -66,9 +61,7 @@ import { TextareaDirective } from './message-input/textarea.directive';
     NotificationListComponent,
     AttachmentPreviewListComponent,
     ModalComponent,
-    TextareaComponent,
-    AutocompleteTextareaComponent,
+    HighlightMentionsPipe,
   ],
-  providers: [{ provide: textareaInjectionToken, useValue: TextareaComponent }],
 })
 export class StreamChatModule {}

@@ -1,0 +1,63 @@
+---
+id: textarea
+sidebar_position: 18
+title: Textarea
+---
+
+The `Textarea` component is used by the [`MessageInput`](./message-input.mdx) component to display the input HTML element where users can type their message.
+
+Message send can be triggered with the `Enter` key, new line can be added with the `Shift+Enter` combination.
+
+If you want to enable autocomplete features, you can use the [`AutcompleteTextarea`](./autocomplete-textarea.mdx) component instead of this one.
+
+## Basic usage
+
+You can use the `Textarea` component if you want to create your own message input component to override the default one:
+
+```typescript
+@Component({
+  selector: "app-custom-message-input",
+  template: `
+    <stream-textarea
+      [(value)]="textareaValue"
+      (send)="messageSent()"
+    ></stream-textarea>
+    <!-- Other parts of the custom message input component -->
+  `,
+})
+export class CustomMessageInputComponent {
+  textareaValue = "";
+
+  messageSent() {
+    // Send your message
+  }
+}
+```
+
+## Inputs
+
+### value
+
+The value of the input HTML element.
+
+| Type   | Default |
+| ------ | ------- |
+| string | ''      |
+
+## Outputs
+
+### valueChange
+
+Emits the current value of the input element when a user types.
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [`EventEmitter`](https://angular.io/api/core/EventEmitter) |
+
+### send
+
+Emits when a user triggers a message send event (this happens when they hit the `Enter` key).
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [`EventEmitter`](https://angular.io/api/core/EventEmitter) |
