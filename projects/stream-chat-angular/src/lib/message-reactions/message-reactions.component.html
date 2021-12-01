@@ -12,10 +12,9 @@
       "
       data-testclass="emoji"
     >
-      <ngx-emoji
-        emoji="{{ getEmojiNameByReaction(reactionType) }}"
-        [size]="16"
-      ></ngx-emoji>
+      <span class="emoji">
+        {{ getEmojiByReaction(reactionType) }}
+      </span>
       &nbsp;
     </li>
     <li>
@@ -79,10 +78,9 @@
           [size]="20"
         ></stream-avatar>
       </div>
-      <ngx-emoji
-        emoji="{{ getEmojiNameByReaction(reactionType) }}"
-        [size]="20"
-      ></ngx-emoji>
+      <span class="emoji" style="width: 20px; height: 20px; top: 10px">
+        {{ getEmojiByReaction(reactionType) }}
+      </span>
       <span
         *ngIf="
           messageReactionCounts[reactionType] &&

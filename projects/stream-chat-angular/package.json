@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "angular-mentions": "^1.4.0",
-    "@ctrl/ngx-emoji-mart": "^6.0.1",
     "@stream-io/transliterate": "^1.5.2",
     "dayjs": "^1.10.7",
     "pretty-bytes": "^5.6.0",

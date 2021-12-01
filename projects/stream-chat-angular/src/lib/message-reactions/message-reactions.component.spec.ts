@@ -12,7 +12,6 @@ import {
   MessageReactionType,
   MessageReactionsComponent,
 } from './message-reactions.component';
-import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 
@@ -42,7 +41,6 @@ describe('MessageReactionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EmojiModule],
       declarations: [MessageReactionsComponent, AvatarComponent],
       providers: [{ provide: ChannelService, useValue: channelServiceMock }],
     }).compileComponents();

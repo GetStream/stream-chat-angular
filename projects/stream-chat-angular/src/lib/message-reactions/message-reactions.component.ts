@@ -23,17 +23,17 @@ export type MessageReactionType =
   | 'wow';
 
 const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
-  like: 'thumbsup',
-  angry: 'angry',
-  love: 'heart',
-  haha: 'joy',
-  wow: 'open_mouth',
-  sad: 'disappointed',
+  like: '👍',
+  angry: '😠',
+  love: '❤️',
+  haha: '😂',
+  wow: '😮',
+  sad: '😞',
 };
 @Component({
   selector: 'stream-message-reactions',
   templateUrl: './message-reactions.component.html',
-  styles: [],
+  styles: ['.emoji {position: relative; display: inline-block; }'],
 })
 export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   @Input() messageId: string | undefined;
@@ -101,7 +101,7 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
       ?.user;
   }
 
-  getEmojiNameByReaction(reactionType: MessageReactionType) {
+  getEmojiByReaction(reactionType: MessageReactionType) {
     return emojiReactionsMapping[reactionType];
   }
 

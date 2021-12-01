@@ -8,7 +8,6 @@
   "allowedNonPeerDependencies": [
     "angular-mentions",
     "dayjs",
-    "@ctrl/ngx-emoji-mart",
     "@stream-io/transliterate",
     "uuidv4",
     "pretty-bytes"
