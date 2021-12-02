@@ -12,7 +12,6 @@ import { IconComponent } from './icon/icon.component';
 import { MessageActionsBoxComponent } from './message-actions-box/message-actions-box.component';
 import { AttachmentListComponent } from './attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from './message-reactions/message-reactions.component';
-import { EmojiModule } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 import { NotificationComponent } from './notification/notification.component';
 import { NotificationListComponent } from './notification-list/notification-list.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -43,7 +42,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
     TextareaDirective,
     HighlightMentionsPipe,
   ],
-  imports: [CommonModule, EmojiModule, TranslateModule, StreamAvatarModule],
+  imports: [CommonModule, TranslateModule, StreamAvatarModule],
   exports: [
     ChannelComponent,
     ChannelHeaderComponent,

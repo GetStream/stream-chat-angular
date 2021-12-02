@@ -42,9 +42,6 @@ describe('AutocompleteTextareaComponent', () => {
         },
       ],
     }).compileComponents();
-  });
-
-  beforeEach(async () => {
     fixture = TestBed.createComponent(AutocompleteTextareaComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;
@@ -242,5 +239,78 @@ describe('AutocompleteTextareaComponent', () => {
     await fixture.whenStable();
 
     expect(component.autocompleteConfig.mentions!.length).toBe(1);
+  });
+
+  it('should transliterate - option contains non-Latin characters', fakeAsync(() => {
+    spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
+      { user: { id: '12', name: 'Ádám' } },
+    ]);
+    component.autcompleteSearchTermChanged('Adam');
+    tick(300);
+
+    expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
+  }));
+
+  it('should transliterate - search term contains non-Latin characters', fakeAsync(() => {
+    spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
+      { user: { id: '12', name: 'Adam' } },
+    ]);
+    component.autcompleteSearchTermChanged('Ádám');
+    tick(300);
+
+    expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
+  }));
+
+  it('should display textarea, and focus it', () => {
+    const textarea = queryTextarea();
+
+    expect(textarea).not.toBeNull();
+    expect(textarea?.value).toBe('');
+    expect(textarea?.hasAttribute('autofocus')).toBeTrue();
+  });
+
+  it('should display #value in textarea', () => {
+    component.value = 'This is my message';
+    fixture.detectChanges();
+
+    expect(queryTextarea()?.value).toBe('This is my message');
+  });
+
+  it('should emit #valueChange if user types in textarea', () => {
+    const spy = jasmine.createSpy();
+    component.valueChange.subscribe(spy);
+    const textarea = queryTextarea();
+    textarea!.value = 'message';
+    const event = new InputEvent('input');
+    textarea?.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith('message');
+  });
+
+  it(`shouldn't emit #valueChange if enter is hit`, () => {
+    const spy = jasmine.createSpy();
+    component.valueChange.subscribe(spy);
+    const textarea = queryTextarea();
+    const message = 'This is my message';
+    textarea!.value = message;
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+    spyOn(event, 'preventDefault');
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it(`shouldn't emit #send if shift+enter is hit`, () => {
+    const spy = jasmine.createSpy();
+    component.send.subscribe(spy);
+    const textarea = queryTextarea();
+    textarea!.value = 'This is my message';
+    textarea?.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+    );
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
   });
 });

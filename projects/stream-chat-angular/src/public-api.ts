@@ -40,6 +40,7 @@ export * from './lib/is-image-attachment';
 export * from './lib/device-width';
 export * from './lib/message-preview';
 export * from './lib/notification.service';
+export * from './lib/transliteration.service';
 export * from './lib/stream-chat.module';
 export * from './lib/stream-autocomplete-textarea.module';
 export * from './lib/stream-textarea.module';
