@@ -63,6 +63,9 @@ export const generateMockChannels = (length = 25) => {
           'send-reaction',
           'update-any-message',
           'delete-any-message',
+          'read-events',
+          'send-links',
+          'send-message',
         ],
       },
       on: (arg1: EventTypes | Function, handler: () => {}) => {

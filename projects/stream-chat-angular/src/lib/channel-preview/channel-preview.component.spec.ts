@@ -85,6 +85,21 @@ describe('ChannelPreviewComponent', () => {
     expect(container?.classList.contains(unreadClass)).toBeTrue();
   });
 
+  it(`shouldn't apply unread class, if user doesn't have 'read-events' capabilities`, () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    channel.data!.own_capabilities = [];
+    component.channel = channel;
+    component.ngOnInit();
+    const countUnreadSpy = spyOn(channel, 'countUnread');
+    countUnreadSpy.and.returnValue(1);
+    const unreadClass = 'str-chat__channel-preview-messenger--unread';
+    const container = queryContainer();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(unreadClass)).toBeFalse();
+  });
+
   it('should remove unread class, if user marked channel as read', () => {
     const channels = generateMockChannels();
     const channel = channels[0];

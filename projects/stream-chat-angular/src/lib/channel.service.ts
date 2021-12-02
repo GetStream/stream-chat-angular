@@ -137,7 +137,9 @@ export class ChannelService {
     channel.state.messages.forEach((m) => {
       m.readBy = getReadBy(m, channel);
     });
-    void channel.markRead();
+    if (this.canSendReadEvents) {
+      void channel.markRead();
+    }
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
   }
 
@@ -408,9 +410,11 @@ export class ChannelService {
       channel.on('message.new', () => {
         this.ngZone.run(() => {
           this.activeChannelMessagesSubject.next([...channel.state.messages]);
-          this.activeChannel$
-            .pipe(first())
-            .subscribe((c) => void c?.markRead());
+          this.activeChannel$.pipe(first()).subscribe((c) => {
+            if (this.canSendReadEvents) {
+              void c?.markRead();
+            }
+          });
         });
       })
     );
@@ -682,5 +686,14 @@ export class ChannelService {
 
   private get channels() {
     return this.channelsSubject.getValue() || [];
+  }
+
+  private get canSendReadEvents() {
+    const channel = this.activeChannelSubject.getValue();
+    if (!channel) {
+      return false;
+    }
+    const capabilites = channel.data?.own_capabilities as string[];
+    return capabilites.indexOf('read-events') !== -1;
   }
 }

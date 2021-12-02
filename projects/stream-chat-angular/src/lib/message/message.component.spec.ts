@@ -120,6 +120,7 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="system-message"]');
     component.areReactionsEnabled = true;
     component.canReactToMessage = true;
+    component.canReceiveReadEvents = true;
     fixture.detectChanges();
   });
 
@@ -210,6 +211,17 @@ describe('MessageComponent', () => {
       expect(queryLastReadUserAvatar()).not.toBeNull();
 
       expect(queryReadByCounter()).toBeNull();
+    });
+
+    it(`should display delivered icon, if user can't receive delivered events`, () => {
+      component.isLastSentMessage = true;
+      component.canReceiveReadEvents = false;
+      fixture.detectChanges();
+      const readIndicator = queryReadIndicator();
+      const deliveredIndicator = queryDeliveredIndicator();
+
+      expect(readIndicator).toBeNull();
+      expect(deliveredIndicator).not.toBeNull();
     });
 
     it('if message is read - read by multiple user', () => {

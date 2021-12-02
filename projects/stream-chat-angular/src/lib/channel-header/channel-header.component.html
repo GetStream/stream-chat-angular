@@ -13,12 +13,13 @@
     name="{{ activeChannel?.data?.name }}"
   ></stream-avatar>
   <div class="str-chat__header-livestream-left">
-    <p class="str-chat__header-livestream-left--title">
+    <p data-testid="name" class="str-chat__header-livestream-left--title">
       {{ activeChannel?.data?.name }}
     </p>
-    <p class="str-chat__header-livestream-left--members">
+    <p data-testid="info" class="str-chat__header-livestream-left--members">
       {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}
-      {{'streamChat.{{ watcherCount }} online' | translate:watcherCountParam}}
+      {{canReceiveConnectEvents ? ('streamChat.{{ watcherCount }} online' |
+      translate:watcherCountParam) : ''}}
     </p>
   </div>
 </div>

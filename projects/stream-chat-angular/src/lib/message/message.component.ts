@@ -19,6 +19,7 @@ export class MessageComponent {
   @Input() areReactionsEnabled: boolean | undefined;
   @Input() canReactToMessage: boolean | undefined;
   @Input() isLastSentMessage: boolean | undefined;
+  @Input() canReceiveReadEvents: boolean | undefined;
   isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;

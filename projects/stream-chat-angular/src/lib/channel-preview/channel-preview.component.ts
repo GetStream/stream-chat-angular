@@ -19,6 +19,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   isUnread = false;
   latestMessage: string = 'Nothing yet...';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
+  private canSendReadEvents = true;
 
   constructor(private channelService: ChannelService) {}
 
@@ -33,7 +34,10 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     if (messages && messages.length > 0) {
       this.setLatestMessage(messages[messages.length - 1]);
     }
-    this.isUnread = !!this.channel!.countUnread();
+    this.isUnread = !!this.channel!.countUnread() && this.canSendReadEvents;
+    const capabilities =
+      (this.channel?.data?.own_capabilities as string[]) || [];
+    this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
     this.subscriptions.push(
       this.channel!.on('message.new', this.handleMessageEvent.bind(this))
     );
@@ -49,7 +53,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.channel!.on(
         'message.read',
-        () => (this.isUnread = !!this.channel!.countUnread())
+        () =>
+          (this.isUnread =
+            !!this.channel!.countUnread() && this.canSendReadEvents)
       )
     );
   }
@@ -87,7 +93,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       return;
     }
     this.setLatestMessage(event.message);
-    this.isUnread = !!this.channel.countUnread();
+    this.isUnread = !!this.channel.countUnread() && this.canSendReadEvents;
   }
 
   private setLatestMessage(message?: FormatMessageResponse | MessageResponse) {

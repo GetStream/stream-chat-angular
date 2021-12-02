@@ -30,6 +30,7 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
     ['flag', 'edit', 'edit-any', 'delete', 'delete-any'];
   messages$!: Observable<StreamMessage[]>;
   canReactToMessage: boolean | undefined;
+  canReceiveReadEvents: boolean | undefined;
   enabledMessageActions: MessageActions[] = [];
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
@@ -65,6 +66,7 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
       const capabilites = channel?.data?.own_capabilities as string[];
       if (capabilites) {
         this.canReactToMessage = capabilites.indexOf('send-reaction') !== -1;
+        this.canReceiveReadEvents = capabilites.indexOf('read-events') !== -1;
         this.authorizedMessageActions = [];
         if (capabilites.indexOf('flag-message') !== -1) {
           this.authorizedMessageActions.push('flag');

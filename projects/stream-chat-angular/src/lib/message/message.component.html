@@ -27,7 +27,12 @@
           <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
         </ng-container>
         <ng-template #sentStatus>
-          <ng-container *ngIf="isMessageDeliveredAndRead; else deliveredStatus">
+          <ng-container
+            *ngIf="
+              isMessageDeliveredAndRead && canReceiveReadEvents;
+              else deliveredStatus
+            "
+          >
             <ng-container *ngTemplateOutlet="readStatus"></ng-container>
           </ng-container>
         </ng-template>

@@ -86,5 +86,9 @@ export const en = {
     failed: 'failed',
     retry: 'retry',
     test: 'success',
+    'Sending links is not allowed in this conversation':
+      'Sending links is not allowed in this conversation',
+    "You can't send messages in this channel":
+      "You can't send messages in this channel",
   },
 };
