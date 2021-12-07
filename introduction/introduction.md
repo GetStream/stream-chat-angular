@@ -8,7 +8,7 @@ The Angular Chat Messaging Component Library includes everything you need to bui
   - npm - https://www.npmjs.com/package/stream-chat-angular
 - **Component styles** - We maintain a separate repository for the stylesheets of the web chat UI components.
   - Source - https://github.com/GetStream/stream-chat-css
-  - npm - https://www.npmjs.com/package/stream-chat-css
+  - npm - https://www.npmjs.com/package/@stream-io/stream-chat-css
 
 We recommend you use our component SDK. Chat applications have a lot of moving parts and the Chat Component SDK handles all the stateful chat logic for you to make integration easy. Furthermore, the components offered are highly customisable allowing you to seamlessly incorporate your chat application into your existing application experience. That being said, for various reasons you may choose to build all of your chat UI components yourself, in which case you can still use our Component SDK and take adventage of the Angular services.
 

@@ -71,7 +71,7 @@ To override pre-defined library styles, follow this simple process:
 For example:
 
 ```scss
-import 'stream-chat-css/dist/css/index.css';
+@import "~@stream-io/stream-chat-css/dist/css/index.css";
 
 /* Your CSS here */
 ```
@@ -80,9 +80,6 @@ import 'stream-chat-css/dist/css/index.css';
 
 As an alternative to importing our entire style sheet (perhaps, due to it's size), there's also the option to easily assemble only
 what you need by importing individual scss files. The imports should happen in your root stylesheet.
-
-Here's a complete [list of scss files](https://unpkg.com/browse/stream-chat-css@1.0.17/dist/scss/) broken down by size and with the
-option of filtering by version.
 
 :::note
 If not importing our entire bundled CSS, individually importing the SDK's scss files is the better alternative to copy and pasting
