@@ -10,14 +10,22 @@ import { ChannelService } from '../channel.service';
 })
 export class ChannelHeaderComponent {
   activeChannel: Channel | undefined;
+  canReceiveConnectEvents: boolean | undefined;
 
   constructor(
     private channelService: ChannelService,
     private channelListToggleService: ChannelListToggleService
   ) {
-    this.channelService.activeChannel$.subscribe(
-      (c) => (this.activeChannel = c)
-    );
+    this.channelService.activeChannel$.subscribe((c) => {
+      this.activeChannel = c;
+      const capabilities = this.activeChannel?.data
+        ?.own_capabilities as string[];
+      if (!capabilities) {
+        return;
+      }
+      this.canReceiveConnectEvents =
+        capabilities.indexOf('connect-events') !== -1;
+    });
   }
 
   toggleMenu(event: Event) {

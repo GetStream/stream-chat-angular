@@ -11,6 +11,7 @@
       ></stream-attachment-preview-list>
       <div class="rta str-chat__textarea">
         <ng-template
+          *ngIf="canSendMessages; else notAllowed"
           streamTextarea
           [(value)]="textareaValue"
           (send)="messageSent()"
@@ -20,9 +21,19 @@
           [mentionAutocompleteItemTemplate]="mentionAutocompleteItemTemplate"
           [mentionScope]="mentionScope"
         ></ng-template>
+        <ng-template #notAllowed>
+          <textarea
+            disabled
+            rows="1"
+            [value]="
+              'streamChat.You can\'t send messages in this channel' | translate
+            "
+            class="rta__textarea str-chat__textarea__textarea"
+          ></textarea>
+        </ng-template>
       </div>
       <div
-        *ngIf="isFileUploadEnabled && isFileUploadAuthorized"
+        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
         class="str-chat__fileupload-wrapper"
         data-testid="file-upload-button"
       >
@@ -48,6 +59,7 @@
       </div>
     </div>
     <button
+      *ngIf="canSendMessages"
       data-testid="send-button"
       class="str-chat__send-button"
       (click)="messageSent()"

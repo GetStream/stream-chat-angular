@@ -79,6 +79,7 @@ describe('MessageInputComponent', () => {
             activeChannel$: mockActiveChannel$,
             sendMessage: sendMessageSpy,
             updateMessage: updateMessageSpy,
+            autocompleteMembers: jasmine.createSpy().and.resolveTo([]),
           },
         },
         {
@@ -95,7 +96,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
     queryTextarea = () =>
       fixture.debugElement.query(By.directive(AutocompleteTextareaComponent))
-        .componentInstance as AutocompleteTextareaComponent;
+        ?.componentInstance as AutocompleteTextareaComponent;
     querySendButton = () =>
       nativeElement.querySelector('[data-testid="send-button"]');
     queryattachmentUploadButton = () =>
@@ -394,5 +395,82 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(nativeElement.querySelector(`.${cssClass}`)).not.toBeNull();
+  });
+
+  it('should set #canSendLinks', async () => {
+    expect(component.canSendLinks).toBeTrue();
+
+    mockActiveChannel$.next({
+      data: { own_capabilities: [] },
+    } as any as Channel);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.canSendLinks).toBeFalse();
+  });
+
+  it(`shouldn't send message if user can't send links, and message contains link`, () => {
+    const message = 'This is my message with a link https://getstream.io/';
+    component.textareaValue = message;
+    component.canSendLinks = false;
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    void component.messageSent();
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Sending links is not allowed in this conversation'
+    );
+
+    component.canSendLinks = true;
+    void component.messageSent();
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(message, undefined, []);
+  });
+
+  it('should determine if message contains links', () => {
+    component.textareaValue =
+      'This is my message with a link https://getstream.io/';
+
+    expect(component.containsLinks).toBeTrue();
+
+    component.textareaValue = 'szuperaz@gmail.com';
+
+    expect(component.containsLinks).toBeTrue();
+
+    component.textareaValue = 'This is my webpage: malnamarket.io';
+
+    expect(component.containsLinks).toBeTrue();
+
+    component.textareaValue = 'Visit this page: www.facebook.com';
+
+    expect(component.containsLinks).toBeTrue();
+
+    component.textareaValue = 'HTTP://getstream.io';
+
+    expect(component.containsLinks).toBeTrue();
+
+    component.textareaValue = `This message doesn't contains a link HTTP www https .com`;
+
+    expect(component.containsLinks).toBeFalse();
+  });
+
+  it('should set #canSendMessages', () => {
+    expect(component.canSendMessages).toBeTrue();
+
+    mockActiveChannel$.next({
+      data: { own_capabilities: [] },
+    } as any as Channel);
+
+    expect(component.canSendMessages).toBeFalse();
+  });
+
+  it(`shouldn't display textarea component if user can't send messages`, () => {
+    expect(queryTextarea()).toBeDefined();
+
+    component.canSendMessages = false;
+    fixture.detectChanges();
+
+    expect(queryTextarea()).toBeUndefined();
   });
 });

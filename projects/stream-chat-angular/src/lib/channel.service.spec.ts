@@ -253,6 +253,24 @@ describe('ChannelService', () => {
     expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
+  it(`shouldn't make "markRead" call, if user dosen't have 'read-events' capability`, async () => {
+    await init();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const capabilites = activeChannel.data?.own_capabilities as string[];
+    capabilites.splice(capabilites.indexOf('read-events'), 1);
+    const newMessage = mockMessage();
+    activeChannel.state.messages.push(newMessage);
+    spyOn(activeChannel, 'markRead');
+    (activeChannel as MockChannel).handleEvent('message.new', newMessage);
+
+    expect(activeChannel.markRead).not.toHaveBeenCalledWith();
+
+    service.setAsActiveChannel(activeChannel);
+
+    expect(activeChannel.markRead).not.toHaveBeenCalledWith();
+  });
+
   it('should watch for message update events', async () => {
     await init();
     const spy = jasmine.createSpy();

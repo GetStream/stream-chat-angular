@@ -92,6 +92,8 @@ describe('MessageListComponent', () => {
         'delete',
         'delete-any',
       ]);
+
+      expect(m.canReceiveReadEvents).toBe(component.canReceiveReadEvents);
     });
   });
 
