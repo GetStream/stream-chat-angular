@@ -155,7 +155,7 @@ Replace the content of the `app.component.html` with the following code:
 Add the following code to your root stylesheet (`styles.scss` if you are using SCSS):
 
 ```scss
-@import "~stream-chat-css/dist/scss/index.scss";
+@import "~@stream-io/stream-chat-css/dist/scss/index.scss";
 
 body {
   margin: 0;
@@ -165,7 +165,7 @@ body {
 **Important note** If you are using **CSS** stylesheets, you should add the following import instead:
 
 ```css
-@import "~stream-chat-css/dist/css/index.css";
+@import "~@stream-io/stream-chat-css/dist/css/index.css";
 ```
 
 5. Modify `tsconfig.json`
