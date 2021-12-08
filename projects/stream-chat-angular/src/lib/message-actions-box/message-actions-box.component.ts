@@ -5,6 +5,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { ChannelService } from '../channel.service';
@@ -29,6 +30,7 @@ export type MessageActions =
   styles: [],
 })
 export class MessageActionsBoxComponent implements OnChanges {
+  @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() isOpen = false;
   @Input() isMine = false;
   @Input() message: StreamMessage | undefined;
@@ -136,10 +138,10 @@ export class MessageActionsBoxComponent implements OnChanges {
     this.messageInput?.messageSent();
   }
 
-  modalClosed() {
+  modalClosed = () => {
     this.isEditModalOpen = false;
     this.isEditing.emit(false);
-  }
+  };
 
   async deleteClicked() {
     try {
