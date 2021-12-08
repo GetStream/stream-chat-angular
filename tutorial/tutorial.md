@@ -15,7 +15,7 @@ We won't need routing in the application, and you can choose any stylesheet; the
 Install the necessary dependencies:
 
 ```shell
-npm install stream-chat-angular stream-chat-css stream-chat @ngx-translate/core
+npm install stream-chat-angular @stream-io/stream-chat-css stream-chat @ngx-translate/core
 ```
 
 **Important note** If you are using **Angular 12** you will need to add `--legacy-peer-deps` flag as `@ngx-translate/core`'s newest version only supports Angular 13.
@@ -52,14 +52,13 @@ import { BrowserModule } from "@angular/platform-browser";
 import { TranslateModule } from "@ngx-translate/core";
 
 import { AppComponent } from "./app.component";
-import { CustomMessageComponent } from "./custom-message/custom-message.component";
 import {
   StreamChatModule,
   StreamAutocompleteTextareaModule,
 } from "stream-chat-angular";
 
 @NgModule({
-  declarations: [AppComponent, CustomMessageComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     TranslateModule.forRoot(),
@@ -103,7 +102,7 @@ export class AppComponent implements OnInit {
   ) {
     const apiKey = "YOUR_API_KEY";
     const userId = "USER_ID";
-    const userToken = "USERT_TOKEN";
+    const userToken = "USER_TOKEN";
     this.chatService.init(apiKey, userId, userToken);
     this.streamI18nService.setTranslation();
   }
@@ -224,7 +223,7 @@ export class AppComponent implements OnInit {
   ) {
     const apiKey = "YOUR_API_KEY";
     const userId = "USER_ID";
-    const userToken = "USERT_TOKEN";
+    const userToken = "USER_TOKEN";
     this.chatService.init(apiKey, userId, userToken);
     this.streamI18nService.setTranslation();
     this.themeService.theme$.next("dark");
