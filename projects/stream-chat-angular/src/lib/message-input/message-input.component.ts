@@ -1,4 +1,3 @@
-import { OnInit } from '@angular/core';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -40,7 +39,7 @@ import { TextareaInterface } from './textarea.interface';
   providers: [AttachmentService],
 })
 export class MessageInputComponent
-  implements OnInit, OnChanges, OnDestroy, AfterViewInit
+  implements OnChanges, OnDestroy, AfterViewInit
 {
   @Input() isFileUploadEnabled: boolean | undefined;
   @Input() areMentionsEnabled: boolean | undefined;
@@ -64,6 +63,7 @@ export class MessageInputComponent
   private textareaAnchor!: TextareaDirective;
   private subscriptions: Subscription[] = [];
   private hideNotification: Function | undefined;
+  private isViewInited = false;
 
   constructor(
     private channelService: ChannelService,
@@ -85,17 +85,6 @@ export class MessageInputComponent
         }
       )
     );
-    this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
-    this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
-    this.acceptedFileTypes = this.configService.acceptedFileTypes;
-    this.isMultipleFileUploadEnabled =
-      this.configService.isMultipleFileUploadEnabled;
-    this.areMentionsEnabled = this.configService.areMentionsEnabled;
-    this.mentionAutocompleteItemTemplate =
-      this.configService.mentionAutocompleteItemTemplate;
-    this.mentionScope = this.configService.mentionScope;
-  }
-  ngOnInit(): void {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         this.textareaValue = '';
@@ -106,14 +95,26 @@ export class MessageInputComponent
             capabilities.indexOf('upload-file') !== -1;
           this.canSendLinks = capabilities.indexOf('send-links') !== -1;
           this.canSendMessages = capabilities.indexOf('send-message') !== -1;
-          this.cdRef.detectChanges();
-          this.initTextarea();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+            this.initTextarea();
+          }
         }
       })
     );
+    this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
+    this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
+    this.acceptedFileTypes = this.configService.acceptedFileTypes;
+    this.isMultipleFileUploadEnabled =
+      this.configService.isMultipleFileUploadEnabled;
+    this.areMentionsEnabled = this.configService.areMentionsEnabled;
+    this.mentionAutocompleteItemTemplate =
+      this.configService.mentionAutocompleteItemTemplate;
+    this.mentionScope = this.configService.mentionScope;
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     this.initTextarea();
   }
 
