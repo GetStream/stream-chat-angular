@@ -54,6 +54,7 @@ export class AutocompleteTextareaComponent
     triggerChar: this.triggerChar,
     dropUp: true,
     labelKey: this.labelKey,
+    returnTrigger: true,
     mentionFilter: (
       searchString: string,
       items: { autocompleteLabel: string }[]
@@ -109,7 +110,11 @@ export class AutocompleteTextareaComponent
   }
 
   autcompleteSearchTermChanged(searchTerm: string) {
-    this.searchTerm$.next(searchTerm);
+    if (searchTerm === this.triggerChar) {
+      void this.updateMentionOptions();
+    } else {
+      this.searchTerm$.next(searchTerm.replace(this.triggerChar, ''));
+    }
   }
 
   inputChanged() {

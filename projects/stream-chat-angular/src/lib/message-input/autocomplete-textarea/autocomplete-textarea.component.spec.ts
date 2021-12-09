@@ -313,4 +313,16 @@ describe('AutocompleteTextareaComponent', () => {
 
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it('should reset mention options after mention', fakeAsync(() => {
+    component.autcompleteSearchTermChanged('Ja');
+    tick(300);
+
+    expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
+
+    component.autcompleteSearchTermChanged('@');
+    tick();
+
+    expect(component.autocompleteConfig.mentions![0].items?.length).toBe(3);
+  }));
 });
