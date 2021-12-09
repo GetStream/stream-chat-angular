@@ -24,6 +24,7 @@ import { MessageActions } from '../message-actions-box/message-actions-box.compo
 })
 export class MessageListComponent implements AfterViewChecked, OnChanges {
   @Input() messageTemplate: TemplateRef<any> | undefined;
+  @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() areReactionsEnabled = true;
   /* eslint-disable-next-line @angular-eslint/no-input-rename */
   @Input('enabledMessageActions') enabledMessageActionsInput: MessageActions[] =

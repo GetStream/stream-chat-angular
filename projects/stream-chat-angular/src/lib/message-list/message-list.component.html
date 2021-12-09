@@ -26,7 +26,8 @@
                 lastSentMessageId: !!(
                   lastSentMessageId && message?.id === lastSentMessageId
                 ),
-                canReceiveReadEvents: canReceiveReadEvents
+                canReceiveReadEvents: canReceiveReadEvents,
+                messageInputTemplate: messageInputTemplate
               }
             "
           ></ng-container>
@@ -41,6 +42,7 @@
             "
             [enabledMessageActions]="enabledMessageActions"
             [canReceiveReadEvents]="canReceiveReadEvents"
+            [messageInputTemplate]="messageInputTemplate"
           ></stream-message>
         </ng-template>
       </li>

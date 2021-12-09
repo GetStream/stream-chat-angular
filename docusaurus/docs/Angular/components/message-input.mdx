@@ -18,10 +18,25 @@ If you want to create your own message input, here is how to use it:
 <stream-channel-list></stream-channel-list>
 <stream-channel>
   <stream-channel-header></stream-channel-header>
-  <stream-message-list></stream-message-list>
+  <stream-message-list
+    [messageInputTemplate]="customMessageInput"
+  ></stream-message-list>
   <custom-message-input></custom-message-input>
 </stream-channel>
+
+<ng-template
+  #customMessageInput
+  let-message="message"
+  let-messageUpdateHandler="messageUpdateHandler"
+>
+  <custom-message-input
+    [message]="message"
+    (messageUpdate)="messageUpdateHandler($event)"
+  ></custom-message-input>
+</ng-template>
 ```
+
+The default chat UI uses the message input in two different places: at the bottom of the channel to send new message, and in the message list to edit a message.
 
 :::note
 If you want to create your own message input, you can use the following building blocks:
@@ -49,10 +64,6 @@ If more than one message input component can exist on your chat UI you should pr
 
 You can use the [`Textarea`](./textarea.mdx) or the [`AutocompleteTextarea`](./autocomplete-textarea.mdx) component to display the input HTML element for the users to type.
 
-:::
-
-:::important
-Currently it is not possible to provide a custom component for message edit in the [`MessageActionsBox`](./message-actions.mdx) component. Please consider this limitation when creating your own custom message input.
 :::
 
 ## Inputs

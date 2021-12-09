@@ -48,10 +48,6 @@ export class CustomMessageComponent {
 ```
 
 :::important
-Currently it is not possible to provide a custom component for message edit.
-:::
-
-:::important
 The `MessageActionBox` component doesn't check if the user has the necessary capabilities to perform a given aciton, it is done by the [`MessageList`](./message-list.mdx/#enabledmessageactions) component.
 :::
 
@@ -86,6 +82,14 @@ The list of actions that are enabled. To disable all actions, provide an empty a
 | Type                                                                                                                                                                        | Default |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | [`MessageAction`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts)[] | []      |
+
+### messageInputTemplate
+
+The input used for message edit. By default, the [default message input component](./message-input.mdx) is used. To change the input for message edit, provide [your own custom template](./message-input.mdx/#customization).
+
+| Type        |
+| ----------- |
+| TemplateRef |
 
 ## Outputs
 

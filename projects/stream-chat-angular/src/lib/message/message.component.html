@@ -66,6 +66,7 @@
               [message]="message"
               (displayedActionsCount)="visibleMessageActionsCount = $event"
               (isEditing)="isEditing = $event; isActionBoxOpen = !isEditing"
+              [messageInputTemplate]="messageInputTemplate"
             ></stream-message-actions-box>
             <stream-icon
               *ngIf="visibleMessageActionsCount > 0"

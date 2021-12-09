@@ -1,4 +1,10 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -14,6 +20,7 @@ import { getReadByText } from './read-by-text';
   styles: [],
 })
 export class MessageComponent {
+  @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() message: StreamMessage | undefined;
   @Input() enabledMessageActions: MessageActions[] = [];
   @Input() areReactionsEnabled: boolean | undefined;
