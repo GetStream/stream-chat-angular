@@ -3,6 +3,8 @@ import {
   ElementRef,
   Input,
   TemplateRef,
+  OnChanges,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { UserResponse } from 'stream-chat';
@@ -19,8 +21,9 @@ import { getReadByText } from './read-by-text';
   templateUrl: './message.component.html',
   styles: [],
 })
-export class MessageComponent {
+export class MessageComponent implements OnChanges {
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
+  @Input() mentionTemplate: TemplateRef<any> | undefined;
   @Input() message: StreamMessage | undefined;
   @Input() enabledMessageActions: MessageActions[] = [];
   @Input() areReactionsEnabled: boolean | undefined;
@@ -32,6 +35,11 @@ export class MessageComponent {
   isReactionSelectorOpen = false;
   isPressedOnMobile = false;
   visibleMessageActionsCount = 0;
+  messageTextParts: {
+    content: string;
+    type: 'text' | 'mention';
+    user?: UserResponse;
+  }[] = [];
   private user: UserResponse<DefaultUserType> | undefined;
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
@@ -42,6 +50,49 @@ export class MessageComponent {
     private channelService: ChannelService
   ) {
     this.user = this.chatClientService.chatClient.user;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.message) {
+      let content = this.message?.html || this.message?.text;
+      if (!content) {
+        this.messageTextParts = [];
+      } else {
+        // Backend will wrap HTML content with <p></p>\n
+        if (content.startsWith('<p>')) {
+          content = content.replace('<p>', '');
+        }
+        if (content.endsWith('</p>\n')) {
+          content = content.replace('</p>\n', '');
+        }
+        if (
+          !this.message!.mentioned_users ||
+          this.message!.mentioned_users.length === 0
+        ) {
+          this.messageTextParts = [{ content, type: 'text' }];
+        } else {
+          this.messageTextParts = [];
+          let text = content;
+          this.message!.mentioned_users.forEach((user) => {
+            const mention = `@${user.name || user.id}`;
+            const precedingText = text.substring(0, text.indexOf(mention));
+            this.messageTextParts.push({
+              content: precedingText,
+              type: 'text',
+            });
+            this.messageTextParts.push({
+              content: mention,
+              type: 'mention',
+              user,
+            });
+            text = text.replace(precedingText + mention, '');
+          });
+          if (text) {
+            this.messageTextParts.push({ content: text, type: 'text' });
+          }
+        }
+      }
+    }
   }
 
   get isSentByCurrentUser() {

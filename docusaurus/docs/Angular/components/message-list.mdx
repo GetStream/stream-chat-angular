@@ -67,6 +67,14 @@ The input used for message edit. By default, the [default message input componen
 | ----------- |
 | TemplateRef |
 
+### mentionTemplate
+
+The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
+
+| Type        |
+| ----------- |
+| TemplateRef |
+
 ### areReactionsEnabled
 
 If true, the message reactions are displayed. Users can also react to messages if they have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).

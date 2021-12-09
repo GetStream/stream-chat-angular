@@ -18,7 +18,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AttachmentPreviewListComponent } from './attachment-preview-list/attachment-preview-list.component';
 import { ModalComponent } from './modal/modal.component';
 import { TextareaDirective } from './message-input/textarea.directive';
-import { HighlightMentionsPipe } from './message/highlight-mentions.pipe';
 import { StreamAvatarModule } from './stream-avatar.module';
 
 @NgModule({
@@ -40,7 +39,6 @@ import { StreamAvatarModule } from './stream-avatar.module';
     AttachmentPreviewListComponent,
     ModalComponent,
     TextareaDirective,
-    HighlightMentionsPipe,
   ],
   imports: [CommonModule, TranslateModule, StreamAvatarModule],
   exports: [
@@ -60,7 +58,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
     NotificationListComponent,
     AttachmentPreviewListComponent,
     ModalComponent,
-    HighlightMentionsPipe,
+    StreamAvatarModule,
   ],
 })
 export class StreamChatModule {}
