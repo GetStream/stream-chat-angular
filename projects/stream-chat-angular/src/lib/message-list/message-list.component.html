@@ -27,7 +27,8 @@
                   lastSentMessageId && message?.id === lastSentMessageId
                 ),
                 canReceiveReadEvents: canReceiveReadEvents,
-                messageInputTemplate: messageInputTemplate
+                messageInputTemplate: messageInputTemplate,
+                mentionTemplate: mentionTemplate
               }
             "
           ></ng-container>
@@ -43,6 +44,7 @@
             [enabledMessageActions]="enabledMessageActions"
             [canReceiveReadEvents]="canReceiveReadEvents"
             [messageInputTemplate]="messageInputTemplate"
+            [mentionTemplate]="mentionTemplate"
           ></stream-message>
         </ng-template>
       </li>

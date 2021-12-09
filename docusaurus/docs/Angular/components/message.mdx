@@ -53,6 +53,8 @@ The message list uses the `Message` component to display messages, if you want t
 </ng-template>
 ```
 
+Your custom template can receive the same inputs (with the same name) as the default `Message` component.
+
 :::note
 
 If you want to build your own `Message` component, you might find the following building blocks useful:
@@ -153,6 +155,14 @@ If `true`, the message status (sending, sent, who read the message) is displayed
 ### messageInputTemplate
 
 The input used for message edit. By default, the [default message input component](./message-input.mdx) is used. To change the input for message edit, provide [your own custom template](./message-input.mdx/#customization).
+
+| Type        |
+| ----------- |
+| TemplateRef |
+
+### mentionTemplate
+
+The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
 
 | Type        |
 | ----------- |

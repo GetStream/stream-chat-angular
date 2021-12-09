@@ -10,7 +10,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
-import { HighlightMentionsPipe } from '../message/highlight-mentions.pipe';
 import { MessageComponent } from '../message/message.component';
 import {
   MockChannelService,
@@ -35,11 +34,7 @@ describe('MessageListComponent', () => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [
-        MessageComponent,
-        MessageListComponent,
-        HighlightMentionsPipe,
-      ],
+      declarations: [MessageComponent, MessageListComponent],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         {

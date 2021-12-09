@@ -14,7 +14,7 @@ import { AttachmentListComponent } from '../attachment-list/attachment-list.comp
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
-import { HighlightMentionsPipe } from './highlight-mentions.pipe';
+import { SimpleChange } from '@angular/core';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -58,7 +58,6 @@ describe('MessageComponent', () => {
         MessageActionsBoxComponent,
         AttachmentListComponent,
         MessageReactionsComponent,
-        HighlightMentionsPipe,
       ],
       providers: [
         {
@@ -104,6 +103,7 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="message-actions-container"]');
     message = mockMessage();
     component.message = message;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
     messageActionsBoxComponent = fixture.debugElement.query(
       By.directive(MessageActionsBoxComponent)
@@ -627,9 +627,10 @@ describe('MessageComponent', () => {
     const htmlContent =
       '<a href="https://getstream.io/">https://getstream.io/</a>';
     component.message = { ...component.message!, ...{ html: htmlContent } };
+    component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
 
-    expect(queryText()?.innerHTML).toEqual(htmlContent);
+    expect(queryText()?.innerHTML).toContain(htmlContent);
   });
 
   it('should resend message, if sending is failed', () => {
@@ -710,5 +711,118 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(component.isEditing).toBeTrue();
+  });
+
+  it('should create message parts', () => {
+    component.message = {
+      text: '',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([]);
+
+    component.message = {
+      text: 'This is a message without user mentions',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      { content: 'This is a message without user mentions', type: 'text' },
+    ]);
+
+    component.message = {
+      text: 'This is just an email, not a mention test@test.com',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      {
+        content: 'This is just an email, not a mention test@test.com',
+        type: 'text',
+      },
+    ]);
+
+    component.message = {
+      html: '<p>This is just an email, not a mention test@test.com</p>\n',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      {
+        content: 'This is just an email, not a mention test@test.com',
+        type: 'text',
+      },
+    ]);
+
+    component.message = {
+      text: 'Hello @Jack',
+      mentioned_users: [{ id: 'jack', name: 'Jack' }],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      { content: 'Hello ', type: 'text' },
+      {
+        content: '@Jack',
+        type: 'mention',
+        user: { id: 'jack', name: 'Jack' },
+      },
+    ]);
+
+    component.message = {
+      text: 'Hello @Jack, how are you?',
+      mentioned_users: [{ id: 'jack', name: 'Jack' }],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      { content: 'Hello ', type: 'text' },
+      {
+        content: '@Jack',
+        type: 'mention',
+        user: { id: 'jack', name: 'Jack' },
+      },
+      { content: ', how are you?', type: 'text' },
+    ]);
+
+    component.message = {
+      text: 'Hello @Jack and @Lucie, how are you?',
+      mentioned_users: [
+        { id: 'id2334', name: 'Jack' },
+        { id: 'id3444', name: 'Lucie' },
+      ],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      { content: 'Hello ', type: 'text' },
+      {
+        content: '@Jack',
+        type: 'mention',
+        user: { id: 'id2334', name: 'Jack' },
+      },
+      { content: ' and ', type: 'text' },
+      {
+        content: '@Lucie',
+        type: 'mention',
+        user: { id: 'id3444', name: 'Lucie' },
+      },
+      { content: ', how are you?', type: 'text' },
+    ]);
+
+    component.message = {
+      html: `<p><a href="https://getstream.io/">https://getstream.io/</a> this is the link @sara</p>\n`,
+      mentioned_users: [{ id: 'sara' }],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      {
+        content:
+          '<a href="https://getstream.io/">https://getstream.io/</a> this is the link ',
+        type: 'text',
+      },
+      { content: '@sara', type: 'mention', user: { id: 'sara' } },
+    ]);
   });
 });

@@ -144,11 +144,30 @@
               (click)="textClicked()"
               (keyup.enter)="textClicked()"
               data-testid="text"
-              [innerHTML]="
-                message?.html || message?.text
-                  | highlightMentions: message?.mentioned_users
-              "
-            ></div>
+            >
+              <p>
+                <!-- eslint-disable-next-line @angular-eslint/template/use-track-by-function -->
+                <ng-container *ngFor="let part of messageTextParts">
+                  <span
+                    *ngIf="part.type === 'text'; else mention"
+                    [innerHTML]="part.content"
+                  ></span>
+                  <ng-template #mention>
+                    <ng-container *ngIf="mentionTemplate; else defaultMention">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          mentionTemplate;
+                          context: { user: part.user! }
+                        "
+                      ></ng-container>
+                    </ng-container>
+                    <ng-template #defaultMention>
+                      <b>{{ part.content }}</b>
+                    </ng-template>
+                  </ng-template>
+                </ng-container>
+              </p>
+            </div>
           </div>
         </div>
         <div class="str-chat__message-data str-chat__message-simple-data">
