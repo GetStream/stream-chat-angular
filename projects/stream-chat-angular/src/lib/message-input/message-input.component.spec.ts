@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Channel, UserResponse } from 'stream-chat';
+import { AppSettings, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -36,8 +36,11 @@ describe('MessageInputComponent', () => {
     mapToAttachments: jasmine.Spy;
     createFromAttachments: jasmine.Spy;
   };
+  let appSettings$: Subject<AppSettings>;
+  let getAppSettings: jasmine.Spy;
 
   beforeEach(() => {
+    appSettings$ = new Subject<AppSettings>();
     channel = generateMockChannels(1)[0];
     mockActiveChannel$ = new BehaviorSubject(channel);
     user = mockCurrentUser();
@@ -51,6 +54,7 @@ describe('MessageInputComponent', () => {
       mapToAttachments: jasmine.createSpy(),
       createFromAttachments: jasmine.createSpy(),
     };
+    getAppSettings = jasmine.createSpy();
     TestBed.overrideComponent(MessageInputComponent, {
       set: {
         providers: [
@@ -84,7 +88,7 @@ describe('MessageInputComponent', () => {
         },
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user } },
+          useValue: { chatClient: { user }, appSettings$, getAppSettings },
         },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -221,7 +225,17 @@ describe('MessageInputComponent', () => {
     expect(queryattachmentUploadButton()).toBeNull();
   });
 
-  it('should set the accepted file types', () => {
+  it('should set the accepted file types, even if app settings are defined', () => {
+    appSettings$.next({
+      file_upload_config: {
+        allowed_file_extensions: ['.txt'],
+        allowed_mime_types: ['application/json'],
+      },
+      image_upload_config: {
+        allowed_file_extensions: ['.png'],
+        allowed_mime_types: ['image/jpeg'],
+      },
+    });
     const accepted = ['.jpg', '.png'];
     component.acceptedFileTypes = accepted;
     fixture.detectChanges();
@@ -472,5 +486,103 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(queryTextarea()).toBeUndefined();
+  });
+
+  it(`shouldn't set accept, if #acceptedFileTypes not defined`, () => {
+    expect(component.accept).toBe('');
+
+    appSettings$.next({
+      file_upload_config: {
+        allowed_file_extensions: ['.txt'],
+        allowed_mime_types: ['application/json'],
+      },
+      image_upload_config: {
+        allowed_file_extensions: ['.png'],
+        allowed_mime_types: ['image/jpeg'],
+      },
+    });
+
+    expect(component.accept).toBe('');
+  });
+
+  it('should check uploaded attachments', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    appSettings$.next({
+      file_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+      },
+      image_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+      },
+    });
+    let files = [{ name: 'test.pdf', type: 'application/pdf' }];
+    await component.filesSelected(files as any as FileList);
+
+    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
+
+    attachmentService.filesSelected.calls.reset();
+    appSettings$.next({
+      file_upload_config: {
+        blocked_file_extensions: ['.doc'],
+      },
+      image_upload_config: {
+        blocked_mime_types: ['image/png'],
+      },
+    });
+    files = [
+      { name: 'test.pdf', type: 'application/pdf' },
+      { name: 'test2.doc', type: 'application/msword' },
+      { name: 'test3.png', type: 'image/png' },
+    ];
+    await component.filesSelected(files as any as FileList);
+
+    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
+      2
+    );
+
+    attachmentService.filesSelected.calls.reset();
+    (notificationService.addTemporaryNotification as jasmine.Spy).calls.reset();
+    appSettings$.next({
+      file_upload_config: {
+        allowed_mime_types: ['application/msword'],
+      },
+      image_upload_config: {
+        allowed_file_extensions: ['.jpg', '.png'],
+      },
+    });
+    files = [
+      { name: 'test.pdf', type: 'application/pdf' },
+      { name: 'test2.doc', type: 'application/msword' },
+      { name: 'test3.png', type: 'image/png' },
+      { name: 'test4.txt', type: 'application/text' },
+    ];
+    await component.filesSelected(files as any as FileList);
+
+    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
+      2
+    );
+  });
+
+  it(`shouldn't check attachments against #acceptedFileTypes, if that is defined`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    component.acceptedFileTypes = ['application/pdf', '.jpg'];
+    const files = [{ name: 'test3.png', type: 'image/png' }];
+    await component.filesSelected(files as any as FileList);
+
+    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
+  });
+
+  it('should load app settings, if not yet loaded', async () => {
+    const files = [{ name: 'test.pdf', type: 'application/pdf' }];
+    await component.filesSelected(files as any as FileList);
+
+    expect(getAppSettings).toHaveBeenCalledWith();
   });
 });

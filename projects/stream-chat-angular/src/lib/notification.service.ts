@@ -6,6 +6,7 @@ export type NotificationType = 'success' | 'error';
 export type NotificationPayload = {
   type: NotificationType;
   text: string;
+  translateParams?: Object;
 };
 
 @Injectable({
@@ -22,9 +23,10 @@ export class NotificationService {
   addTemporaryNotification(
     text: string,
     type: NotificationType = 'error',
-    timeout: number = 5000
+    timeout: number = 5000,
+    translateParams?: Object
   ) {
-    this.addNotification(text, type);
+    this.addNotification(text, type, translateParams);
     const id = setTimeout(() => this.removeNotification(text), timeout);
 
     return () => {
@@ -33,16 +35,24 @@ export class NotificationService {
     };
   }
 
-  addPermanentNotification(text: string, type: NotificationType = 'error') {
-    this.addNotification(text, type);
+  addPermanentNotification(
+    text: string,
+    type: NotificationType = 'error',
+    translateParams?: Object
+  ) {
+    this.addNotification(text, type, translateParams);
 
     return () => this.removeNotification(text);
   }
 
-  private addNotification(text: string, type: NotificationType) {
+  private addNotification(
+    text: string,
+    type: NotificationType,
+    translateParams?: Object
+  ) {
     this.notificationsSubject.next([
       ...this.notificationsSubject.getValue(),
-      { text, type },
+      { text, type, translateParams },
     ]);
   }
 

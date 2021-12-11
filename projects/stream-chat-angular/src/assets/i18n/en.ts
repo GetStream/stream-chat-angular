@@ -90,5 +90,6 @@ export const en = {
       'Sending links is not allowed in this conversation',
     "You can't send messages in this channel":
       "You can't send messages in this channel",
+    'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
   },
 };

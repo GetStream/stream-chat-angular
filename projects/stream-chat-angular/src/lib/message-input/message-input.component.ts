@@ -16,9 +16,10 @@ import {
   Type,
   ViewChild,
 } from '@angular/core';
+import { ChatClientService } from '../chat-client.service';
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
-import { UserResponse } from 'stream-chat';
+import { AppSettings, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
@@ -31,6 +32,7 @@ import {
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
+import { isImageFile } from '../is-image-file';
 
 @Component({
   selector: 'stream-message-input',
@@ -47,6 +49,9 @@ export class MessageInputComponent
   @Input() mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
     | undefined;
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-input/#caution-acceptedfiletypes
+   */
   @Input() acceptedFileTypes: string[] | undefined;
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
   @Input() message: StreamMessage | undefined;
@@ -64,6 +69,7 @@ export class MessageInputComponent
   private subscriptions: Subscription[] = [];
   private hideNotification: Function | undefined;
   private isViewInited = false;
+  private appSettings: AppSettings | undefined;
 
   constructor(
     private channelService: ChannelService,
@@ -73,7 +79,8 @@ export class MessageInputComponent
     @Inject(textareaInjectionToken)
     private textareaType: Type<TextareaInterface>,
     private componentFactoryResolver: ComponentFactoryResolver,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private chatClient: ChatClientService
   ) {
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
@@ -101,6 +108,11 @@ export class MessageInputComponent
           }
         }
       })
+    );
+    this.subscriptions.push(
+      this.chatClient.appSettings$.subscribe(
+        (appSettings) => (this.appSettings = appSettings)
+      )
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
@@ -218,6 +230,9 @@ export class MessageInputComponent
   }
 
   async filesSelected(fileList: FileList | null) {
+    if (!(await this.areAttachemntsValid(fileList))) {
+      return;
+    }
     await this.attachmentService.filesSelected(fileList);
     this.clearFileInput();
   }
@@ -241,5 +256,77 @@ export class MessageInputComponent
         componentFactory
       );
     this.cdRef.detectChanges();
+  }
+
+  private async areAttachemntsValid(fileList: FileList | null) {
+    if (!fileList || this.acceptedFileTypes) {
+      return true;
+    }
+    if (!this.appSettings) {
+      await this.chatClient.getAppSettings();
+    }
+    let isValid = true;
+    Array.from(fileList).forEach((f) => {
+      let hasBlockedExtension: boolean;
+      let hasBlockedMimeType: boolean;
+      let hasNotAllowedExtension: boolean;
+      let hasNotAllowedMimeType: boolean;
+      if (isImageFile(f)) {
+        hasBlockedExtension =
+          !!this.appSettings?.image_upload_config?.blocked_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasBlockedMimeType =
+          !!this.appSettings?.image_upload_config?.blocked_mime_types?.find(
+            (type) => f.type === type
+          );
+        hasNotAllowedExtension =
+          !!this.appSettings?.image_upload_config?.allowed_file_extensions
+            ?.length &&
+          !this.appSettings?.image_upload_config?.allowed_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasNotAllowedMimeType =
+          !!this.appSettings?.image_upload_config?.allowed_mime_types?.length &&
+          !this.appSettings?.image_upload_config?.allowed_mime_types?.find(
+            (type) => f.type === type
+          );
+      } else {
+        hasBlockedExtension =
+          !!this.appSettings?.file_upload_config?.blocked_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasBlockedMimeType =
+          !!this.appSettings?.file_upload_config?.blocked_mime_types?.find(
+            (type) => f.type === type
+          );
+        hasNotAllowedExtension =
+          !!this.appSettings?.file_upload_config?.allowed_file_extensions
+            ?.length &&
+          !this.appSettings?.file_upload_config?.allowed_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasNotAllowedMimeType =
+          !!this.appSettings?.file_upload_config?.allowed_mime_types?.length &&
+          !this.appSettings?.file_upload_config?.allowed_mime_types?.find(
+            (type) => f.type === type
+          );
+      }
+      if (
+        hasBlockedExtension ||
+        hasBlockedMimeType ||
+        hasNotAllowedExtension ||
+        hasNotAllowedMimeType
+      ) {
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Unsupported file type: {{type}}',
+          undefined,
+          undefined,
+          { type: f.type }
+        );
+        isValid = false;
+      }
+    });
+    return isValid;
   }
 }

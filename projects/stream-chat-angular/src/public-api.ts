@@ -36,6 +36,7 @@ export * from './lib/notification-list/notification-list.component';
 export * from './lib/modal/modal.component';
 export * from './lib/read-by';
 export * from './lib/is-image-attachment';
+export * from './lib/is-image-file';
 export * from './lib/device-width';
 export * from './lib/message-preview';
 export * from './lib/notification.service';

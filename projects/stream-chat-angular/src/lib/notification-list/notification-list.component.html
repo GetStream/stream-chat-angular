@@ -2,8 +2,8 @@
   <stream-notification
     *ngFor="let notification of notifications$ | async; trackBy: trackByItem"
     [type]="notification.type"
-    ><div data-testclass="notification-content" translate>
-      {{ notification.text }}
+    ><div data-testclass="notification-content">
+      {{ notification.text | translate: notification.translateParams }}
     </div></stream-notification
   >
 </div>

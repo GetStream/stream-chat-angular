@@ -20,10 +20,6 @@ Please note that for performance reaasons the client is connected [outside of th
 
 Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given `userId` and `userToken`. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
 
-:::important
-Calling the `init` method creates a new [WebSocket connection](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript#websocket-connections), you should only call it once.
-:::
-
 ## notification$
 
 Emits [`Notification`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events, the list of [supported events](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) can be found on GitHub. The platform documentation covers [events in detail](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
@@ -32,9 +28,17 @@ Emits [`Notification`](https://github.com/GetStream/stream-chat-angular/blob/mas
 
 Emits the current connection state of the user (`online` or `offline`)
 
+## appSettings$
+
+Emits the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
+
 ## flagMessage
 
 Flag the message with the given ID. If you want to know [more about flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) check out the platform documentation.
+
+## getApplicationSettings
+
+Loads the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript), if the application settings have already been loaded, it does nothing.
 
 ## autcompleteUsers
 

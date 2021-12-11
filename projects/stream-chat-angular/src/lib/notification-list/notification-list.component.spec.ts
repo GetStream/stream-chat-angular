@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { TranslateModule } from '@ngx-translate/core';
 import { NotificationService } from '../notification.service';
 import { NotificationComponent } from '../notification/notification.component';
 
@@ -12,6 +13,7 @@ describe('NotificationListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       declarations: [NotificationListComponent, NotificationComponent],
     }).compileComponents();
   });
