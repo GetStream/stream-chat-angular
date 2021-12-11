@@ -9,7 +9,7 @@
 **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
-- [Angular Chat Tutorial](https://getstream.io/tutorials/angular-chat/)
+- [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/)
 - [Demo Apps](https://getstream.io/chat/demos/)
 - [Docs](https://getstream.io/chat/docs/sdk/angular/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
@@ -23,7 +23,7 @@ With our component library, you can build a variety of chat use cases, including
 
 ## Angular Chat Tutorial
 
-The best way to get started is to follow the [Angular Chat Tutorial](https://getstream.io/tutorials/angular-chat/). It shows you how to use this SDK to build a fully functional chat application and includes common customizations.
+The best way to get started is to follow the [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/). It shows you how to use this SDK to build a fully functional chat application and includes common customizations.
 
 ## Free for Makers
 

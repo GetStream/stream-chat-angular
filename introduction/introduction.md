@@ -12,7 +12,7 @@ The Angular Chat Messaging Component Library includes everything you need to bui
 
 We recommend you use our component SDK. Chat applications have a lot of moving parts and the Chat Component SDK handles all the stateful chat logic for you to make integration easy. Furthermore, the components offered are highly customisable allowing you to seamlessly incorporate your chat application into your existing application experience. That being said, for various reasons you may choose to build all of your chat UI components yourself, in which case you can still use our Component SDK and take adventage of the Angular services.
 
-Before reviewing the Chat API docs, we recommend having a look at the [tutorial](https://getstream.io/tutorials/angular-chat/).
+Before reviewing the Chat API docs, we recommend having a look at the [tutorial](https://getstream.io/chat/angular/tutorial/).
 
 ## Chat tutorial
 
@@ -22,7 +22,7 @@ TBD copy
 
 Now that you have basic understanding of the building blocks of our chat API, you can move on to Angular integration. The following resources should help you get started:
 
-- [Angular chat tutorial](https://getstream.io/tutorials/angular-chat/)
+- [Angular chat tutorial](https://getstream.io/chat/angular/tutorial/)
 - [Component reference](https://getstream.io/chat/docs/sdk/angular/)
 
 We would also recommend you to take a deep dive into our Chat API, by following next steps in navigation on left side.
