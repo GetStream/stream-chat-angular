@@ -18,11 +18,12 @@ Displays a notification for the given amount of time.
 
 ### Params:
 
-| Name    | Type                 | Description                                                         | Default |
-| ------- | -------------------- | ------------------------------------------------------------------- | ------- |
-| text    | string               | The text of the notification                                        | -       |
-| type    | `error` or `success` | The type of the notification                                        | `error` |
-| timeout | number               | The number of milliseconds while the notification should be visible | 5000ms  |
+| Name            | Type                 | Description                                                         | Default |
+| --------------- | -------------------- | ------------------------------------------------------------------- | ------- |
+| text            | string               | The text of the notification                                        | -       |
+| type            | `error` or `success` | The type of the notification                                        | `error` |
+| timeout         | number               | The number of milliseconds while the notification should be visible | 5000ms  |
+| translateParams | Object               | Translation parameters for the `text`                               | -       |
 
 ### Returns
 
@@ -34,10 +35,11 @@ Displays a notification, the notification can be hidden by the [`removeNotificat
 
 ### Params:
 
-| Name | Type                 | Description                  | Default |
-| ---- | -------------------- | ---------------------------- | ------- |
-| text | string               | The text of the notification | -       |
-| type | `error` or `success` | The type of the notification | `error` |
+| Name            | Type                 | Description                           | Default |
+| --------------- | -------------------- | ------------------------------------- | ------- |
+| text            | string               | The text of the notification          | -       |
+| type            | `error` or `success` | The type of the notification          | `error` |
+| translateParams | Object               | Translation parameters for the `text` | -       |
 
 ### Returns
 

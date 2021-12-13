@@ -1,6 +1,7 @@
 import { DefaultUserType, StreamMessage } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import {
+  AppSettings,
   Channel,
   ChannelMemberResponse,
   ChannelState,
@@ -190,6 +191,7 @@ export const mockChannelService = (): MockChannelService => {
 };
 
 export type MockStreamChatClient = {
+  appSettings$: Subject<AppSettings>;
   user: UserResponse;
   connectUser: jasmine.Spy;
   on: (name: EventTypes, handler: () => {}) => void;
@@ -198,6 +200,7 @@ export type MockStreamChatClient = {
   setUserAgent: jasmine.Spy;
   queryUsers: jasmine.Spy;
   getUserAgent: () => string;
+  getAppSettings: jasmine.Spy;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
@@ -207,6 +210,22 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const flagMessage = jasmine.createSpy();
   const setUserAgent = jasmine.createSpy();
   const queryUsers = jasmine.createSpy();
+  const getAppSettings = jasmine.createSpy().and.returnValue({
+    app: {
+      file_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+        blocked_file_extensions: [],
+        blocked_mime_types: [],
+      },
+      image_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+        blocked_file_extensions: [],
+        blocked_mime_types: [],
+      },
+    },
+  });
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes, handler: () => {}) => {
@@ -216,6 +235,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     eventHandlers[name as string](event);
   };
   const getUserAgent = () => 'stream-chat-javascript-client-browser-2.2.2';
+  const appSettings$ = new Subject<AppSettings>();
 
   return {
     connectUser,
@@ -226,6 +246,8 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     getUserAgent,
     setUserAgent,
     queryUsers,
+    getAppSettings,
+    appSettings$,
   };
 };
 

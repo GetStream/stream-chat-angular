@@ -26,10 +26,28 @@ describe('ChatClientService', () => {
 
   it('should connect user', () => {
     expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey);
-    expect(mockChatClient.connectUser).toHaveBeenCalledWith(
-      { id: userId },
-      userToken
+    const spy = jasmine.createSpy();
+    service.appSettings$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should emit app settings, if app settings not yet loaded', async () => {
+    const spy = jasmine.createSpy();
+    service.appSettings$.subscribe(spy);
+    await service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        file_upload_config: jasmine.any(Object),
+        image_upload_config: jasmine.any(Object),
+      })
     );
+
+    mockChatClient.getAppSettings.calls.reset();
+    await service.getAppSettings();
+
+    expect(mockChatClient.getAppSettings).not.toHaveBeenCalled();
   });
 
   it('should set SDK information', () => {

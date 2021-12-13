@@ -18,7 +18,9 @@ describe('NotificationService', () => {
     const type = 'error';
     service.addTemporaryNotification(text, type);
 
-    expect(spy).toHaveBeenCalledWith([{ text, type }]);
+    expect(spy).toHaveBeenCalledWith([
+      { text, type, translateParams: undefined },
+    ]);
   });
 
   it('should remove notification, after given time ends', fakeAsync(() => {
@@ -26,7 +28,9 @@ describe('NotificationService', () => {
     const type = 'error';
     service.addTemporaryNotification(text, type);
 
-    expect(spy).toHaveBeenCalledWith([{ text, type }]);
+    expect(spy).toHaveBeenCalledWith([
+      jasmine.objectContaining({ text, type }),
+    ]);
 
     tick(5000);
 
@@ -34,11 +38,12 @@ describe('NotificationService', () => {
   }));
 
   it('should add permanent notification', fakeAsync(() => {
-    const text = 'Connection lost';
+    const text = 'Connection lost, recconest after {{timeout}}ms';
     const type = 'error';
-    service.addPermanentNotification(text, type);
+    const translateParams = { timeout: 5000 };
+    service.addPermanentNotification(text, type, translateParams);
 
-    expect(spy).toHaveBeenCalledWith([{ text, type }]);
+    expect(spy).toHaveBeenCalledWith([{ text, type, translateParams }]);
     spy.calls.reset();
 
     tick(5000);

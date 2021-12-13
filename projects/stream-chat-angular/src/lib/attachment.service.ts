@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { isImageFile } from './is-image-file';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -39,8 +40,7 @@ export class AttachmentService {
     const dataFiles: File[] = [];
 
     Array.from(fileList).forEach((file) => {
-      if (file.type.startsWith('image/') && !file.type.endsWith('.photoshop')) {
-        // photoshop files begin with 'image/'
+      if (isImageFile(file)) {
         imageFiles.push(file);
       } else {
         dataFiles.push(file);

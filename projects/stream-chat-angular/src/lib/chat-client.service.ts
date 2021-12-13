@@ -1,6 +1,6 @@
 import { ApplicationRef, Injectable, NgZone } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
-import { Event, StreamChat } from 'stream-chat';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { AppSettings, Event, StreamChat } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 
@@ -18,9 +18,13 @@ export type Notification = {
 export class ChatClientService {
   chatClient!: StreamChat;
   notification$: Observable<Notification>;
+  appSettings$: Observable<AppSettings | undefined>;
   connectionState$: Observable<'offline' | 'online'>;
   private notificationSubject = new ReplaySubject<Notification>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
+  private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
+    undefined
+  );
 
   constructor(
     private ngZone: NgZone,
@@ -29,6 +33,7 @@ export class ChatClientService {
   ) {
     this.notification$ = this.notificationSubject.asObservable();
     this.connectionState$ = this.connectionStateSubject.asObservable();
+    this.appSettings$ = this.appSettingsSubject.asObservable();
   }
 
   async init(apiKey: string, userId: string, userToken: string) {
@@ -39,6 +44,7 @@ export class ChatClientService {
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
     });
+    this.appSettingsSubject.next(undefined);
     this.chatClient.on('notification.added_to_channel', (e) => {
       this.notificationSubject.next({
         eventType: 'notification.added_to_channel',
@@ -75,6 +81,14 @@ export class ChatClientService {
       this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
       this.appRef.tick();
     });
+  }
+
+  async getAppSettings() {
+    if (this.appSettingsSubject.getValue()) {
+      return;
+    }
+    const settings = await this.chatClient.getAppSettings();
+    this.appSettingsSubject.next(settings.app || {});
   }
 
   async flagMessage(messageId: string) {
