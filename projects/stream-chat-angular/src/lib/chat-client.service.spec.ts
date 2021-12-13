@@ -59,8 +59,11 @@ describe('ChatClientService', () => {
   it('should watch for added to channel events', () => {
     const spy = jasmine.createSpy();
     service.notification$.subscribe(spy);
-    const event = { id: 'mockevent' } as any as Event;
-    mockChatClient.handleEvent('notification.added_to_channel', event);
+    const event = {
+      id: 'mockevent',
+      type: 'notification.added_to_channel',
+    } as any as Event;
+    mockChatClient.handleEvent(event.type, event);
 
     expect(spy).toHaveBeenCalledWith({
       eventType: 'notification.added_to_channel',
@@ -71,8 +74,11 @@ describe('ChatClientService', () => {
   it('should watch for new message events', () => {
     const spy = jasmine.createSpy();
     service.notification$.subscribe(spy);
-    const event = { id: 'mockevent' } as any as Event;
-    mockChatClient.handleEvent('notification.message_new', event);
+    const event = {
+      id: 'mockevent',
+      type: 'notification.message_new',
+    } as any as Event;
+    mockChatClient.handleEvent(event.type, event);
 
     expect(spy).toHaveBeenCalledWith({
       eventType: 'notification.message_new',
@@ -83,8 +89,11 @@ describe('ChatClientService', () => {
   it('should watch for removed from channel events', () => {
     const spy = jasmine.createSpy();
     service.notification$.subscribe(spy);
-    const event = { id: 'mockevent' } as any as Event;
-    mockChatClient.handleEvent('notification.removed_from_channel', event);
+    const event = {
+      id: 'mockevent',
+      type: 'notification.removed_from_channel',
+    } as any as Event;
+    mockChatClient.handleEvent(event.type, event);
 
     expect(spy).toHaveBeenCalledWith({
       eventType: 'notification.removed_from_channel',

@@ -228,11 +228,19 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   });
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
-  const on = (name: EventTypes, handler: () => {}) => {
-    eventHandlers[name as string] = handler;
+  const on = (name: EventTypes | Function, handler: () => {}) => {
+    if (typeof name === 'string') {
+      eventHandlers[name as string] = handler;
+    } else {
+      eventHandlers['all'] = name;
+    }
   };
   const handleEvent = (name: EventTypes, event: Event) => {
-    eventHandlers[name as string](event);
+    if (eventHandlers[name as string]) {
+      eventHandlers[name as string](event);
+    } else {
+      eventHandlers['all']({ ...event, type: name });
+    }
   };
   const getUserAgent = () => 'stream-chat-javascript-client-browser-2.2.2';
   const appSettings$ = new Subject<AppSettings>();

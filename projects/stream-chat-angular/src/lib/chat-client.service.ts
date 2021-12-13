@@ -1,14 +1,11 @@
-import { ApplicationRef, Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { AppSettings, Event, StreamChat } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 
 export type Notification = {
-  eventType:
-    | 'notification.added_to_channel'
-    | 'notification.message_new'
-    | 'notification.removed_from_channel';
+  eventType: string;
   event: Event;
 };
 
@@ -28,7 +25,6 @@ export class ChatClientService {
 
   constructor(
     private ngZone: NgZone,
-    private appRef: ApplicationRef,
     private notificationService: NotificationService
   ) {
     this.notification$ = this.notificationSubject.asObservable();
@@ -43,43 +39,31 @@ export class ChatClientService {
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
+      this.chatClient.getAppSettings;
     });
     this.appSettingsSubject.next(undefined);
-    this.chatClient.on('notification.added_to_channel', (e) => {
+    this.chatClient.on((e) => {
       this.notificationSubject.next({
-        eventType: 'notification.added_to_channel',
+        eventType: e.type,
         event: e,
       });
-      this.appRef.tick();
-    });
-    this.chatClient.on('notification.message_new', (e) => {
-      this.notificationSubject.next({
-        eventType: 'notification.message_new',
-        event: e,
-      });
-      this.appRef.tick();
-    });
-    this.chatClient.on('notification.removed_from_channel', (e) => {
-      this.notificationSubject.next({
-        eventType: 'notification.removed_from_channel',
-        event: e,
-      });
-      this.appRef.tick();
     });
     let removeNotification: undefined | Function;
     this.chatClient.on('connection.changed', (e) => {
-      const isOnline = e.online;
-      if (isOnline) {
-        if (removeNotification) {
-          removeNotification();
+      this.ngZone.run(() => {
+        const isOnline = e.online;
+        if (isOnline) {
+          if (removeNotification) {
+            removeNotification();
+          }
+        } else {
+          removeNotification =
+            this.notificationService.addPermanentNotification(
+              'streamChat.Connection failure, reconnecting now...'
+            );
         }
-      } else {
-        removeNotification = this.notificationService.addPermanentNotification(
-          'streamChat.Connection failure, reconnecting now...'
-        );
-      }
-      this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
-      this.appRef.tick();
+        this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
+      });
     });
   }
 
