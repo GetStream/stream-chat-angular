@@ -14,7 +14,13 @@ Queries the channels with the given filters, sorts and options. More info about 
 
 ## channels$
 
-Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list. Apart from pagination, the channel list is also updated on the following events:
+Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list.
+
+:::important
+If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
+:::
+
+Apart from pagination, the channel list is also updated on the following events:
 
 | Event type                          | Default behavior                                                   | Custom handler to override                    |
 | ----------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
@@ -37,7 +43,7 @@ Our platform documentation covers the topic of [channel events](https://getstrea
 Emits the currently active channel.
 
 :::important
-Please note that for performance reaasons the client is connected [outside of the NgZone](https://angular.io/guide/zone#ngzone-1), if you want to subscribe to [notification or channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript), you will need to [reenter the NgZone](https://angular.io/guide/zone#ngzone-run-and-runoutsideofangular) or call change detection manually (you can use the [`ChangeDetectorRef`](https://angular.io/api/core/ChangeDetectorRef) or the [`ApplicationRef`](https://angular.io/api/core/ApplicationRef) for that).
+If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
 :::
 
 ## setAsActiveChannel

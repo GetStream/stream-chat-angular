@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import {
   Channel,
@@ -21,7 +21,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
 
-  constructor(private channelService: ChannelService) {}
+  constructor(private channelService: ChannelService, private ngZone: NgZone) {}
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -51,11 +51,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
     );
     this.subscriptions.push(
-      this.channel!.on(
-        'message.read',
-        () =>
-          (this.isUnread =
-            !!this.channel!.countUnread() && this.canSendReadEvents)
+      this.channel!.on('message.read', () =>
+        this.ngZone.run(() => {
+          this.isUnread =
+            !!this.channel!.countUnread() && this.canSendReadEvents;
+        })
       )
     );
   }
@@ -81,19 +81,21 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private handleMessageEvent(event: Event) {
-    if (this.channel?.state.messages.length === 0) {
-      this.latestMessage = 'Nothing yet...';
-      return;
-    }
-    if (
-      !event.message ||
-      this.channel?.state.messages[this.channel?.state.messages.length - 1]
-        .id !== event.message.id
-    ) {
-      return;
-    }
-    this.setLatestMessage(event.message);
-    this.isUnread = !!this.channel.countUnread() && this.canSendReadEvents;
+    this.ngZone.run(() => {
+      if (this.channel?.state.messages.length === 0) {
+        this.latestMessage = 'Nothing yet...';
+        return;
+      }
+      if (
+        !event.message ||
+        this.channel?.state.messages[this.channel?.state.messages.length - 1]
+          .id !== event.message.id
+      ) {
+        return;
+      }
+      this.setLatestMessage(event.message);
+      this.isUnread = !!this.channel.countUnread() && this.canSendReadEvents;
+    });
   }
 
   private setLatestMessage(message?: FormatMessageResponse | MessageResponse) {
