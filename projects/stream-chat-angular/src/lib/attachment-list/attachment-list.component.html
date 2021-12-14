@@ -85,5 +85,23 @@
         </div>
       </div>
     </div>
+    <div
+      class="str-chat__message-attachment-actions"
+      *ngIf="attachment.actions && attachment.actions.length > 0"
+    >
+      <div class="str-chat__message-attachment-actions-form">
+        <button
+          *ngFor="let action of attachment.actions; trackBy: trackByActionValue"
+          class="str-chat__message-attachment-actions-button str-chat__message-attachment-actions-button--{{
+            action.style
+          }}"
+          data-testclass="attachment-action"
+          (click)="sendAction(action)"
+          (keyup.enter)="sendAction(action)"
+        >
+          {{ action.text }}
+        </button>
+      </div>
+    </div>
   </div>
 </ng-container>

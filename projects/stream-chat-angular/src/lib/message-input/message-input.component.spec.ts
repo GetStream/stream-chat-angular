@@ -357,7 +357,9 @@ describe('MessageInputComponent', () => {
       },
     ]);
     component.textareaValue = 'text';
-    mockActiveChannel$.next({} as Channel);
+    mockActiveChannel$.next({
+      getConfig: () => ({ commands: [] }),
+    } as any as Channel);
     fixture.detectChanges();
 
     expect(component.textareaValue).toBe('');
@@ -416,6 +418,7 @@ describe('MessageInputComponent', () => {
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
+      getConfig: () => ({ commands: [] }),
     } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -474,6 +477,7 @@ describe('MessageInputComponent', () => {
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
+      getConfig: () => ({ commands: [] }),
     } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();

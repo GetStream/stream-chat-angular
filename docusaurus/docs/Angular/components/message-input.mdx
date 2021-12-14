@@ -122,6 +122,16 @@ If no value is provided, it is set from the [`MessageInputConfigService`](../ser
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`TemplateRef<MentionAutcompleteListItemContext>`](<(https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)>) |
 
+### commandAutocompleteItemTemplate
+
+You can provide your own template for the autocomplete list for commands. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecure.mdx) for this feature to work.
+
+If no value is provided, it is set from the [`MessageInputConfigService`](../services/message-input-config.mdx).
+
+| Type                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`TemplateRef<CommandAutcompleteListItemContext>`](<(https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)>) |
+
 ### mentionScope
 
 The scope for user mentions, either members of the current channel of members of the application.

@@ -21,6 +21,7 @@ describe('AutocompleteTextareaComponent', () => {
   let channelServiceMock: MockChannelService;
   let queryAvatars: () => HTMLElement[];
   let queryUsernames: () => HTMLElement[];
+  let queryCommands: () => HTMLElement[];
   let chatClientServiceMock: { autocompleteUsers: jasmine.Spy };
 
   beforeEach(async () => {
@@ -53,6 +54,10 @@ describe('AutocompleteTextareaComponent', () => {
       Array.from(nativeElement.querySelectorAll('[data-testclass="avatar"]'));
     queryUsernames = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="username"]'));
+    queryCommands = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="command-name"]')
+      );
   });
 
   it('should display textarea, and focus it', () => {
@@ -145,7 +150,11 @@ describe('AutocompleteTextareaComponent', () => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
       { user: { id: 'sophie' } },
     ]);
-    channelServiceMock.activeChannel$.next({} as any as Channel);
+    channelServiceMock.activeChannel$.next({
+      getConfig: () => ({
+        commands: [],
+      }),
+    } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -175,6 +184,18 @@ describe('AutocompleteTextareaComponent', () => {
     expect(userMentionSpy).toHaveBeenCalledWith([]);
   });
 
+  it('should update textarea after mention', () => {
+    expect(
+      component.autocompleteConfig.mentions![0].mentionSelect!(
+        {
+          user: { id: 'jack', name: 'Jack' },
+          autocompleteLabel: 'Jack',
+        },
+        '@'
+      )
+    ).toBe('@Jack');
+  });
+
   it('should update mentioned users if sent is triggered', () => {
     const userMentionSpy = jasmine.createSpy();
     component.userMentions.subscribe(userMentionSpy);
@@ -200,16 +221,19 @@ describe('AutocompleteTextareaComponent', () => {
   });
 
   it('should disable mentions if #areMentionsEnabled is false', () => {
+    expect(component.autocompleteConfig.mentions!.length).toBe(2);
+
     component.areMentionsEnabled = false;
     component.ngOnChanges({ areMentionsEnabled: {} as any as SimpleChange });
     fixture.detectChanges();
 
-    expect(component.autocompleteConfig.mentions!.length).toBe(0);
+    expect(component.autocompleteConfig.mentions!.length).toBe(1);
   });
 
   it('should display autocomplete', () => {
     expect(queryAvatars().length).toBe(0);
     expect(queryUsernames().length).toBe(0);
+    expect(queryCommands().length).toBe(0);
 
     const textarea = queryTextarea()!;
     const event = new KeyboardEvent('keydown', { key: '@' });
@@ -218,6 +242,13 @@ describe('AutocompleteTextareaComponent', () => {
 
     expect(queryAvatars().length).toBe(3);
     expect(queryUsernames().length).toBe(3);
+    expect(queryCommands().length).toBe(0);
+
+    const event2 = new KeyboardEvent('keydown', { key: '/' });
+    textarea.dispatchEvent(event2);
+    fixture.detectChanges();
+
+    expect(queryCommands().length).toBe(1);
   });
 
   it('should update mention options', fakeAsync(() => {
@@ -235,17 +266,16 @@ describe('AutocompleteTextareaComponent', () => {
     expect(chatClientServiceMock.autocompleteUsers).toHaveBeenCalledWith('');
   });
 
-  it('should filter autocomplete options', async () => {
+  it('should filter autocomplete options', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
       { user: { id: 'dom13re4ty', name: 'Jeff' } },
       { user: { id: '3sfwer232', name: 'Dominique' } },
     ]);
     component.autcompleteSearchTermChanged('@dom');
-    fixture.detectChanges();
-    await fixture.whenStable();
+    tick(300);
 
-    expect(component.autocompleteConfig.mentions!.length).toBe(1);
-  });
+    expect(component.autocompleteConfig.mentions![0].items!.length).toBe(1);
+  }));
 
   it('should transliterate - option contains non-Latin characters', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
@@ -331,4 +361,28 @@ describe('AutocompleteTextareaComponent', () => {
 
     expect(component.autocompleteConfig.mentions![0].items?.length).toBe(3);
   }));
+
+  it('should initialize slash commands', () => {
+    expect(component.autocompleteConfig.mentions![1].items!).toEqual([
+      {
+        args: '[text]',
+        description: 'Post a random gif to the channel',
+        name: 'giphy',
+        autocompleteLabel: 'giphy',
+        set: 'fun_set',
+        type: 'command',
+      },
+    ]);
+  });
+
+  it('should update textarea after command is selected', () => {
+    expect(
+      component.autocompleteConfig.mentions![1].mentionSelect!(
+        {
+          autocompleteLabel: 'giphy',
+        },
+        '/'
+      )
+    ).toBe('/giphy ');
+  });
 });

@@ -168,6 +168,13 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
       this.preserveScrollbarPosition();
       this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       this.olderMassagesLoaded = false;
+    } else if (
+      this.containerHeight !== undefined &&
+      this.containerHeight < this.scrollContainer.nativeElement.scrollHeight &&
+      !this.isUserScrolledUp
+    ) {
+      this.scrollToBottom();
+      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
     }
   }
 

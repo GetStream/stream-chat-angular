@@ -7,6 +7,7 @@ import {
   ChannelOptions,
   ChannelSort,
   Event,
+  SendMessageAPIResponse,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -773,6 +774,45 @@ describe('ChannelService', () => {
     expect(messageCount).toEqual(prevMessageCount + 1);
   });
 
+  it('should send action', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const giphy = {
+      thumb_url:
+        'https://media4.giphy.com/media/Q9GYuPJTT8RomJTRot/giphy.gif?cid=c4b036752at3vu1m2vwt7nvnfumyer5620wbdhosrpmds52e&rid=giphy.gif&ct=g',
+      title: 'dogs',
+      title_link: 'https://giphy.com/gifs/Q9GYuPJTT8RomJTRot',
+      type: 'giphy',
+    };
+    spyOn(channel, 'sendAction').and.resolveTo({
+      message: {
+        id: 'message-1',
+        attachments: [giphy],
+      },
+    } as any as SendMessageAPIResponse);
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendAction('message-1', { image_action: 'send' });
+
+    expect(latestMessage.attachments![0]).toBe(giphy);
+  });
+
+  it('should remove message after action, if no message is returned', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendAction').and.resolveTo(
+      {} as any as SendMessageAPIResponse
+    );
+    spyOn(channel.state, 'removeMessage');
+    await service.sendAction('1', { image_action: 'send' });
+
+    expect(channel.state.removeMessage).toHaveBeenCalledWith({ id: '1' });
+  });
+
   it('should update message', () => {
     const message = mockMessage();
     void service.updateMessage(message);
@@ -888,6 +928,24 @@ describe('ChannelService', () => {
 
     expect(latestMessage.status).toBe('failed');
     expect(latestMessage.errorStatusCode).toBe(500);
+  });
+
+  it('should add sent message to message list', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.callFake(() =>
+      Promise.resolve({
+        message: { id: 'new-message' },
+      } as SendMessageAPIResponse)
+    );
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage('Hi');
+
+    expect(latestMessage.id).toBe('new-message');
   });
 
   it(`shouldn't duplicate new message`, async () => {

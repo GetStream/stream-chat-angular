@@ -1,9 +1,10 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { Attachment } from 'stream-chat';
+import { Action, Attachment } from 'stream-chat';
 import { ImageLoadService } from '../message-list/image-load.service';
 import { DefaultAttachmentType } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
+import { ChannelService } from '../channel.service';
 
 @Component({
   selector: 'stream-attachment-list',
@@ -11,10 +12,14 @@ import { isImageAttachment } from '../is-image-attachment';
   styles: [],
 })
 export class AttachmentListComponent implements OnChanges {
+  @Input() messageId: string | undefined;
   @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
   orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
 
-  constructor(private imageLoadService: ImageLoadService) {}
+  constructor(
+    private imageLoadService: ImageLoadService,
+    private channelService: ChannelService
+  ) {}
 
   ngOnChanges(): void {
     this.orderedAttachments = [
@@ -39,7 +44,8 @@ export class AttachmentListComponent implements OnChanges {
   isCard(attachment: Attachment) {
     return (
       !attachment.type ||
-      (attachment.type === 'image' && !this.isImage(attachment))
+      (attachment.type === 'image' && !this.isImage(attachment)) ||
+      attachment.type === 'giphy'
     );
   }
 
@@ -66,5 +72,15 @@ export class AttachmentListComponent implements OnChanges {
       return trimmedUrl;
     }
     return null;
+  }
+
+  sendAction(action: Action) {
+    void this.channelService.sendAction(this.messageId!, {
+      [action.name!]: action.value!,
+    });
+  }
+
+  trackByActionValue(_: number, item: Action) {
+    return item.value;
   }
 }

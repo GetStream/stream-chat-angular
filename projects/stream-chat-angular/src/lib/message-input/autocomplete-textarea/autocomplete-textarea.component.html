@@ -23,6 +23,27 @@
         "
       ></ng-container>
     </div>
+    <div class="rta__entity" *ngSwitchCase="'command'">
+      <ng-container
+        *ngTemplateOutlet="
+          commandAutocompleteItemTemplate || defaultCommandTemplate;
+          context: { item: item }
+        "
+      ></ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #defaultCommandTemplate let-item="item">
+  <div class="str-chat__slash-command">
+    <span class="str-chat__slash-command-header">
+      <strong data-testclass="command-name">{{ item.name }}</strong>
+      {{ item.args }}
+    </span>
+    <br />
+    <span class="str-chat__slash-command-description">{{
+      item.description
+    }}</span>
   </div>
 </ng-template>
 

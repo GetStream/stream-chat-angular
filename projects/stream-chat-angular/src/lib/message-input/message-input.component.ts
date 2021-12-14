@@ -26,6 +26,7 @@ import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
 import {
   AttachmentUpload,
+  CommandAutocompleteListItemContext,
   MentionAutcompleteListItemContext,
   StreamMessage,
 } from '../types';
@@ -48,6 +49,9 @@ export class MessageInputComponent
   @Input() mentionScope: 'channel' | 'application' | undefined;
   @Input() mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
+    | undefined;
+  @Input() commandAutocompleteItemTemplate:
+    | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
   /**
    * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-input/#caution-acceptedfiletypes
@@ -123,6 +127,8 @@ export class MessageInputComponent
     this.mentionAutocompleteItemTemplate =
       this.configService.mentionAutocompleteItemTemplate;
     this.mentionScope = this.configService.mentionScope;
+    this.commandAutocompleteItemTemplate =
+      this.configService.commandAutocompleteItemTemplate;
   }
 
   ngAfterViewInit(): void {
@@ -156,6 +162,10 @@ export class MessageInputComponent
     if (changes.mentionAutocompleteItemTemplate) {
       this.configService.mentionAutocompleteItemTemplate =
         this.mentionAutocompleteItemTemplate;
+    }
+    if (changes.commandAutocompleteItemTemplate) {
+      this.configService.commandAutocompleteItemTemplate =
+        this.commandAutocompleteItemTemplate;
     }
     if (changes.mentionScope) {
       this.configService.mentionScope = this.mentionScope;
