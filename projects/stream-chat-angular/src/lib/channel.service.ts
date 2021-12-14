@@ -289,10 +289,7 @@ export class ChannelService {
         return [];
       }
       const result = await activeChannel.queryMembers({
-        $or: [
-          { id: { $autocomplete: searchTerm } },
-          { name: { $autocomplete: searchTerm } },
-        ],
+        name: { $autocomplete: searchTerm },
         id: { $ne: this.chatClientService.chatClient.userID! },
       });
       return Object.values(result.members);

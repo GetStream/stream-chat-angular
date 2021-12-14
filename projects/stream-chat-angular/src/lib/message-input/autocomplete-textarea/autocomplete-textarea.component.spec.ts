@@ -156,9 +156,12 @@ describe('AutocompleteTextareaComponent', () => {
   it('should emit mentioned users', () => {
     const userMentionSpy = jasmine.createSpy();
     component.userMentions.subscribe(userMentionSpy);
-    component.autocompleteConfig.mentions![0].mentionSelect!({
-      user: { id: 'jack', name: 'Jack' },
-    });
+    component.autocompleteConfig.mentions![0].mentionSelect!(
+      {
+        user: { id: 'jack', name: 'Jack' },
+      },
+      '@'
+    );
 
     expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
 
@@ -175,9 +178,12 @@ describe('AutocompleteTextareaComponent', () => {
   it('should update mentioned users if sent is triggered', () => {
     const userMentionSpy = jasmine.createSpy();
     component.userMentions.subscribe(userMentionSpy);
-    component.autocompleteConfig.mentions![0].mentionSelect!({
-      user: { id: 'jack', name: 'Jack' },
-    });
+    component.autocompleteConfig.mentions![0].mentionSelect!(
+      {
+        user: { id: 'jack', name: 'Jack' },
+      },
+      '@'
+    );
 
     expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
 
@@ -216,7 +222,7 @@ describe('AutocompleteTextareaComponent', () => {
 
   it('should update mention options', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.callThrough();
-    component.autcompleteSearchTermChanged('so');
+    component.autcompleteSearchTermChanged('@so');
     tick(300);
 
     expect(channelServiceMock.autocompleteMembers).toHaveBeenCalledWith('so');
@@ -234,7 +240,7 @@ describe('AutocompleteTextareaComponent', () => {
       { user: { id: 'dom13re4ty', name: 'Jeff' } },
       { user: { id: '3sfwer232', name: 'Dominique' } },
     ]);
-    component.autcompleteSearchTermChanged('dom');
+    component.autcompleteSearchTermChanged('@dom');
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -245,7 +251,7 @@ describe('AutocompleteTextareaComponent', () => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
       { user: { id: '12', name: 'Ádám' } },
     ]);
-    component.autcompleteSearchTermChanged('Adam');
+    component.autcompleteSearchTermChanged('@Adam');
     tick(300);
 
     expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
@@ -255,7 +261,7 @@ describe('AutocompleteTextareaComponent', () => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
       { user: { id: '12', name: 'Adam' } },
     ]);
-    component.autcompleteSearchTermChanged('Ádám');
+    component.autcompleteSearchTermChanged('@Ádám');
     tick(300);
 
     expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
@@ -315,7 +321,7 @@ describe('AutocompleteTextareaComponent', () => {
   });
 
   it('should reset mention options after mention', fakeAsync(() => {
-    component.autcompleteSearchTermChanged('Ja');
+    component.autcompleteSearchTermChanged('@Ja');
     tick(300);
 
     expect(component.autocompleteConfig.mentions![0].items?.length).toBe(1);
