@@ -1066,10 +1066,7 @@ describe('ChannelService', () => {
 
     expect(channel.queryMembers).toHaveBeenCalledWith(
       jasmine.objectContaining({
-        $or: [
-          { id: { $autocomplete: 'ja' } },
-          { name: { $autocomplete: 'ja' } },
-        ],
+        name: { $autocomplete: 'ja' },
       })
     );
 

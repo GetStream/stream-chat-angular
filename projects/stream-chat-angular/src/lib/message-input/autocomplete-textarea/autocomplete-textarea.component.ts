@@ -43,7 +43,7 @@ export class AutocompleteTextareaComponent
   @Output() readonly send = new EventEmitter<void>();
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
   private readonly labelKey = 'autocompleteLabel';
-  private readonly triggerChar = '@';
+  private readonly mentionTriggerChar = '@';
   autocompleteConfig: MentionConfig = {
     mentions: [],
   };
@@ -51,7 +51,7 @@ export class AutocompleteTextareaComponent
   private subscriptions: Subscription[] = [];
   private mentionedUsers: UserResponse[] = [];
   private userMentionConfig: Mentions = {
-    triggerChar: this.triggerChar,
+    triggerChar: this.mentionTriggerChar,
     dropUp: true,
     labelKey: this.labelKey,
     returnTrigger: true,
@@ -59,7 +59,8 @@ export class AutocompleteTextareaComponent
       searchString: string,
       items: { autocompleteLabel: string }[]
     ) => this.filter(searchString, items),
-    mentionSelect: (item, triggerChar) => this.mentioned(item, triggerChar),
+    mentionSelect: (item, triggerChar) =>
+      this.itemSelectedFromAutocompleteList(item, triggerChar),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
 
@@ -70,7 +71,11 @@ export class AutocompleteTextareaComponent
   ) {
     this.searchTerm$
       .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((searchTerm) => void this.updateMentionOptions(searchTerm));
+      .subscribe((searchTerm) => {
+        if (searchTerm.startsWith(this.mentionTriggerChar)) {
+          void this.updateMentionOptions(searchTerm);
+        }
+      });
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe(() => {
         this.mentionedUsers = [];
@@ -103,17 +108,22 @@ export class AutocompleteTextareaComponent
     );
   }
 
-  mentioned(item: MentionAutcompleteListItem, triggerChar = '') {
-    this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
-    this.userMentions.next([...this.mentionedUsers]);
+  itemSelectedFromAutocompleteList(
+    item: MentionAutcompleteListItem,
+    triggerChar = ''
+  ) {
+    if (triggerChar === this.mentionTriggerChar) {
+      this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
+      this.userMentions.next([...this.mentionedUsers]);
+    }
     return triggerChar + item.autocompleteLabel;
   }
 
   autcompleteSearchTermChanged(searchTerm: string) {
-    if (searchTerm === this.triggerChar) {
+    if (searchTerm === this.mentionTriggerChar) {
       void this.updateMentionOptions();
     } else {
-      this.searchTerm$.next(searchTerm.replace(this.triggerChar, ''));
+      this.searchTerm$.next(searchTerm);
     }
   }
 
@@ -143,6 +153,7 @@ export class AutocompleteTextareaComponent
     if (!this.areMentionsEnabled) {
       return;
     }
+    searchTerm = searchTerm?.replace(this.mentionTriggerChar, '');
     const request =
       this.mentionScope === 'application'
         ? (s: string) => this.chatClientService.autocompleteUsers(s)
@@ -168,7 +179,7 @@ export class AutocompleteTextareaComponent
     const updatedMentionedUsers: UserResponse[] = [];
     this.mentionedUsers.forEach((u) => {
       const key = u.name || u.id;
-      if (this.value.includes(`${this.triggerChar}${key}`)) {
+      if (this.value.includes(`${this.mentionTriggerChar}${key}`)) {
         updatedMentionedUsers.push(u);
       }
     });
