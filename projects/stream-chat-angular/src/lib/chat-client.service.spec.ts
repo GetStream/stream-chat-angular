@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Event, StreamChat } from 'stream-chat';
+import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
 import { version } from '../assets/version';
 import { ChatClientService } from './chat-client.service';
 import { mockStreamChatClient, MockStreamChatClient } from './mocks';
@@ -30,6 +30,25 @@ describe('ChatClientService', () => {
     service.appSettings$.subscribe(spy);
 
     expect(spy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should init with user meta data', async () => {
+    const user = { id: userId, name: 'Test user' } as OwnUserResponse;
+    mockChatClient.connectUser.calls.reset();
+    await service.init(apiKey, user, userToken);
+
+    expect(mockChatClient.connectUser).toHaveBeenCalledWith(user, userToken);
+  });
+
+  it('should init with token provider', async () => {
+    const tokenProvider = () => Promise.resolve('test');
+    mockChatClient.connectUser.calls.reset();
+    await service.init(apiKey, userId, tokenProvider);
+
+    expect(mockChatClient.connectUser).toHaveBeenCalledWith(
+      { id: userId },
+      tokenProvider
+    );
   });
 
   it('should emit app settings, if app settings not yet loaded', async () => {

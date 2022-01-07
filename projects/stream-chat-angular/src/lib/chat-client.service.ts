@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
-import { AppSettings, Event, StreamChat } from 'stream-chat';
+import { OwnUserResponse } from 'stream-chat';
+import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 
@@ -32,10 +33,15 @@ export class ChatClientService {
     this.appSettings$ = this.appSettingsSubject.asObservable();
   }
 
-  async init(apiKey: string, userId: string, userToken: string) {
+  async init(
+    apiKey: string,
+    userOrId: string | OwnUserResponse,
+    userTokenOrProvider: TokenOrProvider
+  ) {
     this.chatClient = StreamChat.getInstance(apiKey);
     await this.ngZone.runOutsideAngular(async () => {
-      await this.chatClient.connectUser({ id: userId }, userToken);
+      const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
+      await this.chatClient.connectUser(user, userTokenOrProvider);
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
