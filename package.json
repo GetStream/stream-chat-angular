@@ -85,7 +85,7 @@
     "dotenv": "^10.0.0",
     "pretty-bytes": "^5.6.0",
     "rxjs": "~6.6.0",
-    "stream-chat": "^4.3.0",
+    "stream-chat": "^5.0.0",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.0",
     "uuidv4": "^6.2.12",
