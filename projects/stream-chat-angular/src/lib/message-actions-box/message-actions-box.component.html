@@ -89,9 +89,13 @@
       ></stream-message-input>
     </ng-template>
     <stream-notification-list></stream-notification-list>
-    <div class="str-chat__message-team-form-footer">
-      <div></div>
-      <div>
+    <div
+      class="
+        str-chat__message-team-form-footer
+        str-chat__message-team-form-footer-angular
+      "
+    >
+      <div class="str-chat__edit-message-form-options">
         <button translate data-testid="cancel-button" (click)="modalClosed()">
           streamChat.Cancel
         </button>

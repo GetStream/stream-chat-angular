@@ -1,4 +1,4 @@
-<div class="rfu-image-previewer">
+<div class="rfu-image-previewer" *ngIf="(attachmentUploads$ | async)?.length">
   <ng-container
     *ngFor="
       let attachmentUpload of attachmentUploads$ | async;
