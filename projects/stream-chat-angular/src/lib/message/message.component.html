@@ -188,7 +188,12 @@
 </div>
 
 <ng-template #sendingStatus>
-  <span class="str-chat__message-simple-status" data-testid="sending-indicator">
+  <span
+    class="
+      str-chat__message-simple-status str-chat__message-simple-status-angular
+    "
+    data-testid="sending-indicator"
+  >
     <div class="str-chat__tooltip">
       {{ "streamChat.Sending..." | translate }}
     </div>
@@ -198,7 +203,12 @@
   </span>
 </ng-template>
 <ng-template #readStatus>
-  <span class="str-chat__message-simple-status" data-testid="read-indicator">
+  <span
+    class="
+      str-chat__message-simple-status str-chat__message-simple-status-angular
+    "
+    data-testid="read-indicator"
+  >
     <div class="str-chat__tooltip" data-testid="read-by-tooltip">
       {{ readByText }}
     </div>
@@ -220,7 +230,9 @@
 </ng-template>
 <ng-template #deliveredStatus>
   <span
-    class="str-chat__message-simple-status"
+    class="
+      str-chat__message-simple-status str-chat__message-simple-status-angular
+    "
     data-testid="delivered-indicator"
   >
     <div class="str-chat__tooltip">
