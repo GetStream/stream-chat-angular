@@ -16,7 +16,7 @@ import { StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
-import { MessageActions } from '../message-actions-box/message-actions-box.component';
+
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
@@ -26,14 +26,21 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
   @Input() messageTemplate: TemplateRef<any> | undefined;
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() mentionTemplate: TemplateRef<any> | undefined;
-  @Input() areReactionsEnabled = true;
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-arereactionsenabled-deprecated
+   */
+  @Input() areReactionsEnabled: boolean | undefined = undefined;
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-enabledmessageactions-deprecated
+   */
   /* eslint-disable-next-line @angular-eslint/no-input-rename */
-  @Input('enabledMessageActions') enabledMessageActionsInput: MessageActions[] =
-    ['flag', 'edit', 'edit-any', 'delete', 'delete-any'];
+  @Input('enabledMessageActions') enabledMessageActionsInput:
+    | string[]
+    | undefined = undefined;
   messages$!: Observable<StreamMessage[]>;
   canReactToMessage: boolean | undefined;
   canReceiveReadEvents: boolean | undefined;
-  enabledMessageActions: MessageActions[] = [];
+  enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
   unreadMessageCount = 0;
@@ -48,7 +55,7 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
-  private authorizedMessageActions: MessageActions[] = ['flag'];
+  private authorizedMessageActions: string[] = ['flag'];
   private readonly isUserScrolledUpThreshold = 300;
 
   constructor(
@@ -70,6 +77,12 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
         this.canReactToMessage = capabilites.indexOf('send-reaction') !== -1;
         this.canReceiveReadEvents = capabilites.indexOf('read-events') !== -1;
         this.authorizedMessageActions = [];
+        if (this.canReactToMessage) {
+          this.authorizedMessageActions.push('send-reaction');
+        }
+        if (this.canReceiveReadEvents) {
+          this.authorizedMessageActions.push('read-events');
+        }
         if (capabilites.indexOf('flag-message') !== -1) {
           this.authorizedMessageActions.push('flag');
         }
@@ -210,8 +223,14 @@ export class MessageListComponent implements AfterViewChecked, OnChanges {
   private setEnabledActions() {
     this.enabledMessageActions = [];
     if (!this.enabledMessageActionsInput) {
+      this.enabledMessageActions = this.authorizedMessageActions;
       return;
     }
+    this.enabledMessageActionsInput = [
+      ...this.enabledMessageActionsInput,
+      'send-reaction',
+      'read-events',
+    ];
     this.enabledMessageActionsInput.forEach((action) => {
       const isAuthorized = this.authorizedMessageActions.indexOf(action) !== -1;
       if (isAuthorized) {

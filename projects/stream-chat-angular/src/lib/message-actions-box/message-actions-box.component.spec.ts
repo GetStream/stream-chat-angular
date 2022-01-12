@@ -160,7 +160,7 @@ describe('MessageActionsBoxComponent', () => {
   });
 
   it(`should only display 'flag' action for other user's messages`, () => {
-    component.enabledActions = ['flag'];
+    component.enabledActions = ['flag-message'];
     component.isMine = false;
     fixture.detectChanges();
 
@@ -254,7 +254,12 @@ describe('MessageActionsBoxComponent', () => {
   });
 
   it('should emit the number of displayed actions', () => {
-    component.enabledActions = ['pin', 'edit', 'delete', 'flag'];
+    component.enabledActions = [
+      'pin',
+      'update-own-message',
+      'delete-own-message',
+      'flag',
+    ];
     component.isMine = true;
     const spy = jasmine.createSpy();
     component.displayedActionsCount.subscribe(spy);
@@ -269,7 +274,7 @@ describe('MessageActionsBoxComponent', () => {
     spy.calls.reset();
     component.enabledActions = [
       'pin',
-      'edit-any',
+      'update-any-message',
       'delete',
       'flag',
       'quote',
@@ -322,8 +327,8 @@ describe('MessageActionsBoxComponent', () => {
       expect(queryDeleteAction()).not.toBeNull();
     });
 
-    it('if #enabledActions contains "delete-any"', () => {
-      component.enabledActions = ['delete-any'];
+    it('if #enabledActions contains "delete-any-message"', () => {
+      component.enabledActions = ['delete-any-message'];
       component.isMine = false;
       fixture.detectChanges();
 

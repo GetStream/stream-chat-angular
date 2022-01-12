@@ -8,7 +8,7 @@ import MessageScreenshot from "../assets/message-screenshot.png";
 import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
 import MessageReactionsScreenshot from "../assets/message-reactions-screenshot.png";
 
-The `Message` component displays a message with additional information such as sender and date, and enables interaction with the message (i.e. edit or react).
+The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](../concepts/message-interactions.mdx).
 
 **Example 1** - example message:
 
@@ -41,13 +41,11 @@ The message list uses the `Message` component to display messages, if you want t
   #customMessageTemplate
   let-message="message"
   let-enabledMessageActions="enabledMessageActions"
-  let-areReactionsEnabled="areReactionsEnabled"
   let-canReactToMessage="canReactToMessage"
 >
   <app-custom-message
     [message]="message"
     [enabledMessageActions]="enabledMessageActions"
-    [areReactionsEnabled]="areReactionsEnabled"
     [canReactToMessage]="canReactToMessage"
   ></app-custom-message>
 </ng-template>
@@ -102,15 +100,17 @@ The `Message` component uses the [`Icon`](./icons.mdx) component to display icon
 
 ### enabledMessageActions
 
-The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI.
+The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
 
-If you use the default chat UI you can also set this using the [`MessageList`](./message-list.mdx) component.
+The [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
-| Type            |
-| --------------- |
-| MessageAction[] |
+| Type     |
+| -------- |
+| string[] |
 
-### areReactionsEnabled
+### <div class="label caution basic">Caution</div> areReactionsEnabled DEPRECATED
+
+**DEPRECATED** use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
 
 If true, the message reactions are displayed.
 
@@ -120,21 +120,25 @@ If you use the default chat UI you can also set this using the [`MessageList`](.
 | ------- |
 | boolean |
 
-### canReactToMessage
+### canReactToMessage DEPRECATED
+
+**DEPRECATED** use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
 
 If true, the user can add reactions to the message.
 
-If you use the default chat UI the [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+The [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
 | Type   |
 | ------ |
 | boolen |
 
-### canReceiveReadEvents
+### canReceiveReadEvents DEPRECATED
+
+**DEPRECATED** use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
 
 If true, the read indicator is displayed.
 
-If you use the default chat UI the [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+The [`MessageList`](./message-list.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
 | Type   |
 | ------ |

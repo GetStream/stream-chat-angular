@@ -81,6 +81,7 @@ describe('MessageListComponent', () => {
       expect(m.areReactionsEnabled).toBe(component.areReactionsEnabled);
       expect(m.canReactToMessage).toBe(component.canReactToMessage);
       expect(m.enabledMessageActions).toEqual([
+        'send-reaction', // added automatically
         'flag',
         'edit',
         'edit-any',

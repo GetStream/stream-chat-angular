@@ -10,7 +10,7 @@
   [class.mobile-press]="isPressedOnMobile"
   [class.str-chat__message--has-attachment]="hasAttachment"
   [class.str-chat__message--with-reactions]="
-    areReactionsEnabled && hasReactions
+    areReactionsEnabled !== false && hasReactions
   "
   data-testid="message-container"
 >
@@ -29,7 +29,9 @@
         <ng-template #sentStatus>
           <ng-container
             *ngIf="
-              isMessageDeliveredAndRead && canReceiveReadEvents;
+              isMessageDeliveredAndRead &&
+                canReceiveReadEvents !== false &&
+                enabledMessageActions.indexOf('read-events') !== -1;
               else deliveredStatus
             "
           >
@@ -76,8 +78,13 @@
               (click)="isActionBoxOpen = !isActionBoxOpen"
             ></stream-icon>
           </div>
+          <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
           <div
-            *ngIf="areReactionsEnabled && canReactToMessage"
+            *ngIf="
+              areReactionsEnabled !== false &&
+              canReactToMessage !== false &&
+              enabledMessageActions.indexOf('send-reaction') !== -1
+            "
             class="
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--reactions
@@ -89,8 +96,9 @@
             <stream-icon icon="reaction-icon"></stream-icon>
           </div>
         </div>
+        <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
         <stream-message-reactions
-          *ngIf="areReactionsEnabled"
+          *ngIf="areReactionsEnabled !== false"
           [messageReactionCounts]="message?.reaction_counts || {}"
           [latestReactions]="message?.latest_reactions || []"
           [(isSelectorOpen)]="isReactionSelectorOpen"
