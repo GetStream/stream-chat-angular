@@ -82,6 +82,7 @@ export const generateMockChannels = (length = 25) => {
       sendMessage: () => {},
       sendImage: () => {},
       sendFile: () => {},
+      sendAction: () => {},
       deleteImage: () => {},
       deleteFile: () => {},
       countUnread: () => {},
@@ -99,6 +100,7 @@ export const generateMockChannels = (length = 25) => {
         addMessageSorted: function (response: MessageResponse) {
           this.messages.push(response as any as StreamMessage);
         },
+        removeMessage: () => {},
       },
       query: () => {
         return {
@@ -115,6 +117,16 @@ export const generateMockChannels = (length = 25) => {
             },
           },
         },
+      }),
+      getConfig: () => ({
+        commands: [
+          {
+            args: '[text]',
+            description: 'Post a random gif to the channel',
+            name: 'giphy',
+            set: 'fun_set',
+          },
+        ],
       }),
     } as any as MockChannel;
     return channel;
@@ -154,6 +166,16 @@ export const mockChannelService = (): MockChannelService => {
         eddie: { user: { id: 'eddie' } },
       },
     } as any as ChannelState,
+    getConfig: () => ({
+      commands: [
+        {
+          args: '[text]',
+          description: 'Post a random gif to the channel',
+          name: 'giphy',
+          set: 'fun_set',
+        },
+      ],
+    }),
   } as Channel);
   const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);

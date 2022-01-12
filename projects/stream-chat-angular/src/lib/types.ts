@@ -1,5 +1,6 @@
 import type {
   ChannelMemberResponse,
+  CommandResponse,
   Event,
   FormatMessageResponse,
   LiteralStringForUnion,
@@ -89,9 +90,17 @@ export type MentionAutcompleteListItemContext = {
   item: MentionAutcompleteListItem;
 };
 
+export type CommandAutocompleteListItemContext = {
+  item: ComandAutocompleteListItem;
+};
+
 export type MentionAutcompleteListItem = (
   | ChannelMemberResponse
   | UserResponse
 ) & {
+  autocompleteLabel: string;
+};
+
+export type ComandAutocompleteListItem = CommandResponse & {
   autocompleteLabel: string;
 };

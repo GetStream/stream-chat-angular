@@ -296,16 +296,41 @@ export class ChannelService {
     }
   }
 
+  async sendAction(messageId: string, formData: Record<string, string>) {
+    const channel = this.activeChannelSubject.getValue()!;
+    const response = await channel.sendAction(messageId, formData);
+    if (response?.message) {
+      channel.state.addMessageSorted({
+        ...response.message,
+        status: 'received',
+      });
+      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    } else {
+      channel.state.removeMessage({ id: messageId });
+      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    }
+  }
+
   private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
     const channel = this.activeChannelSubject.getValue()!;
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
     try {
-      await channel.sendMessage({
+      const response = await channel.sendMessage({
         text: preview.text,
         attachments: preview.attachments,
         mentioned_users: preview.mentioned_users?.map((u) => u.id),
         id: preview.id,
       });
+      if (response?.message) {
+        channel.state.addMessageSorted(
+          {
+            ...response.message,
+            status: 'received',
+          },
+          true
+        );
+        this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      }
     } catch (error) {
       const stringError = JSON.stringify(error);
       const parsedError: { status?: number } = stringError

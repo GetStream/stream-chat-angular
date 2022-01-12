@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChannelService } from '../channel.service';
 import { ImageLoadService } from '../message-list/image-load.service';
 import { AttachmentListComponent } from './attachment-list.component';
 
@@ -11,6 +12,8 @@ describe('AttachmentListComponent', () => {
   let queryFileLinks: () => HTMLAnchorElement[];
   let queryUrlLinks: () => HTMLAnchorElement[];
   let queryCardImages: () => HTMLImageElement[];
+  let queryActions: () => HTMLElement[];
+  let sendAction: jasmine.Spy;
 
   const waitForImgComplete = () => {
     const img = queryImages()[0];
@@ -24,8 +27,12 @@ describe('AttachmentListComponent', () => {
   };
 
   beforeEach(async () => {
+    sendAction = jasmine.createSpy();
     await TestBed.configureTestingModule({
       declarations: [AttachmentListComponent],
+      providers: [
+        { provide: ChannelService, useValue: { sendAction: sendAction } },
+      ],
     }).compileComponents();
   });
 
@@ -50,6 +57,10 @@ describe('AttachmentListComponent', () => {
     queryCardImages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="card-img"]'));
     fixture.detectChanges();
+    queryActions = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="attachment-action"]')
+      );
   });
 
   it('should display received #attachments ordered', () => {
@@ -78,12 +89,19 @@ describe('AttachmentListComponent', () => {
         type: 'image',
       },
       { type: 'image', img_url: 'url2' },
+      {
+        thumb_url:
+          'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+        title: 'cats',
+        title_link: 'https://giphy.com/gifs/game-point-Eq5pb4dR4DJQc',
+        type: 'giphy',
+      },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(5);
+    expect(attachments.length).toBe(6);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
@@ -116,9 +134,124 @@ describe('AttachmentListComponent', () => {
       attachments[4].classList.contains('str-chat__message-attachment--card')
     ).toBeTrue();
 
+    expect(
+      attachments[5].classList.contains('str-chat__message-attachment--card')
+    ).toBeTrue();
+
+    expect(
+      attachments[5].classList.contains('str-chat__message-attachment--giphy')
+    ).toBeTrue();
+
     expect(queryImages().length).toBe(2);
     expect(queryFileLinks().length).toBe(1);
-    expect(queryUrlLinks().length).toBe(2);
+    expect(queryUrlLinks().length).toBe(3);
+    expect(queryCardImages().length).toBe(3);
+    expect(queryActions().length).toBe(0);
+  });
+
+  it('should display attachment actions', () => {
+    const attachment = {
+      type: 'giphy',
+      title: 'cats',
+      title_link: 'https://giphy.com/gifs/cat-funny-costume-3mq6k5fqe5g8o',
+      thumb_url:
+        'https://media3.giphy.com/media/3mq6k5fqe5g8o/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+      actions: [
+        {
+          name: 'image_action',
+          text: 'Send',
+          style: 'primary',
+          type: 'button',
+          value: 'send',
+        },
+        {
+          name: 'image_action',
+          text: 'Shuffle',
+          style: 'default',
+          type: 'button',
+          value: 'shuffle',
+        },
+        {
+          name: 'image_action',
+          text: 'Cancel',
+          style: 'default',
+          type: 'button',
+          value: 'cancel',
+        },
+      ],
+      giphy: {
+        original: {
+          url: 'https://media3.giphy.com/media/3mq6k5fqe5g8o/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+          width: '499',
+          height: '340',
+          size: '411781',
+          frames: '6',
+        },
+      },
+    };
+    component.attachments = [attachment];
+    component.ngOnChanges();
+    fixture.detectChanges();
+
+    const actions = queryActions();
+
+    expect(actions.length).toBe(3);
+    expect(actions[0].innerHTML).toContain('Send');
+    expect(actions[1].innerHTML).toContain('Shuffle');
+    expect(actions[2].innerHTML).toContain('Cancel');
+  });
+
+  it('should send attachment action, if clicked', () => {
+    const attachment = {
+      type: 'giphy',
+      title: 'cats',
+      title_link: 'https://giphy.com/gifs/cat-funny-costume-3mq6k5fqe5g8o',
+      thumb_url:
+        'https://media3.giphy.com/media/3mq6k5fqe5g8o/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+      actions: [
+        {
+          name: 'image_action',
+          text: 'Send',
+          style: 'primary',
+          type: 'button',
+          value: 'send',
+        },
+        {
+          name: 'image_action',
+          text: 'Shuffle',
+          style: 'default',
+          type: 'button',
+          value: 'shuffle',
+        },
+        {
+          name: 'image_action',
+          text: 'Cancel',
+          style: 'default',
+          type: 'button',
+          value: 'cancel',
+        },
+      ],
+      giphy: {
+        original: {
+          url: 'https://media3.giphy.com/media/3mq6k5fqe5g8o/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+          width: '499',
+          height: '340',
+          size: '411781',
+          frames: '6',
+        },
+      },
+    };
+    component.messageId = 'message-id';
+    component.attachments = [attachment];
+    component.ngOnChanges();
+    fixture.detectChanges();
+
+    const actions = queryActions();
+    actions[1].click();
+
+    expect(sendAction).toHaveBeenCalledWith('message-id', {
+      image_action: 'shuffle',
+    });
   });
 
   describe('should display image attachment', () => {

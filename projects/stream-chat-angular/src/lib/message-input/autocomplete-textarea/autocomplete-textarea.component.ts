@@ -14,6 +14,7 @@ import { MentionConfig, Mentions } from 'angular-mentions';
 import {
   MentionAutcompleteListItemContext,
   MentionAutcompleteListItem,
+  CommandAutocompleteListItemContext,
 } from '../../types';
 
 import { BehaviorSubject, Subscription } from 'rxjs';
@@ -38,12 +39,16 @@ export class AutocompleteTextareaComponent
   @Input() mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
     | undefined;
+  @Input() commandAutocompleteItemTemplate:
+    | TemplateRef<CommandAutocompleteListItemContext>
+    | undefined;
   @Input() mentionScope: 'channel' | 'application' = 'channel';
   @Output() readonly valueChange = new EventEmitter<string>();
   @Output() readonly send = new EventEmitter<void>();
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
-  private readonly labelKey = 'autocompleteLabel';
+  private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
+  private readonly commandTriggerChar = '/';
   autocompleteConfig: MentionConfig = {
     mentions: [],
   };
@@ -53,7 +58,19 @@ export class AutocompleteTextareaComponent
   private userMentionConfig: Mentions = {
     triggerChar: this.mentionTriggerChar,
     dropUp: true,
-    labelKey: this.labelKey,
+    labelKey: this.autocompleteKey,
+    returnTrigger: true,
+    mentionFilter: (
+      searchString: string,
+      items: { autocompleteLabel: string }[]
+    ) => this.filter(searchString, items),
+    mentionSelect: (item, triggerChar) =>
+      this.itemSelectedFromAutocompleteList(item, triggerChar),
+  };
+  private slashCommandConfig: Mentions = {
+    triggerChar: this.commandTriggerChar,
+    dropUp: true,
+    labelKey: 'name',
     returnTrigger: true,
     mentionFilter: (
       searchString: string,
@@ -77,21 +94,34 @@ export class AutocompleteTextareaComponent
         }
       });
     this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe(() => {
+      this.channelService.activeChannel$.subscribe((channel) => {
+        const commands = channel?.getConfig()?.commands || [];
+        this.slashCommandConfig.items = commands.map((c) => ({
+          ...c,
+          [this.autocompleteKey]: c.name,
+          type: 'command',
+        }));
         this.mentionedUsers = [];
         this.userMentions.next([...this.mentionedUsers]);
         void this.updateMentionOptions(this.searchTerm$.getValue());
       })
     );
+    this.autocompleteConfig.mentions = [
+      this.userMentionConfig,
+      this.slashCommandConfig,
+    ];
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.areMentionsEnabled) {
       if (this.areMentionsEnabled) {
-        this.autocompleteConfig.mentions = [this.userMentionConfig];
+        this.autocompleteConfig.mentions = [
+          this.userMentionConfig,
+          this.slashCommandConfig,
+        ];
         this.autocompleteConfig = { ...this.autocompleteConfig };
       } else {
-        this.autocompleteConfig.mentions = [];
+        this.autocompleteConfig.mentions = [this.slashCommandConfig];
         this.autocompleteConfig = { ...this.autocompleteConfig };
       }
     }
@@ -116,7 +146,11 @@ export class AutocompleteTextareaComponent
       this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
       this.userMentions.next([...this.mentionedUsers]);
     }
-    return triggerChar + item.autocompleteLabel;
+    return (
+      triggerChar +
+      item.autocompleteLabel +
+      (triggerChar === this.commandTriggerChar ? ' ' : '')
+    );
   }
 
   autcompleteSearchTermChanged(searchTerm: string) {
@@ -171,7 +205,10 @@ export class AutocompleteTextareaComponent
       })
     );
     this.userMentionConfig.items = items;
-    this.autocompleteConfig.mentions = [this.userMentionConfig];
+    this.autocompleteConfig.mentions = [
+      this.userMentionConfig,
+      this.slashCommandConfig,
+    ];
     this.autocompleteConfig = { ...this.autocompleteConfig };
   }
 

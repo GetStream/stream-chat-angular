@@ -120,6 +120,15 @@ describe('MessageListComponent', () => {
     expect(component.scrollToBottom).toHaveBeenCalledWith();
   });
 
+  it('should scroll to bottom, if container grows', () => {
+    spyOn(component, 'scrollToBottom');
+    const child = queryScrollContainer()!.getElementsByTagName('div')[0];
+    child.style.height = (child.offsetHeight * 2).toString() + 'px';
+    fixture.detectChanges();
+
+    expect(component.scrollToBottom).toHaveBeenCalledWith();
+  });
+
   it(`shouldn't scroll to bottom, after an image has been loaded, if user is scrolled up`, () => {
     component.isUserScrolledUp = true;
     fixture.detectChanges();

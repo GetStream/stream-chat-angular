@@ -11,6 +11,7 @@ Message send can be triggered with the `Enter` key, new line can be added with t
 The `AutocompleteTextarea` extends the funcitonalities of the [`Textarea`](./textarea.mdx) component with autocomplete features:
 
 - users can mention other users in a message (transliteration is used to support languages with non-Latin characters)
+- users can send commands (for example /giphy)
 
 ## Basic usage
 
@@ -50,7 +51,7 @@ The value of the input HTML element.
 
 ### areMentionsEnabled
 
-If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecure.mdx) for this feature to work.
+If true, users can mention other users in messages.
 
 You can also set this input on the [`MessageInput`](./message-input.mdx/#inputs) component.
 
@@ -60,13 +61,23 @@ You can also set this input on the [`MessageInput`](./message-input.mdx/#inputs)
 
 ### mentionAutocompleteItemTemplate
 
-You can provide your own template for the autocomplete list for user mentions. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecure.mdx) for this feature to work.
+You can provide your own template for the autocomplete list for user mentions.
 
 You can also set this input on the [`MessageInput`](./message-input.mdx/#inputs) component.
 
 | Type                                                                                                                                                               |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`TemplateRef<MentionAutcompleteListItemContext>`](<(https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)>) |
+
+### commandAutocompleteItemTemplate
+
+You can provide your own template for the autocomplete list for commands.
+
+You can also set this input on the [`MessageInput`](./message-input.mdx/#inputs) component.
+
+| Type                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`TemplateRef<CommandAutcompleteListItemContext>`](<(https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)>) |
 
 ### mentionScope
 

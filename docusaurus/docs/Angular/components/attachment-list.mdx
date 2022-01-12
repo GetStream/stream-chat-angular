@@ -8,7 +8,7 @@ import AttachmentsScreenshot from "../assets/attachments-screenshot.png";
 
 The `AttachmentList` compontent displays the attachments of a message. The following attachments are supported:
 
-- Images are displayed inline
+- Images (including GIFs) are displayed inline
 - Other files can be downloaded
 - Links in a message are enriched with built-in open graph URL scraping
 
@@ -48,3 +48,11 @@ The attachments to display
 | Type                                                                                                              | Default |
 | ----------------------------------------------------------------------------------------------------------------- | ------- |
 | [`Attachment`](https://getstream.io/chat/docs/javascript/message_format/?language=javascript#attachment-format)[] | []      |
+
+### <div class="label required basic">Required</div> messageId
+
+The id of the message the attachments belong to
+
+| Type   |
+| ------ |
+| string |

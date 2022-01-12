@@ -535,6 +535,7 @@ describe('MessageComponent', () => {
 
     expect(attachmentComponent).not.toBeUndefined();
     expect(attachmentComponent.attachments).toBe(attachments);
+    expect(attachmentComponent.messageId).toBe(component.message.id);
   });
 
   it('should display reactions icon, if reactions are enabled and user can react to message', () => {

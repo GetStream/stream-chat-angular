@@ -100,6 +100,7 @@
         <stream-attachment-list
           *ngIf="hasAttachment"
           [attachments]="message!.attachments!"
+          [messageId]="message!.id"
         ></stream-attachment-list>
         <div class="str-chat__message-text" *ngIf="message?.text">
           <div

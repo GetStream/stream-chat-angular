@@ -1,6 +1,9 @@
 import { EventEmitter, OnChanges, TemplateRef } from '@angular/core';
 import { UserResponse } from 'stream-chat';
-import { MentionAutcompleteListItemContext } from '../types';
+import {
+  CommandAutocompleteListItemContext,
+  MentionAutcompleteListItemContext,
+} from '../types';
 
 export interface TextareaInterface extends OnChanges {
   value: string;
@@ -10,6 +13,9 @@ export interface TextareaInterface extends OnChanges {
   areMentionsEnabled?: boolean;
   mentionAutocompleteItemTemplate?:
     | TemplateRef<MentionAutcompleteListItemContext>
+    | undefined;
+  commandAutocompleteItemTemplate?:
+    | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
   mentionScope?: 'channel' | 'application';
 }
