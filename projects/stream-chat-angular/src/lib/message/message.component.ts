@@ -11,7 +11,6 @@ import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { getDeviceWidth } from '../device-width';
-import { MessageActions } from '../message-actions-box/message-actions-box.component';
 import { DefaultUserType, StreamMessage } from '../types';
 import { parseDate } from './parse-date';
 import { getReadByText } from './read-by-text';
@@ -25,10 +24,19 @@ export class MessageComponent implements OnChanges {
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() mentionTemplate: TemplateRef<any> | undefined;
   @Input() message: StreamMessage | undefined;
-  @Input() enabledMessageActions: MessageActions[] = [];
+  @Input() enabledMessageActions: string[] = [];
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-arereactionsenabled-deprecated
+   */
   @Input() areReactionsEnabled: boolean | undefined;
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#canreacttomessage-deprecated
+   */
   @Input() canReactToMessage: boolean | undefined;
   @Input() isLastSentMessage: boolean | undefined;
+  /**
+   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#canreceivereadevents-deprecated
+   */
   @Input() canReceiveReadEvents: boolean | undefined;
   isEditing: boolean | undefined;
   isActionBoxOpen = false;

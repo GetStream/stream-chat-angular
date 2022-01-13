@@ -7,7 +7,7 @@ title: Message list
 import MessagesWithGroupingsScreenhot from "../assets/messages-with-grouping-screenshot.png";
 import MessagesWithoutGroupingsScreenhot from "../assets/messages-without-groups-screenshot.png";
 
-The `MessageList` component renders a scrollable list of messages. The list renders new message notifications, and standard messages containing text and/or attachments.
+The `MessageList` component renders a scrollable list of messages.
 
 The `MessageList` displays messages using pagination, new messages are loaded when the user scrolls to the top of the list.
 
@@ -75,7 +75,9 @@ The template used to display a mention in a message. It receives the mentioned u
 | ----------- |
 | TemplateRef |
 
-### areReactionsEnabled
+### <div class="label caution basic">Caution</div> areReactionsEnabled **DEPRECATED**
+
+**DEPRECATED** use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
 
 If true, the message reactions are displayed. Users can also react to messages if they have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
 
@@ -83,10 +85,12 @@ If true, the message reactions are displayed. Users can also react to messages i
 | ------- | ------- |
 | boolean | true    |
 
-### enabledMessageActions
+### <div class="label caution basic">Caution</div> enabledMessageActions **DEPRECATED**
+
+**DEPRECATED** use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
 
 The list of [actions that are enabled](./message-actions.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI. The `MessgaeList` component makes the necessary checks before passing the actions to the `Message` component.
 
-| Type            | Default                                              |
-| --------------- | ---------------------------------------------------- |
-| MessageAction[] | ['flag', 'edit', 'edit-any', 'delete', 'delete-any'] |
+| Type            | Default                                                  |
+| --------------- | -------------------------------------------------------- |
+| MessageAction[] | undefined (enable actions based on channel capabilities) |

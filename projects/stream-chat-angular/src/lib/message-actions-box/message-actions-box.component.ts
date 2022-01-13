@@ -14,6 +14,9 @@ import { MessageInputComponent } from '../message-input/message-input.component'
 import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
 
+/**
+ * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-actions/#required-enabledactions
+ */
 export type MessageActions =
   | 'edit'
   | 'delete'
@@ -34,7 +37,7 @@ export class MessageActionsBoxComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() isMine = false;
   @Input() message: StreamMessage | undefined;
-  @Input() enabledActions: MessageActions[] = [];
+  @Input() enabledActions: string[] = [];
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
   @Output() readonly isEditing = new EventEmitter<boolean>();
   isEditModalOpen = false;
@@ -79,15 +82,21 @@ export class MessageActionsBoxComponent implements OnChanges {
 
   get isEditVisible() {
     return (
-      (this.enabledActions.indexOf('edit') !== -1 && this.isMine) ||
-      this.enabledActions.indexOf('edit-any') !== -1
+      ((this.enabledActions.indexOf('edit') !== -1 ||
+        this.enabledActions.indexOf('update-own-message') !== -1) &&
+        this.isMine) ||
+      this.enabledActions.indexOf('edit-any') !== -1 ||
+      this.enabledActions.indexOf('update-any-message') !== -1
     );
   }
 
   get isDeleteVisible() {
     return (
-      (this.enabledActions.indexOf('delete') !== -1 && this.isMine) ||
-      this.enabledActions.indexOf('delete-any') !== -1
+      ((this.enabledActions.indexOf('delete') !== -1 ||
+        this.enabledActions.indexOf('delete-own-message') !== -1) &&
+        this.isMine) ||
+      this.enabledActions.indexOf('delete-any') !== -1 ||
+      this.enabledActions.indexOf('delete-any-message') !== -1
     );
   }
 
@@ -96,7 +105,11 @@ export class MessageActionsBoxComponent implements OnChanges {
   }
 
   get isFlagVisible() {
-    return this.enabledActions.indexOf('flag') !== -1 && !this.isMine;
+    return (
+      (this.enabledActions.indexOf('flag') !== -1 ||
+        this.enabledActions.indexOf('flag-message') !== -1) &&
+      !this.isMine
+    );
   }
 
   get isPinVisible() {

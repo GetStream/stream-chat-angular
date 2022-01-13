@@ -118,9 +118,7 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
     querySystemMessageContainer = () =>
       nativeElement.querySelector('[data-testid="system-message"]');
-    component.areReactionsEnabled = true;
-    component.canReactToMessage = true;
-    component.canReceiveReadEvents = true;
+    component.enabledMessageActions = ['read-events', 'send-reaction'];
     fixture.detectChanges();
   });
 
@@ -215,7 +213,7 @@ describe('MessageComponent', () => {
 
     it(`should display delivered icon, if user can't receive delivered events`, () => {
       component.isLastSentMessage = true;
-      component.canReceiveReadEvents = false;
+      component.enabledMessageActions = [];
       fixture.detectChanges();
       const readIndicator = queryReadIndicator();
       const deliveredIndicator = queryDeliveredIndicator();
@@ -541,12 +539,12 @@ describe('MessageComponent', () => {
   it('should display reactions icon, if reactions are enabled and user can react to message', () => {
     expect(queryReactionIcon()).not.toBeNull();
 
-    component.canReactToMessage = false;
+    component.enabledMessageActions = [];
     fixture.detectChanges();
 
     expect(queryReactionIcon()).toBeNull();
 
-    component.canReactToMessage = true;
+    component.enabledMessageActions = ['send-reaction'];
     component.areReactionsEnabled = false;
     fixture.detectChanges();
 
@@ -580,7 +578,7 @@ describe('MessageComponent', () => {
         own_reactions: ownReactions,
       },
     };
-    component.canReactToMessage = true;
+    component.enabledMessageActions = ['send-reaction'];
     fixture.detectChanges();
     const messageReactionsComponent = queryMessageReactionsComponent();
 
