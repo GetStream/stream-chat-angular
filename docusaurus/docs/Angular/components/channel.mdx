@@ -4,21 +4,33 @@ sidebar_position: 5
 title: Channel
 ---
 
-The `Channel` component is a container component that displays the [`ChannelHeader`](./channel-header.mdx), [`MessageList`](./message-list.mdx), [`NotificationList`](./notifications.mdx) and [`MessageInput`](./message-input.mdx) components.
+The `Channel` component is a container component that displays the [`ChannelHeader`](./channel-header.mdx), [`MessageList`](./message-list.mdx), [`NotificationList`](./notifications.mdx) and [`MessageInput`](./message-input.mdx) components. You can also provide the [`Thread`](./thread.mdx) component to use message [threads](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
 
-## Customization
-
-If you want to create a custom channel component, here is how to use it:
+## Usage
 
 ```html
 <div id="root">
   <stream-channel-list></stream-channel-list>
-  <custom-channel>
+  <stream-channel>
+    <!-- Main messages in the channel -->
     <stream-channel-header></stream-channel-header>
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
-  </custom-channel>
+    <!-- Main messages in the channel -->
+    <!-- Thread messages in the channel -->
+    <stream-thread name="thread">
+      <stream-message-list
+        name="thread-message-list"
+        mode="thread"
+      ></stream-message-list>
+      <stream-message-input
+        mode="thread"
+        name="thread-message-input"
+      ></stream-message-input>
+    </stream-thread>
+    <!-- Thread messages in the channel -->
+  </stream-channel>
 </div>
 ```
 

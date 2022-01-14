@@ -5,6 +5,16 @@
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
+    <stream-thread name="thread">
+      <stream-message-list
+        name="thread-message-list"
+        mode="thread"
+      ></stream-message-list>
+      <stream-message-input
+        mode="thread"
+        name="thread-message-input"
+      ></stream-message-input>
+    </stream-thread>
   </stream-channel>
 </div>
 

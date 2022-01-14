@@ -89,6 +89,27 @@ describe('IconComponent', () => {
     expect(icon?.clientHeight).toBe(component.size);
   });
 
+  it('should display reply icon', () => {
+    component.icon = 'reply';
+    fixture.detectChanges();
+
+    expect(queryIcon('reply')).not.toBeNull();
+  });
+
+  it('should display close-no-outline icon', () => {
+    component.icon = 'close-no-outline';
+    fixture.detectChanges();
+
+    expect(queryIcon('close-no-outline')).not.toBeNull();
+  });
+
+  it('should display reply-in-thread icon', () => {
+    component.icon = 'reply-in-thread';
+    fixture.detectChanges();
+
+    expect(queryIcon('reply-in-thread')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

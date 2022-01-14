@@ -26,6 +26,18 @@ If you want to create a custom message list component, here is how to use it:
 </stream-channel>
 ```
 
+If you want to use a custom message list component in the thread UI, here is how to do it:
+
+```html
+<stream-thread name="thread">
+  <custom-message-list name="thread-message-list"></custom-message-list>
+  <stream-message-input
+    mode="thread"
+    name="thread-message-input"
+  ></stream-message-input>
+</stream-thread>
+```
+
 :::note
 If you want to create your own message list, you can use the [`ChannelService`](../services/channel.mdx) to receive the necessary messages and interact with the Stream API.
 
@@ -74,6 +86,14 @@ The template used to display a mention in a message. It receives the mentioned u
 | Type        |
 | ----------- |
 | TemplateRef |
+
+### mode
+
+Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+| Type               | Default |
+| ------------------ | ------- |
+| `main` or `thread` | `main`  |
 
 ### <div class="label caution basic">Caution</div> areReactionsEnabled **DEPRECATED**
 

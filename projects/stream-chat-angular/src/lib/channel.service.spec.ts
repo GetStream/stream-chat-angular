@@ -30,6 +30,7 @@ describe('ChannelService', () => {
     userID: string;
   };
   let notification$: Subject<Notification>;
+  let connectionState$: Subject<'online' | 'offline'>;
   let init: (
     c?: Channel[],
     sort?: ChannelSort,
@@ -40,6 +41,7 @@ describe('ChannelService', () => {
 
   beforeEach(() => {
     user = mockCurrentUser();
+    connectionState$ = new Subject<'online' | 'offline'>();
     mockChatClient = {
       queryChannels: jasmine
         .createSpy()
@@ -54,7 +56,11 @@ describe('ChannelService', () => {
       providers: [
         {
           provide: ChatClientService,
-          useValue: { chatClient: { ...mockChatClient, user }, notification$ },
+          useValue: {
+            chatClient: { ...mockChatClient, user },
+            notification$,
+            connectionState$,
+          },
         },
       ],
     });
@@ -361,6 +367,8 @@ describe('ChannelService', () => {
       event,
       channel,
       jasmine.any(Function),
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function)
     );
   });
@@ -408,6 +416,8 @@ describe('ChannelService', () => {
       hiddenEvent,
       channel,
       jasmine.any(Function),
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function)
     );
 
@@ -420,6 +430,8 @@ describe('ChannelService', () => {
     expect(visibleSpy).toHaveBeenCalledWith(
       visibleEvent,
       channel,
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function)
     );
@@ -456,6 +468,8 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(
       event,
       channel,
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function)
     );
@@ -500,6 +514,8 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(
       event,
       channel,
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function)
     );
@@ -548,6 +564,8 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(
       event,
       channel,
+      jasmine.any(Function),
+      jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function)
     );
@@ -609,7 +627,7 @@ describe('ChannelService', () => {
     expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
   }));
 
-  it('should add the new channel to the top of the list, and start watching it, if user a new message is received from the channel', fakeAsync(async () => {
+  it('should add the new channel to the top of the list, and start watching it, if a new message is received from the channel', fakeAsync(async () => {
     await init();
     const channel = generateMockChannels()[0];
     channel.cid = 'channel';
@@ -781,6 +799,7 @@ describe('ChannelService', () => {
       attachments,
       mentioned_users: ['sara'],
       id: jasmine.any(String),
+      parent_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(

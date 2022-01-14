@@ -8,3 +8,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.str-chat__thread {
+  min-width: 100%;
+  max-width: 100%;
+}
+
+@media only screen and (min-device-width: 768px) {
+  .str-chat__thread {
+    min-width: 35%;
+    max-width: 35%;
+  }
+}

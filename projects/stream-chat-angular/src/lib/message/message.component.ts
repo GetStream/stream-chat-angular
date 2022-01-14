@@ -38,6 +38,7 @@ export class MessageComponent implements OnChanges {
    * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#canreceivereadevents-deprecated
    */
   @Input() canReceiveReadEvents: boolean | undefined;
+  @Input() mode: 'thread' | 'main' = 'main';
   isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
@@ -149,7 +150,8 @@ export class MessageComponent implements OnChanges {
       this.message.type === 'system' ||
       this.message.type === 'ephemeral' ||
       this.message.status === 'failed' ||
-      this.message.status === 'sending'
+      this.message.status === 'sending' ||
+      (this.mode === 'thread' && !this.message.parent_id)
     );
   }
 
@@ -161,6 +163,17 @@ export class MessageComponent implements OnChanges {
     return (
       !!this.message?.reaction_counts &&
       Object.keys(this.message.reaction_counts).length > 0
+    );
+  }
+
+  get replyCountParam() {
+    return { replyCount: this.message?.reply_count };
+  }
+
+  get canDisplayReadStatus() {
+    return (
+      this.canReceiveReadEvents !== false &&
+      this.enabledMessageActions.indexOf('read-events') !== -1
     );
   }
 
@@ -184,5 +197,9 @@ export class MessageComponent implements OnChanges {
       }
     };
     window.addEventListener('click', eventHandler);
+  }
+
+  setAsActiveParentMessage() {
+    void this.channelService.setAsActiveParentMessage(this.message);
   }
 }

@@ -1,11 +1,19 @@
 <div
-  class="str-chat__input-flat"
+  class="{{
+    mode === 'main' ? 'str-chat__input-flat' : 'str-chat__small-message-input'
+  }}"
   [class.str-chat__input-flat-has-attachments]="
     (attachmentUploads$ | async)!.length > 0
   "
 >
-  <div class="str-chat__input-flat-wrapper">
-    <div class="str-chat__input-flat--textarea-wrapper">
+  <div class="str-chat__input-flat-wrapper" style="width: 100%">
+    <div
+      class="{{
+        mode === 'main'
+          ? 'str-chat__input-flat--textarea-wrapper'
+          : 'str-chat__small-message-input--textarea-wrapper'
+      }}"
+    >
       <stream-attachment-preview-list
         class="rfu-image-previewer-angular-host"
       ></stream-attachment-preview-list>
@@ -27,7 +35,10 @@
             disabled
             rows="1"
             [value]="
-              'streamChat.You can\'t send messages in this channel' | translate
+              (mode === 'thread'
+                ? 'You can\'t send thread replies in this channel'
+                : 'streamChat.You can\'t send messages in this channel'
+              ) | translate
             "
             class="rta__textarea str-chat__textarea__textarea"
           ></textarea>

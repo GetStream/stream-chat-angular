@@ -29,9 +29,9 @@
         <ng-template #sentStatus>
           <ng-container
             *ngIf="
-              isMessageDeliveredAndRead &&
-                canReceiveReadEvents !== false &&
-                enabledMessageActions.indexOf('read-events') !== -1;
+              mode === 'main' &&
+                isMessageDeliveredAndRead &&
+                canDisplayReadStatus;
               else deliveredStatus
             "
           >
@@ -79,6 +79,21 @@
             ></stream-icon>
           </div>
           <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
+          <div
+            *ngIf="
+              enabledMessageActions.indexOf('send-reply') !== -1 &&
+              mode === 'main'
+            "
+            class="
+              str-chat__message-simple__actions__action
+              str-chat__message-simple__actions__action--thread
+            "
+            data-testid="reply-in-thread"
+            (click)="setAsActiveParentMessage()"
+            (keyup.enter)="setAsActiveParentMessage()"
+          >
+            <stream-icon icon="reply-in-thread"></stream-icon>
+          </div>
           <div
             *ngIf="
               areReactionsEnabled !== false &&
@@ -179,6 +194,22 @@
             </div>
           </div>
         </div>
+        <div class="str-chat__message-simple-reply-button">
+          <button
+            *ngIf="
+              !!message?.reply_count &&
+              mode !== 'thread' &&
+              enabledMessageActions.indexOf('send-reply') !== -1
+            "
+            class="str-chat__message-replies-count-button"
+            data-testid="reply-count-button"
+            (click)="setAsActiveParentMessage()"
+          >
+            <stream-icon icon="reply"></stream-icon>
+            {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+            replies' | translate:replyCountParam)}}
+          </button>
+        </div>
         <div class="str-chat__message-data str-chat__message-simple-data">
           <span
             data-testid="sender"
@@ -239,6 +270,7 @@
 </ng-template>
 <ng-template #deliveredStatus>
   <span
+    *ngIf="mode === 'main'"
     class="
       str-chat__message-simple-status str-chat__message-simple-status-angular
     "

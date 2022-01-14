@@ -35,6 +35,17 @@ The message list uses the `Message` component to display messages, if you want t
     [messageTemplate]="customMessageTemplate"
   ></stream-message-list>
   <stream-message-input></stream-message-input>
+  <stream-thread name="thread">
+    <stream-message-list
+      name="thread-message-list"
+      mode="thread"
+      [messageTemplate]="customMessageTemplate"
+    ></stream-message-list>
+    <stream-message-input
+      mode="thread"
+      name="thread-message-input"
+    ></stream-message-input>
+  </stream-thread>
 </stream-channel>
 
 <ng-template
@@ -167,3 +178,11 @@ The template used to display a mention in a message. It receives the mentioned u
 | Type        |
 | ----------- |
 | TemplateRef |
+
+### mode
+
+Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+| Type               | Default |
+| ------------------ | ------- |
+| `main` or `thread` | `main`  |

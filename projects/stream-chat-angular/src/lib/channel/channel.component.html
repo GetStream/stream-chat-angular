@@ -6,5 +6,9 @@
     <div class="str-chat__main-panel">
       <ng-content></ng-content>
     </div>
+    <ng-content
+      *ngIf="isActiveThread$ | async"
+      select='[name="thread"]'
+    ></ng-content>
   </div>
 </div>

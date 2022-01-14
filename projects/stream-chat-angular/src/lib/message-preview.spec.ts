@@ -10,7 +10,14 @@ describe('createMessagePreview', () => {
       { fallback: 'christmas.jpg', image_url: 'url/to/image' },
     ];
     const users = [{ id: 'jack', name: 'Jack' }];
-    const preview = createMessagePreview(user, text, attachments, users);
+    const parentId = 'parentId';
+    const preview = createMessagePreview(
+      user,
+      text,
+      attachments,
+      users,
+      parentId
+    );
 
     expect(preview.created_at).not.toBeUndefined();
     expect(preview.html).toBe(text);
@@ -19,5 +26,6 @@ describe('createMessagePreview', () => {
     expect(preview.id).toContain(user.id);
     expect(preview.attachments).toBe(attachments);
     expect(preview.mentioned_users).toBe(users);
+    expect(preview.parent_id).toBe(parentId);
   });
 });

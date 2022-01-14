@@ -78,7 +78,7 @@
     "@angular/router": "~12.2.0",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@stream-io/stream-chat-css": "2.0.1",
+    "@stream-io/stream-chat-css": "2.1.0",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "^1.4.0",
     "dayjs": "^1.10.7",

@@ -30,7 +30,7 @@ export const mockMessage = () =>
     readBy: [{ id: 'alice', name: 'Alice' }],
   } as any as StreamMessage);
 
-const generateMockMessages = (offset = 0, isOlder = false) => {
+export const generateMockMessages = (offset = 0, isOlder = false) => {
   const messages = Array.from({ length: 25 }, (_, index) => {
     const message = mockMessage();
     message.created_at = new Date(
@@ -87,6 +87,7 @@ export const generateMockChannels = (length = 25) => {
       deleteFile: () => {},
       countUnread: () => {},
       markRead: () => {},
+      getReplies: () => {},
       handleEvent: (name: EventTypes, payload?: any) => {
         if (eventHandlers[name as string]) {
           eventHandlers[name as string](payload as StreamMessage);
@@ -96,9 +97,26 @@ export const generateMockChannels = (length = 25) => {
       },
       state: {
         messages: generateMockMessages(),
+        threads: {},
         read: {},
         addMessageSorted: function (response: MessageResponse) {
-          this.messages.push(response as any as StreamMessage);
+          if (response.parent_id) {
+            if (
+              (this.threads as { [key: string]: StreamMessage[] })[
+                response.parent_id
+              ]
+            ) {
+              (this.threads as { [key: string]: StreamMessage[] })[
+                response.parent_id
+              ].push(response as any as StreamMessage);
+            } else {
+              (this.threads as { [key: string]: StreamMessage[] })[
+                response.parent_id
+              ] = [response as any as StreamMessage];
+            }
+          } else {
+            this.messages.push(response as any as StreamMessage);
+          }
         },
         removeMessage: () => {},
       },
@@ -139,15 +157,27 @@ export type MockChannelService = {
   channels$: Subject<Channel[] | undefined>;
   activeChannelMessages$: BehaviorSubject<StreamMessage[]>;
   activeChannel$: Subject<Channel>;
+  activeThreadMessages$: BehaviorSubject<StreamMessage[]>;
+  activeParentMessageId$: BehaviorSubject<string | undefined>;
+  activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
   loadMoreMessages: () => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
+  setAsActiveParentMessage: (m: StreamMessage | undefined) => void;
+  loadMoreThreadReplies: () => void;
   autocompleteMembers: (s: string) => ChannelMemberResponse[];
 };
 
 export const mockChannelService = (): MockChannelService => {
   const messages = generateMockMessages();
   const activeChannelMessages$ = new BehaviorSubject<StreamMessage[]>(messages);
+  const activeThreadMessages$ = new BehaviorSubject<StreamMessage[]>([]);
+  const activeParentMessageId$ = new BehaviorSubject<undefined | string>(
+    undefined
+  );
+  const activeParentMessage$ = new BehaviorSubject<undefined | StreamMessage>(
+    undefined
+  );
   const activeChannel$ = new BehaviorSubject<Channel>({
     id: 'channelid',
     data: {
@@ -195,7 +225,17 @@ export const mockChannelService = (): MockChannelService => {
     activeChannelMessages$.next(messages);
   };
 
+  const loadMoreThreadReplies = () => {
+    const currentMessages = activeThreadMessages$.getValue();
+    const messages = [
+      ...generateMockMessages(currentMessages.length, true),
+      ...currentMessages,
+    ];
+    activeThreadMessages$.next(messages);
+  };
+
   const loadMoreChannels = () => {};
+  const setAsActiveParentMessage = () => {};
   const setAsActiveChannel = (channel: Channel) => {
     channel;
   };
@@ -209,6 +249,11 @@ export const mockChannelService = (): MockChannelService => {
     loadMoreChannels,
     setAsActiveChannel,
     autocompleteMembers,
+    activeParentMessageId$,
+    activeThreadMessages$,
+    activeParentMessage$,
+    loadMoreThreadReplies,
+    setAsActiveParentMessage,
   };
 };
 

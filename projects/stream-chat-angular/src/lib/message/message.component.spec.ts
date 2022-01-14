@@ -43,10 +43,16 @@ describe('MessageComponent', () => {
   let queryDeletedMessageContainer: () => HTMLElement | null;
   let querySystemMessageContainer: () => HTMLElement | null;
   let queryMessageActionsContainer: () => HTMLElement | null;
+  let queryReplyCountButton: () => HTMLButtonElement | null;
+  let queryReplyInThreadIcon: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
+  let setAsActiveParentMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
+    setAsActiveParentMessageSpy = jasmine.createSpy(
+      'setAsActiveParentMessageSpy'
+    );
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -66,7 +72,10 @@ describe('MessageComponent', () => {
         },
         {
           provide: ChannelService,
-          useValue: { resendMessage: resendMessageSpy },
+          useValue: {
+            resendMessage: resendMessageSpy,
+            setAsActiveParentMessage: setAsActiveParentMessageSpy,
+          },
         },
       ],
     });
@@ -101,13 +110,17 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="loading-indicator"]');
     queryMessageActionsContainer = () =>
       nativeElement.querySelector('[data-testid="message-actions-container"]');
+    queryReplyCountButton = () =>
+      nativeElement.querySelector('[data-testid="reply-count-button"]');
+    queryReplyInThreadIcon = () =>
+      nativeElement.querySelector('[data-testid="reply-in-thread"]');
     message = mockMessage();
     component.message = message;
     component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
     messageActionsBoxComponent = fixture.debugElement.query(
       By.directive(MessageActionsBoxComponent)
-    ).componentInstance as MessageActionsBoxComponent;
+    )?.componentInstance as MessageActionsBoxComponent;
     queryAttachmentComponent = () =>
       fixture.debugElement.query(By.directive(AttachmentListComponent))
         ?.componentInstance as AttachmentListComponent;
@@ -118,7 +131,11 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
     querySystemMessageContainer = () =>
       nativeElement.querySelector('[data-testid="system-message"]');
-    component.enabledMessageActions = ['read-events', 'send-reaction'];
+    component.enabledMessageActions = [
+      'read-events',
+      'send-reaction',
+      'send-reply',
+    ];
     fixture.detectChanges();
   });
 
@@ -823,5 +840,111 @@ describe('MessageComponent', () => {
       },
       { content: '@sara', type: 'mention', user: { id: 'sara' } },
     ]);
+  });
+
+  it('should display reply count for parent messages', () => {
+    expect(queryReplyCountButton()).toBeNull();
+
+    component.message = { ...message, reply_count: 1 };
+    fixture.detectChanges();
+
+    expect(queryReplyCountButton()).not.toBeNull();
+    expect(queryReplyCountButton()?.innerHTML).toContain('streamChat.1 reply');
+  });
+
+  it('should select parent message if reply count is clicked', () => {
+    expect(queryReplyCountButton()).toBeNull();
+
+    component.message = { ...message, reply_count: 1 };
+    fixture.detectChanges();
+    queryReplyCountButton()?.click();
+    fixture.detectChanges();
+
+    expect(setAsActiveParentMessageSpy).toHaveBeenCalledWith(component.message);
+  });
+
+  it(`shouldn't display reply count for parent messages if user doesn't have the necessary capability`, () => {
+    component.message = { ...message, reply_count: 1 };
+    component.enabledMessageActions = [];
+    fixture.detectChanges();
+
+    expect(queryReplyCountButton()).toBeNull();
+  });
+
+  it('should display reply in thread icon, if user has the necessary capability', () => {
+    expect(queryReplyInThreadIcon()).not.toBeNull();
+
+    component.enabledMessageActions = [];
+    fixture.detectChanges();
+
+    expect(queryReplyInThreadIcon()).toBeNull();
+  });
+
+  it('should select parent message, if reply in thread is clicked', () => {
+    component.enabledMessageActions = ['send-reply'];
+    fixture.detectChanges();
+
+    queryReplyInThreadIcon()?.click();
+    fixture.detectChanges();
+
+    expect(setAsActiveParentMessageSpy).toHaveBeenCalledWith(component.message);
+  });
+
+  describe('in thread mode', () => {
+    beforeEach(() => {
+      component.mode = 'thread';
+      component.enabledMessageActions = ['edit', 'delete'];
+      fixture.detectChanges();
+    });
+
+    it('should only display sending message status', () => {
+      message.status = 'sending';
+      component.isLastSentMessage = true;
+      fixture.detectChanges();
+
+      expect(querySendingIndicator()).not.toBeNull();
+
+      message.readBy = [];
+      message.status = 'received';
+      fixture.detectChanges();
+
+      expect(queryDeliveredIndicator()).toBeNull();
+    });
+
+    it('should not display message actions for parent meesage', () => {
+      expect(queryActionIcon()).toBeNull();
+      expect(queryReactionIcon()).toBeNull();
+    });
+
+    it('should not display reply count for parent meesage', () => {
+      message.reply_count = 5;
+      fixture.detectChanges();
+
+      expect(queryReplyCountButton()).toBeNull();
+    });
+
+    it(`shouldn't display reply in thread for thread replies`, () => {
+      component.enabledMessageActions = ['send-reply'];
+      component.message!.parent_id = 'parentMessage';
+      fixture.detectChanges();
+
+      expect(queryReplyInThreadIcon()).toBeNull();
+    });
+
+    it('should display message actions for thread replies', () => {
+      component.enabledMessageActions = ['update-any-message'];
+      component.message!.parent_id = 'parentMessage';
+      fixture.detectChanges();
+
+      expect(queryActionIcon()).not.toBeNull();
+    });
+
+    it('should display message reactions for thread replies', () => {
+      component.enabledMessageActions = ['send-reaction'];
+      component.message!.parent_id = 'parentMessage';
+      fixture.detectChanges();
+
+      expect(queryReactionIcon()).not.toBeNull();
+    });
   });
 });
