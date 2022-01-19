@@ -181,6 +181,12 @@ export class ChannelService {
     );
   }
 
+  reset() {
+    this.activeChannelMessagesSubject.next([]);
+    this.activeChannelSubject.next(undefined);
+    this.channelsSubject.next(undefined);
+  }
+
   async loadMoreChannels() {
     this.options!.offset = this.channels.length!;
     await this.queryChannels();

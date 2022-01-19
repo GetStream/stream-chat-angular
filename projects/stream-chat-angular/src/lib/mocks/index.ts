@@ -223,6 +223,7 @@ export type MockStreamChatClient = {
   queryUsers: jasmine.Spy;
   getUserAgent: () => string;
   getAppSettings: jasmine.Spy;
+  disconnectUser: jasmine.Spy;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
@@ -248,6 +249,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
       },
     },
   });
+  const disconnectUser = jasmine.createSpy();
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes | Function, handler: () => {}) => {
@@ -269,6 +271,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
 
   return {
     connectUser,
+    disconnectUser,
     user,
     on,
     handleEvent,

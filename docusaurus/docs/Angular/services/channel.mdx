@@ -105,3 +105,7 @@ Returns the autocomplete options for current channel members. If the channel has
 ## sendAction
 
 [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
+
+## reset
+
+Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./chat-client.mdx/#disconnectuser).

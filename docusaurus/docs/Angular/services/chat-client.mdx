@@ -43,3 +43,7 @@ Loads the current [application settings](https://getstream.io/chat/docs/javascri
 ## autcompleteUsers
 
 Returns the autocomplete options for application users, sends a [search request](https://getstream.io/chat/docs/javascript/query_users/?language=javascript#querying-using-the-$autocomplete-operator) with the given search term.
+
+## disconnectUser
+
+Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](./channel.mdx/#reset).
