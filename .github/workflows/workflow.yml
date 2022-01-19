@@ -61,7 +61,7 @@ jobs:
             docusaurus
         id: changed_files
       - name: Push to docusaurus
-        if: steps.changed_files.outputs.any_changed == 'true'
+        if: steps.changed_files.outputs.any_changed == 'true' || github.ref == 'refs/heads/master'
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
           target-branch: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
