@@ -116,6 +116,24 @@ describe('ChannelService', () => {
     });
   });
 
+  it('should reset', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+    const channelsSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    messagesSpy.calls.reset();
+    activeChannelSpy.calls.reset();
+    channelsSpy.calls.reset();
+    service.reset();
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(channelsSpy).toHaveBeenCalledWith(undefined);
+    expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
+  });
+
   it('should tell if user #hasMoreChannels$', async () => {
     await init();
     const spy = jasmine.createSpy();

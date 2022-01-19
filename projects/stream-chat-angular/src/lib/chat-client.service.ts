@@ -73,6 +73,10 @@ export class ChatClientService {
     });
   }
 
+  async disconnectUser() {
+    await this.chatClient.disconnectUser();
+  }
+
   async getAppSettings() {
     if (this.appSettingsSubject.getValue()) {
       return;

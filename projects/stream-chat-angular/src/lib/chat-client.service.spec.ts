@@ -32,6 +32,12 @@ describe('ChatClientService', () => {
     expect(spy).toHaveBeenCalledWith(undefined);
   });
 
+  it('should disconnect user', async () => {
+    await service.disconnectUser();
+
+    expect(mockChatClient.disconnectUser).toHaveBeenCalledWith();
+  });
+
   it('should init with user meta data', async () => {
     const user = { id: userId, name: 'Test user' } as OwnUserResponse;
     mockChatClient.connectUser.calls.reset();
