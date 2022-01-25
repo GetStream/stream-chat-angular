@@ -31,6 +31,8 @@ export const en = {
     Flag: 'Flag',
     'Message Failed': 'Message Failed',
     'Message Failed · Unauthorized': 'Message Failed · Unauthorized',
+    'Message Failed · Click to try again':
+      'Message Failed · Click to try again',
     'Message deleted': 'Message deleted',
     'Message has been successfully flagged':
       'Message has been successfully flagged',
@@ -90,6 +92,8 @@ export const en = {
       'Sending links is not allowed in this conversation',
     "You can't send messages in this channel":
       "You can't send messages in this channel",
+    "You can't send thread replies in this channel":
+      "You can't send thread replies in this channel",
     'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
   },
 };

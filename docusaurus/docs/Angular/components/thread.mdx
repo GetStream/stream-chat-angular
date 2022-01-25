@@ -1,0 +1,31 @@
+---
+id: thread
+sidebar_position: 19
+title: Thread
+---
+
+The `Thread` component represents a [message thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript), it is a container component that displays a thread with a header, [`MessageList`](./message-list.mdx) and [`MessageInput`](./message-input.mdx) components.
+
+## Usage
+
+The `Thread` component have empty slots for message list and message input components where you can inject content with the following names:
+
+- `thread-message-list` for the message list
+- `thread-message-input` for the message input
+
+The names determine the location of the template within the thread layout.
+
+```html
+<stream-thread name="thread">
+  <stream-message-list
+    name="thread-message-list"
+    mode="thread"
+  ></stream-message-list>
+  <stream-message-input
+    mode="thread"
+    name="thread-message-input"
+  ></stream-message-input>
+</stream-thread>
+```
+
+You can use the default SDK components, or use your own custom components.

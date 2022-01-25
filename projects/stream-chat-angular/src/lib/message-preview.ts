@@ -5,7 +5,8 @@ export const createMessagePreview = (
   user: UserResponse,
   text: string,
   attachments: Attachment[],
-  mentionedUsers: UserResponse[]
+  mentionedUsers: UserResponse[],
+  parentId: undefined | string
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
@@ -21,5 +22,6 @@ export const createMessagePreview = (
     user,
     attachments,
     mentioned_users: mentionedUsers,
+    parent_id: parentId,
   } as unknown as MessageResponse;
 };

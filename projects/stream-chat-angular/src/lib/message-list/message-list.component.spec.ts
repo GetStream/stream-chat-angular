@@ -12,6 +12,7 @@ import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { MessageComponent } from '../message/message.component';
 import {
+  generateMockMessages,
   MockChannelService,
   mockChannelService,
   mockCurrentUser,
@@ -29,6 +30,7 @@ describe('MessageListComponent', () => {
   let queryMessageComponents: () => MessageComponent[];
   let queryMessages: () => HTMLElement[];
   let queryScrollToBottomButton: () => HTMLElement | null;
+  let queryParentMessage: () => MessageComponent | undefined;
 
   beforeEach(fakeAsync(() => {
     channelServiceMock = mockChannelService();
@@ -50,12 +52,21 @@ describe('MessageListComponent', () => {
       nativeElement.querySelector('[data-testid="scroll-container"]');
     queryMessageComponents = () =>
       fixture.debugElement
-        .queryAll(By.directive(MessageComponent))
-        .map((e) => e.componentInstance as MessageComponent);
+        .queryAll(By.css('[data-testclass="message"]'))
+        .map(
+          (debugElement) =>
+            debugElement.query(By.directive(MessageComponent))
+              .componentInstance as MessageComponent
+        );
     queryMessages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="message"]'));
     queryScrollToBottomButton = () =>
       nativeElement.querySelector('[data-testid="scroll-to-bottom"]');
+    queryParentMessage = () =>
+      fixture.debugElement
+        .query(By.css('[data-testid="parent-message"]'))
+        ?.query(By.directive(MessageComponent))
+        .componentInstance as MessageComponent;
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.style.maxHeight = '300px';
@@ -90,6 +101,7 @@ describe('MessageListComponent', () => {
       ]);
 
       expect(m.canReceiveReadEvents).toBe(component.canReceiveReadEvents);
+      expect(m.mode).toBe(component.mode);
     });
   });
 
@@ -414,5 +426,99 @@ describe('MessageListComponent', () => {
     expect(queryMessageComponents()[0].enabledMessageActions).toEqual([
       'delete-any',
     ]);
+  });
+
+  describe('thread mode', () => {
+    beforeEach(() => {
+      component.mode = 'thread';
+      component.ngOnChanges({ mode: {} as SimpleChange });
+      const parentMessage = mockMessage();
+      parentMessage.id = 'parentMessage';
+      channelServiceMock.activeParentMessage$.next(parentMessage);
+      channelServiceMock.activeThreadMessages$.next(generateMockMessages());
+      channelServiceMock.activeChannelMessages$.next([parentMessage]);
+      fixture.detectChanges();
+    });
+
+    it('should display messages', () => {
+      const messagesComponents = queryMessageComponents();
+      const messages = channelServiceMock.activeThreadMessages$.getValue();
+
+      expect(messagesComponents.length).toBe(messages.length);
+    });
+
+    it('should load more replies, if user scrolls up', () => {
+      spyOn(channelServiceMock, 'loadMoreThreadReplies');
+
+      const scrollContainer = queryScrollContainer()!;
+      const parentMessageHeight = (
+        fixture.nativeElement as HTMLElement
+      ).querySelector('[data-testid="parent-message"]')?.clientHeight;
+      scrollContainer.scrollTo({ top: parentMessageHeight });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+
+      expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith();
+    });
+
+    it(`should load more replies, if user scrolls up - shouldn't send unnecessary requests`, () => {
+      spyOn(channelServiceMock, 'loadMoreThreadReplies');
+
+      const scrollContainer = queryScrollContainer()!;
+      const parentMessageHeight = (
+        fixture.nativeElement as HTMLElement
+      ).querySelector('[data-testid="parent-message"]')?.clientHeight;
+      scrollContainer.scrollTo({ top: parentMessageHeight });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+      scrollContainer.scrollTo({ top: parentMessageHeight! - 1 });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+
+      expect(
+        channelServiceMock.loadMoreThreadReplies
+      ).toHaveBeenCalledOnceWith();
+    });
+
+    it('should show parent message of thread', () => {
+      const parentMessage = queryParentMessage();
+
+      expect(parentMessage?.message?.id).toBe('parentMessage');
+      expect(parentMessage?.mode).toBe('thread');
+
+      component.mode = 'main';
+      component.ngOnChanges({ mode: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(queryParentMessage()).toBeUndefined();
+    });
+
+    it('should reset scroll state after parent message changed', () => {
+      const parentMessage = mockMessage();
+      parentMessage.id = 'parentMessage2';
+      component.unreadMessageCount = 4;
+      component.isUserScrolledUp = true;
+      channelServiceMock.activeParentMessage$.next(parentMessage);
+      channelServiceMock.activeThreadMessages$.next([]);
+      fixture.detectChanges();
+
+      expect(component.unreadMessageCount).toBe(0);
+      expect(component.isUserScrolledUp).toBeFalse();
+      expect(queryMessageComponents().length).toBe(0);
+    });
+
+    it(`shouldn't reset scroll state after parent message changed, if in main mode`, () => {
+      component.mode = 'main';
+      fixture.detectChanges();
+      const parentMessage = mockMessage();
+      parentMessage.id = 'parentMessage2';
+      component.unreadMessageCount = 4;
+      component.isUserScrolledUp = true;
+      channelServiceMock.activeParentMessage$.next(parentMessage);
+      fixture.detectChanges();
+
+      expect(component.unreadMessageCount).toBe(4);
+      expect(component.isUserScrolledUp).toBeTrue();
+    });
   });
 });

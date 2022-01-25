@@ -24,6 +24,7 @@ describe('MessageInputComponent', () => {
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
   let mockActiveChannel$: BehaviorSubject<Channel>;
+  let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
   let updateMessageSpy: jasmine.Spy;
   let channel: Channel;
@@ -43,6 +44,9 @@ describe('MessageInputComponent', () => {
     appSettings$ = new Subject<AppSettings>();
     channel = generateMockChannels(1)[0];
     mockActiveChannel$ = new BehaviorSubject(channel);
+    mockActiveParentMessageId$ = new BehaviorSubject<string | undefined>(
+      undefined
+    );
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
     updateMessageSpy = jasmine.createSpy();
@@ -84,6 +88,7 @@ describe('MessageInputComponent', () => {
             sendMessage: sendMessageSpy,
             updateMessage: updateMessageSpy,
             autocompleteMembers: jasmine.createSpy().and.resolveTo([]),
+            activeParentMessageId$: mockActiveParentMessageId$,
           },
         },
         {
@@ -194,7 +199,12 @@ describe('MessageInputComponent', () => {
     void component.messageSent();
     fixture.detectChanges();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith(message, [], mentionedUsers);
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      message,
+      [],
+      mentionedUsers,
+      undefined
+    );
   });
 
   it('reset textarea after message is sent', () => {
@@ -344,7 +354,8 @@ describe('MessageInputComponent', () => {
     expect(sendMessageSpy).toHaveBeenCalledWith(
       jasmine.any(String),
       attachments,
-      []
+      [],
+      undefined
     );
   });
 
@@ -442,7 +453,12 @@ describe('MessageInputComponent', () => {
     component.canSendLinks = true;
     void component.messageSent();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith(message, undefined, []);
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      message,
+      undefined,
+      [],
+      undefined
+    );
   });
 
   it('should determine if message contains links', () => {
@@ -588,5 +604,39 @@ describe('MessageInputComponent', () => {
     await component.filesSelected(files as any as FileList);
 
     expect(getAppSettings).toHaveBeenCalledWith();
+  });
+
+  it('should send parent message id if in thread mode', () => {
+    component.mode = 'thread';
+    mockActiveParentMessageId$.next('parent message');
+    const message = 'This is my message';
+    component.textareaValue = message;
+    attachmentService.mapToAttachments.and.returnValue([]);
+    component.mentionedUsers = [];
+    void component.messageSent();
+    fixture.detectChanges();
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      message,
+      [],
+      [],
+      'parent message'
+    );
+  });
+
+  it(`shouldn't allow message send if in thread mode and "send-reply" capability is missing`, () => {
+    expect(component.canSendMessages).toBeTrue();
+
+    component.mode = 'thread';
+    component.ngOnChanges({ mode: {} as SimpleChange });
+
+    expect(component.canSendMessages).toBeFalse();
+
+    mockActiveChannel$.next({
+      data: { own_capabilities: ['send-message'] },
+      getConfig: () => ({ commands: [] }),
+    } as any as Channel);
+
+    expect(component.canSendMessages).toBeFalse();
   });
 });

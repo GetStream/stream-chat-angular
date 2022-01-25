@@ -22,6 +22,13 @@ If you want to create your own message input, here is how to use it:
     [messageInputTemplate]="customMessageInput"
   ></stream-message-list>
   <custom-message-input></custom-message-input>
+  <stream-thread name="thread">
+    <stream-message-list
+      name="thread-message-list"
+      mode="thread"
+    ></stream-message-list>
+    <custom-message-input name="thread-message-input"></custom-message-input>
+  </stream-thread>
 </stream-channel>
 
 <ng-template
@@ -149,6 +156,14 @@ The message to edit
 | Type                                           | Default   |
 | ---------------------------------------------- | --------- |
 | [`StreamMessage`](../types/stream-message.mdx) | undefined |
+
+### mode
+
+Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+| Type               | Default |
+| ------------------ | ------- |
+| `main` or `thread` | `main`  |
 
 ## Outputs
 

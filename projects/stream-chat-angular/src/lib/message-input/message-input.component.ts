@@ -19,7 +19,7 @@ import {
 import { ChatClientService } from '../chat-client.service';
 import { Observable, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
-import { AppSettings, UserResponse } from 'stream-chat';
+import { AppSettings, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
@@ -53,6 +53,7 @@ export class MessageInputComponent
   @Input() commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
+  @Input() mode: 'thread' | 'main' = 'main';
   /**
    * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-input/#caution-acceptedfiletypes
    */
@@ -74,7 +75,7 @@ export class MessageInputComponent
   private hideNotification: Function | undefined;
   private isViewInited = false;
   private appSettings: AppSettings | undefined;
-
+  private channel: Channel | undefined;
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -105,11 +106,8 @@ export class MessageInputComponent
           this.isFileUploadAuthorized =
             capabilities.indexOf('upload-file') !== -1;
           this.canSendLinks = capabilities.indexOf('send-links') !== -1;
-          this.canSendMessages = capabilities.indexOf('send-message') !== -1;
-          if (this.isViewInited) {
-            this.cdRef.detectChanges();
-            this.initTextarea();
-          }
+          this.channel = channel;
+          this.setCanSendMessages();
         }
       })
     );
@@ -170,6 +168,9 @@ export class MessageInputComponent
     if (changes.mentionScope) {
       this.configService.mentionScope = this.mentionScope;
     }
+    if (changes.mode) {
+      this.setCanSendMessages();
+    }
   }
 
   ngOnDestroy(): void {
@@ -204,6 +205,12 @@ export class MessageInputComponent
     if (!this.isUpdate) {
       this.textareaValue = '';
     }
+    let parentMessageId: string | undefined = undefined;
+    if (this.mode === 'thread') {
+      this.channelService.activeParentMessageId$
+        .pipe(first())
+        .subscribe((id) => (parentMessageId = id));
+    }
     try {
       await (this.isUpdate
         ? this.channelService.updateMessage({
@@ -214,7 +221,8 @@ export class MessageInputComponent
         : this.channelService.sendMessage(
             text,
             attachments,
-            this.mentionedUsers
+            this.mentionedUsers,
+            parentMessageId
           ));
       this.messageUpdate.emit();
       if (!this.isUpdate) {
@@ -338,5 +346,21 @@ export class MessageInputComponent
       }
     });
     return isValid;
+  }
+
+  private setCanSendMessages() {
+    const capabilities = this.channel?.data?.own_capabilities as string[];
+    if (!capabilities) {
+      this.canSendMessages = false;
+    } else {
+      this.canSendMessages =
+        capabilities.indexOf(
+          this.mode === 'main' ? 'send-message' : 'send-reply'
+        ) !== -1;
+    }
+    if (this.isViewInited) {
+      this.cdRef.detectChanges();
+      this.initTextarea();
+    }
   }
 }

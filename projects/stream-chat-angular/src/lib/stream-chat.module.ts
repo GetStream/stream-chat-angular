@@ -19,6 +19,7 @@ import { AttachmentPreviewListComponent } from './attachment-preview-list/attach
 import { ModalComponent } from './modal/modal.component';
 import { TextareaDirective } from './message-input/textarea.directive';
 import { StreamAvatarModule } from './stream-avatar.module';
+import { ThreadComponent } from './thread/thread.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
     AttachmentPreviewListComponent,
     ModalComponent,
     TextareaDirective,
+    ThreadComponent,
   ],
   imports: [CommonModule, TranslateModule, StreamAvatarModule],
   exports: [
@@ -59,6 +61,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
     AttachmentPreviewListComponent,
     ModalComponent,
     StreamAvatarModule,
+    ThreadComponent,
   ],
 })
 export class StreamChatModule {}

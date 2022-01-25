@@ -50,6 +50,10 @@ If you want to subscribe to channel events, you need to manually reenter Angular
 
 Sets the given `channel` as active.
 
+## setAsActiveParentMessage
+
+Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
+
 ## hasMoreChannels$
 
 Emits `false` if there are no more pages of channels that can be loaded.
@@ -62,9 +66,25 @@ Loads the next page of channels. The page size can be set in the [query option](
 
 Emits the list of currently loaded messages of the active channel. Apart from pagination, the list is updated if a `message.new`, `reaction.new`, `reaction.deleted`, `reaction.updated` event is received.
 
+## activeParentMessageId$
+
+Emits the id of the currently selected parent message. If no message is selected, it emits undefined.
+
+## activeParentMessage$
+
+Emits the currently selected parent message. If no message is selected, it emits undefined.
+
+## activeThreadMessages$
+
+Emits the list of currently loaded thread replies belonging to the selected parent message. If there is no currently active thread it emits an empty array.
+
 ## loadMoreMessages
 
 Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+
+## loadMoreThreadReplies
+
+Loads the next page of messages of the active thread. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
 
 ## addReaction
 

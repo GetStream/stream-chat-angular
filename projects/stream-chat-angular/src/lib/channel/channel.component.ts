@@ -11,6 +11,7 @@ import { ChannelService } from '../channel.service';
 export class ChannelComponent {
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
+  isActiveThread$: Observable<boolean>;
   subscriptions: Subscription[] = [];
 
   constructor(private channelService: ChannelService) {
@@ -22,6 +23,9 @@ export class ChannelComponent {
     this.isInitializing$ = this.channelService.channels$.pipe(
       map((channels) => !channels),
       catchError(() => of(false))
+    );
+    this.isActiveThread$ = this.channelService.activeParentMessageId$.pipe(
+      map((id) => !!id)
     );
   }
 }

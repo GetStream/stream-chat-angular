@@ -1,0 +1,594 @@
+import { TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
+import { first } from 'rxjs/operators';
+import {
+  Channel,
+  ChannelOptions,
+  ChannelSort,
+  Event,
+  GetRepliesAPIResponse,
+  SendMessageAPIResponse,
+  UserResponse,
+} from 'stream-chat';
+import { ChannelService } from './channel.service';
+import { ChatClientService, Notification } from './chat-client.service';
+import {
+  generateMockChannels,
+  MockChannel,
+  mockCurrentUser,
+  mockMessage,
+} from './mocks';
+import { StreamMessage } from './types';
+
+describe('ChannelService - threads', () => {
+  let service: ChannelService;
+  let mockChatClient: {
+    queryChannels: jasmine.Spy;
+    channel: jasmine.Spy;
+    updateMessage: jasmine.Spy;
+    deleteMessage: jasmine.Spy;
+    userID: string;
+  };
+  let notification$: Subject<Notification>;
+  let connectionState$: Subject<'online' | 'offline'>;
+  let init: (
+    c?: Channel[],
+    sort?: ChannelSort,
+    options?: ChannelOptions
+  ) => Promise<void>;
+  let user: UserResponse;
+  const filters = { type: 'messaging' };
+
+  beforeEach(() => {
+    user = mockCurrentUser();
+    connectionState$ = new Subject<'online' | 'offline'>();
+    mockChatClient = {
+      queryChannels: jasmine
+        .createSpy()
+        .and.returnValue(generateMockChannels()),
+      channel: jasmine.createSpy(),
+      updateMessage: jasmine.createSpy(),
+      deleteMessage: jasmine.createSpy(),
+      userID: user.id,
+    };
+    notification$ = new Subject();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: ChatClientService,
+          useValue: {
+            chatClient: { ...mockChatClient, user },
+            notification$,
+            connectionState$,
+          },
+        },
+      ],
+    });
+    service = TestBed.inject(ChannelService);
+    init = async (
+      channels?: Channel[],
+      sort?: ChannelSort,
+      options?: ChannelOptions
+    ) => {
+      mockChatClient.queryChannels.and.returnValue(
+        channels || generateMockChannels()
+      );
+
+      await service.init(filters, sort, options);
+    };
+  });
+
+  it('should reset active parent message and thread messages after channel changed', async () => {
+    await init();
+    const mockChannels = generateMockChannels();
+    const messagesSpy = jasmine.createSpy();
+    const activeParentMessageIdSpy = jasmine.createSpy();
+    const activeParentMessageSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
+    service.activeParentMessage$.subscribe(activeParentMessageSpy);
+    messagesSpy.calls.reset();
+    activeParentMessageIdSpy.calls.reset();
+    activeParentMessageSpy.calls.reset();
+    const newActiveChannel = mockChannels[1];
+    service.setAsActiveChannel(newActiveChannel);
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(activeParentMessageIdSpy).toHaveBeenCalledWith(undefined);
+    expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should set active parent message and emit thread messages', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    const activeParentMessageIdSpy = jasmine.createSpy();
+    const activeParentMessageSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
+    service.activeParentMessage$.subscribe(activeParentMessageSpy);
+    messagesSpy.calls.reset();
+    activeParentMessageIdSpy.calls.reset();
+    activeParentMessageSpy.calls.reset();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    let parentMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
+    const replies = [mockMessage(), mockMessage(), mockMessage()];
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+
+    expect(messagesSpy).toHaveBeenCalledWith(replies);
+    expect(activeParentMessageIdSpy).toHaveBeenCalledWith(parentMessage.id);
+    expect(activeParentMessageSpy).toHaveBeenCalledWith(parentMessage);
+  });
+
+  it('should remove active parent message and reset thread messages', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    const activeParentMessageIdSpy = jasmine.createSpy();
+    const activeParentMessageSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
+    service.activeParentMessage$.subscribe(activeParentMessageSpy);
+    messagesSpy.calls.reset();
+    activeParentMessageIdSpy.calls.reset();
+    activeParentMessageSpy.calls.reset();
+    await service.setAsActiveParentMessage(undefined);
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(activeParentMessageIdSpy).toHaveBeenCalledWith(undefined);
+    expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should reset', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    const activeParentMessageIdSpy = jasmine.createSpy();
+    const activeParentMessageSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
+    service.activeParentMessage$.subscribe(activeParentMessageSpy);
+    messagesSpy.calls.reset();
+    activeParentMessageIdSpy.calls.reset();
+    activeParentMessageSpy.calls.reset();
+    service.reset();
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(activeParentMessageIdSpy).toHaveBeenCalledWith(undefined);
+    expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should deselect thread after reconnect', async () => {
+    await init();
+    let parentMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
+    await service.setAsActiveParentMessage(parentMessage);
+    const spy = jasmine.createSpy();
+    service.activeParentMessage$.subscribe(spy);
+    spy.calls.reset();
+    connectionState$.next('online');
+
+    expect(spy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should not add readBy field to messages', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    const message = mockMessage();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    const replies = [mockMessage(), mockMessage(), mockMessage()];
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(message);
+    let threadMessages!: StreamMessage[];
+    service.activeThreadMessages$.subscribe((m) => (threadMessages = m));
+
+    expect(threadMessages.length).toBeGreaterThan(0);
+    threadMessages.forEach((m) => expect(m.readBy).toBeDefined());
+  });
+
+  it('should load more messages', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    const parentMessage = mockMessage();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    const replies = [mockMessage(), mockMessage(), mockMessage()];
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    replies[0].id = 'firstreply';
+    await service.setAsActiveParentMessage(parentMessage);
+    let threadMessages!: StreamMessage[];
+    (channel.getReplies as jasmine.Spy).calls.reset();
+    channel.state.threads = {
+      [parentMessage.id]: [...replies, mockMessage(), mockMessage()],
+    };
+    await service.loadMoreThreadReplies();
+    service.activeThreadMessages$.subscribe((m) => (threadMessages = m));
+
+    expect(channel.getReplies).toHaveBeenCalledWith(parentMessage.id, {
+      limit: 25,
+      id_lt: replies[0].id,
+    });
+
+    expect(threadMessages.length).toBe(5);
+  });
+
+  it('should watch for new message events', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    const parentMessage = mockMessage();
+    await service.setAsActiveParentMessage(parentMessage);
+    service.activeThreadMessages$.subscribe(spy);
+    const prevCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
+    spy.calls.reset();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const newMessage = mockMessage();
+    newMessage.parent_id = parentMessage.id;
+    activeChannel.state.threads = { [parentMessage.id]: [newMessage] };
+    spyOn(activeChannel, 'markRead');
+    (activeChannel as MockChannel).handleEvent('message.new', {
+      message: newMessage,
+    });
+    const newCount = (spy.calls.mostRecent().args[0] as StreamMessage[]).length;
+
+    expect(newCount).toBe(prevCount + 1);
+    expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('should watch for message update events', async () => {
+    await init();
+    const parentMessage = mockMessage();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const messageToUpdate = mockMessage();
+    messageToUpdate.parent_id = parentMessage.id;
+    spyOn(activeChannel, 'getReplies').and.resolveTo({
+      messages: [messageToUpdate],
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    messageToUpdate.text = 'updated';
+    activeChannel.state.threads = { [parentMessage.id]: [messageToUpdate] };
+    (activeChannel as MockChannel).handleEvent('message.updated', {
+      message: messageToUpdate,
+    });
+    let message!: StreamMessage;
+    service.activeThreadMessages$.subscribe(
+      (messages) => (message = messages[0])
+    );
+
+    expect(message.text).toBe('updated');
+  });
+
+  it('should watch for message deleted events', async () => {
+    await init();
+    const parentMessage = mockMessage();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const messageToDelete = mockMessage();
+    messageToDelete.parent_id = parentMessage.id;
+    spyOn(activeChannel, 'getReplies').and.resolveTo({
+      messages: [messageToDelete],
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    messageToDelete.deleted_at = new Date().toISOString();
+    activeChannel.state.threads = { [parentMessage.id]: [messageToDelete] };
+    (activeChannel as MockChannel).handleEvent('message.deleted', {
+      message: messageToDelete,
+    });
+    let message!: StreamMessage;
+    service.activeThreadMessages$.subscribe(
+      (messages) => (message = messages[0])
+    );
+
+    expect(message.deleted_at).toBeDefined();
+  });
+
+  it('should handle if channel is truncated', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const messagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    const parentMessageSpy = jasmine.createSpy();
+    service.activeParentMessageId$.subscribe(parentMessageSpy);
+    messagesSpy.calls.reset();
+    parentMessageSpy.calls.reset();
+    (channel as MockChannel).handleEvent('channel.truncated', {
+      type: 'channel.truncated',
+      channel: {
+        cid: channel.cid,
+      },
+    });
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(parentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const spy = jasmine
+      .createSpy()
+      .and.callFake(
+        (
+          _,
+          __,
+          ___,
+          ____,
+          threadListSetter: (list: StreamMessage[]) => {},
+          parentMessageSetter: (id: string | undefined) => {}
+        ) => {
+          threadListSetter([]);
+          parentMessageSetter(undefined);
+        }
+      );
+    service.customChannelTruncatedHandler = spy;
+    const event = {
+      type: 'channel.truncated',
+      channel: {
+        cid: channel.cid,
+        name: 'New name',
+      },
+    } as any as Event;
+    const messagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    const parentMessageSpy = jasmine.createSpy();
+    service.activeParentMessageId$.subscribe(parentMessageSpy);
+    messagesSpy.calls.reset();
+    parentMessageSpy.calls.reset();
+    (channel as MockChannel).handleEvent('channel.truncated', event);
+
+    expect(spy).toHaveBeenCalledWith(
+      event,
+      channel,
+      jasmine.any(Function),
+      jasmine.any(Function),
+      jasmine.any(Function),
+      jasmine.any(Function)
+    );
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(parentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should watch for reaction events', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(spy);
+    spy.calls.reset();
+    let activeChannel!: Channel;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const parentMessage = mockMessage();
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    spyOn(activeChannel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    const message = replies[1];
+    (activeChannel as MockChannel).handleEvent('reaction.new', { message });
+
+    expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
+
+    spy.calls.reset();
+    (activeChannel as MockChannel).handleEvent('reaction.updated', { message });
+
+    expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
+
+    spy.calls.reset();
+    (activeChannel as MockChannel).handleEvent('reaction.deleted', { message });
+
+    expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
+  });
+
+  it('should send message', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    spyOn(channel, 'sendMessage').and.callThrough();
+    spyOn(channel.state, 'addMessageSorted').and.callThrough();
+    const text = 'Hi';
+    const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
+    const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
+    let prevMessageCount!: number;
+    service.activeThreadMessages$
+      .pipe(first())
+      .subscribe((m) => (prevMessageCount = m.length));
+    await service.sendMessage(
+      text,
+      attachments,
+      mentionedUsers,
+      parentMessage.id
+    );
+    let latestMessage!: StreamMessage;
+    let messageCount!: number;
+    service.activeThreadMessages$.subscribe((m) => {
+      latestMessage = m[m.length - 1];
+      messageCount = m.length;
+    });
+
+    expect(channel.sendMessage).toHaveBeenCalledWith({
+      text,
+      attachments,
+      mentioned_users: ['sara'],
+      id: jasmine.any(String),
+      parent_id: 'parentId',
+    });
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({ text, user, attachments }),
+      true
+    );
+
+    expect(latestMessage.text).toBe(text);
+    expect(messageCount).toEqual(prevMessageCount + 1);
+  });
+
+  it('should send action', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    const giphy = {
+      thumb_url:
+        'https://media4.giphy.com/media/Q9GYuPJTT8RomJTRot/giphy.gif?cid=c4b036752at3vu1m2vwt7nvnfumyer5620wbdhosrpmds52e&rid=giphy.gif&ct=g',
+      title: 'dogs',
+      title_link: 'https://giphy.com/gifs/Q9GYuPJTT8RomJTRot',
+      type: 'giphy',
+    };
+    spyOn(channel, 'sendAction').and.resolveTo({
+      message: {
+        id: replies[replies.length - 1].id,
+        attachments: [giphy],
+        parent_id: parentMessage.id,
+      },
+    } as any as SendMessageAPIResponse);
+    let message!: StreamMessage;
+    service.activeThreadMessages$.subscribe((m) => (message = m[m.length - 1]));
+    await service.sendAction(replies[replies.length - 1].id, {
+      image_action: 'send',
+    });
+
+    expect(message.attachments![0]).toBe(giphy);
+  });
+
+  it('should remove message after action, if no message is returned', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    spyOn(channel, 'sendAction').and.resolveTo(
+      {} as any as SendMessageAPIResponse
+    );
+    spyOn(channel.state, 'removeMessage');
+    await service.sendAction(replies[replies.length - 1].id, {
+      image_action: 'send',
+    });
+
+    expect(channel.state.removeMessage).toHaveBeenCalledWith({
+      id: replies[replies.length - 1].id,
+    });
+  });
+
+  it('should set message state after message is sent', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    const text = 'Hi';
+    spyOn(channel, 'sendMessage').and.resolveTo({
+      message: {
+        id: 'new message',
+        parent_id: parentMessage.id,
+        text,
+      },
+    } as SendMessageAPIResponse);
+    let latestMessage!: StreamMessage;
+    service.activeThreadMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage(text, [], [], parentMessage.id);
+
+    expect(latestMessage.status).toBe('received');
+  });
+
+  it('should set message state, if an error occured', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    const text = 'Hi';
+    spyOn(channel, 'sendMessage').and.rejectWith({ status: 500 });
+    let latestMessage!: StreamMessage;
+    service.activeThreadMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage(text, [], [], parentMessage.id);
+
+    expect(latestMessage.status).toBe('failed');
+    expect(latestMessage.errorStatusCode).toBe(500);
+  });
+
+  it('should add sent message to message list', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentId';
+    const replies = [mockMessage(), mockMessage()];
+    replies.forEach((r) => (r.parent_id = parentMessage.id));
+    channel.state.threads[parentMessage.id] = replies;
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse);
+    await service.setAsActiveParentMessage(parentMessage);
+    const text = 'Hi';
+    spyOn(channel, 'sendMessage').and.resolveTo({
+      message: {
+        id: 'new message',
+        parent_id: parentMessage.id,
+        text,
+      },
+    } as SendMessageAPIResponse);
+    let latestMessage!: StreamMessage;
+    service.activeThreadMessages$.subscribe(
+      (m) => (latestMessage = m[m.length - 1])
+    );
+    await service.sendMessage(text, [], [], parentMessage.id);
+
+    expect(latestMessage.id).toBe('new message');
+  });
+});

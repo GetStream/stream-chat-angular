@@ -7,6 +7,21 @@
   <div class="str-chat__reverse-infinite-scroll">
     <ul class="str-chat__ul">
       <li
+        #parentMessageElement
+        *ngIf="mode === 'thread'"
+        data-testid="parent-message"
+      >
+        <ng-container
+          *ngTemplateOutlet="
+            messageTemplateContainer;
+            context: { message: parentMessage }
+          "
+        ></ng-container>
+        <div class="str-chat__thread-start" translate>
+          streamChat.Start of a new thread
+        </div>
+      </li>
+      <li
         data-testclass="message"
         *ngFor="
           let message of messages$ | async;
@@ -15,38 +30,12 @@
         "
         class="str-chat__li str-chat__li--{{ groupStyles[i] }}"
       >
-        <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
-          <ng-container
-            *ngTemplateOutlet="
-              messageTemplate;
-              context: {
-                message: message,
-                areReactionsEnabled: areReactionsEnabled,
-                canReactToMessage: canReactToMessage,
-                lastSentMessageId: !!(
-                  lastSentMessageId && message?.id === lastSentMessageId
-                ),
-                canReceiveReadEvents: canReceiveReadEvents,
-                messageInputTemplate: messageInputTemplate,
-                mentionTemplate: mentionTemplate
-              }
-            "
-          ></ng-container>
-        </ng-container>
-        <ng-template #defaultMessageTemplate>
-          <stream-message
-            [message]="message"
-            [areReactionsEnabled]="areReactionsEnabled"
-            [canReactToMessage]="canReactToMessage"
-            [isLastSentMessage]="
-              !!(lastSentMessageId && message?.id === lastSentMessageId)
-            "
-            [enabledMessageActions]="enabledMessageActions"
-            [canReceiveReadEvents]="canReceiveReadEvents"
-            [messageInputTemplate]="messageInputTemplate"
-            [mentionTemplate]="mentionTemplate"
-          ></stream-message>
-        </ng-template>
+        <ng-container
+          *ngTemplateOutlet="
+            messageTemplateContainer;
+            context: { message: message }
+          "
+        ></ng-container>
       </li>
     </ul>
   </div>
@@ -74,3 +63,40 @@
     </div>
   </button>
 </div>
+
+<ng-template #messageTemplateContainer let-message="message">
+  <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
+    <ng-container
+      *ngTemplateOutlet="
+        messageTemplate;
+        context: {
+          message: message,
+          areReactionsEnabled: areReactionsEnabled,
+          canReactToMessage: canReactToMessage,
+          lastSentMessageId: !!(
+            lastSentMessageId && message?.id === lastSentMessageId
+          ),
+          canReceiveReadEvents: canReceiveReadEvents,
+          messageInputTemplate: messageInputTemplate,
+          mentionTemplate: mentionTemplate,
+          mode: mode
+        }
+      "
+    ></ng-container>
+  </ng-container>
+  <ng-template #defaultMessageTemplate>
+    <stream-message
+      [message]="message"
+      [areReactionsEnabled]="areReactionsEnabled"
+      [canReactToMessage]="canReactToMessage"
+      [isLastSentMessage]="
+        !!(lastSentMessageId && message?.id === lastSentMessageId)
+      "
+      [enabledMessageActions]="enabledMessageActions"
+      [canReceiveReadEvents]="canReceiveReadEvents"
+      [messageInputTemplate]="messageInputTemplate"
+      [mentionTemplate]="mentionTemplate"
+      [mode]="mode"
+    ></stream-message>
+  </ng-template>
+</ng-template>

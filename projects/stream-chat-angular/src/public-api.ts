@@ -33,6 +33,7 @@ export * from './lib/attachment-preview-list/attachment-preview-list.component';
 export * from './lib/message-reactions/message-reactions.component';
 export * from './lib/notification/notification.component';
 export * from './lib/notification-list/notification-list.component';
+export * from './lib/thread/thread.component';
 export * from './lib/modal/modal.component';
 export * from './lib/read-by';
 export * from './lib/is-image-attachment';

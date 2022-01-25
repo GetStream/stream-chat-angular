@@ -1,6 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
-import { first, map } from 'rxjs/operators';
+import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  ReplaySubject,
+} from 'rxjs';
+import { filter, first, map, shareReplay } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -27,6 +32,9 @@ export class ChannelService {
   channels$: Observable<Channel[] | undefined>;
   activeChannel$: Observable<Channel | undefined>;
   activeChannelMessages$: Observable<StreamMessage[]>;
+  activeParentMessageId$: Observable<string | undefined>;
+  activeThreadMessages$: Observable<StreamMessage[]>;
+  activeParentMessage$: Observable<StreamMessage | undefined>;
   customNewMessageNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
@@ -43,37 +51,49 @@ export class ChannelService {
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   customChannelUpdatedHandler?: (
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   customChannelTruncatedHandler?: (
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   customChannelHiddenHandler?: (
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   customChannelVisibleHandler?: (
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   customNewMessageHandler?: (
     event: Event,
     channel: Channel,
     channelListSetter: (channels: Channel[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void
+    messageListSetter: (messages: StreamMessage[]) => void,
+    threadListSetter: (messages: StreamMessage[]) => void,
+    parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   private channelsSubject = new BehaviorSubject<Channel[] | undefined>(
     undefined
@@ -86,9 +106,16 @@ export class ChannelService {
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
+  private activeParentMessageIdSubject = new BehaviorSubject<
+    string | undefined
+  >(undefined);
+  private activeThreadMessagesSubject = new BehaviorSubject<
+    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+  >([]);
   private filters: ChannelFilters | undefined;
   private sort: ChannelSort | undefined;
   private options: ChannelOptions | undefined;
+  private readonly messagePageSize = 25;
 
   private channelListSetter = (channels: Channel[]) => {
     this.channelsSubject.next(channels);
@@ -96,6 +123,14 @@ export class ChannelService {
 
   private messageListSetter = (messages: StreamMessage[]) => {
     this.activeChannelMessagesSubject.next(messages);
+  };
+
+  private threadListSetter = (messages: StreamMessage[]) => {
+    this.activeThreadMessagesSubject.next(messages);
+  };
+
+  private parentMessageSetter = (message: StreamMessage | undefined) => {
+    this.activeParentMessageIdSubject.next(message?.id);
   };
 
   constructor(
@@ -107,25 +142,46 @@ export class ChannelService {
     this.activeChannelMessages$ = this.activeChannelMessagesSubject.pipe(
       map((messages) => {
         const channel = this.activeChannelSubject.getValue()!;
-        return messages.map((message) => {
-          if (
-            this.isStreamMessage(message) &&
-            this.isFormatMessageResponse(message)
-          ) {
-            return message;
-          } else if (this.isFormatMessageResponse(message)) {
-            return { ...message, readBy: getReadBy(message, channel) };
-          } else {
-            const formatMessage = this.formatMessage(message);
-            return {
-              ...formatMessage,
-              readBy: getReadBy(formatMessage, channel),
-            };
-          }
-        });
+        return messages.map((message) =>
+          this.transformToStreamMessage(message, channel)
+        );
       })
     );
     this.hasMoreChannels$ = this.hasMoreChannelsSubject.asObservable();
+    this.activeParentMessageId$ =
+      this.activeParentMessageIdSubject.asObservable();
+    this.activeThreadMessages$ = this.activeThreadMessagesSubject.pipe(
+      map((messages) => {
+        const channel = this.activeChannelSubject.getValue()!;
+        return messages.map((message) =>
+          this.transformToStreamMessage(message, channel)
+        );
+      })
+    );
+    this.activeParentMessage$ = combineLatest([
+      this.activeChannelMessages$,
+      this.activeParentMessageId$,
+    ]).pipe(
+      map(
+        ([messages, parentMessageId]: [
+          StreamMessage[],
+          string | undefined
+        ]) => {
+          if (!parentMessageId) {
+            return undefined;
+          } else {
+            return messages.find((m) => m.id === parentMessageId);
+          }
+        }
+      ),
+      shareReplay()
+    );
+
+    this.chatClientService.connectionState$
+      .pipe(filter((s) => s === 'online'))
+      .subscribe(() => {
+        void this.setAsActiveParentMessage(undefined);
+      });
   }
 
   setAsActiveChannel(channel: Channel) {
@@ -140,13 +196,30 @@ export class ChannelService {
       void channel.markRead();
     }
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    this.activeParentMessageIdSubject.next(undefined);
+    this.activeThreadMessagesSubject.next([]);
   }
 
+  async setAsActiveParentMessage(message: StreamMessage | undefined) {
+    if (!message) {
+      this.activeParentMessageIdSubject.next(undefined);
+      this.activeThreadMessagesSubject.next([]);
+    } else {
+      this.activeParentMessageIdSubject.next(message.id);
+      const activeChannel = this.activeChannelSubject.getValue();
+      const result = await activeChannel?.getReplies(message.id, {
+        limit: this.options?.message_limit,
+      });
+      this.activeThreadMessagesSubject.next(result?.messages || []);
+    }
+  }
+
+  // load more thread replies
   async loadMoreMessages() {
     const activeChnannel = this.activeChannelSubject.getValue();
     const lastMessageId = this.activeChannelMessagesSubject.getValue()[0]?.id;
     await activeChnannel?.query({
-      messages: { limit: 25, id_lt: lastMessageId },
+      messages: { limit: this.options?.message_limit, id_lt: lastMessageId },
       members: { limit: 0 },
       watchers: { limit: 0 },
     });
@@ -158,6 +231,22 @@ export class ChannelService {
         ...activeChnannel!.state.messages,
       ]);
     }
+  }
+
+  async loadMoreThreadReplies() {
+    const activeChnannel = this.activeChannelSubject.getValue();
+    const parentMessageId = this.activeParentMessageIdSubject.getValue();
+    if (!parentMessageId) {
+      return;
+    }
+    const lastMessageId = this.activeThreadMessagesSubject.getValue()[0]?.id;
+    await activeChnannel?.getReplies(parentMessageId, {
+      limit: this.options?.message_limit,
+      id_lt: lastMessageId,
+    });
+    this.activeThreadMessagesSubject.next(
+      activeChnannel?.state.threads[parentMessageId] || []
+    );
   }
 
   async init(
@@ -172,7 +261,7 @@ export class ChannelService {
       state: true,
       presence: true,
       watch: true,
-      message_limit: 25,
+      message_limit: this.messagePageSize,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     await this.queryChannels();
@@ -184,6 +273,8 @@ export class ChannelService {
   reset() {
     this.activeChannelMessagesSubject.next([]);
     this.activeChannelSubject.next(undefined);
+    this.activeParentMessageIdSubject.next(undefined);
+    this.activeThreadMessagesSubject.next([]);
     this.channelsSubject.next(undefined);
   }
 
@@ -207,13 +298,15 @@ export class ChannelService {
   async sendMessage(
     text: string,
     attachments: Attachment[] = [],
-    mentionedUsers: UserResponse[] = []
+    mentionedUsers: UserResponse[] = [],
+    parentId: string | undefined = undefined
   ) {
     const preview = createMessagePreview(
       this.chatClientService.chatClient.user!,
       text,
       attachments,
-      mentionedUsers
+      mentionedUsers,
+      parentId
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
@@ -310,22 +403,47 @@ export class ChannelService {
         ...response.message,
         status: 'received',
       });
-      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      const isThreadReply = !!response.message.parent_id;
+      isThreadReply
+        ? this.activeThreadMessagesSubject.next([
+            ...channel.state.threads[response.message.parent_id!],
+          ])
+        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     } else {
       channel.state.removeMessage({ id: messageId });
-      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      if (
+        this.activeChannelMessagesSubject
+          .getValue()
+          .find((m) => m.id === messageId)
+      ) {
+        this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      } else if (
+        this.activeThreadMessagesSubject
+          .getValue()
+          .find((m) => m.id === messageId)
+      ) {
+        this.activeThreadMessagesSubject.next(
+          channel.state.threads[this.activeParentMessageIdSubject.getValue()!]
+        );
+      }
     }
   }
 
   private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
     const channel = this.activeChannelSubject.getValue()!;
-    this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    const isThreadReply = !!preview.parent_id;
+    isThreadReply
+      ? this.activeThreadMessagesSubject.next([
+          ...channel.state.threads[preview.parent_id!],
+        ])
+      : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     try {
       const response = await channel.sendMessage({
         text: preview.text,
         attachments: preview.attachments,
         mentioned_users: preview.mentioned_users?.map((u) => u.id),
         id: preview.id,
+        parent_id: preview.parent_id,
       });
       if (response?.message) {
         channel.state.addMessageSorted(
@@ -335,7 +453,11 @@ export class ChannelService {
           },
           true
         );
-        this.activeChannelMessagesSubject.next([...channel.state.messages]);
+        isThreadReply
+          ? this.activeThreadMessagesSubject.next([
+              ...channel.state.threads[preview.parent_id!],
+            ])
+          : this.activeChannelMessagesSubject.next([...channel.state.messages]);
       }
     } catch (error) {
       const stringError = JSON.stringify(error);
@@ -351,7 +473,11 @@ export class ChannelService {
         },
         true
       );
-      this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      isThreadReply
+        ? this.activeThreadMessagesSubject.next([
+            ...channel.state.threads[preview.parent_id!],
+          ])
+        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     }
   }
 
@@ -436,9 +562,15 @@ export class ChannelService {
 
   private watchForActiveChannelEvents(channel: Channel) {
     this.activeChannelSubscriptions.push(
-      channel.on('message.new', () => {
+      channel.on('message.new', (event) => {
         this.ngZone.run(() => {
-          this.activeChannelMessagesSubject.next([...channel.state.messages]);
+          event.message && event.message.parent_id
+            ? this.activeThreadMessagesSubject.next([
+                ...channel.state.threads[event.message.parent_id],
+              ])
+            : this.activeChannelMessagesSubject.next([
+                ...channel.state.messages,
+              ]);
           this.activeChannel$.pipe(first()).subscribe((c) => {
             if (this.canSendReadEvents) {
               void c?.markRead();
@@ -488,21 +620,30 @@ export class ChannelService {
 
   private messageUpdated(event: Event) {
     this.ngZone.run(() => {
-      const messages = this.activeChannelMessagesSubject.getValue();
+      const isThreadReply = event.message && event.message.parent_id;
+      const messages = isThreadReply
+        ? this.activeThreadMessagesSubject.getValue()
+        : this.activeChannelMessagesSubject.getValue();
       const messageIndex = messages.findIndex(
         (m) => m.id === event.message?.id
       );
       if (messageIndex !== -1 && event.message) {
         messages[messageIndex] = event.message;
-        this.activeChannelMessagesSubject.next([...messages]);
+        isThreadReply
+          ? this.activeThreadMessagesSubject.next([...messages])
+          : this.activeChannelMessagesSubject.next([...messages]);
       }
     });
   }
 
   private messageReactionEventReceived(e: Event) {
     this.ngZone.run(() => {
+      const isThreadMessage = e.message && e.message.parent_id;
       let messages!: StreamMessage[];
-      this.activeChannelMessages$
+      (isThreadMessage
+        ? this.activeThreadMessages$
+        : this.activeChannelMessages$
+      )
         .pipe(first())
         .subscribe((m) => (messages = m));
       const message = messages.find((m) => m.id === e?.message?.id);
@@ -513,7 +654,9 @@ export class ChannelService {
       message.reaction_scores = { ...e.message?.reaction_scores };
       message.latest_reactions = [...(e.message?.latest_reactions || [])];
       message.own_reactions = [...(e.message?.own_reactions || [])];
-      this.activeChannelMessagesSubject.next([...messages]);
+      isThreadMessage
+        ? this.activeThreadMessagesSubject.next([...messages])
+        : this.activeChannelMessagesSubject.next([...messages]);
     });
   }
 
@@ -581,7 +724,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleNewMessage(event, channel);
@@ -596,7 +741,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleChannelHidden(event);
@@ -611,7 +758,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleChannelDeleted(event);
@@ -626,7 +775,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleChannelVisible(event, channel);
@@ -641,7 +792,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleChannelUpdate(event);
@@ -656,7 +809,9 @@ export class ChannelService {
                 event,
                 channel,
                 this.channelListSetter,
-                this.messageListSetter
+                this.messageListSetter,
+                this.threadListSetter,
+                this.parentMessageSetter
               );
             } else {
               this.handleChannelTruncate(event);
@@ -705,6 +860,7 @@ export class ChannelService {
     }
   }
 
+  // truncate active thread as well
   private handleChannelTruncate(event: Event) {
     const channelIndex = this.channels.findIndex(
       (c) => c.cid === event.channel!.cid
@@ -717,6 +873,8 @@ export class ChannelService {
         channel.state.messages = [];
         this.activeChannelSubject.next(channel);
         this.activeChannelMessagesSubject.next([]);
+        this.activeParentMessageIdSubject.next(undefined);
+        this.activeThreadMessagesSubject.next([]);
       }
     }
   }
@@ -732,5 +890,29 @@ export class ChannelService {
     }
     const capabilites = channel.data?.own_capabilities as string[];
     return capabilites.indexOf('read-events') !== -1;
+  }
+
+  private transformToStreamMessage(
+    message: StreamMessage | MessageResponse | FormatMessageResponse,
+    channel: Channel
+  ) {
+    const isThreadMessage = !!message.parent_id;
+    if (
+      this.isStreamMessage(message) &&
+      this.isFormatMessageResponse(message)
+    ) {
+      return message;
+    } else if (this.isFormatMessageResponse(message)) {
+      return {
+        ...message,
+        readBy: isThreadMessage ? [] : getReadBy(message, channel),
+      };
+    } else {
+      const formatMessage = this.formatMessage(message);
+      return {
+        ...formatMessage,
+        readBy: isThreadMessage ? [] : getReadBy(formatMessage, channel),
+      };
+    }
   }
 }

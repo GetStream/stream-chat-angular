@@ -9,7 +9,10 @@ export type Icon =
   | 'file-upload'
   | 'retry'
   | 'close'
-  | 'file';
+  | 'file'
+  | 'reply'
+  | 'close-no-outline'
+  | 'reply-in-thread';
 
 @Component({
   selector: 'stream-icon',
