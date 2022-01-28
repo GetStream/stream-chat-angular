@@ -126,20 +126,43 @@ describe('ChannelService - threads', () => {
 
   it('should remove active parent message and reset thread messages', async () => {
     await init();
+    const messageToQuote = mockMessage();
+    messageToQuote.parent_id = 'parentId';
+    service.selectMessageToQuote(messageToQuote);
     const messagesSpy = jasmine.createSpy();
     const activeParentMessageIdSpy = jasmine.createSpy();
     const activeParentMessageSpy = jasmine.createSpy();
+    const messageToQuoteSpy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(messagesSpy);
     service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
     service.activeParentMessage$.subscribe(activeParentMessageSpy);
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
     messagesSpy.calls.reset();
     activeParentMessageIdSpy.calls.reset();
     activeParentMessageSpy.calls.reset();
+    messageToQuoteSpy.calls.reset();
     await service.setAsActiveParentMessage(undefined);
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(activeParentMessageIdSpy).toHaveBeenCalledWith(undefined);
     expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
+    expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it(`shouldn't deselect message to quote, if not a thread reply`, async () => {
+    await init();
+    const messageToQuoteSpy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentMessage';
+    const messageToQuote = mockMessage();
+    messageToQuote.parent_id = undefined;
+    await service.setAsActiveParentMessage(parentMessage);
+    service.selectMessageToQuote(messageToQuote);
+    messageToQuoteSpy.calls.reset();
+    await service.setAsActiveParentMessage(undefined);
+
+    expect(messageToQuoteSpy).not.toHaveBeenCalled();
   });
 
   it('should reset', async () => {
@@ -434,6 +457,7 @@ describe('ChannelService - threads', () => {
       mentioned_users: ['sara'],
       id: jasmine.any(String),
       parent_id: 'parentId',
+      quoted_message_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(

@@ -15,6 +15,12 @@ import { DefaultUserType, StreamMessage } from '../types';
 import { parseDate } from './parse-date';
 import { getReadByText } from './read-by-text';
 
+type MessagePart = {
+  content: string;
+  type: 'text' | 'mention';
+  user?: UserResponse;
+};
+
 @Component({
   selector: 'stream-message',
   templateUrl: './message.component.html',
@@ -44,11 +50,7 @@ export class MessageComponent implements OnChanges {
   isReactionSelectorOpen = false;
   isPressedOnMobile = false;
   visibleMessageActionsCount = 0;
-  messageTextParts: {
-    content: string;
-    type: 'text' | 'mention';
-    user?: UserResponse;
-  }[] = [];
+  messageTextParts: MessagePart[] = [];
   private user: UserResponse<DefaultUserType> | undefined;
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
@@ -63,44 +65,7 @@ export class MessageComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
-      let content = this.message?.html || this.message?.text;
-      if (!content) {
-        this.messageTextParts = [];
-      } else {
-        // Backend will wrap HTML content with <p></p>\n
-        if (content.startsWith('<p>')) {
-          content = content.replace('<p>', '');
-        }
-        if (content.endsWith('</p>\n')) {
-          content = content.replace('</p>\n', '');
-        }
-        if (
-          !this.message!.mentioned_users ||
-          this.message!.mentioned_users.length === 0
-        ) {
-          this.messageTextParts = [{ content, type: 'text' }];
-        } else {
-          this.messageTextParts = [];
-          let text = content;
-          this.message!.mentioned_users.forEach((user) => {
-            const mention = `@${user.name || user.id}`;
-            const precedingText = text.substring(0, text.indexOf(mention));
-            this.messageTextParts.push({
-              content: precedingText,
-              type: 'text',
-            });
-            this.messageTextParts.push({
-              content: mention,
-              type: 'mention',
-              user,
-            });
-            text = text.replace(precedingText + mention, '');
-          });
-          if (text) {
-            this.messageTextParts.push({ content: text, type: 'text' });
-          }
-        }
-      }
+      this.createMessageParts();
     }
   }
 
@@ -177,6 +142,13 @@ export class MessageComponent implements OnChanges {
     );
   }
 
+  get quotedMessageAttachments() {
+    const originalAttachments = this.message?.quoted_message?.attachments;
+    return originalAttachments && originalAttachments.length
+      ? [originalAttachments[0]]
+      : [];
+  }
+
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
   }
@@ -201,5 +173,46 @@ export class MessageComponent implements OnChanges {
 
   setAsActiveParentMessage() {
     void this.channelService.setAsActiveParentMessage(this.message);
+  }
+
+  private createMessageParts() {
+    let content = this.message?.html || this.message?.text;
+    if (!content) {
+      this.messageTextParts = [];
+    } else {
+      // Backend will wrap HTML content with <p></p>\n
+      if (content.startsWith('<p>')) {
+        content = content.replace('<p>', '');
+      }
+      if (content.endsWith('</p>\n')) {
+        content = content.replace('</p>\n', '');
+      }
+      if (
+        !this.message!.mentioned_users ||
+        this.message!.mentioned_users.length === 0
+      ) {
+        this.messageTextParts = [{ content, type: 'text' }];
+      } else {
+        this.messageTextParts = [];
+        let text = content;
+        this.message!.mentioned_users.forEach((user) => {
+          const mention = `@${user.name || user.id}`;
+          const precedingText = text.substring(0, text.indexOf(mention));
+          this.messageTextParts.push({
+            content: precedingText,
+            type: 'text',
+          });
+          this.messageTextParts.push({
+            content: mention,
+            type: 'mention',
+            user,
+          });
+          text = text.replace(precedingText + mention, '');
+        });
+        if (text) {
+          this.messageTextParts.push({ content: text, type: 'text' });
+        }
+      }
+    }
   }
 }

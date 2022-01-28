@@ -5,7 +5,50 @@
   [class.str-chat__input-flat-has-attachments]="
     (attachmentUploads$ | async)!.length > 0
   "
+  [class.str-chat__input-flat-quoted]="!!quotedMessage"
 >
+  <div
+    data-testid="quoted-message-container"
+    class="quoted-message-preview"
+    *ngIf="quotedMessage"
+  >
+    <div class="quoted-message-preview-header">
+      <div>{{ "streamChat.Reply to Message" | translate }}</div>
+      <button
+        class="str-chat__square-button"
+        data-testid="remove-quote"
+        (click)="deselectMessageToQuote()"
+        (keyup.enter)="deselectMessageToQuote()"
+      >
+        <stream-icon
+          icon="close-no-outline"
+          style="font-size: 10px; line-height: 10px"
+        ></stream-icon>
+      </button>
+    </div>
+    <div class="quoted-message-preview-content">
+      <stream-avatar
+        data-testid="qouted-message-avatar"
+        class="str-chat-angular__avatar-host"
+        [imageUrl]="quotedMessage?.user?.image"
+        [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
+        [size]="20"
+      ></stream-avatar>
+      <div class="quoted-message-preview-content-inner">
+        <stream-attachment-list
+          *ngIf="
+            quotedMessage?.attachments && quotedMessage?.attachments?.length
+          "
+          [attachments]="quotedMessageAttachments"
+          [messageId]="quotedMessage?.id"
+        ></stream-attachment-list>
+        <div
+          data-testid="quoted-message-text"
+          [innerHTML]="quotedMessage?.html || quotedMessage?.text"
+        ></div>
+      </div>
+    </div>
+  </div>
   <div class="str-chat__input-flat-wrapper" style="width: 100%">
     <div
       class="{{

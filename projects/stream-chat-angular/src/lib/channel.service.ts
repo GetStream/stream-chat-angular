@@ -35,6 +35,7 @@ export class ChannelService {
   activeParentMessageId$: Observable<string | undefined>;
   activeThreadMessages$: Observable<StreamMessage[]>;
   activeParentMessage$: Observable<StreamMessage | undefined>;
+  messageToQuote$: Observable<StreamMessage | undefined>;
   customNewMessageNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
@@ -116,6 +117,9 @@ export class ChannelService {
   private sort: ChannelSort | undefined;
   private options: ChannelOptions | undefined;
   private readonly messagePageSize = 25;
+  private messageToQuoteSubject = new BehaviorSubject<
+    StreamMessage | undefined
+  >(undefined);
 
   private channelListSetter = (channels: Channel[]) => {
     this.channelsSubject.next(channels);
@@ -176,6 +180,7 @@ export class ChannelService {
       ),
       shareReplay()
     );
+    this.messageToQuote$ = this.messageToQuoteSubject.asObservable();
 
     this.chatClientService.connectionState$
       .pipe(filter((s) => s === 'online'))
@@ -198,9 +203,14 @@ export class ChannelService {
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
+    this.messageToQuoteSubject.next(undefined);
   }
 
   async setAsActiveParentMessage(message: StreamMessage | undefined) {
+    const messageToQuote = this.messageToQuoteSubject.getValue();
+    if (messageToQuote && !!messageToQuote.parent_id) {
+      this.messageToQuoteSubject.next(undefined);
+    }
     if (!message) {
       this.activeParentMessageIdSubject.next(undefined);
       this.activeThreadMessagesSubject.next([]);
@@ -276,6 +286,7 @@ export class ChannelService {
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
     this.channelsSubject.next(undefined);
+    this.selectMessageToQuote(undefined);
   }
 
   async loadMoreChannels() {
@@ -299,14 +310,16 @@ export class ChannelService {
     text: string,
     attachments: Attachment[] = [],
     mentionedUsers: UserResponse[] = [],
-    parentId: string | undefined = undefined
+    parentId: string | undefined = undefined,
+    quotedMessageId: string | undefined = undefined
   ) {
     const preview = createMessagePreview(
       this.chatClientService.chatClient.user!,
       text,
       attachments,
       mentionedUsers,
-      parentId
+      parentId,
+      quotedMessageId
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
@@ -429,6 +442,10 @@ export class ChannelService {
     }
   }
 
+  selectMessageToQuote(message: StreamMessage | undefined) {
+    this.messageToQuoteSubject.next(message);
+  }
+
   private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
     const channel = this.activeChannelSubject.getValue()!;
     const isThreadReply = !!preview.parent_id;
@@ -444,6 +461,7 @@ export class ChannelService {
         mentioned_users: preview.mentioned_users?.map((u) => u.id),
         id: preview.id,
         parent_id: preview.parent_id,
+        quoted_message_id: preview.quoted_message_id,
       });
       if (response?.message) {
         channel.state.addMessageSorted(

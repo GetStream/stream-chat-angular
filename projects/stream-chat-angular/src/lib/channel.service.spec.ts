@@ -130,14 +130,18 @@ describe('ChannelService', () => {
     service.activeChannel$.subscribe(activeChannelSpy);
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
+    const messageToQuoteSpy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     channelsSpy.calls.reset();
+    messageToQuoteSpy.calls.reset();
     service.reset();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(channelsSpy).toHaveBeenCalledWith(undefined);
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
+    expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
   it('should tell if user #hasMoreChannels$', async () => {
@@ -183,6 +187,9 @@ describe('ChannelService', () => {
     const messagesSpy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
+    const messageToQuoteSpy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
+    messageToQuoteSpy.calls.reset();
     const newActiveChannel = mockChannels[1];
     spyOn(newActiveChannel, 'markRead');
     service.setAsActiveChannel(newActiveChannel);
@@ -191,6 +198,7 @@ describe('ChannelService', () => {
     expect(result.cid).toBe(newActiveChannel.cid);
     expect(messagesSpy).toHaveBeenCalledWith(jasmine.any(Object));
     expect(newActiveChannel.markRead).toHaveBeenCalledWith();
+    expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
   it('should emit #activeChannelMessages$', async () => {
@@ -782,11 +790,18 @@ describe('ChannelService', () => {
     const text = 'Hi';
     const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
     const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
+    const quotedMessageId = 'quotedMessage';
     let prevMessageCount!: number;
     service.activeChannelMessages$
       .pipe(first())
       .subscribe((m) => (prevMessageCount = m.length));
-    await service.sendMessage(text, attachments, mentionedUsers);
+    await service.sendMessage(
+      text,
+      attachments,
+      mentionedUsers,
+      undefined,
+      quotedMessageId
+    );
     let latestMessage!: StreamMessage;
     let messageCount!: number;
     service.activeChannelMessages$.subscribe((m) => {
@@ -800,6 +815,7 @@ describe('ChannelService', () => {
       mentioned_users: ['sara'],
       id: jasmine.any(String),
       parent_id: undefined,
+      quoted_message_id: quotedMessageId,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
@@ -1166,5 +1182,24 @@ describe('ChannelService', () => {
     );
 
     expect(result.length).toBe(1);
+  });
+
+  it('should select message to be quoted', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(spy);
+    const message = mockMessage();
+    service.selectMessageToQuote(message);
+
+    expect(spy).toHaveBeenCalledWith(message);
+  });
+
+  it('should deselect message to be quoted', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(spy);
+    service.selectMessageToQuote(undefined);
+
+    expect(spy).toHaveBeenCalledWith(undefined);
   });
 });

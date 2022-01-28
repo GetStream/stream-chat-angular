@@ -68,6 +68,7 @@ export class MessageInputComponent
   textareaValue = '';
   textareaRef: ComponentRef<TextareaInterface> | undefined;
   mentionedUsers: UserResponse[] = [];
+  quotedMessage: undefined | StreamMessage;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -115,6 +116,18 @@ export class MessageInputComponent
       this.chatClient.appSettings$.subscribe(
         (appSettings) => (this.appSettings = appSettings)
       )
+    );
+    this.subscriptions.push(
+      this.channelService.messageToQuote$.subscribe((m) => {
+        const isThreadReply = m && m.parent_id;
+        if (
+          (this.mode === 'thread' && isThreadReply) ||
+          (this.mode === 'thread' && this.quotedMessage && !m) ||
+          (this.mode === 'main' && !isThreadReply)
+        ) {
+          this.quotedMessage = m;
+        }
+      })
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
@@ -222,7 +235,8 @@ export class MessageInputComponent
             text,
             attachments,
             this.mentionedUsers,
-            parentMessageId
+            parentMessageId,
+            this.quotedMessage?.id
           ));
       this.messageUpdate.emit();
       if (!this.isUpdate) {
@@ -234,6 +248,9 @@ export class MessageInputComponent
           'streamChat.Edit message request failed'
         );
       }
+    }
+    if (this.quotedMessage) {
+      this.deselectMessageToQuote();
     }
   }
 
@@ -247,12 +264,23 @@ export class MessageInputComponent
     return this.acceptedFileTypes ? this.acceptedFileTypes?.join(',') : '';
   }
 
+  get quotedMessageAttachments() {
+    const originalAttachments = this.quotedMessage?.attachments;
+    return originalAttachments && originalAttachments.length
+      ? [originalAttachments[0]]
+      : [];
+  }
+
   async filesSelected(fileList: FileList | null) {
     if (!(await this.areAttachemntsValid(fileList))) {
       return;
     }
     await this.attachmentService.filesSelected(fileList);
     this.clearFileInput();
+  }
+
+  deselectMessageToQuote() {
+    this.channelService.selectMessageToQuote(undefined);
   }
 
   private clearFileInput() {

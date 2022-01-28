@@ -10,10 +10,12 @@ import { ChatClientService } from '../chat-client.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { generateMockChannels, mockCurrentUser, mockMessage } from '../mocks';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload } from '../types';
+import { AttachmentUpload, StreamMessage } from '../types';
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
+import { AvatarComponent } from '../avatar/avatar.component';
+import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -39,6 +41,8 @@ describe('MessageInputComponent', () => {
   };
   let appSettings$: Subject<AppSettings>;
   let getAppSettings: jasmine.Spy;
+  let mockMessageToQuote$: BehaviorSubject<undefined | StreamMessage>;
+  let selectMessageToQuoteSpy: jasmine.Spy;
 
   beforeEach(() => {
     appSettings$ = new Subject<AppSettings>();
@@ -59,6 +63,10 @@ describe('MessageInputComponent', () => {
       createFromAttachments: jasmine.createSpy(),
     };
     getAppSettings = jasmine.createSpy();
+    mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
+      undefined
+    );
+    selectMessageToQuoteSpy = jasmine.createSpy();
     TestBed.overrideComponent(MessageInputComponent, {
       set: {
         providers: [
@@ -79,6 +87,8 @@ describe('MessageInputComponent', () => {
         MessageInputComponent,
         TextareaDirective,
         AutocompleteTextareaComponent,
+        AvatarComponent,
+        AttachmentListComponent,
       ],
       providers: [
         {
@@ -89,6 +99,8 @@ describe('MessageInputComponent', () => {
             updateMessage: updateMessageSpy,
             autocompleteMembers: jasmine.createSpy().and.resolveTo([]),
             activeParentMessageId$: mockActiveParentMessageId$,
+            messageToQuote$: mockMessageToQuote$,
+            selectMessageToQuote: selectMessageToQuoteSpy,
           },
         },
         {
@@ -203,6 +215,7 @@ describe('MessageInputComponent', () => {
       message,
       [],
       mentionedUsers,
+      undefined,
       undefined
     );
   });
@@ -355,6 +368,7 @@ describe('MessageInputComponent', () => {
       jasmine.any(String),
       attachments,
       [],
+      undefined,
       undefined
     );
   });
@@ -457,6 +471,7 @@ describe('MessageInputComponent', () => {
       message,
       undefined,
       [],
+      undefined,
       undefined
     );
   });
@@ -612,6 +627,10 @@ describe('MessageInputComponent', () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
+    const quotedMessage = mockMessage();
+    quotedMessage.parent_id = 'parent-message';
+    quotedMessage.id = 'message-to-quote';
+    mockMessageToQuote$.next(quotedMessage);
     component.mentionedUsers = [];
     void component.messageSent();
     fixture.detectChanges();
@@ -620,7 +639,8 @@ describe('MessageInputComponent', () => {
       message,
       [],
       [],
-      'parent message'
+      'parent message',
+      'message-to-quote'
     );
   });
 
@@ -638,5 +658,121 @@ describe('MessageInputComponent', () => {
     } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
+  });
+
+  it('should deselect quoted message, after message sent', async () => {
+    const message = 'This is my message';
+    component.textareaValue = message;
+    attachmentService.mapToAttachments.and.returnValue([]);
+    sendMessageSpy.and.resolveTo();
+    mockMessageToQuote$.next(mockMessage());
+    await component.messageSent();
+    fixture.detectChanges();
+
+    expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should deselect quoted message, even if message send failed', async () => {
+    const message = 'This is my message';
+    component.textareaValue = message;
+    attachmentService.mapToAttachments.and.returnValue([]);
+    sendMessageSpy.and.rejectWith();
+    mockMessageToQuote$.next(mockMessage());
+    await component.messageSent();
+    fixture.detectChanges();
+
+    expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should display quoted message', () => {
+    const quotedMessageContainerSelector =
+      '[data-testid="quoted-message-container"]';
+    const message = mockMessage();
+    message.attachments = [{ id: '1' }, { id: '2' }];
+    mockMessageToQuote$.next(message);
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector(quotedMessageContainerSelector)
+    ).not.toBeNull();
+    const avatar = fixture.debugElement
+      .query(By.css(quotedMessageContainerSelector))
+      .query(By.directive(AvatarComponent))
+      .componentInstance as AvatarComponent;
+    const attachments = fixture.debugElement
+      .query(By.css(quotedMessageContainerSelector))
+      .query(By.directive(AttachmentListComponent))
+      .componentInstance as AttachmentListComponent;
+
+    expect(avatar.name).toBe(message.user!.name);
+    expect(attachments.attachments).toEqual([{ id: '1' }]);
+    expect(
+      nativeElement.querySelector('[data-testid="quoted-message-text"]')
+        ?.innerHTML
+    ).toContain(message.text);
+
+    mockMessageToQuote$.next(undefined);
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector(quotedMessageContainerSelector)
+    ).toBeNull();
+  });
+
+  it('should apply necessary CSS class when quoting a message', () => {
+    expect(
+      nativeElement.querySelector('.str-chat__input-flat-quoted')
+    ).toBeNull();
+
+    mockMessageToQuote$.next(mockMessage());
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('.str-chat__input-flat-quoted')
+    ).not.toBeNull();
+  });
+
+  it('should deselect message to quote when close button clicked', () => {
+    mockMessageToQuote$.next(mockMessage());
+    fixture.detectChanges();
+    (
+      nativeElement.querySelector(
+        '[data-testid="remove-quote"]'
+      ) as HTMLButtonElement
+    )?.click();
+    fixture.detectChanges();
+
+    expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should display message to quote in thread mode, but only if selected message is thread reply', () => {
+    component.mode = 'thread';
+    mockMessageToQuote$.next(mockMessage());
+    fixture.detectChanges();
+    const quotedMessageContainerSelector =
+      '[data-testid="quoted-message-container"]';
+
+    expect(
+      nativeElement.querySelector(quotedMessageContainerSelector)
+    ).toBeNull();
+
+    const threadReply = mockMessage();
+    threadReply.parent_id = 'parentId';
+    mockMessageToQuote$.next(threadReply);
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector(quotedMessageContainerSelector)
+    ).not.toBeNull();
+  });
+
+  it('should deselect message to quote in thread mode', () => {
+    component.mode = 'thread';
+    const threadReply = mockMessage();
+    threadReply.parent_id = 'parentId';
+    mockMessageToQuote$.next(threadReply);
+    mockMessageToQuote$.next(undefined);
+
+    expect(component.quotedMessage).toBeUndefined();
   });
 });
