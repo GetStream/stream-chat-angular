@@ -54,14 +54,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Verify docs changed
-        uses: tj-actions/changed-files@v11.5
-        with:
-          files: |
-            docusaurus
-        id: changed_files
+      - name: Generate service docs
+        run: |
+          npm run generate-docs
       - name: Push to docusaurus
-        if: steps.changed_files.outputs.any_changed == 'true' || github.ref == 'refs/heads/master'
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
           target-branch: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}

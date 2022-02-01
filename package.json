@@ -22,10 +22,13 @@
     "e2e:ci": "ng run sample-app:cypress-run --configuration production",
     "config:dev": "ANGULAR_ENV=development ts-node set-env.ts",
     "config:prod": "ANGULAR_ENV=production ts-node set-env.ts",
-    "start:docs": "npx stream-chat-docusaurus -s",
+    "start-docs": "npm run generate-docs && npx stream-chat-docusaurus -s",
     "build:sample-app": "ng build --stats-json --project sample-app",
     "preanalyze:sample-app": "npm run build:sample-app",
-    "analyze:sample-app": "webpack-bundle-analyzer dist/sample-app/stats.json"
+    "analyze:sample-app": "webpack-bundle-analyzer dist/sample-app/stats.json",
+    "generate-docs": "npm run typedoc && npm run copy-docs",
+    "typedoc": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-docs --exclude '!**/*service.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
+    "copy-docs": "ts-node copy-generated-docs.ts"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
@@ -104,7 +107,6 @@
     "@semantic-release/exec": "^6.0.2",
     "@semantic-release/git": "^10.0.1",
     "@types/jasmine": "~3.8.0",
-    "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
     "cypress": "8.4.0",
@@ -112,6 +114,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-cypress": "^2.11.3",
     "eslint-plugin-jasmine": "^4.1.2",
+    "eslint-plugin-jsdoc": "^37.7.1",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-unused-imports": "^1.1.4",
     "husky": "^7.0.2",
@@ -127,6 +130,9 @@
     "prettier-eslint": "^13.0.0",
     "puppeteer": "^10.2.0",
     "semantic-release": "^18.0.0",
+    "typedoc": "^0.22.11",
+    "typedoc-plugin-markdown": "^3.11.12",
+    "typedoc-plugin-reference-excluder": "^1.0.0",
     "typescript": "~4.3.5",
     "wait-on": "^6.0.0",
     "webpack-bundle-analyzer": "^4.5.0"

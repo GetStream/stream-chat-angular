@@ -9,10 +9,16 @@ export type NotificationPayload = {
   translateParams?: Object;
 };
 
+/**
+ * The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](../components/notifications.mdx) component displays the currently active notifications.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class NotificationService {
+  /**
+   * Emits the currently active [notifications](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/notification.service.ts).
+   */
   notifications$: Observable<NotificationPayload[]>;
   private notificationsSubject = new BehaviorSubject<NotificationPayload[]>([]);
 
@@ -20,6 +26,14 @@ export class NotificationService {
     this.notifications$ = this.notificationsSubject.asObservable();
   }
 
+  /**
+   * Displays a notification for the given amount of time.
+   * @param text The text of the notification
+   * @param type The type of the notification
+   * @param timeout The number of milliseconds while the notification should be visible
+   * @param translateParams Translation parameters for the `text`
+   * @returns A method to clear the notification (before the timeout).
+   */
   addTemporaryNotification(
     text: string,
     type: NotificationType = 'error',
@@ -35,6 +49,13 @@ export class NotificationService {
     };
   }
 
+  /**
+   * Displays a notification, that will be visible until it's removed.
+   * @param text The text of the notification
+   * @param type The type of the notification
+   * @param translateParams Translation parameters for the `text`
+   * @returns A method to clear the notification.
+   */
   addPermanentNotification(
     text: string,
     type: NotificationType = 'error',
