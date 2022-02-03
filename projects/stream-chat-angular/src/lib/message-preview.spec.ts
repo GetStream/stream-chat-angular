@@ -11,12 +11,14 @@ describe('createMessagePreview', () => {
     ];
     const users = [{ id: 'jack', name: 'Jack' }];
     const parentId = 'parentId';
+    const quotedMessageId = 'quotedMessageId';
     const preview = createMessagePreview(
       user,
       text,
       attachments,
       users,
-      parentId
+      parentId,
+      quotedMessageId
     );
 
     expect(preview.created_at).not.toBeUndefined();
@@ -27,5 +29,6 @@ describe('createMessagePreview', () => {
     expect(preview.attachments).toBe(attachments);
     expect(preview.mentioned_users).toBe(users);
     expect(preview.parent_id).toBe(parentId);
+    expect(preview.quoted_message_id).toBe(quotedMessageId);
   });
 });

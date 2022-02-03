@@ -107,6 +107,9 @@ export class MessageListComponent
           if (capabilites.indexOf('send-reply') !== -1) {
             this.authorizedMessageActions.push('send-reply');
           }
+          if (capabilites.indexOf('quote-message') !== -1) {
+            this.authorizedMessageActions.push('quote-message');
+          }
           this.setEnabledActions();
         }
       })
@@ -229,6 +232,7 @@ export class MessageListComponent
       'send-reaction',
       'read-events',
       'send-reply',
+      'quote-message',
     ];
     this.enabledMessageActionsInput.forEach((action) => {
       const isAuthorized = this.authorizedMessageActions.indexOf(action) !== -1;

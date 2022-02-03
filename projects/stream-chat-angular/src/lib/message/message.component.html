@@ -121,7 +121,7 @@
           [ownReactions]="message?.own_reactions || []"
         ></stream-message-reactions>
         <stream-attachment-list
-          *ngIf="hasAttachment"
+          *ngIf="hasAttachment && !message?.quoted_message"
           [attachments]="message!.attachments!"
           [messageId]="message!.id"
         ></stream-attachment-list>
@@ -145,6 +145,12 @@
                 : undefined
             "
           >
+            <ng-container *ngTemplateOutlet="quotedMessage"></ng-container>
+            <stream-attachment-list
+              *ngIf="hasAttachment && message?.quoted_message"
+              [attachments]="message!.attachments!"
+              [messageId]="message!.id"
+            ></stream-attachment-list>
             <div
               data-testid="client-error-message"
               *ngIf="message?.type === 'error'"
@@ -303,6 +309,41 @@
     </div>
     <div class="str-chat__message--system__date">
       {{ parsedDate }}
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #quotedMessage>
+  <div
+    *ngIf="message?.quoted_message"
+    class="quoted-message"
+    data-testid="quoted-message-container"
+    [class.mine]="isSentByCurrentUser"
+  >
+    <stream-avatar
+      data-testid="qouted-message-avatar"
+      class="str-chat-angular__avatar-host"
+      [imageUrl]="message?.quoted_message?.user?.image"
+      [name]="
+        message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
+      "
+      [size]="20"
+    ></stream-avatar>
+    <div class="quoted-message-inner">
+      <stream-attachment-list
+        *ngIf="
+          message?.quoted_message?.attachments &&
+          message?.quoted_message?.attachments?.length
+        "
+        [attachments]="quotedMessageAttachments"
+        [messageId]="message?.quoted_message?.id"
+      ></stream-attachment-list>
+      <div
+        data-testid="quoted-message-text"
+        [innerHTML]="
+          message?.quoted_message?.html || message?.quoted_message?.text
+        "
+      ></div>
     </div>
   </div>
 </ng-template>

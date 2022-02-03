@@ -54,6 +54,10 @@ Sets the given `channel` as active.
 
 Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
 
+## selectMessageToQuote
+
+Sets the given `message` as a message to be quoted. If `undefined` is provided, it will deleselect the current message.
+
 ## hasMoreChannels$
 
 Emits `false` if there are no more pages of channels that can be loaded.
@@ -73,6 +77,10 @@ Emits the id of the currently selected parent message. If no message is selected
 ## activeParentMessage$
 
 Emits the currently selected parent message. If no message is selected, it emits undefined.
+
+## messageToQuote$
+
+Emits the currently selected message to be quoted. If no message is selected, it emits undefined.
 
 ## activeThreadMessages$
 

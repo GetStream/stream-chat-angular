@@ -77,7 +77,11 @@ export class MessageActionsBoxComponent implements OnChanges {
   }
 
   get isQuoteVisible() {
-    return this.enabledActions.indexOf('quote') !== -1;
+    return (
+      (this.enabledActions.indexOf('quote') !== -1 ||
+        this.enabledActions.indexOf('quote-message') !== -1) &&
+      !this.message?.quoted_message
+    );
   }
 
   get isEditVisible() {
@@ -139,7 +143,7 @@ export class MessageActionsBoxComponent implements OnChanges {
   }
 
   quoteClicked() {
-    alert('Feature not yet implemented');
+    this.channelService.selectMessageToQuote(this.message);
   }
 
   editClicked() {

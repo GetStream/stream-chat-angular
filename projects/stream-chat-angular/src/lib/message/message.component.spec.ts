@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { UserResponse } from 'stream-chat';
+import { MessageResponseBase, UserResponse } from 'stream-chat';
 import { DefaultUserType, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -945,6 +945,66 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(queryReactionIcon()).not.toBeNull();
+    });
+  });
+
+  describe('quoted message', () => {
+    const quotedMessageContainerSelector =
+      '[data-testid="quoted-message-container"]';
+
+    beforeEach(() => {
+      const quotedMessage = mockMessage();
+      quotedMessage.id = 'quoted-message';
+      quotedMessage.user = { id: 'sara', name: 'Sara' };
+      quotedMessage.attachments = [{ id: '1' }, { id: '2' }];
+      quotedMessage.text = 'This message was quoted';
+      component.message = {
+        ...component.message!,
+        quoted_message: quotedMessage as any as MessageResponseBase,
+      };
+      fixture.detectChanges();
+      component.ngOnChanges({ message: {} as SimpleChange });
+    });
+
+    it('should display quoted message', () => {
+      expect(
+        nativeElement.querySelector(quotedMessageContainerSelector)
+      ).not.toBeNull();
+      const avatar = fixture.debugElement
+        .query(By.css(quotedMessageContainerSelector))
+        .query(By.directive(AvatarComponent))
+        .componentInstance as AvatarComponent;
+      const attachments = fixture.debugElement
+        .query(By.css(quotedMessageContainerSelector))
+        .query(By.directive(AttachmentListComponent))
+        .componentInstance as AttachmentListComponent;
+
+      expect(avatar.name).toBe(component.message!.quoted_message!.user!.name);
+      expect(attachments.attachments).toEqual([{ id: '1' }]);
+      expect(
+        nativeElement.querySelector('[data-testid="quoted-message-text"]')
+          ?.innerHTML
+      ).toContain('This message was quoted');
+
+      component.message = { ...component.message!, quoted_message: undefined };
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector(quotedMessageContainerSelector)
+      ).toBeNull();
+    });
+
+    it('should apply necessary CSS classes for quoted message', () => {
+      const quotedMessageContainer = nativeElement.querySelector(
+        quotedMessageContainerSelector
+      );
+
+      expect(quotedMessageContainer?.classList).toContain('mine');
+
+      component.message = { ...component.message!, user: { id: 'otheruser' } };
+      fixture.detectChanges();
+
+      expect(quotedMessageContainer?.classList).not.toContain('mine');
     });
   });
 });

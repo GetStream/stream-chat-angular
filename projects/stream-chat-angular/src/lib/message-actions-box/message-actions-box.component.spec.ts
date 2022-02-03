@@ -8,7 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Channel } from 'stream-chat';
+import { Channel, MessageResponseBase } from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -48,6 +48,8 @@ describe('MessageActionsBoxComponent', () => {
     updateMessage: jasmine.Spy;
     activeChannel$: Observable<Channel>;
     deleteMessage: jasmine.Spy;
+    selectMessageToQuote: jasmine.Spy;
+    messageToQuote$: Observable<StreamMessage | undefined>;
   };
 
   beforeEach(async () => {
@@ -56,6 +58,8 @@ describe('MessageActionsBoxComponent', () => {
       updateMessage: jasmine.createSpy(),
       activeChannel$: new BehaviorSubject(generateMockChannels(1)[0]),
       deleteMessage: jasmine.createSpy(),
+      selectMessageToQuote: jasmine.createSpy(),
+      messageToQuote$: new Observable(),
     };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -175,12 +179,30 @@ describe('MessageActionsBoxComponent', () => {
   it('should handle quote action', () => {
     component.enabledActions = ['quote'];
     fixture.detectChanges();
-    spyOn(window, 'alert').and.callThrough();
+    const spy = TestBed.inject(ChannelService).selectMessageToQuote;
     const action = queryQuoteAction();
     action?.click();
     fixture.detectChanges();
 
-    expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
+    expect(spy).toHaveBeenCalledWith(component.message);
+
+    component.enabledActions = ['quote-message'];
+    fixture.detectChanges();
+    action?.click();
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(component.message);
+  });
+
+  it('should disable quote action, if message already has a quoted message', () => {
+    component.message = {
+      ...component.message!,
+      quoted_message: mockMessage() as any as MessageResponseBase,
+    };
+    component.enabledActions = ['quote'];
+    fixture.detectChanges();
+
+    expect(queryQuoteAction()).toBeNull();
   });
 
   it('should display the pin action label correctly', () => {
