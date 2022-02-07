@@ -31,6 +31,7 @@ export class ThemeService {
     '--white-smoke': '#13151b',
     '--white-snow': '#070a0d',
   };
+  private variablesToDelete: { [key: string]: string }[] = [];
 
   constructor() {
     this.theme$.subscribe((theme) => {
@@ -40,6 +41,9 @@ export class ThemeService {
       const lightVariables = this.customLightThemeVariables
         ? this.customLightThemeVariables
         : {};
+      this.variablesToDelete.forEach((variables) =>
+        this.deleteVariables(variables)
+      );
       if (theme === 'dark') {
         this.deleteVariables(lightVariables);
         this.setVariables(darkVariables);
@@ -58,8 +62,13 @@ export class ThemeService {
     variables: { [key: string]: string } | undefined
   ) {
     const prevVariables = this.customLightThemeVariables;
-    this.deleteVariables(prevVariables);
+    if (prevVariables) {
+      this.variablesToDelete.push(prevVariables);
+    }
     this._customLightThemeVariables = variables;
+    if (this.theme$.getValue() === 'light') {
+      this.theme$.next('light');
+    }
   }
 
   get customDarkThemeVariables() {
@@ -70,8 +79,13 @@ export class ThemeService {
     variables: { [key: string]: string } | undefined
   ) {
     const prevVariables = this.customDarkThemeVariables;
-    this.deleteVariables(prevVariables);
+    if (prevVariables) {
+      this.variablesToDelete.push(prevVariables);
+    }
     this._customDarkThemeVariables = variables;
+    if (this.theme$.getValue() === 'dark') {
+      this.theme$.next('dark');
+    }
   }
 
   private deleteVariables(variables: { [key: string]: string } | undefined) {
