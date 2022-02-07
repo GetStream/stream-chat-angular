@@ -13,6 +13,7 @@
     areReactionsEnabled !== false && hasReactions
   "
   data-testid="message-container"
+  (mouseleave)="isActionBoxOpen = false"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">

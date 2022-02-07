@@ -468,6 +468,17 @@ describe('MessageComponent', () => {
     expect(messageActionsBoxComponent.isOpen).toBeTrue();
   });
 
+  it('should close message actions box on mouseleave event', () => {
+    component.enabledMessageActions = ['edit', 'flag'];
+    component.isActionBoxOpen = true;
+    fixture.detectChanges();
+
+    queryContainer()?.dispatchEvent(new Event('mouseleave'));
+    fixture.detectChanges();
+
+    expect(component.isActionBoxOpen).toBeFalse();
+  });
+
   it('should provide #enabledActions to message actions box', () => {
     expect(messageActionsBoxComponent.enabledActions).toBe(
       component.enabledMessageActions
