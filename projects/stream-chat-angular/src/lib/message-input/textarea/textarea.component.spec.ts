@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { Subject } from 'rxjs';
+import { EmojiInputService } from '../emoji-input.service';
 
 import { TextareaComponent } from './textarea.component';
 
@@ -8,11 +10,19 @@ describe('TextareaComponent', () => {
   let fixture: ComponentFixture<TextareaComponent>;
   let nativeElement: HTMLElement;
   let queryTextarea: () => HTMLTextAreaElement | null;
+  let emojiInput$: Subject<string>;
 
   beforeEach(async () => {
+    emojiInput$ = new Subject();
     await TestBed.configureTestingModule({
       declarations: [TextareaComponent],
       imports: [TranslateModule.forRoot()],
+      providers: [
+        {
+          provide: EmojiInputService,
+          useValue: { emojiInput$ },
+        },
+      ],
     }).compileComponents();
   });
 
@@ -91,5 +101,19 @@ describe('TextareaComponent', () => {
     fixture.detectChanges();
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should insert emoji at the correct caret position', () => {
+    const textarea = queryTextarea()!;
+    textarea.value = 'Emoji here: !';
+    textarea.setSelectionRange(12, 12);
+    const spy = jasmine.createSpy();
+    component.valueChange.subscribe(spy);
+    spy.calls.reset();
+
+    emojiInput$.next('🥑');
+
+    expect(textarea.value).toEqual('Emoji here: 🥑!');
+    expect(spy).toHaveBeenCalledWith('Emoji here: 🥑!');
   });
 });

@@ -34,12 +34,13 @@ import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
+import { EmojiInputService } from './emoji-input.service';
 
 @Component({
   selector: 'stream-message-input',
   templateUrl: './message-input.component.html',
   styles: [],
-  providers: [AttachmentService],
+  providers: [AttachmentService, EmojiInputService],
 })
 export class MessageInputComponent
   implements OnChanges, OnDestroy, AfterViewInit
@@ -53,6 +54,7 @@ export class MessageInputComponent
   @Input() commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
+  @Input() emojiPickerTemplate: TemplateRef<void> | undefined;
   @Input() mode: 'thread' | 'main' = 'main';
   /**
    * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-input/#caution-acceptedfiletypes
@@ -86,7 +88,8 @@ export class MessageInputComponent
     private textareaType: Type<TextareaInterface>,
     private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
-    private chatClient: ChatClientService
+    private chatClient: ChatClientService,
+    public emojiInputService: EmojiInputService
   ) {
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
@@ -140,6 +143,7 @@ export class MessageInputComponent
     this.mentionScope = this.configService.mentionScope;
     this.commandAutocompleteItemTemplate =
       this.configService.commandAutocompleteItemTemplate;
+    this.emojiPickerTemplate = this.configService.emojiPickerTemplate;
   }
 
   ngAfterViewInit(): void {
@@ -180,6 +184,9 @@ export class MessageInputComponent
     }
     if (changes.mentionScope) {
       this.configService.mentionScope = this.mentionScope;
+    }
+    if (changes.emojiPickerTemplate) {
+      this.configService.emojiPickerTemplate = this.emojiPickerTemplate;
     }
     if (changes.mode) {
       this.setCanSendMessages();

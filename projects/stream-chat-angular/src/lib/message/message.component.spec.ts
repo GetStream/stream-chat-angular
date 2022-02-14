@@ -851,6 +851,20 @@ describe('MessageComponent', () => {
       },
       { content: '@sara', type: 'mention', user: { id: 'sara' } },
     ]);
+
+    component.message = {
+      html: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
+      mentioned_users: [],
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+
+    expect(component.messageTextParts).toEqual([
+      {
+        content:
+          'This is a message with lots of emojis: <span class="str-chat__emoji-display-fix">😂</span><span class="str-chat__emoji-display-fix">😜</span><span class="str-chat__emoji-display-fix">😂</span><span class="str-chat__emoji-display-fix">😂</span>, there are compound emojis as well <span class="str-chat__emoji-display-fix">👨‍👩‍👧</span>',
+        type: 'text',
+      },
+    ]);
   });
 
   it('should display reply count for parent messages', () => {

@@ -24,6 +24,7 @@ import { TextareaInterface } from '../textarea.interface';
 import { ChatClientService } from '../../chat-client.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
+import { EmojiInputService } from '../emoji-input.service';
 
 @Component({
   selector: 'stream-autocomplete-textarea',
@@ -84,7 +85,8 @@ export class AutocompleteTextareaComponent
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-    private transliterationService: TransliterationService
+    private transliterationService: TransliterationService,
+    private emojiInputService: EmojiInputService
   ) {
     this.searchTerm$
       .pipe(debounceTime(300), distinctUntilChanged())
@@ -104,6 +106,18 @@ export class AutocompleteTextareaComponent
         this.mentionedUsers = [];
         this.userMentions.next([...this.mentionedUsers]);
         void this.updateMentionOptions(this.searchTerm$.getValue());
+      })
+    );
+    this.subscriptions.push(
+      this.emojiInputService.emojiInput$.subscribe((emoji) => {
+        this.messageInput.nativeElement.focus();
+        const { selectionStart } = this.messageInput.nativeElement;
+        this.messageInput.nativeElement.setRangeText(emoji);
+        this.messageInput.nativeElement.selectionStart =
+          selectionStart! + emoji.length;
+        this.messageInput.nativeElement.selectionEnd =
+          selectionStart! + emoji.length;
+        this.inputChanged();
       })
     );
     this.autocompleteConfig.mentions = [
