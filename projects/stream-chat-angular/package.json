@@ -13,7 +13,7 @@
     "@angular/core": "^12.2.0 || ^13.0.0",
     "@ngx-translate/core": "^13.0.0 || ^14.0.0",
     "stream-chat": ">=4.3.0",
-    "@stream-io/stream-chat-css": "2.2.0"
+    "@stream-io/stream-chat-css": "2.2.1"
   },
   "dependencies": {
     "angular-mentions": "^1.4.0",
