@@ -24,30 +24,92 @@ import { MessageReactionType } from './message-reactions/message-reactions.compo
 import { getReadBy } from './read-by';
 import { AttachmentUpload, StreamMessage } from './types';
 
+/**
+ * The `ChannelService` provides data and interaction for the channel list and message list. TEST
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class ChannelService {
+  /**
+   * Emits `false` if there are no more pages of channels that can be loaded.
+   */
   hasMoreChannels$: Observable<boolean>;
+  /**
+   * Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list.
+   *
+   * :::important
+   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
+   * :::
+   *
+   *  Apart from pagination, the channel list is also updated on the following events:
+   *
+   *  | Event type                          | Default behavior                                                   | Custom handler to override                    |
+   *  | ----------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+   *  | `channel.deleted`                   | Remove channel from the list                                       | `customChannelDeletedHandler`                 |
+   *  | `channel.hidden`                    | Remove channel from the list                                       | `customChannelHiddenHandler`                  |
+   *  | `channel.truncated`                 | Updates the channel                                                | `customChannelTruncatedHandler`               |
+   *  | `channel.updated`                   | Updates the channel                                                | `customChannelUpdatedHandler`                 |
+   *  | `channel.visible`                   | Adds the channel to the list                                       | `customChannelVisibleHandler`                 |
+   *  | `message.new`                       | Moves the channel to top of the list                               | `customNewMessageHandler`                     |
+   *  | `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it | `customAddedToChannelNotificationHandler`     |
+   *  | `notification.message_new`          | Adds the new channel to the top of the list and starts watching it | `customNewMessageNotificationHandler`         |
+   *  | `notification.removed_from_channel` | Removes the channel from the list                                  | `customRemovedFromChannelNotificationHandler` |
+   *
+   *  It's important to note that filters don't apply to updates to the list from events.
+   *
+   *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
+   */
   channels$: Observable<Channel[] | undefined>;
+  /**
+   * Emits the currently active channel.
+   *
+   * :::important
+   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
+   * :::
+   */
   activeChannel$: Observable<Channel | undefined>;
+  /**
+   * Emits the list of currently loaded messages of the active channel.
+   */
   activeChannelMessages$: Observable<StreamMessage[]>;
+  /**
+   * Emits the id of the currently selected parent message. If no message is selected, it emits undefined.
+   */
   activeParentMessageId$: Observable<string | undefined>;
+  /**
+   * Emits the list of currently loaded thread replies belonging to the selected parent message. If there is no currently active thread it emits an empty array.
+   */
   activeThreadMessages$: Observable<StreamMessage[]>;
+  /**
+   * Emits the currently selected parent message. If no message is selected, it emits undefined.
+   */
   activeParentMessage$: Observable<StreamMessage | undefined>;
   messageToQuote$: Observable<StreamMessage | undefined>;
+  /**
+   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customNewMessageNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
   ) => void;
+  /**
+   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customAddedToChannelNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
   ) => void;
+  /**
+   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customRemovedFromChannelNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
   ) => void;
+  /**
+   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customChannelDeletedHandler?: (
     event: Event,
     channel: Channel,
@@ -56,6 +118,9 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customChannelUpdatedHandler?: (
     event: Event,
     channel: Channel,
@@ -64,6 +129,9 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customChannelTruncatedHandler?: (
     event: Event,
     channel: Channel,
@@ -72,6 +140,9 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customChannelHiddenHandler?: (
     event: Event,
     channel: Channel,
@@ -80,6 +151,9 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customChannelVisibleHandler?: (
     event: Event,
     channel: Channel,
@@ -88,6 +162,9 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   */
   customNewMessageHandler?: (
     event: Event,
     channel: Channel,
@@ -189,6 +266,10 @@ export class ChannelService {
       });
   }
 
+  /**
+   * Sets the given `channel` as active.
+   * @param channel
+   */
   setAsActiveChannel(channel: Channel) {
     const prevActiveChannel = this.activeChannelSubject.getValue();
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
@@ -206,6 +287,10 @@ export class ChannelService {
     this.messageToQuoteSubject.next(undefined);
   }
 
+  /**
+   * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
+   * @param message
+   */
   async setAsActiveParentMessage(message: StreamMessage | undefined) {
     const messageToQuote = this.messageToQuoteSubject.getValue();
     if (messageToQuote && !!messageToQuote.parent_id) {
@@ -224,7 +309,9 @@ export class ChannelService {
     }
   }
 
-  // load more thread replies
+  /**
+   * Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+   */
   async loadMoreMessages() {
     const activeChnannel = this.activeChannelSubject.getValue();
     const lastMessageId = this.activeChannelMessagesSubject.getValue()[0]?.id;
@@ -243,6 +330,9 @@ export class ChannelService {
     }
   }
 
+  /**
+   * Loads the next page of messages of the active thread. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+   */
   async loadMoreThreadReplies() {
     const activeChnannel = this.activeChannelSubject.getValue();
     const parentMessageId = this.activeParentMessageIdSubject.getValue();
@@ -259,6 +349,12 @@ export class ChannelService {
     );
   }
 
+  /**
+   * Queries the channels with the given filters, sorts and options. More info about [channel querying](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript) can be found in the platform documentation.
+   * @param filters
+   * @param sort
+   * @param options
+   */
   async init(
     filters: ChannelFilters,
     sort?: ChannelSort,
@@ -280,6 +376,9 @@ export class ChannelService {
     );
   }
 
+  /**
+   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./chat-client.mdx/#disconnectuser).
+   */
   reset() {
     this.activeChannelMessagesSubject.next([]);
     this.activeChannelSubject.next(undefined);
@@ -289,23 +388,44 @@ export class ChannelService {
     this.selectMessageToQuote(undefined);
   }
 
+  /**
+   * Loads the next page of channels. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+   */
   async loadMoreChannels() {
     this.options!.offset = this.channels.length!;
     await this.queryChannels();
   }
 
+  /**
+   * Adds a reaction to a message.
+   * @param messageId The id of the message to add the reaction to
+   * @param reactionType The type of the reaction
+   */
   async addReaction(messageId: string, reactionType: MessageReactionType) {
     await this.activeChannelSubject.getValue()?.sendReaction(messageId, {
       type: reactionType,
     });
   }
 
+  /**
+   * Removes a reaction from a message.
+   * @param messageId The id of the message to remove the reaction from
+   * @param reactionType Thr type of reaction to remove
+   */
   async removeReaction(messageId: string, reactionType: MessageReactionType) {
     await this.activeChannelSubject
       .getValue()
       ?.deleteReaction(messageId, reactionType);
   }
 
+  /**
+   * Sends a message to the active channel. The message is immediately added to the message list, if an error occurs and the message can't be sent, the error is indicated in `state` of the message.
+   * @param text The text of the message
+   * @param attachments The attachments
+   * @param mentionedUsers Mentioned users
+   * @param parentId Id of the parent message (if sending a thread reply)
+   * @param quotedMessageId Id of the message to quote (if sending a quote reply)
+   */
   async sendMessage(
     text: string,
     attachments: Attachment[] = [],
@@ -327,6 +447,10 @@ export class ChannelService {
     await this.sendMessageRequest(preview);
   }
 
+  /**
+   * Resends the given message to the active channel
+   * @param message The message to resend
+   */
   async resendMessage(message: StreamMessage) {
     const channel = this.activeChannelSubject.getValue()!;
     channel.state.addMessageSorted(
@@ -340,16 +464,29 @@ export class ChannelService {
     await this.sendMessageRequest(message);
   }
 
+  /**
+   * Updates the message in the active channel
+   * @param message Mesage to be updated
+   */
   async updateMessage(message: StreamMessage) {
     await this.chatClientService.chatClient.updateMessage(
       message as UpdatedMessage
     );
   }
 
+  /**
+   * Deletes the message from the active channel
+   * @param message Message to be deleted
+   */
   async deleteMessage(message: StreamMessage) {
     await this.chatClientService.chatClient.deleteMessage(message.id);
   }
 
+  /**
+   * Uploads files to the channel. If you want to know more about [file uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript) check out the platform documentation.
+   * @param uploads the attachments to upload (output of the [`AttachmentService`](./AttachmentService.mdx))
+   * @returns the result of file upload requests
+   */
   async uploadAttachments(
     uploads: AttachmentUpload[]
   ): Promise<AttachmentUpload[]> {
@@ -380,6 +517,10 @@ export class ChannelService {
     return result;
   }
 
+  /**
+   * Deletes an uploaded file by URL. If you want to know more about [file uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript) check out the platform documentation
+   * @param attachmentUpload Attachment to be deleted (output of the [`AttachmentService`](./AttachmentService.mdx))
+   */
   async deleteAttachment(attachmentUpload: AttachmentUpload) {
     const channel = this.activeChannelSubject.getValue()!;
     await (attachmentUpload.type === 'image'
@@ -387,6 +528,11 @@ export class ChannelService {
       : channel.deleteFile(attachmentUpload.url!));
   }
 
+  /**
+   * Returns the autocomplete options for current channel members. If the channel has less than 100 members, it returns the channel members, otherwise sends a [search request](https://getstream.io/chat/docs/javascript/query_members/?language=javascript#pagination-and-ordering) with the given search term.
+   * @param searchTerm Text to search for in the names of members
+   * @returns The list of members matching the search filter
+   */
   async autocompleteMembers(searchTerm: string) {
     const activeChannel = this.activeChannelSubject.getValue();
     if (!activeChannel) {
@@ -408,6 +554,11 @@ export class ChannelService {
     }
   }
 
+  /**
+   * [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
+   * @param messageId
+   * @param formData
+   */
   async sendAction(messageId: string, formData: Record<string, string>) {
     const channel = this.activeChannelSubject.getValue()!;
     const response = await channel.sendAction(messageId, formData);
@@ -442,6 +593,10 @@ export class ChannelService {
     }
   }
 
+  /**
+   * Selects or deselects the current message to quote reply to
+   * @param message The message to select, if called with `undefined`, it deselects the message
+   */
   selectMessageToQuote(message: StreamMessage | undefined) {
     this.messageToQuoteSubject.next(message);
   }

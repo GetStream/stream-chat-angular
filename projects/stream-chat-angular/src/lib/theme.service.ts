@@ -3,10 +3,16 @@ import { BehaviorSubject } from 'rxjs';
 
 export type Theme = 'light' | 'dark';
 
+/**
+ * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [themeing guide](../concepts/themeing-and-css.mdx) gives a complete overview about the topic.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
+  /**
+   * A Subject that can be used to get or set the currently active theme.
+   */
   theme$ = new BehaviorSubject<Theme>('light');
   private _customLightThemeVariables: { [key: string]: string } | undefined;
   private _customDarkThemeVariables: { [key: string]: string } | undefined;
@@ -54,10 +60,18 @@ export class ThemeService {
     });
   }
 
+  /**
+   * A getter that returns the currently set custom light theme variables.
+   * @returns An object where the keys are theme variables, and the values are the currently set CSS values.
+   */
   get customLightThemeVariables() {
     return this._customLightThemeVariables;
   }
 
+  /**
+   * A setter that can be used to overwrite the values of the CSS theme variables of the light theme.
+   * @param variables An object where the keys are theme variables, and the values are CSS values.
+   */
   set customLightThemeVariables(
     variables: { [key: string]: string } | undefined
   ) {
@@ -71,10 +85,18 @@ export class ThemeService {
     }
   }
 
+  /**
+   * A getter that returns the currently set custom dark theme variables.
+   * @returns An object where the keys are theme variables, and the values are the currently set CSS values.
+   */
   get customDarkThemeVariables() {
     return this._customDarkThemeVariables;
   }
 
+  /**
+   * A setter that can be used to overwrite the values of the CSS theme variables of the dark theme.
+   * @param variables An object where the keys are theme variables, and the values are CSS values.
+   */
   set customDarkThemeVariables(
     variables: { [key: string]: string } | undefined
   ) {

@@ -40,6 +40,10 @@ yarn-error.log
 testem.log
 /typings
 
+# Generated docs
+temp-docs
+docusaurus/docs/Angular/services/*.mdx
+
 # System Files
 .DS_Store
 Thumbs.db

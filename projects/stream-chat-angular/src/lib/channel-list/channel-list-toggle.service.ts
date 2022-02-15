@@ -3,8 +3,14 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, first } from 'rxjs/operators';
 import { getDeviceWidth } from '../device-width';
 
+/**
+ * The `ChannelListToggleService` can be used to toggle the channel list.
+ */
 @Injectable({ providedIn: 'root' })
 export class ChannelListToggleService {
+  /**
+   * Emits `true` if the channel list is in open state, otherwise it emits `false`
+   */
   isOpen$: Observable<boolean>;
   private isOpenSubject = new BehaviorSubject<boolean>(false);
   private menuElement: HTMLElement | undefined;
@@ -20,22 +26,38 @@ export class ChannelListToggleService {
     });
   }
 
+  /**
+   * Opens the channel list.
+   */
   open() {
     this.isOpenSubject.next(true);
   }
 
+  /**
+   * Closes the channel list.
+   */
   close() {
     this.isOpenSubject.next(false);
   }
 
+  /**
+   * Opens the channel list if it was closed, and closes if it was opened.
+   */
   toggle() {
     this.isOpenSubject.getValue() ? this.close() : this.open();
   }
 
+  /**
+   * Sets the channel list element, on mobile screen size if the user opens the channel list, and clicks outside, the service automatically closes the channel list if a reference to the HTML element is provided.
+   * @param element
+   */
   setMenuElement(element: HTMLElement | undefined) {
     this.menuElement = element;
   }
 
+  /**
+   * This method should be called if a channel was selected, if on mobile, the channel list will be closed.
+   */
   channelSelected() {
     if (getDeviceWidth().device === 'mobile') {
       this.close();

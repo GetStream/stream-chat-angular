@@ -7,11 +7,20 @@ import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
 import { AttachmentUpload } from './types';
 
+/**
+ * The `AttachmentService` manages the uploads of a message input.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class AttachmentService {
+  /**
+   * Emits the number of uploads in progress.
+   */
   attachmentUploadInProgressCounter$: Observable<number>;
+  /**
+   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](../components/attachment-preview-list.mdx) to display the attachment previews.
+   */
   attachmentUploads$: Observable<AttachmentUpload[]>;
   private attachmentUploadInProgressCounterSubject =
     new BehaviorSubject<number>(0);
@@ -28,10 +37,18 @@ export class AttachmentService {
     this.attachmentUploads$ = this.attachmentUploadsSubject.asObservable();
   }
 
+  /**
+   * Resets the attachments uploads (for example after the message with the attachments sent successfully)
+   */
   resetAttachmentUploads() {
     this.attachmentUploadsSubject.next([]);
   }
 
+  /**
+   * Uploads the selected files, and creates preview for image files. The result is propagated throught the `attachmentUploads$` stream.
+   * @param fileList The files selected by the user
+   * @returns A promise with the result
+   */
   async filesSelected(fileList: FileList | null) {
     if (!fileList) {
       return;
@@ -66,6 +83,11 @@ export class AttachmentService {
     await this.uploadAttachments(newUploads);
   }
 
+  /**
+   * Retries to upload an attachment.
+   * @param file
+   * @returns A promise with the result
+   */
   async retryAttachmentUpload(file: File) {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
     const upload = attachmentUploads.find((u) => u.file === file);
@@ -77,6 +99,10 @@ export class AttachmentService {
     await this.uploadAttachments([upload]);
   }
 
+  /**
+   * Deletes an attachment, the attachment can have any state (`error`, `uploading` or `success`).
+   * @param upload
+   */
   async deleteAttachment(upload: AttachmentUpload) {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
     if (upload.state === 'success') {
@@ -94,6 +120,10 @@ export class AttachmentService {
     this.attachmentUploadsSubject.next([...attachmentUploads]);
   }
 
+  /**
+   * Maps the current uploads to a format that can be sent along with the message to the Stream API.
+   * @returns the attachments
+   */
   mapToAttachments() {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
     return attachmentUploads
@@ -115,6 +145,10 @@ export class AttachmentService {
       });
   }
 
+  /**
+   * Maps attachments received from the Stream API to uploads. This is useful when editing a message.
+   * @param attachments Attachemnts received with the message
+   */
   createFromAttachments(attachments: Attachment[]) {
     const attachmentUploads: AttachmentUpload[] = [];
     attachments.forEach((attachment) => {

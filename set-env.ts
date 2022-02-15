@@ -18,13 +18,13 @@ const envConfig: { [key: string]: any } =
 
 // `environment.ts` file structure
 const envConfigFile = `export const environment = {
-  ${Object.keys(envConfig).map((k) => `${k}: ${envConfig[k]},`)}
-  apiKey: '${process.env.STREAM_API_KEY}',
-  userId: '${process.env.STREAM_USER_ID}',
-  userToken: '${process.env.STREAM_USER_TOKEN}'
-};
-// I am a generated file, do not modify me directly, see set-env script
-`;
+    ${Object.keys(envConfig).map((k) => `${k}: ${envConfig[k]},`)}
+    apiKey: '${process.env.STREAM_API_KEY}',
+    userId: '${process.env.STREAM_USER_ID}',
+    userToken: '${process.env.STREAM_USER_TOKEN}'
+  };
+  // I am a generated file, do not modify me directly, see set-env script
+  `;
 
 writeFile(targetPath, envConfigFile, (err: any) => {
   if (err) {
