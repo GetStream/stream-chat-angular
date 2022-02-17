@@ -12,6 +12,8 @@ import { ChatClientService } from '../../chat-client.service';
 import { ChannelService } from '../../channel.service';
 import { mockChannelService, MockChannelService } from '../../mocks';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea.component';
+import { Subject } from 'rxjs';
+import { EmojiInputService } from '../emoji-input.service';
 
 describe('AutocompleteTextareaComponent', () => {
   let component: AutocompleteTextareaComponent;
@@ -23,12 +25,14 @@ describe('AutocompleteTextareaComponent', () => {
   let queryUsernames: () => HTMLElement[];
   let queryCommands: () => HTMLElement[];
   let chatClientServiceMock: { autocompleteUsers: jasmine.Spy };
+  let emojiInput$: Subject<string>;
 
   beforeEach(async () => {
     channelServiceMock = mockChannelService();
     chatClientServiceMock = {
       autocompleteUsers: jasmine.createSpy().and.returnValue([]),
     };
+    emojiInput$ = new Subject();
     await TestBed.configureTestingModule({
       declarations: [AutocompleteTextareaComponent],
       imports: [TranslateModule.forRoot(), MentionModule],
@@ -40,6 +44,10 @@ describe('AutocompleteTextareaComponent', () => {
         {
           provide: ChatClientService,
           useValue: chatClientServiceMock,
+        },
+        {
+          provide: EmojiInputService,
+          useValue: { emojiInput$ },
         },
       ],
     }).compileComponents();
@@ -384,5 +392,19 @@ describe('AutocompleteTextareaComponent', () => {
         '/'
       )
     ).toBe('/giphy ');
+  });
+
+  it('should insert emoji at the correct caret position', () => {
+    const textarea = queryTextarea()!;
+    textarea.value = 'Emoji here: !';
+    textarea.setSelectionRange(12, 12);
+    const spy = jasmine.createSpy();
+    component.valueChange.subscribe(spy);
+    spy.calls.reset();
+
+    emojiInput$.next('🥑');
+
+    expect(textarea.value).toEqual('Emoji here: 🥑!');
+    expect(spy).toHaveBeenCalledWith('Emoji here: 🥑!');
   });
 });

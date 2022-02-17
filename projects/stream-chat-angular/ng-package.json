@@ -10,6 +10,7 @@
     "dayjs",
     "@stream-io/transliterate",
     "uuidv4",
-    "pretty-bytes"
+    "pretty-bytes",
+    "emoji-regex"
   ]
 }

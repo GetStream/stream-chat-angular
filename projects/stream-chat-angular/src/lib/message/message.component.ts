@@ -14,6 +14,7 @@ import { getDeviceWidth } from '../device-width';
 import { DefaultUserType, StreamMessage } from '../types';
 import { parseDate } from './parse-date';
 import { getReadByText } from './read-by-text';
+import emojiRegex from 'emoji-regex';
 
 type MessagePart = {
   content: string;
@@ -191,6 +192,12 @@ export class MessageComponent implements OnChanges {
         !this.message!.mentioned_users ||
         this.message!.mentioned_users.length === 0
       ) {
+        // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
+        const regex = new RegExp(emojiRegex(), 'g');
+        content = content.replace(
+          regex,
+          (match) => `<span class="str-chat__emoji-display-fix">${match}</span>`
+        );
         this.messageTextParts = [{ content, type: 'text' }];
       } else {
         this.messageTextParts = [];

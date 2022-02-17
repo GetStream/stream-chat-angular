@@ -25,6 +25,7 @@ export * from './lib/message-input/autocomplete-textarea/autocomplete-textarea.c
 export * from './lib/message-input/message-input-config.service';
 export * from './lib/message-input/textarea.directive';
 export * from './lib/message-input/textarea.interface';
+export * from './lib/message-input/emoji-input.service';
 export * from './lib/message-list/message-list.component';
 export * from './lib/message-list/image-load.service';
 export * from './lib/message-list/group-styles';

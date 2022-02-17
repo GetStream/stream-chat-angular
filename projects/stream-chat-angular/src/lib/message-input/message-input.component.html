@@ -60,7 +60,22 @@
       <stream-attachment-preview-list
         class="rfu-image-previewer-angular-host"
       ></stream-attachment-preview-list>
-      <div class="rta str-chat__textarea">
+      <div class="rta str-chat__textarea str-chat-angular__textarea">
+        <ng-container *ngIf="emojiPickerTemplate">
+          <div
+            class="
+              str-chat__input-flat-emojiselect
+              str-chat-angular__emojiselect
+            "
+          >
+            <ng-container
+              *ngTemplateOutlet="
+                emojiPickerTemplate;
+                context: { emojiInput$: emojiInputService.emojiInput$ }
+              "
+            ></ng-container>
+          </div>
+        </ng-container>
         <ng-template
           *ngIf="canSendMessages; else notAllowed"
           streamTextarea

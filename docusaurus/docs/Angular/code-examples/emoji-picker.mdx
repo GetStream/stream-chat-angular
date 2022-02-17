@@ -1,0 +1,190 @@
+---
+id: emoji-picker
+title: Emoji picker
+---
+
+import Screenshot from "../assets/emoji-picker-screenshot.png";
+
+The SDK doesn't have a built-in emoji picker, but it has support for providing your own template. This guide shows you how to add an emoji picker to your chat application.
+
+## Create the emoji picker template
+
+1. Create a new component in your application
+
+```
+ng g c emoji-picker
+```
+
+2. Install `@ctrl/ngx-emoji-mart`
+
+You can use any emoji picker but this example will use [`@ctrl/ngx-emoji-mart `](https://www.npmjs.com/package/@ctrl/ngx-emoji-mart)
+
+```
+npm install @ctrl/ngx-emoji-mart
+```
+
+Import the emoji-mart stylesheet into your root stylesheet (for example `styles.scss`):
+
+```
+@import "~@ctrl/ngx-emoji-mart/picker";
+```
+
+Import the `PickerModule` into your `AppModule`:
+
+```typescript
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { TranslateModule } from "@ngx-translate/core";
+
+import { AppComponent } from "./app.component";
+import {
+  StreamChatModule,
+  StreamAutocompleteTextareaModule,
+} from "stream-chat-angular";
+import { EmojiPickerComponent } from "./emoji-picker/emoji-picker.component";
+import { PickerModule } from "@ctrl/ngx-emoji-mart";
+
+@NgModule({
+  declarations: [AppComponent, EmojiPickerComponent],
+  imports: [
+    BrowserModule,
+    TranslateModule.forRoot(),
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+    PickerModule,
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+3. Component class
+
+Your emoji picker component should have an input with the type `Subject<string>` to emit the selected emojis. This input will be provided by the [`MessageInput`](../components/message-input.mdx) component.
+
+We also defined an `isOpened` property that tells if the emoji picker should be opened or closed.
+
+```typescript
+import { Component, Input, OnInit } from "@angular/core";
+import { Subject } from "rxjs";
+
+@Component({
+  selector: "app-emoji-picker",
+  templateUrl: "./emoji-picker.component.html",
+  styleUrls: ["./emoji-picker.component.scss"],
+})
+export class EmojiPickerComponent implements OnInit {
+  isOpened = false;
+  @Input() emojiInput$: Subject<string> | undefined;
+
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  emojiSelected(event: any) {
+    this.emojiInput$?.next(event.emoji.native);
+  }
+}
+```
+
+4. Component template
+
+We create a button that can be used to toggle the emoji picker.
+
+The [`emoji-mart`](https://www.npmjs.com/package/@ctrl/ngx-emoji-mart) component has a lot of configuration options, feel free to explore those.
+
+We set the `color` input to the `primary-color` defined in the [stream-chat-css theme](https://github.com/GetStream/stream-chat-css/blob/develop/src/styles/_variables.scss).
+
+The [`ngIf`](https://angular.io/api/common/NgIf) directive is used to hide/show the emoji picker.
+
+The `emojiSelect` event is fired when a user selects an emoji, we emit the selected emoji using the `emojiSelected` method.
+
+```html
+<button (click)="isOpened = !isOpened">
+  <svg
+    viewBox="0 0 28 28"
+    width="100%"
+    preserveAspectRatio="xMinYMin"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clip-rule="evenodd" fill-rule="evenodd">
+      <path
+        d="M14 4.4C8.6 4.4 4.4 8.6 4.4 14c0 5.4 4.2 9.6 9.6 9.6c5.4 0 9.6-4.2 9.6-9.6c0-5.4-4.2-9.6-9.6-9.6zM2 14c0-6.6 5.4-12 12-12s12 5.4 12 12s-5.4 12-12 12s-12-5.4-12-12zM12.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM18.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM8.6 15.4c.6-.4 1.2-.2 1.6.2c.6.8 1.6 1.8 3 2c1.2.4 2.8.2 4.8-2c.4-.4 1.2-.6 1.6 0c.4.4.6 1.2 0 1.6c-2.2 2.6-4.8 3.4-7 3c-2-.4-3.6-1.8-4.4-3c-.4-.6-.2-1.2.4-1.8z"
+      ></path>
+    </g>
+  </svg>
+</button>
+
+<emoji-mart
+  class="picker"
+  color="var(--primary-color)"
+  *ngIf="isOpened"
+  title="Pick your emoji…"
+  emoji="point_up"
+  (emojiSelect)="emojiSelected($event)"
+></emoji-mart>
+```
+
+5. Component styles
+
+```scss
+button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  transform: scale(0.8);
+  transform-origin: 0% 100%;
+}
+
+@media only screen and (min-device-width: 1024px) {
+  .picker {
+    transform: scale(1);
+  }
+}
+```
+
+## Provide your custom template
+
+Let's provide our custom emoji picker template to the [`MessageInput`](../components/message-input.mdx) component:
+
+```html
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <stream-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-notification-list></stream-notification-list>
+    <stream-message-input
+      [emojiPickerTemplate]="emojiPickerTemplate"
+    ></stream-message-input>
+    <stream-thread name="thread">
+      <stream-message-list
+        name="thread-message-list"
+        mode="thread"
+      ></stream-message-list>
+      <stream-message-input
+        mode="thread"
+        name="thread-message-input"
+        [emojiPickerTemplate]="emojiPickerTemplate"
+      ></stream-message-input>
+    </stream-thread>
+  </stream-channel>
+</div>
+
+<!-- The MessageInput component will provide the emojiInput$ to emit the selected emojis and insert them in the textarea -->
+<ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
+  <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
+</ng-template>
+```
+
+This is how our emoji picker looks like:
+
+<img src={Screenshot} width="500" />
