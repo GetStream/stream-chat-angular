@@ -80,6 +80,7 @@
           *ngIf="canSendMessages; else notAllowed"
           streamTextarea
           [(value)]="textareaValue"
+          (valueChange)="typingStart$.next()"
           (send)="messageSent()"
           [componentRef]="textareaRef"
           (userMentions)="mentionedUsers = $event"

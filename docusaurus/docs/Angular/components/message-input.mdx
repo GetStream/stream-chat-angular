@@ -173,6 +173,14 @@ You can add an emoji picker by [providing your own emoji picker template](../cod
 | --------------------------------------------- |
 | `TemplateRef<{emojiInput$: Subject<string>}>` |
 
+### typingIndicatorTemplate
+
+You can provide your own typing indicator template instead of the default one.
+
+| Type                                                                         |
+| ---------------------------------------------------------------------------- |
+| `TemplateRef<{ usersTyping$: Observable<UserResponse<DefaultUserType>[]> }>` |
+
 ## Outputs
 
 ### messageUpdate

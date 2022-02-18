@@ -38,6 +38,32 @@
         ></ng-container>
       </li>
     </ul>
+    <ng-container *ngIf="typingIndicatorTemplate; else defaultTypingIndicator">
+      <ng-container
+        *ngTemplateOutlet="
+          typingIndicatorTemplate;
+          context: { usersTyping$: usersTyping$ }
+        "
+      ></ng-container>
+    </ng-container>
+    <ng-template #defaultTypingIndicator>
+      <div
+        *ngIf="(usersTyping$ | async)?.length"
+        data-testid="typing-indicator"
+        class="str-chat__typing-indicator str-chat__typing-indicator--typing"
+      >
+        <stream-avatar
+          *ngFor="let user of usersTyping$ | async; trackBy: trackByUserId"
+          [name]="user.name || user.id"
+          [imageUrl]="user.image"
+        ></stream-avatar>
+        <div class="str-chat__typing-indicator__dots">
+          <span class="str-chat__typing-indicator__dot"></span>
+          <span class="str-chat__typing-indicator__dot"></span>
+          <span class="str-chat__typing-indicator__dot"></span>
+        </div>
+      </div>
+    </ng-template>
   </div>
 </div>
 <div class="str-chat__list-notifications">

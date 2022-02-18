@@ -43,6 +43,8 @@ describe('MessageInputComponent', () => {
   let getAppSettings: jasmine.Spy;
   let mockMessageToQuote$: BehaviorSubject<undefined | StreamMessage>;
   let selectMessageToQuoteSpy: jasmine.Spy;
+  let typingStartedSpy: jasmine.Spy;
+  let typingStoppedSpy: jasmine.Spy;
 
   beforeEach(() => {
     appSettings$ = new Subject<AppSettings>();
@@ -54,6 +56,8 @@ describe('MessageInputComponent', () => {
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
     updateMessageSpy = jasmine.createSpy();
+    typingStartedSpy = jasmine.createSpy();
+    typingStoppedSpy = jasmine.createSpy();
     attachmentService = {
       resetAttachmentUploads: jasmine.createSpy(),
       attachmentUploadInProgressCounter$: new BehaviorSubject(0),
@@ -101,6 +105,8 @@ describe('MessageInputComponent', () => {
             activeParentMessageId$: mockActiveParentMessageId$,
             messageToQuote$: mockMessageToQuote$,
             selectMessageToQuote: selectMessageToQuoteSpy,
+            typingStarted: typingStartedSpy,
+            typingStopped: typingStoppedSpy,
           },
         },
         {
@@ -202,13 +208,13 @@ describe('MessageInputComponent', () => {
     expect(component.messageSent).toHaveBeenCalledWith();
   });
 
-  it('should send message', () => {
+  it('should send message', async () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
     const mentionedUsers = [{ id: 'john', name: 'John' }];
     component.mentionedUsers = mentionedUsers;
-    void component.messageSent();
+    await component.messageSent();
     fixture.detectChanges();
 
     expect(sendMessageSpy).toHaveBeenCalledWith(
@@ -218,6 +224,8 @@ describe('MessageInputComponent', () => {
       undefined,
       undefined
     );
+
+    expect(typingStoppedSpy).toHaveBeenCalledWith(undefined);
   });
 
   it('reset textarea after message is sent', () => {
@@ -621,7 +629,7 @@ describe('MessageInputComponent', () => {
     expect(getAppSettings).toHaveBeenCalledWith();
   });
 
-  it('should send parent message id if in thread mode', () => {
+  it('should send parent message id if in thread mode', async () => {
     component.mode = 'thread';
     mockActiveParentMessageId$.next('parent message');
     const message = 'This is my message';
@@ -632,7 +640,7 @@ describe('MessageInputComponent', () => {
     quotedMessage.id = 'message-to-quote';
     mockMessageToQuote$.next(quotedMessage);
     component.mentionedUsers = [];
-    void component.messageSent();
+    await component.messageSent();
     fixture.detectChanges();
 
     expect(sendMessageSpy).toHaveBeenCalledWith(
@@ -642,6 +650,8 @@ describe('MessageInputComponent', () => {
       'parent message',
       'message-to-quote'
     );
+
+    expect(typingStoppedSpy).toHaveBeenCalledWith('parent message');
   });
 
   it(`shouldn't allow message send if in thread mode and "send-reply" capability is missing`, () => {
@@ -774,5 +784,23 @@ describe('MessageInputComponent', () => {
     mockMessageToQuote$.next(undefined);
 
     expect(component.quotedMessage).toBeUndefined();
+  });
+
+  it('should send typing start events - main mode', () => {
+    const textarea = queryTextarea();
+    textarea?.valueChange.next('H');
+    textarea?.valueChange.next('i');
+
+    expect(typingStartedSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should send typing start events - thread mode', () => {
+    component.mode = 'thread';
+    mockActiveParentMessageId$.next('parentMessage');
+    fixture.detectChanges();
+    const textarea = queryTextarea();
+    textarea?.valueChange.next('H');
+
+    expect(typingStartedSpy).toHaveBeenCalledWith('parentMessage');
   });
 });

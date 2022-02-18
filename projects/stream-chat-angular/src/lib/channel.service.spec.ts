@@ -1202,4 +1202,79 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith(undefined);
   });
+
+  it('should notify channel if typing started', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    spyOn(channel, 'keystroke');
+    await service.typingStarted();
+
+    expect(channel.keystroke).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should notify channel if typing stopped', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    spyOn(channel, 'stopTyping');
+    await service.typingStopped();
+
+    expect(channel.stopTyping).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should emit users that are currently typing', async () => {
+    await init();
+    const usersTypingInChannelSpy = jasmine.createSpy();
+    const usersTypingInThreadSpy = jasmine.createSpy();
+    service.usersTypingInChannel$.subscribe(usersTypingInChannelSpy);
+    service.usersTypingInThread$.subscribe((e) => {
+      usersTypingInThreadSpy(e);
+    });
+    let channel!: MockChannel;
+    service.activeChannel$.subscribe((c) => (channel = c as MockChannel));
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user: { id: 'sara' },
+    });
+
+    expect(usersTypingInChannelSpy).toHaveBeenCalledWith([{ id: 'sara' }]);
+    expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user: { id: 'john' },
+    });
+
+    expect(usersTypingInChannelSpy).toHaveBeenCalledWith([
+      { id: 'sara' },
+      { id: 'john' },
+    ]);
+
+    expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.stop', {
+      type: 'typing.stop',
+      user: { id: 'sara' },
+    });
+
+    expect(usersTypingInChannelSpy).toHaveBeenCalledWith([{ id: 'john' }]);
+    expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user,
+    });
+
+    expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+    expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+  });
 });
