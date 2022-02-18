@@ -17,7 +17,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChatClientService } from '../chat-client.service';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { AppSettings, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
@@ -71,6 +71,7 @@ export class MessageInputComponent
   textareaRef: ComponentRef<TextareaInterface> | undefined;
   mentionedUsers: UserResponse[] = [];
   quotedMessage: undefined | StreamMessage;
+  typingStart$ = new Subject<void>();
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -144,6 +145,12 @@ export class MessageInputComponent
     this.commandAutocompleteItemTemplate =
       this.configService.commandAutocompleteItemTemplate;
     this.emojiPickerTemplate = this.configService.emojiPickerTemplate;
+
+    this.subscriptions.push(
+      this.typingStart$.subscribe(
+        () => void this.channelService.typingStarted(this.parentMessageId)
+      )
+    );
   }
 
   ngAfterViewInit(): void {
@@ -225,12 +232,6 @@ export class MessageInputComponent
     if (!this.isUpdate) {
       this.textareaValue = '';
     }
-    let parentMessageId: string | undefined = undefined;
-    if (this.mode === 'thread') {
-      this.channelService.activeParentMessageId$
-        .pipe(first())
-        .subscribe((id) => (parentMessageId = id));
-    }
     try {
       await (this.isUpdate
         ? this.channelService.updateMessage({
@@ -242,7 +243,7 @@ export class MessageInputComponent
             text,
             attachments,
             this.mentionedUsers,
-            parentMessageId,
+            this.parentMessageId,
             this.quotedMessage?.id
           ));
       this.messageUpdate.emit();
@@ -256,6 +257,7 @@ export class MessageInputComponent
         );
       }
     }
+    void this.channelService.typingStopped(this.parentMessageId);
     if (this.quotedMessage) {
       this.deselectMessageToQuote();
     }
@@ -397,5 +399,16 @@ export class MessageInputComponent
       this.cdRef.detectChanges();
       this.initTextarea();
     }
+  }
+
+  private get parentMessageId() {
+    let parentMessageId: string | undefined = undefined;
+    if (this.mode === 'thread') {
+      this.channelService.activeParentMessageId$
+        .pipe(first())
+        .subscribe((id) => (parentMessageId = id));
+    }
+
+    return parentMessageId;
   }
 }

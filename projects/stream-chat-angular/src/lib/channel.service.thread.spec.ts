@@ -615,4 +615,85 @@ describe('ChannelService - threads', () => {
 
     expect(latestMessage.id).toBe('new message');
   });
+
+  it('should notify channel if typing started', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    spyOn(channel, 'keystroke');
+    await service.typingStarted('parentId');
+
+    expect(channel.keystroke).toHaveBeenCalledWith('parentId');
+  });
+
+  it('should notify channel if typing stopped', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    spyOn(channel, 'stopTyping');
+    await service.typingStopped('parentId');
+
+    expect(channel.stopTyping).toHaveBeenCalledWith('parentId');
+  });
+
+  it('should emit users that are currently typing', async () => {
+    await init();
+    const usersTypingInChannelSpy = jasmine.createSpy();
+    const usersTypingInThreadSpy = jasmine.createSpy();
+    service.usersTypingInChannel$.subscribe(usersTypingInChannelSpy);
+    service.usersTypingInThread$.subscribe((e) => {
+      usersTypingInThreadSpy(e);
+    });
+    let channel!: MockChannel;
+    service.activeChannel$.subscribe((c) => (channel = c as MockChannel));
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parent_id';
+    await service.setAsActiveParentMessage(parentMessage);
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user: { id: 'sara' },
+      parent_id: 'parent_id',
+    });
+
+    expect(usersTypingInThreadSpy).toHaveBeenCalledWith([{ id: 'sara' }]);
+    expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user: { id: 'jack' },
+      parent_id: 'parent_id',
+    });
+
+    expect(usersTypingInThreadSpy).toHaveBeenCalledWith([
+      { id: 'sara' },
+      { id: 'jack' },
+    ]);
+
+    expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.stop', {
+      type: 'typing.stop',
+      user: { id: 'sara' },
+    });
+
+    expect(usersTypingInThreadSpy).toHaveBeenCalledWith([{ id: 'jack' }]);
+    expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+
+    usersTypingInThreadSpy.calls.reset();
+    usersTypingInChannelSpy.calls.reset();
+    channel.handleEvent('typing.start', {
+      type: 'typing.start',
+      user: { id: 'sophie' },
+      parent_id: 'different_thread',
+    });
+
+    expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+    expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+  });
 });

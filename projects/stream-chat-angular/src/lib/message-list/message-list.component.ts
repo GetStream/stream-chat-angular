@@ -14,10 +14,11 @@ import {
 import { ChannelService } from '../channel.service';
 import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { StreamMessage } from '../types';
+import { DefaultUserType, StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
+import { UserResponse } from 'stream-chat';
 
 @Component({
   selector: 'stream-message-list',
@@ -30,6 +31,9 @@ export class MessageListComponent
   @Input() messageTemplate: TemplateRef<any> | undefined;
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
   @Input() mentionTemplate: TemplateRef<any> | undefined;
+  @Input() typingIndicatorTemplate:
+    | TemplateRef<{ usersTyping$: Observable<UserResponse<DefaultUserType>[]> }>
+    | undefined;
   /**
    * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-arereactionsenabled-deprecated
    */
@@ -67,6 +71,8 @@ export class MessageListComponent
   private readonly isUserScrolledUpThreshold = 300;
   private subscriptions: Subscription[] = [];
   private prevScrollTop: number | undefined;
+  private usersTypingInChannel$!: Observable<UserResponse<DefaultUserType>[]>;
+  private usersTypingInThread$!: Observable<UserResponse<DefaultUserType>[]>;
 
   constructor(
     private channelService: ChannelService,
@@ -138,6 +144,8 @@ export class MessageListComponent
         this.parentMessage = message;
       })
     );
+    this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
+    this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
   }
 
   ngOnInit(): void {
@@ -182,8 +190,18 @@ export class MessageListComponent
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
+  get usersTyping$() {
+    return this.mode === 'thread'
+      ? this.usersTypingInThread$
+      : this.usersTypingInChannel$;
+  }
+
   trackByMessageId(index: number, item: StreamMessage) {
     return item.id;
+  }
+
+  trackByUserId(index: number, user: UserResponse) {
+    return user.id;
   }
 
   scrollToBottom(): void {

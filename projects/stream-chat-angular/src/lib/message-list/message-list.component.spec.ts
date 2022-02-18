@@ -8,6 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { Channel } from 'stream-chat';
+import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { MessageComponent } from '../message/message.component';
@@ -31,12 +32,14 @@ describe('MessageListComponent', () => {
   let queryMessages: () => HTMLElement[];
   let queryScrollToBottomButton: () => HTMLElement | null;
   let queryParentMessage: () => MessageComponent | undefined;
+  let queryTypingIndicator: () => HTMLElement | null;
+  let queryTypingUserAvatars: () => AvatarComponent[];
 
   beforeEach(fakeAsync(() => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageComponent, MessageListComponent],
+      declarations: [MessageComponent, MessageListComponent, AvatarComponent],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         {
@@ -67,6 +70,13 @@ describe('MessageListComponent', () => {
         .query(By.css('[data-testid="parent-message"]'))
         ?.query(By.directive(MessageComponent))
         .componentInstance as MessageComponent;
+    queryTypingIndicator = () =>
+      nativeElement.querySelector('[data-testid="typing-indicator"]');
+    queryTypingUserAvatars = () =>
+      fixture.debugElement
+        .query(By.css('[data-testid="typing-indicator"]'))
+        ?.queryAll(By.directive(AvatarComponent))
+        .map((e) => e.componentInstance as AvatarComponent);
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.style.maxHeight = '300px';
@@ -428,6 +438,23 @@ describe('MessageListComponent', () => {
     ]);
   });
 
+  it('should display typing indicator', () => {
+    expect(queryTypingIndicator()).toBeNull();
+
+    channelServiceMock.usersTypingInChannel$.next([
+      { id: 'jack' },
+      { id: 'john', name: 'John' },
+    ]);
+    fixture.detectChanges();
+
+    expect(queryTypingIndicator()).not.toBeNull();
+    const avatars = queryTypingUserAvatars();
+
+    expect(avatars.length).toBe(2);
+    expect(avatars[0].name).toBe('jack');
+    expect(avatars[1].name).toBe('John');
+  });
+
   describe('thread mode', () => {
     beforeEach(() => {
       component.mode = 'thread';
@@ -519,6 +546,25 @@ describe('MessageListComponent', () => {
 
       expect(component.unreadMessageCount).toBe(4);
       expect(component.isUserScrolledUp).toBeTrue();
+    });
+
+    it('should display typing indicator in thread', () => {
+      channelServiceMock.usersTypingInChannel$.next([{ id: 'sara' }]);
+
+      expect(queryTypingIndicator()).toBeNull();
+
+      channelServiceMock.usersTypingInThread$.next([
+        { id: 'jack' },
+        { id: 'john', name: 'John' },
+      ]);
+      fixture.detectChanges();
+
+      expect(queryTypingIndicator()).not.toBeNull();
+      const avatars = queryTypingUserAvatars();
+
+      expect(avatars.length).toBe(2);
+      expect(avatars[0].name).toBe('jack');
+      expect(avatars[1].name).toBe('John');
     });
   });
 });

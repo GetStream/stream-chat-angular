@@ -67,6 +67,7 @@ export const generateMockChannels = (length = 25) => {
           'read-events',
           'send-links',
           'send-message',
+          'typing-events',
         ],
       },
       on: (arg1: EventTypes | Function, handler: () => {}) => {
@@ -88,6 +89,8 @@ export const generateMockChannels = (length = 25) => {
       countUnread: () => {},
       markRead: () => {},
       getReplies: () => {},
+      keystroke: () => {},
+      stopTyping: () => {},
       handleEvent: (name: EventTypes, payload?: any) => {
         if (eventHandlers[name as string]) {
           eventHandlers[name as string](payload as StreamMessage);
@@ -160,6 +163,8 @@ export type MockChannelService = {
   activeThreadMessages$: BehaviorSubject<StreamMessage[]>;
   activeParentMessageId$: BehaviorSubject<string | undefined>;
   activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
+  usersTypingInChannel$: BehaviorSubject<UserResponse[]>;
+  usersTypingInThread$: BehaviorSubject<UserResponse[]>;
   loadMoreMessages: () => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
@@ -178,6 +183,8 @@ export const mockChannelService = (): MockChannelService => {
   const activeParentMessage$ = new BehaviorSubject<undefined | StreamMessage>(
     undefined
   );
+  const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
+  const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
   const activeChannel$ = new BehaviorSubject<Channel>({
     id: 'channelid',
     data: {
@@ -187,6 +194,7 @@ export const mockChannelService = (): MockChannelService => {
         'send-reaction',
         'update-any-message',
         'delete-any-message',
+        'typing-events',
       ],
     },
     state: {
@@ -254,6 +262,8 @@ export const mockChannelService = (): MockChannelService => {
     activeParentMessage$,
     loadMoreThreadReplies,
     setAsActiveParentMessage,
+    usersTypingInChannel$,
+    usersTypingInThread$,
   };
 };
 

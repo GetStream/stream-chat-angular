@@ -89,6 +89,8 @@ export class ChannelService {
   /**
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
+  usersTypingInChannel$: Observable<UserResponse[]>;
+  usersTypingInThread$: Observable<UserResponse[]>;
   customNewMessageNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
@@ -197,6 +199,8 @@ export class ChannelService {
   private messageToQuoteSubject = new BehaviorSubject<
     StreamMessage | undefined
   >(undefined);
+  private usersTypingInChannelSubject = new BehaviorSubject<UserResponse[]>([]);
+  private usersTypingInThreadSubject = new BehaviorSubject<UserResponse[]>([]);
 
   private channelListSetter = (channels: Channel[]) => {
     this.channelsSubject.next(channels);
@@ -264,6 +268,10 @@ export class ChannelService {
       .subscribe(() => {
         void this.setAsActiveParentMessage(undefined);
       });
+
+    this.usersTypingInChannel$ =
+      this.usersTypingInChannelSubject.asObservable();
+    this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
   }
 
   /**
@@ -789,6 +797,34 @@ export class ChannelService {
         });
       })
     );
+    this.activeChannelSubscriptions.push(
+      channel.on('typing.start', (e) =>
+        this.ngZone.run(() => this.handleTypingStartEvent(e))
+      )
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('typing.stop', (e) =>
+        this.ngZone.run(() => this.handleTypingStopEvent(e))
+      )
+    );
+  }
+
+  /**
+   * Call this method if user started typing in the active channel
+   * @param parentId The id of the parent message, if user is typing in a thread
+   */
+  async typingStarted(parentId?: string) {
+    const activeChannel = this.activeChannelSubject.getValue();
+    await activeChannel?.keystroke(parentId);
+  }
+
+  /**
+   * Call this method if user stopped typing in the active channel
+   * @param parentId The id of the parent message, if user were typing in a thread
+   */
+  async typingStopped(parentId?: string) {
+    const activeChannel = this.activeChannelSubject.getValue();
+    await activeChannel?.stopTyping(parentId);
   }
 
   private messageUpdated(event: Event) {
@@ -1086,6 +1122,50 @@ export class ChannelService {
         ...formatMessage,
         readBy: isThreadMessage ? [] : getReadBy(formatMessage, channel),
       };
+    }
+  }
+
+  private handleTypingStartEvent(event: Event) {
+    if (event.user?.id === this.chatClientService.chatClient.user?.id) {
+      return;
+    }
+    const isTypingInThread = !!event.parent_id;
+    if (
+      isTypingInThread &&
+      event.parent_id !== this.activeParentMessageIdSubject.getValue()
+    ) {
+      return;
+    }
+    const subject = isTypingInThread
+      ? this.usersTypingInThreadSubject
+      : this.usersTypingInChannelSubject;
+    const users: UserResponse[] = subject.getValue();
+    const user = event.user;
+    if (user && !users.find((u) => u.id === user.id)) {
+      users.push(user);
+      subject.next([...users]);
+    }
+  }
+
+  private handleTypingStopEvent(event: Event) {
+    const usersTypingInChannel = this.usersTypingInChannelSubject.getValue();
+    const usersTypingInThread = this.usersTypingInThreadSubject.getValue();
+    const user = event.user;
+    if (user && usersTypingInChannel.find((u) => u.id === user.id)) {
+      usersTypingInChannel.splice(
+        usersTypingInChannel.findIndex((u) => u.id === user.id),
+        1
+      );
+      this.usersTypingInChannelSubject.next([...usersTypingInChannel]);
+      return;
+    }
+    if (user && usersTypingInThread.find((u) => u.id === user.id)) {
+      usersTypingInThread.splice(
+        usersTypingInThread.findIndex((u) => u.id === user.id),
+        1
+      );
+      this.usersTypingInThreadSubject.next([...usersTypingInThread]);
+      return;
     }
   }
 }
