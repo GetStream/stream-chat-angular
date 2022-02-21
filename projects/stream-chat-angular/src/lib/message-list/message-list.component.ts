@@ -20,6 +20,9 @@ import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
 import { UserResponse } from 'stream-chat';
 
+/**
+ * The `MessageList` component renders a scrollable list of messages.
+ */
 @Component({
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
@@ -28,23 +31,38 @@ import { UserResponse } from 'stream-chat';
 export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy
 {
+  /**
+   * By default, the [default message component](./MessageComponent.mdx) is used. To change the contents of the message, provide [your own custom message template](./MessageComponent.mdx/#customization).
+   */
   @Input() messageTemplate: TemplateRef<any> | undefined;
+  /**
+   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
+   */
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
+  /**
+   * The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
+   */
   @Input() mentionTemplate: TemplateRef<any> | undefined;
+  /**
+   * You can provide your own typing indicator template instead of the default one.
+   */
   @Input() typingIndicatorTemplate:
     | TemplateRef<{ usersTyping$: Observable<UserResponse<DefaultUserType>[]> }>
     | undefined;
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-arereactionsenabled-deprecated
+   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead. If true, the message reactions are displayed. Users can also react to messages if they have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
    */
   @Input() areReactionsEnabled: boolean | undefined = undefined;
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-enabledmessageactions-deprecated
+   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead. The list of [actions that are enabled](./MessageActionsBoxComponent.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI. The `MessgaeList` component makes the necessary checks before passing the actions to the `Message` component.
    */
   /* eslint-disable-next-line @angular-eslint/no-input-rename */
   @Input('enabledMessageActions') enabledMessageActionsInput:
     | string[]
     | undefined = undefined;
+  /**
+   * Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   */
   @Input() mode: 'main' | 'thread' = 'main';
   messages$!: Observable<StreamMessage[]>;
   canReactToMessage: boolean | undefined;

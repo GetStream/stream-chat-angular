@@ -3,6 +3,9 @@ import { Observable, of, Subscription } from 'rxjs';
 import { catchError, map, startWith } from 'rxjs/operators';
 import { ChannelService } from '../channel.service';
 
+/**
+ * The `Channel` component is a container component that displays the [`ChannelHeader`](./ChannelHeaderComponent.mdx), [`MessageList`](./MessageListComponent.mdx), [`NotificationList`](./NotificationListComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components. You can also provide the [`Thread`](./ThreadComponent.mdx) component to use message [threads](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+ */
 @Component({
   selector: 'stream-channel',
   templateUrl: './channel.component.html',

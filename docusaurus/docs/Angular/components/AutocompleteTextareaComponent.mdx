@@ -1,0 +1,37 @@
+The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
+
+Message send can be triggered with the `Enter` key, new line can be added with the `Shift+Enter` combination.
+
+The `AutocompleteTextarea` extends the funcitonalities of the [`Textarea`](./TextareaComponent.mdx) component with autocomplete features:
+
+- users can mention other users in a message (transliteration is used to support languages with non-Latin characters)
+- users can send commands (for example /giphy)
+
+## Basic usage
+
+You can use the `AutocompleteTextarea` component if you want to create your own message input component to override the default one:
+
+```typescript
+@Component({
+  selector: "app-custom-message-input",
+  template: `
+    <stream-autocomplete-textarea
+      [(value)]="textareaValue"
+      (send)="messageSent()"
+      (userMentions)="mentionedUsers = $event"
+    ></stream-autocomplete-textarea>
+    <!-- Other parts of the custom message input component -->
+  `,
+})
+export class CustomMessageInputComponent {
+  textareaValue = "";
+  mentionedUsers = [];
+
+  messageSent() {
+    // Send your message
+  }
+}
+```
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

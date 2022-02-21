@@ -3,6 +3,9 @@ import { Subscription } from 'rxjs';
 import { ChannelService } from '../channel.service';
 import { StreamMessage } from '../types';
 
+/**
+ * The `Thread` component represents a [message thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript), it is a container component that displays a thread with a header, [`MessageList`](./MessageListComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components.
+ */
 @Component({
   selector: 'stream-thread',
   templateUrl: './thread.component.html',

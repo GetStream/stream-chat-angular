@@ -12,12 +12,18 @@ import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 
+/**
+ * The `ChannelList` component renders the list of channels.
+ */
 @Component({
   selector: 'stream-channel-list',
   templateUrl: './channel-list.component.html',
   styles: [],
 })
 export class ChannelListComponent implements AfterViewInit {
+  /**
+   * By default, the [default preview component](./ChannelPreviewComponent.mdx) is used. To change the contents of the channel list, [provide your own custom template](./ChannelPreviewComponent.mdx/#customization).
+   */
   @Input() customChannelPreviewTemplate: TemplateRef<any> | undefined;
   channels$: Observable<Channel[] | undefined>;
   isError$: Observable<boolean>;

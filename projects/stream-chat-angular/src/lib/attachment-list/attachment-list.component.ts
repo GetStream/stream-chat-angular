@@ -6,13 +6,22 @@ import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 
+/**
+ * The `AttachmentList` compontent displays the attachments of a message
+ */
 @Component({
   selector: 'stream-attachment-list',
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
 export class AttachmentListComponent implements OnChanges {
+  /**
+   * The id of the message the attachments belong to
+   */
   @Input() messageId: string | undefined;
+  /**
+   * The attachments to display
+   */
   @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
   orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
 

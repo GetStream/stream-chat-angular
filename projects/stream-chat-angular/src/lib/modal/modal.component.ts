@@ -9,13 +9,22 @@ import {
   ViewChild,
 } from '@angular/core';
 
+/**
+ * The `Modal` component displays its content in an overlay. The modal can be closed with a close button, if the user clicks outside of the modal content, or if the escape button is pressed. The modal can also be closed from outside.
+ */
 @Component({
   selector: 'stream-modal',
   templateUrl: './modal.component.html',
   styles: [],
 })
 export class ModalComponent implements OnChanges {
+  /**
+   * If `true` the modal will be displayed, if `false` the modal will be hidden
+   */
   @Input() isOpen = false;
+  /**
+   * Emits `true` if the modal becomes visible, and `false` if the modal is closed.
+   */
   @Output() readonly isOpenChange = new EventEmitter<boolean>();
   @ViewChild('content') private content: ElementRef<HTMLElement> | undefined;
 

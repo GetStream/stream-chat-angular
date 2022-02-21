@@ -30,25 +30,47 @@ const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
   wow: '😮',
   sad: '😞',
 };
+
+/**
+ * The `MessageReactions` component displays the reactions of a message, the current user can add and remove reactions. You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
+ */
 @Component({
   selector: 'stream-message-reactions',
   templateUrl: './message-reactions.component.html',
   styles: ['.emoji {position: relative; display: inline-block; }'],
 })
 export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
+  /**
+   * The id of the message the reactions belong to
+   */
   @Input() messageId: string | undefined;
+  /**
+   * The number of reactions grouped by [reaction types](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-reactions/message-reactions.component.ts)
+   */
   @Input() messageReactionCounts: { [key in MessageReactionType]?: number } =
     {};
+  /**
+   * Indicates if the selector should be opened or closed. Adding a UI element to open and close the selector is the parent's component responsibility.
+   */
   @Input() isSelectorOpen: boolean = false;
-  @Output() readonly isSelectorOpenChange = new EventEmitter<boolean>();
+  /**
+   * List of reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
+   */
   @Input() latestReactions: ReactionResponse<
     DefaultReactionType,
     DefaultUserType
   >[] = [];
+  /**
+   * List of the user's own reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
+   */
   @Input() ownReactions: ReactionResponse<
     DefaultReactionType,
     DefaultUserType
   >[] = [];
+  /**
+   * Indicates if the selector should be opened or closed. Adding a UI element to open and close the selector is the parent's component responsibility.
+   */
+  @Output() readonly isSelectorOpenChange = new EventEmitter<boolean>();
   tooltipPositions: { arrow: number; tooltip: number } | undefined;
   tooltipText: string | undefined;
   @ViewChild('selectorContainer') private selectorContainer:

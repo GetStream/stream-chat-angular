@@ -27,18 +27,42 @@ export type MessageActions =
   | 'flag'
   | 'mute';
 
+/**
+ * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](../concepts/message-interactions.mdx) in the message interaction guide.
+ */
 @Component({
   selector: 'stream-message-actions-box',
   templateUrl: './message-actions-box.component.html',
   styles: [],
 })
 export class MessageActionsBoxComponent implements OnChanges {
+  /**
+   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
+   */
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
+  /**
+   * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
+   */
   @Input() isOpen = false;
+  /**
+   * Indicates if the message actions are belonging to a message that was sent by the current user or not.
+   */
   @Input() isMine = false;
+  /**
+   * The message the actions will be executed on
+   */
   @Input() message: StreamMessage | undefined;
+  /**
+   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
+   */
   @Input() enabledActions: string[] = [];
+  /**
+   * The number of authorized actions (it can be less or equal than the number of enabled actions)
+   */
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
+  /**
+   * An event which emits `true` if the edit message modal is open, and `false` when it is closed.
+   */
   @Output() readonly isEditing = new EventEmitter<boolean>();
   isEditModalOpen = false;
   @ViewChild(MessageInputComponent) private messageInput:

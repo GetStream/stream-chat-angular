@@ -385,7 +385,7 @@ export class ChannelService {
   }
 
   /**
-   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./chat-client.mdx/#disconnectuser).
+   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./ChatClientService.mdx/#disconnectuser).
    */
   reset() {
     this.activeChannelMessagesSubject.next([]);

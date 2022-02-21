@@ -8,12 +8,18 @@ import {
 } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 
+/**
+ * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
+ */
 @Component({
   selector: 'stream-channel-preview',
   templateUrl: './channel-preview.component.html',
   styles: [],
 })
 export class ChannelPreviewComponent implements OnInit, OnDestroy {
+  /**
+   * The channel to be displayed
+   */
   @Input() channel: Channel | undefined;
   isActive = false;
   isUnread = false;

@@ -1,0 +1,73 @@
+The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+## Configuration
+
+The `MessageInput` component can use the [`Textarea`](./TextareaComponent.mdx) or the [`AutocompleteTextarea`](./AutocompleteTextareaComponent.mdx) component for displaying an HTML input for the users to type. You need to [provide your chosen component at module import](../concepts/opt-in-architecture.mdx).
+
+## Customization
+
+If you want to create your own message input, here is how to use it:
+
+```html
+<stream-channel-list></stream-channel-list>
+<stream-channel>
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list
+    [messageInputTemplate]="customMessageInput"
+  ></stream-message-list>
+  <custom-message-input></custom-message-input>
+  <stream-thread name="thread">
+    <stream-message-list
+      name="thread-message-list"
+      mode="thread"
+    ></stream-message-list>
+    <custom-message-input name="thread-message-input"></custom-message-input>
+  </stream-thread>
+</stream-channel>
+
+<ng-template
+  #customMessageInput
+  let-message="message"
+  let-messageUpdateHandler="messageUpdateHandler"
+>
+  <custom-message-input
+    [message]="message"
+    (messageUpdate)="messageUpdateHandler($event)"
+  ></custom-message-input>
+</ng-template>
+```
+
+The default chat UI uses the message input in two different places: at the bottom of the channel to send new message, and in the message list to edit a message.
+
+Your custom template can receive the same inputs (with the same name) as the default `MessageInput` component.
+
+:::note
+If you want to create your own message input, you can use the following building blocks:
+
+### Send and update messages
+
+You can use [`ChannelService`](../services/ChannelService.mdx) to send and update messages.
+
+### File uploads
+
+You can use the [`AttachmentService`](../services/AttachmentService.mdx) to manage file uploads.
+
+If more than one message input component can exist on your chat UI you should provide the `AttachmentService` on the component level:
+
+```typescript
+@Component({
+  selector: 'custom-message-input',
+  templateUrl: './message-input.component.html',
+  styles: [],
+  providers: [AttachmentService],
+})
+```
+
+### Textarea
+
+You can use the [`Textarea`](./TextareaComponent.mdx) or the [`AutocompleteTextarea`](./AutocompleteTextareaComponent.mdx) component to display the input HTML element for the users to type.
+
+:::
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

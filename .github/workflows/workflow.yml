@@ -54,7 +54,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Generate service docs
+      - name: Generate docs
         run: |
           npm run generate-docs
       - name: Push to docusaurus

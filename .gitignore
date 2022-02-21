@@ -41,7 +41,8 @@ testem.log
 /typings
 
 # Generated docs
-temp-docs
+temp-service-docs
+temp-component-docs
 docusaurus/docs/Angular/services/*.mdx
 
 # System Files

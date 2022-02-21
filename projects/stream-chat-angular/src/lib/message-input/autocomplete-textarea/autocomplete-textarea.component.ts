@@ -26,6 +26,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 
+/**
+ * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
+ */
 @Component({
   selector: 'stream-autocomplete-textarea',
   templateUrl: './autocomplete-textarea.component.html',
@@ -35,17 +38,41 @@ export class AutocompleteTextareaComponent
   implements TextareaInterface, OnChanges
 {
   @HostBinding() class = 'str-chat__textarea';
+  /**
+   * The value of the input HTML element.
+   */
   @Input() value = '';
+  /**
+   * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
+   */
   @Input() areMentionsEnabled: boolean | undefined = true;
+  /**
+   * You can provide your own template for the autocomplete list for user mentions. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
+   */
   @Input() mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
     | undefined;
+  /**
+   * You can provide your own template for the autocomplete list for commands. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
+   */
   @Input() commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
+  /**
+   * The scope for user mentions, either members of the current channel of members of the application. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
+   */
   @Input() mentionScope: 'channel' | 'application' = 'channel';
+  /**
+   * Emits the current value of the input element when a user types.
+   */
   @Output() readonly valueChange = new EventEmitter<string>();
+  /**
+   * Emits when a user triggers a message send event (this happens when they hit the `Enter` key).
+   */
   @Output() readonly send = new EventEmitter<void>();
+  /**
+   * Emits the array of users that are mentioned in the message, it is updated when a user mentions a new user or deletes a mention.
+   */
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
   private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
