@@ -132,16 +132,20 @@ describe('ChannelService', () => {
     service.channels$.subscribe(channelsSpy);
     const messageToQuoteSpy = jasmine.createSpy();
     service.messageToQuote$.subscribe(messageToQuoteSpy);
+    const latestMessagesSpy = jasmine.createSpy();
+    service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     channelsSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
+    latestMessagesSpy.calls.reset();
     service.reset();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(channelsSpy).toHaveBeenCalledWith(undefined);
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+    expect(latestMessagesSpy).toHaveBeenCalledWith({});
   });
 
   it('should tell if user #hasMoreChannels$', async () => {
@@ -1276,5 +1280,24 @@ describe('ChannelService', () => {
 
     expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
     expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
+  });
+
+  it('should emit the date of latest messages sent by the user by channels', async () => {
+    await init();
+    let activeChannel!: Channel;
+    service.activeChannel$
+      .pipe(first())
+      .subscribe((c) => (activeChannel = c as Channel));
+    const newMessage = mockMessage();
+    newMessage.cid = 'channel1';
+    newMessage.created_at = new Date();
+    newMessage.user_id = user.id;
+    const spy = jasmine.createSpy();
+    service.latestMessageDateByUserByChannels$.subscribe(spy);
+    (activeChannel as MockChannel).handleEvent('message.new', {
+      message: newMessage,
+    });
+
+    expect(spy).toHaveBeenCalledWith({ channel1: newMessage.created_at });
   });
 });

@@ -85,12 +85,25 @@ export class ChannelService {
    * Emits the currently selected parent message. If no message is selected, it emits undefined.
    */
   activeParentMessage$: Observable<StreamMessage | undefined>;
+  /**
+   * Emits the currently selected message to quote
+   */
   messageToQuote$: Observable<StreamMessage | undefined>;
+  /**
+   * Emits the list of users that are currently typing in the channel (current user is not included)
+   */
+  usersTypingInChannel$: Observable<UserResponse[]>;
+  /**
+   * Emits the list of users that are currently typing in the active thread (current user is not included)
+   */
+  usersTypingInThread$: Observable<UserResponse[]>;
+  /**
+   * Emits a map that contains the date of the latest message sent by the current user by channels (this is used to detect is slow mode countdown should be started)
+   */
+  latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
-  usersTypingInChannel$: Observable<UserResponse[]>;
-  usersTypingInThread$: Observable<UserResponse[]>;
   customNewMessageNotificationHandler?: (
     notification: Notification,
     channelListSetter: (channels: Channel[]) => void
@@ -192,6 +205,9 @@ export class ChannelService {
   private activeThreadMessagesSubject = new BehaviorSubject<
     (StreamMessage | MessageResponse | FormatMessageResponse)[]
   >([]);
+  private latestMessageDateByUserByChannelsSubject = new BehaviorSubject<{
+    [key: string]: Date;
+  }>({});
   private filters: ChannelFilters | undefined;
   private sort: ChannelSort | undefined;
   private options: ChannelOptions | undefined;
@@ -272,6 +288,8 @@ export class ChannelService {
     this.usersTypingInChannel$ =
       this.usersTypingInChannelSubject.asObservable();
     this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
+    this.latestMessageDateByUserByChannels$ =
+      this.latestMessageDateByUserByChannelsSubject.asObservable();
   }
 
   /**
@@ -393,6 +411,7 @@ export class ChannelService {
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
     this.channelsSubject.next(undefined);
+    this.latestMessageDateByUserByChannelsSubject.next({});
     this.selectMessageToQuote(undefined);
   }
 
@@ -757,6 +776,7 @@ export class ChannelService {
               void c?.markRead();
             }
           });
+          this.updateLatestMessages(event);
         });
       })
     );
@@ -1069,7 +1089,6 @@ export class ChannelService {
     }
   }
 
-  // truncate active thread as well
   private handleChannelTruncate(event: Event) {
     const channelIndex = this.channels.findIndex(
       (c) => c.cid === event.channel!.cid
@@ -1166,6 +1185,33 @@ export class ChannelService {
       );
       this.usersTypingInThreadSubject.next([...usersTypingInThread]);
       return;
+    }
+  }
+
+  private updateLatestMessages(event: Event) {
+    if (
+      event.message?.user?.id !== this.chatClientService?.chatClient.user?.id
+    ) {
+      return;
+    }
+    const latestMessages =
+      this.latestMessageDateByUserByChannelsSubject.getValue();
+    if (!event.message?.created_at) {
+      return;
+    }
+    const channelId = event?.message?.cid;
+    if (!channelId) {
+      return;
+    }
+    const messageDate = new Date(event.message.created_at);
+    if (
+      !latestMessages[channelId] ||
+      latestMessages[channelId]?.getTime() < messageDate.getTime()
+    ) {
+      latestMessages[channelId] = messageDate;
+      this.latestMessageDateByUserByChannelsSubject.next({
+        ...latestMessages,
+      });
     }
   }
 }

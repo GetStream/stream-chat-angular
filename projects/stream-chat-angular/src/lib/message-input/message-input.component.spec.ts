@@ -1,5 +1,12 @@
 import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  discardPeriodicTasks,
+  fakeAsync,
+  flush,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -25,6 +32,7 @@ describe('MessageInputComponent', () => {
   let querySendButton: () => HTMLButtonElement | null;
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
+  let queryCooldownTimer: () => HTMLElement | null;
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
@@ -45,6 +53,9 @@ describe('MessageInputComponent', () => {
   let selectMessageToQuoteSpy: jasmine.Spy;
   let typingStartedSpy: jasmine.Spy;
   let typingStoppedSpy: jasmine.Spy;
+  let latestMessageDateByUserByChannels$: BehaviorSubject<{
+    [key: string]: Date;
+  }>;
 
   beforeEach(() => {
     appSettings$ = new Subject<AppSettings>();
@@ -70,6 +81,7 @@ describe('MessageInputComponent', () => {
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
       undefined
     );
+    latestMessageDateByUserByChannels$ = new BehaviorSubject({});
     selectMessageToQuoteSpy = jasmine.createSpy();
     TestBed.overrideComponent(MessageInputComponent, {
       set: {
@@ -107,6 +119,7 @@ describe('MessageInputComponent', () => {
             selectMessageToQuote: selectMessageToQuoteSpy,
             typingStarted: typingStartedSpy,
             typingStopped: typingStoppedSpy,
+            latestMessageDateByUserByChannels$,
           },
         },
         {
@@ -130,6 +143,8 @@ describe('MessageInputComponent', () => {
       nativeElement.querySelector('[data-testid="file-upload-button"]');
     queryFileInput = () =>
       nativeElement.querySelector('[data-testid="file-input"]');
+    queryCooldownTimer = () =>
+      nativeElement.querySelector('[data-testid="cooldown-timer"]');
   });
 
   it('should display textarea', () => {
@@ -802,5 +817,128 @@ describe('MessageInputComponent', () => {
     textarea?.valueChange.next('H');
 
     expect(typingStartedSpy).toHaveBeenCalledWith('parentMessage');
+  });
+
+  it(`shouldn't activate cooldown for users without 'slow-mode' restriction`, () => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = [];
+    channel.data!.cooldown = 3;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid]: new Date(),
+    });
+
+    expect(component.isCooldownInProgress).toBeFalse();
+  });
+
+  it('should activate cooldown timer', fakeAsync(() => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode'];
+    channel.data!.cooldown = 30;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid]: new Date(),
+    });
+    const spy = jasmine.createSpy();
+    component.cooldown$?.subscribe(spy);
+    tick(1);
+
+    expect(spy).toHaveBeenCalledWith(30);
+
+    tick(1000);
+
+    expect(spy).toHaveBeenCalledWith(29);
+
+    tick(1000);
+
+    expect(spy).toHaveBeenCalledWith(28);
+
+    spy.calls.reset();
+    tick(28000);
+
+    expect(spy).toHaveBeenCalledWith(0);
+
+    discardPeriodicTasks();
+  }));
+
+  it('should disable text input during cooldown period', fakeAsync(() => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode', 'send-message'];
+    channel.data!.cooldown = 30;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid]: new Date(),
+    });
+    fixture.detectChanges();
+
+    const textarea = nativeElement.querySelector(
+      '[data-testid="disabled-textarea"]'
+    ) as HTMLTextAreaElement;
+
+    expect(textarea?.disabled).toBeTrue();
+    expect(textarea?.value).toContain('streamChat.Slow Mode ON');
+
+    discardPeriodicTasks();
+  }));
+
+  it('should not display emoji picker and file upload button during cooldown period', fakeAsync(() => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode', 'send-message'];
+    channel.data!.cooldown = 30;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid]: new Date(),
+    });
+    tick(1);
+    fixture.detectChanges();
+
+    expect(queryattachmentUploadButton()).toBeNull();
+    expect(
+      nativeElement.querySelector('[data-testid="emoji-picker"]')
+    ).toBeNull();
+
+    flush();
+    discardPeriodicTasks();
+  }));
+
+  it('should display cooldown timer', fakeAsync(() => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode', 'send-message'];
+    channel.data!.cooldown = 30;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid]: new Date(),
+    });
+    fixture.detectChanges();
+    tick(1);
+    fixture.detectChanges();
+
+    expect(queryCooldownTimer()).not.toBeNull();
+    expect(queryCooldownTimer()?.innerHTML).toContain(30);
+
+    discardPeriodicTasks();
+  }));
+
+  it('should discard cooldown timer after channel is chnaged', () => {
+    component.isCooldownInProgress = true;
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode', 'send-message'];
+    channel.data!.cooldown = 30;
+    channel.cid = 'newchannel';
+    mockActiveChannel$.next(channel);
+
+    expect(component.isCooldownInProgress).toBeFalse();
+  });
+
+  it(`shouldn't start a cooldown if message was sent in another channel`, () => {
+    const channel = generateMockChannels(1)[0];
+    channel.data!.own_capabilities = ['slow-mode', 'send-message'];
+    channel.data!.cooldown = 30;
+    mockActiveChannel$.next(channel);
+    latestMessageDateByUserByChannels$.next({
+      [channel.cid + 'not']: new Date(),
+    });
+
+    expect(component.isCooldownInProgress).toBeFalse();
   });
 });

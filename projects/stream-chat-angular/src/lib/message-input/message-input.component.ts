@@ -17,8 +17,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChatClientService } from '../chat-client.service';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
+import { first, map, take, tap } from 'rxjs/operators';
 import { AppSettings, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
@@ -107,6 +107,8 @@ export class MessageInputComponent
   mentionedUsers: UserResponse[] = [];
   quotedMessage: undefined | StreamMessage;
   typingStart$ = new Subject<void>();
+  cooldown$: Observable<number> | undefined;
+  isCooldownInProgress = false;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -185,6 +187,39 @@ export class MessageInputComponent
       this.typingStart$.subscribe(
         () => void this.channelService.typingStarted(this.parentMessageId)
       )
+    );
+
+    this.subscriptions.push(
+      combineLatest([
+        this.channelService.latestMessageDateByUserByChannels$,
+        this.channelService.activeChannel$,
+      ])
+        .pipe(
+          map(
+            ([latestMessages, channel]): [
+              Date | undefined,
+              Channel | undefined
+            ] => [latestMessages[channel?.cid || ''], channel!]
+          )
+        )
+        .subscribe(([latestMessageDate, channel]) => {
+          const cooldown =
+            (channel?.data?.cooldown as number) &&
+            latestMessageDate &&
+            Math.round(
+              (channel?.data?.cooldown as number) -
+                (new Date().getTime() - latestMessageDate.getTime()) / 1000
+            );
+          if (
+            cooldown &&
+            cooldown > 0 &&
+            (channel?.data?.own_capabilities as string[]).includes('slow-mode')
+          ) {
+            this.startCooldown(cooldown);
+          } else if (this.isCooldownInProgress) {
+            this.stopCooldown();
+          }
+        })
     );
   }
 
@@ -313,6 +348,17 @@ export class MessageInputComponent
     return originalAttachments && originalAttachments.length
       ? [originalAttachments[0]]
       : [];
+  }
+
+  get disabledTextareaText() {
+    if (!this.canSendMessages) {
+      return this.mode === 'thread'
+        ? "streamChat.You can't send thread replies in this channel"
+        : "streamChat.You can't send messages in this channel";
+    } else if (this.cooldown$) {
+      return 'streamChat.Slow Mode ON';
+    }
+    return '';
   }
 
   async filesSelected(fileList: FileList | null) {
@@ -445,5 +491,27 @@ export class MessageInputComponent
     }
 
     return parentMessageId;
+  }
+
+  private startCooldown(cooldown: number) {
+    this.isCooldownInProgress = true;
+    this.cooldown$ = timer(0, 1000).pipe(
+      take(cooldown + 1),
+      map((v) => cooldown - v),
+      tap((v) => {
+        if (v === 0) {
+          this.stopCooldown();
+        }
+      })
+    );
+  }
+
+  private stopCooldown() {
+    this.cooldown$ = undefined;
+    this.isCooldownInProgress = false;
+    // the anchor directive will be recreated because of *ngIf, so we will have to reinit the textarea as well
+    this.textareaRef = undefined;
+    // we can only create the textarea after the anchor was recreated, so we will have to wait a change detection cycle with setTimeout
+    setTimeout(() => this.initTextarea());
   }
 }
