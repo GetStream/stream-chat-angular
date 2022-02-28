@@ -5,6 +5,9 @@ import {
   NotificationService,
 } from '../notification.service';
 
+/**
+ * The `NotificationList` component displays the list of active notifications.
+ */
 @Component({
   selector: 'stream-notification-list',
   templateUrl: './notification-list.component.html',

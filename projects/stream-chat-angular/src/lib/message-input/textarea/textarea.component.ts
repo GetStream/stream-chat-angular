@@ -13,6 +13,9 @@ import { Subscription } from 'rxjs';
 import { EmojiInputService } from '../emoji-input.service';
 import { TextareaInterface } from '../textarea.interface';
 
+/**
+ * The `Textarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
+ */
 @Component({
   selector: 'stream-textarea',
   templateUrl: './textarea.component.html',
@@ -22,8 +25,17 @@ export class TextareaComponent
   implements TextareaInterface, OnChanges, OnDestroy
 {
   @HostBinding() class = 'str-chat__textarea';
+  /**
+   * The value of the input HTML element.
+   */
   @Input() value = '';
+  /**
+   * Emits the current value of the input element when a user types.
+   */
   @Output() readonly valueChange = new EventEmitter<string>();
+  /**
+   * Emits when a user triggers a message send event (this happens when they hit the `Enter` key).
+   */
   @Output() readonly send = new EventEmitter<void>();
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];

@@ -22,29 +22,53 @@ type MessagePart = {
   user?: UserResponse;
 };
 
+/**
+ * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](../concepts/message-interactions.mdx).
+ */
 @Component({
   selector: 'stream-message',
   templateUrl: './message.component.html',
   styles: [],
 })
 export class MessageComponent implements OnChanges {
+  /**
+   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
+   */
   @Input() messageInputTemplate: TemplateRef<any> | undefined;
+  /**
+   * The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
+   */
   @Input() mentionTemplate: TemplateRef<any> | undefined;
+  /**
+   * The message to be displayed
+   */
   @Input() message: StreamMessage | undefined;
+  /**
+   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   */
   @Input() enabledMessageActions: string[] = [];
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#caution-arereactionsenabled-deprecated
+   * If true, the message reactions are displayed. If you use the default chat UI you can also set this using the [`MessageList`](./MessageListComponent.mdx) component.
+   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
    */
   @Input() areReactionsEnabled: boolean | undefined;
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#canreacttomessage-deprecated
+   * If true, the user can add reactions to the message. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
    */
   @Input() canReactToMessage: boolean | undefined;
+  /**
+   * If `true`, the message status (sending, sent, who read the message) is displayed.
+   */
   @Input() isLastSentMessage: boolean | undefined;
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message_list/#canreceivereadevents-deprecated
+   * If true, the read indicator is displayed. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
    */
   @Input() canReceiveReadEvents: boolean | undefined;
+  /**
+   * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   */
   @Input() mode: 'thread' | 'main' = 'main';
   isEditing: boolean | undefined;
   isActionBoxOpen = false;

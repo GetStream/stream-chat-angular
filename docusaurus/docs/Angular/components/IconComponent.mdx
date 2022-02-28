@@ -1,0 +1,21 @@
+The `Icon` component can be used to display different icons (i. e. message delivered icon).
+
+## Basic usage
+
+A typical use case for the `Icon` component would be to use in your custom components.
+
+```typescript
+@Component({
+  selector: "app-custom-message",
+  template: `
+    <stream-icon icon="delivered-icon"></stream-icon>
+    <!-- Other parts of the custom message component -->
+  `,
+})
+export class CustomMessageComponent {
+  @Input() message: StreamMessage;
+}
+```
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

@@ -5,7 +5,7 @@ import {
 } from '../types';
 
 /**
- * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/message-input.mdx) components if your UI has more than one input component.
+ * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/MessageInputComponent.mdx) components if your UI has more than one input component.
  */
 @Injectable({
   providedIn: 'root',

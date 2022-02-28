@@ -36,6 +36,9 @@ import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
 
+/**
+ * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+ */
 @Component({
   selector: 'stream-message-input',
   templateUrl: './message-input.component.html',
@@ -45,23 +48,55 @@ import { EmojiInputService } from './emoji-input.service';
 export class MessageInputComponent
   implements OnChanges, OnDestroy, AfterViewInit
 {
+  /**
+   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() isFileUploadEnabled: boolean | undefined;
+  /**
+   * If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() areMentionsEnabled: boolean | undefined;
+  /**
+   * The scope for user mentions, either members of the current channel of members of the application. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() mentionScope: 'channel' | 'application' | undefined;
+  /**
+   * You can provide your own template for the autocomplete list for user mentions. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
     | undefined;
+  /**
+   * You can provide your own template for the autocomplete list for commands. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
+  /**
+   * You can add an emoji picker by [providing your own emoji picker template](../code-examples/emoji-picker.mdx)
+   */
   @Input() emojiPickerTemplate: TemplateRef<void> | undefined;
+  /**
+   * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   */
   @Input() mode: 'thread' | 'main' = 'main';
   /**
-   * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-input/#caution-acceptedfiletypes
+   * You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
+   * If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   * @deprecated use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) instead
    */
   @Input() acceptedFileTypes: string[] | undefined;
+  /**
+   * If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
+  /**
+   * The message to edit
+   */
   @Input() message: StreamMessage | undefined;
+  /**
+   * Emits when a message was successfuly sent or updated
+   */
   @Output() readonly messageUpdate = new EventEmitter<void>();
   isFileUploadAuthorized: boolean | undefined;
   canSendLinks: boolean | undefined;

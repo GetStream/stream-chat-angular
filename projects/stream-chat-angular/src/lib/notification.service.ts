@@ -10,7 +10,7 @@ export type NotificationPayload = {
 };
 
 /**
- * The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](../components/notifications.mdx) component displays the currently active notifications.
+ * The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](../components/NotificationListComponent.mdx) component displays the currently active notifications.
  */
 @Injectable({
   providedIn: 'root',

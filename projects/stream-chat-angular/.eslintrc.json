@@ -80,6 +80,59 @@
       }
     },
     {
+      "files": ["*.component.ts"],
+      "parserOptions": {
+        "project": [
+          "projects/stream-chat-angular/tsconfig.lib.json",
+          "projects/stream-chat-angular/tsconfig.spec.json"
+        ],
+        "createDefaultProgram": true
+      },
+      "extends": ["plugin:jsdoc/recommended"],
+      "settings": {
+        "jsdoc": {
+          "mode": "typescript"
+        }
+      },
+      "plugins": ["sort-class-members"],
+      "rules": {
+        "jsdoc/require-param-type": 0,
+        "jsdoc/require-returns-type": 0,
+        "jsdoc/newline-after-description": 0,
+        "jsdoc/require-param-description": 0,
+        "jsdoc/no-types": 2,
+        "jsdoc/no-defaults": 2,
+        "jsdoc/require-asterisk-prefix": 2,
+        "jsdoc/require-jsdoc": [
+          2,
+          {
+            "publicOnly": true,
+            "checkConstructors": false,
+            "checkGetters": true,
+            "checkSetters": true,
+            "require": {
+              "ClassDeclaration": true,
+              "MethodDefinition": false
+            },
+            "contexts": [
+              "ClassProperty > Decorator[expression.callee.name=\"Input\"]",
+              "ClassProperty > Decorator[expression.callee.name=\"Output\"]"
+            ]
+          }
+        ],
+        "sort-class-members/sort-class-members": [
+          2,
+          {
+            "order": ["[inputs]", "[outputs]"],
+            "groups": {
+              "inputs": [{ "groupByDecorator": "Input" }],
+              "outputs": [{ "groupByDecorator": "Output" }]
+            }
+          }
+        ]
+      }
+    },
+    {
       "files": ["*.html"],
       "rules": {}
     }

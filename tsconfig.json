@@ -25,7 +25,11 @@
     "module": "es2020",
     "lib": ["es2020", "dom"]
   },
-  "exclude": ["copy-generated-docs.ts", "set-env.ts"],
+  "exclude": [
+    "copy-generated-service-docs.ts",
+    "copy-generated-component-docs.ts",
+    "set-env.ts"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

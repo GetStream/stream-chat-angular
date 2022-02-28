@@ -19,7 +19,7 @@ export class AttachmentService {
    */
   attachmentUploadInProgressCounter$: Observable<number>;
   /**
-   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](../components/attachment-preview-list.mdx) to display the attachment previews.
+   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](../components/AttachmentPreviewListComponent.mdx) to display the attachment previews.
    */
   attachmentUploads$: Observable<AttachmentUpload[]>;
   private attachmentUploadInProgressCounterSubject =
