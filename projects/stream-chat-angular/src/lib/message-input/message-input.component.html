@@ -61,7 +61,10 @@
         class="rfu-image-previewer-angular-host"
       ></stream-attachment-preview-list>
       <div class="rta str-chat__textarea str-chat-angular__textarea">
-        <ng-container *ngIf="emojiPickerTemplate">
+        <ng-container
+          *ngIf="emojiPickerTemplate && !isCooldownInProgress"
+          data-testid="emoji-picker"
+        >
           <div
             class="
               str-chat__input-flat-emojiselect
@@ -76,8 +79,15 @@
             ></ng-container>
           </div>
         </ng-container>
+        <div
+          class="str-chat__input-flat-cooldown str-chat-angular__cooldown"
+          *ngIf="isCooldownInProgress"
+          data-testid="cooldown-timer"
+        >
+          {{ cooldown$ | async }}
+        </div>
         <ng-template
-          *ngIf="canSendMessages; else notAllowed"
+          *ngIf="canSendMessages && !isCooldownInProgress; else notAllowed"
           streamTextarea
           [(value)]="textareaValue"
           (valueChange)="typingStart$.next()"
@@ -93,18 +103,19 @@
           <textarea
             disabled
             rows="1"
-            [value]="
-              (mode === 'thread'
-                ? 'You can\'t send thread replies in this channel'
-                : 'streamChat.You can\'t send messages in this channel'
-              ) | translate
-            "
+            [value]="disabledTextareaText | translate"
             class="rta__textarea str-chat__textarea__textarea"
+            data-testid="disabled-textarea"
           ></textarea>
         </ng-template>
       </div>
       <div
-        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
+        *ngIf="
+          isFileUploadEnabled &&
+          isFileUploadAuthorized &&
+          canSendMessages &&
+          !isCooldownInProgress
+        "
         class="str-chat__fileupload-wrapper"
         data-testid="file-upload-button"
       >
