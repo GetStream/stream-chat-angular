@@ -110,6 +110,20 @@ describe('IconComponent', () => {
     expect(queryIcon('reply-in-thread')).not.toBeNull();
   });
 
+  it('should display arrow-right icon', () => {
+    component.icon = 'arrow-right';
+    fixture.detectChanges();
+
+    expect(queryIcon('arrow-right')).not.toBeNull();
+  });
+
+  it('should display arrow-left icon', () => {
+    component.icon = 'arrow-left';
+    fixture.detectChanges();
+
+    expect(queryIcon('arrow-left')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

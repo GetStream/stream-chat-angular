@@ -12,7 +12,9 @@ export type Icon =
   | 'file'
   | 'reply'
   | 'close-no-outline'
-  | 'reply-in-thread';
+  | 'reply-in-thread'
+  | 'arrow-left'
+  | 'arrow-right';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).

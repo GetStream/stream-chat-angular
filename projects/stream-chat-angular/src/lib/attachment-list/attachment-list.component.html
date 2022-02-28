@@ -16,7 +16,64 @@
       [src]="attachment.img_url || attachment.thumb_url || attachment.image_url"
       [alt]="attachment?.fallback"
       (load)="imageLoaded()"
+      (click)="openImageModal([attachment])"
+      (keyup.enter)="openImageModal([attachment])"
     />
+    <div
+      class="str-chat__gallery"
+      data-testid="image-gallery"
+      *ngIf="isGallery(attachment)"
+      [class.str-chat__gallery--square]="(attachment?.images)!.length > 3"
+    >
+      <ng-container
+        *ngFor="
+          let galleryImage of attachment.images;
+          let index = index;
+          let isLast = last;
+          trackBy: trackByImageUrl
+        "
+      >
+        <button
+          *ngIf="index < 3 || (index === 3 && isLast)"
+          class="str-chat__gallery-image"
+          data-testclass="gallery-image"
+          (click)="openImageModal(attachment.images!, index)"
+          (keyup.enter)="openImageModal(attachment.images!, index)"
+        >
+          <img
+            [src]="
+              galleryImage.img_url ||
+              galleryImage.thumb_url ||
+              galleryImage.image_url
+            "
+            [alt]="galleryImage.fallback"
+            (load)="imageLoaded()"
+          />
+        </button>
+        <button
+          *ngIf="index === 3 && !isLast"
+          class="str-chat__gallery-placeholder"
+          data-testclass="gallery-image"
+          (click)="openImageModal(attachment.images!, index)"
+          (keyup.enter)="openImageModal(attachment.images!, index)"
+          [ngStyle]="{
+            'background-image':
+              'url(' +
+              (galleryImage.img_url ||
+                galleryImage.thumb_url ||
+                galleryImage.image_url) +
+              ')'
+          }"
+        >
+          <p
+            [innerHTML]="
+              'streamChat.{{ imageCount }} more'
+                | translate: { imageCount: attachment!.images!.length - 4 }
+            "
+          ></p>
+        </button>
+      </ng-container>
+    </div>
     <div
       *ngIf="isFile(attachment)"
       class="
@@ -105,3 +162,46 @@
     </div>
   </div>
 </ng-container>
+
+<stream-modal
+  *ngIf="imagesToView && imagesToView.length > 0"
+  [isOpen]="imagesToView && imagesToView.length > 0"
+  (isOpenChange)="$event ? null : closeImageModal()"
+>
+  <div class="stream-chat-angular__image-modal">
+    <button
+      class="stream-chat-angular__image-modal-stepper"
+      [ngStyle]="{
+        visibility: isImageModalPrevButtonVisible ? 'visible' : 'hidden'
+      }"
+      data-testid="image-modal-prev"
+      type="button"
+      (click)="stepImages(-1)"
+      (keyup.enter)="stepImages(-1)"
+    >
+      <stream-icon icon="arrow-left"></stream-icon>
+    </button>
+    <img
+      class="stream-chat-angular__image-modal-image"
+      data-testid="modal-image"
+      [src]="
+        imagesToView[imagesToViewCurrentIndex].img_url ||
+        imagesToView[imagesToViewCurrentIndex].thumb_url ||
+        imagesToView[imagesToViewCurrentIndex].image_url
+      "
+      [alt]="imagesToView[imagesToViewCurrentIndex].fallback"
+    />
+    <button
+      class="stream-chat-angular__image-modal-stepper"
+      type="button"
+      [ngStyle]="{
+        visibility: isImageModalNextButtonVisible ? 'visible' : 'hidden'
+      }"
+      data-testid="image-modal-next"
+      (click)="stepImages(1)"
+      (keyup.enter)="stepImages(1)"
+    >
+      <stream-icon icon="arrow-right"></stream-icon>
+    </button>
+  </div>
+</stream-modal>

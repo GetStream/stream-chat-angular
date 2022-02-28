@@ -1,4 +1,5 @@
 import type {
+  Attachment,
   ChannelMemberResponse,
   CommandResponse,
   Event,
@@ -20,10 +21,7 @@ export type CustomTrigger = {
 export type DefaultAttachmentType = UnknownType & {
   asset_url?: string;
   id?: string;
-  images?: Array<{
-    image_url?: string;
-    thumb_url?: string;
-  }>;
+  images?: Array<Attachment<DefaultAttachmentType>>;
   mime_type?: string;
 };
 

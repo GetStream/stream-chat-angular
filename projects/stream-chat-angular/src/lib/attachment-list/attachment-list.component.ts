@@ -24,6 +24,8 @@ export class AttachmentListComponent implements OnChanges {
    */
   @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
   orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
+  imagesToView: Attachment<DefaultAttachmentType>[] = [];
+  imagesToViewCurrentIndex = 0;
 
   constructor(
     private imageLoadService: ImageLoadService,
@@ -31,8 +33,10 @@ export class AttachmentListComponent implements OnChanges {
   ) {}
 
   ngOnChanges(): void {
+    const images = this.attachments.filter(this.isImage);
+    const containsGallery = images.length >= 2;
     this.orderedAttachments = [
-      ...this.attachments.filter((a) => this.isImage(a)),
+      ...(containsGallery ? this.createGallery(images) : images),
       ...this.attachments.filter((a) => this.isFile(a)),
       ...this.attachments.filter((a) => this.isCard(a)),
     ];
@@ -48,6 +52,10 @@ export class AttachmentListComponent implements OnChanges {
 
   isFile(attachment: Attachment) {
     return attachment.type === 'file';
+  }
+
+  isGallery(attachment: Attachment) {
+    return attachment.type === 'gallery';
   }
 
   isCard(attachment: Attachment) {
@@ -91,5 +99,39 @@ export class AttachmentListComponent implements OnChanges {
 
   trackByActionValue(_: number, item: Action) {
     return item.value;
+  }
+
+  openImageModal(attachments: Attachment[], selectedIndex = 0) {
+    this.imagesToView = attachments;
+    this.imagesToViewCurrentIndex = selectedIndex;
+  }
+
+  closeImageModal() {
+    this.imagesToView = [];
+  }
+
+  stepImages(dir: -1 | 1) {
+    this.imagesToViewCurrentIndex += dir * 1;
+  }
+
+  trackByImageUrl(_: number, item: Attachment) {
+    return item.image_url || item.img_url || item.thumb_url;
+  }
+
+  get isImageModalPrevButtonVisible() {
+    return this.imagesToViewCurrentIndex !== 0;
+  }
+
+  get isImageModalNextButtonVisible() {
+    return this.imagesToViewCurrentIndex !== this.imagesToView.length - 1;
+  }
+
+  private createGallery(images: Attachment[]) {
+    return [
+      {
+        type: 'gallery',
+        images,
+      },
+    ];
   }
 }
