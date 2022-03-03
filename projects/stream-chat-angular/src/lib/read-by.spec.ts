@@ -20,10 +20,12 @@ describe('getReadBy', () => {
           id: 'id1',
           name: 'John',
         },
+        unread_messages: 2,
       },
       sender: {
         last_read: new Date('2021-09-14T13:09:01.004112Z'),
         user: sender,
+        unread_messages: 2,
       },
       id2: {
         last_read: new Date('2021-09-14T13:05:30.004112Z'),
@@ -31,6 +33,7 @@ describe('getReadBy', () => {
           id: 'id2',
           name: 'Alice',
         },
+        unread_messages: 2,
       },
       id3: {
         last_read: new Date('2021-09-14T13:08:30.004112Z'),
@@ -38,6 +41,7 @@ describe('getReadBy', () => {
           id: 'id3',
           name: 'Bob',
         },
+        unread_messages: 2,
       },
     };
     const result = getReadBy(message, channel);

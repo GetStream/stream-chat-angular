@@ -1120,7 +1120,9 @@ describe('ChannelService', () => {
     expect(latestMessage.readBy.length).toBe(0);
 
     const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    channel.state.read = { [user.id]: { last_read: new Date(), user } };
+    channel.state.read = {
+      [user.id]: { last_read: new Date(), user, unread_messages: 0 },
+    };
     (channel as MockChannel).handleEvent('message.read', {
       user,
     });

@@ -376,8 +376,18 @@ describe('AttachmentListComponent', () => {
       ];
       component.ngOnChanges();
       fixture.detectChanges();
-      const preview = queryAttachments()[0];
-      const fileSize = preview.querySelector('[data-testclass="size"]');
+      let preview = queryAttachments()[0];
+      let fileSize = preview.querySelector('[data-testclass="size"]');
+
+      expect(fileSize?.textContent).toContain('3.27 MB');
+
+      component.attachments = [
+        { type: 'file', title, asset_url, file_size: '3272969' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+      preview = queryAttachments()[0];
+      fileSize = preview.querySelector('[data-testclass="size"]');
 
       expect(fileSize?.textContent).toContain('3.27 MB');
     });

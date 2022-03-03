@@ -69,7 +69,7 @@ export class AttachmentListComponent implements OnChanges {
   }
 
   getFileSize(attachment: Attachment<DefaultAttachmentType>) {
-    return prettybytes(attachment.file_size!);
+    return prettybytes(Number(attachment.file_size!));
   }
 
   trimUrl(url?: string | null) {
