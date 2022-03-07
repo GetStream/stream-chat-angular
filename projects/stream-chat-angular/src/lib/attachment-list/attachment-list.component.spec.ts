@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { TranslateModule } from '@ngx-translate/core';
+import { ModalComponent } from '../modal/modal.component';
 import { ChannelService } from '../channel.service';
 import { ImageLoadService } from '../message-list/image-load.service';
+import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 
 describe('AttachmentListComponent', () => {
@@ -13,6 +17,11 @@ describe('AttachmentListComponent', () => {
   let queryUrlLinks: () => HTMLAnchorElement[];
   let queryCardImages: () => HTMLImageElement[];
   let queryActions: () => HTMLElement[];
+  let queryImageModal: () => ModalComponent;
+  let queryImageModalImage: () => HTMLImageElement | null;
+  let queryImageModalPrevButton: () => HTMLButtonElement | null;
+  let queryImageModalNextButton: () => HTMLButtonElement | null;
+  let queryGallery: () => HTMLElement | null;
   let sendAction: jasmine.Spy;
 
   const waitForImgComplete = () => {
@@ -29,11 +38,14 @@ describe('AttachmentListComponent', () => {
   beforeEach(async () => {
     sendAction = jasmine.createSpy();
     await TestBed.configureTestingModule({
-      declarations: [AttachmentListComponent],
+      declarations: [AttachmentListComponent, ModalComponent],
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
+        StreamI18nService,
       ],
+      imports: [TranslateModule.forRoot()],
     }).compileComponents();
+    TestBed.inject(StreamI18nService).setTranslation();
   });
 
   beforeEach(() => {
@@ -61,6 +73,23 @@ describe('AttachmentListComponent', () => {
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="attachment-action"]')
       );
+    queryImageModal = () =>
+      fixture.debugElement.query(By.directive(ModalComponent))
+        ?.componentInstance as ModalComponent;
+    queryImageModalImage = () =>
+      nativeElement.querySelector(
+        '[data-testid="modal-image"]'
+      ) as HTMLImageElement;
+    queryImageModalPrevButton = () =>
+      nativeElement.querySelector(
+        '[data-testid="image-modal-prev"]'
+      ) as HTMLButtonElement;
+    queryImageModalNextButton = () =>
+      nativeElement.querySelector(
+        '[data-testid="image-modal-next"]'
+      ) as HTMLButtonElement;
+    queryGallery = () =>
+      nativeElement.querySelector('[data-testid="image-gallery"]');
   });
 
   it('should display received #attachments ordered', () => {
@@ -88,7 +117,6 @@ describe('AttachmentListComponent', () => {
         title_link: '/',
         type: 'image',
       },
-      { type: 'image', img_url: 'url2' },
       {
         thumb_url:
           'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
@@ -101,17 +129,21 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(6);
+    expect(attachments.length).toBe(5);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
 
     expect(
-      attachments[1].classList.contains('str-chat__message-attachment--image')
+      attachments[1].classList.contains('str-chat__message-attachment--file')
     ).toBeTrue();
 
     expect(
-      attachments[2].classList.contains('str-chat__message-attachment--file')
+      attachments[1].classList.contains('str-chat__message-attachment--image')
+    ).toBeFalse();
+
+    expect(
+      attachments[2].classList.contains('str-chat__message-attachment--card')
     ).toBeTrue();
 
     expect(
@@ -123,30 +155,95 @@ describe('AttachmentListComponent', () => {
     ).toBeTrue();
 
     expect(
-      attachments[3].classList.contains('str-chat__message-attachment--image')
-    ).toBeFalse();
-
-    expect(
-      attachments[4].classList.contains('str-chat__message-attachment--image')
-    ).toBeTrue();
-
-    expect(
       attachments[4].classList.contains('str-chat__message-attachment--card')
     ).toBeTrue();
 
     expect(
-      attachments[5].classList.contains('str-chat__message-attachment--card')
+      attachments[4].classList.contains('str-chat__message-attachment--giphy')
     ).toBeTrue();
 
-    expect(
-      attachments[5].classList.contains('str-chat__message-attachment--giphy')
-    ).toBeTrue();
-
-    expect(queryImages().length).toBe(2);
+    expect(queryImages().length).toBe(1);
     expect(queryFileLinks().length).toBe(1);
     expect(queryUrlLinks().length).toBe(3);
     expect(queryCardImages().length).toBe(3);
     expect(queryActions().length).toBe(0);
+  });
+
+  it('should create gallery', () => {
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      {
+        title: 'BBC - Homepage',
+        title_link: 'https://www.bbc.com/',
+        og_scrape_url: 'https://www.bbc.com/',
+        image_url: 'https://assets/images/favicons/favicon-194x194.png',
+      },
+      { type: 'file', asset_url: 'url3' },
+      { type: 'image', img_url: 'url2' },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    const orderedAttachments = component.orderedAttachments;
+
+    expect(orderedAttachments.length).toBe(3);
+    expect(orderedAttachments[0].type).toBe('gallery');
+    expect(orderedAttachments[0].images![0].img_url).toBe('url1');
+    expect(orderedAttachments[0].images![1].img_url).toBe('url2');
+  });
+
+  it('should display gallery', () => {
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      { type: 'image', img_url: 'url2' },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    let gallery = queryAttachments()[0];
+    let imageElemnts = gallery.querySelectorAll('img');
+
+    expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(2);
+    expect(imageElemnts[0].src).toContain('url1');
+    expect(imageElemnts[1].src).toContain('url2');
+
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      { type: 'image', img_url: 'url2' },
+      { type: 'image', thumb_url: 'url3' },
+      { type: 'image', image_url: 'url4' },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    gallery = queryAttachments()[0];
+    imageElemnts = gallery.querySelectorAll('img');
+
+    expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(4);
+    expect(imageElemnts[0].src).toContain('url1');
+    expect(imageElemnts[1].src).toContain('url2');
+    expect(imageElemnts[2].src).toContain('url3');
+    expect(imageElemnts[3].src).toContain('url4');
+
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      { type: 'image', img_url: 'url2' },
+      { type: 'image', thumb_url: 'url3' },
+      { type: 'image', image_url: 'url4' },
+      { type: 'image', image_url: 'url5' },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    gallery = queryAttachments()[0];
+    imageElemnts = gallery.querySelectorAll('img');
+    const lastImage = gallery.querySelector(
+      '.str-chat__gallery-placeholder'
+    ) as HTMLElement;
+
+    expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(3);
+    expect(
+      gallery.querySelectorAll('.str-chat__gallery-placeholder').length
+    ).toBe(1);
+
+    expect(lastImage.style.backgroundImage).toContain('url4');
+    expect(lastImage.innerHTML).toContain('1 more');
   });
 
   it('should display attachment actions', () => {
@@ -520,6 +617,148 @@ describe('AttachmentListComponent', () => {
       expect(queryUrlLinks()[0].textContent).toContain(
         component.trimUrl('getstream.io')
       );
+    });
+
+    it('should open image viewer modal - single image', () => {
+      const attachment = {
+        type: 'image',
+        image_url: 'url1',
+      };
+      component.attachments = [attachment];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeUndefined();
+
+      queryImages()[0].click();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeDefined();
+      expect(component.imagesToView).toEqual([attachment]);
+      expect(component.imagesToViewCurrentIndex).toBe(0);
+      expect(queryImageModalPrevButton()?.style.visibility).toBe('hidden');
+      expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
+    });
+
+    it('should open image viewer modal - image gallery', () => {
+      const attachments = [
+        {
+          type: 'image',
+          image_url: 'url1',
+        },
+        {
+          type: 'image',
+          img_url: 'url2',
+        },
+      ];
+      component.attachments = attachments;
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeUndefined();
+
+      queryGallery()
+        ?.querySelectorAll<HTMLButtonElement>(
+          '[data-testclass="gallery-image"]'
+        )[0]
+        .click();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeDefined();
+      expect(component.imagesToView).toEqual(attachments);
+      expect(component.imagesToViewCurrentIndex).toBe(0);
+    });
+
+    it('should open image viewer modal with preselected image', () => {
+      const attachments = [
+        {
+          type: 'image',
+          image_url: 'url1',
+        },
+        {
+          type: 'image',
+          img_url: 'url2',
+        },
+      ];
+      component.attachments = attachments;
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeUndefined();
+
+      queryGallery()
+        ?.querySelectorAll<HTMLButtonElement>(
+          '[data-testclass="gallery-image"]'
+        )[1]
+        .click();
+      fixture.detectChanges();
+
+      expect(queryImageModal()).toBeDefined();
+      expect(component.imagesToView).toEqual(attachments);
+      expect(component.imagesToViewCurrentIndex).toBe(1);
+    });
+
+    it('should move to next and previous images', () => {
+      const attachments = [
+        {
+          type: 'image',
+          image_url: 'url1',
+        },
+        {
+          type: 'image',
+          img_url: 'url2',
+        },
+        {
+          type: 'image',
+          thumb_url: 'url3',
+        },
+      ];
+      component.attachments = attachments;
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      queryGallery()
+        ?.querySelectorAll<HTMLButtonElement>(
+          '[data-testclass="gallery-image"]'
+        )[0]
+        .click();
+      fixture.detectChanges();
+
+      expect(queryImageModalImage()?.src).toContain(attachments[0].image_url!);
+      expect(queryImageModalPrevButton()?.style.visibility).toBe('hidden');
+
+      queryImageModalNextButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryImageModalImage()?.src).toContain(attachments[1].img_url!);
+      expect(queryImageModalPrevButton()?.style.visibility).toBe('visible');
+      expect(queryImageModalNextButton()?.style.visibility).toBe('visible');
+
+      queryImageModalPrevButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryImageModalImage()?.src).toContain(attachments[0].image_url!);
+
+      queryImageModalNextButton()?.click();
+      queryImageModalNextButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryImageModalImage()?.src).toContain(attachments[2].thumb_url!);
+      expect(queryImageModalPrevButton()?.style.visibility).toBe('visible');
+      expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
+    });
+
+    it('should deselect images if modal is closed', () => {
+      const attachment = {
+        type: 'image',
+        image_url: 'url1',
+      };
+      component.imagesToView = [attachment];
+      fixture.detectChanges();
+      queryImageModal().close();
+      fixture.detectChanges();
+
+      expect(component.imagesToView).toEqual([]);
     });
   });
 });
