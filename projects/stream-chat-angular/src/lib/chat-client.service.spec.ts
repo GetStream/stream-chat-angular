@@ -33,9 +33,13 @@ describe('ChatClientService', () => {
   });
 
   it('should disconnect user', async () => {
+    const pendingInvitesSpy = jasmine.createSpy();
+    service.pendingInvites$.subscribe(pendingInvitesSpy);
+    pendingInvitesSpy.calls.reset();
     await service.disconnectUser();
 
     expect(mockChatClient.disconnectUser).toHaveBeenCalledWith();
+    expect(pendingInvitesSpy).toHaveBeenCalledWith([]);
   });
 
   it('should init with user meta data', async () => {
@@ -179,5 +183,84 @@ describe('ChatClientService', () => {
     );
 
     expect(result.length).toBe(2);
+  });
+
+  it('should initialize pending invites', async () => {
+    const channelsWithPendingInvites = [{ cid: 'cat-lovers' }];
+    mockChatClient.queryChannels.and.resolveTo(channelsWithPendingInvites);
+    const invitesSpy = jasmine.createSpy();
+    service.pendingInvites$.subscribe(invitesSpy);
+    invitesSpy.calls.reset();
+    await service.init(apiKey, userId, userToken);
+
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      {
+        invite: 'pending',
+      },
+      {},
+      { user_id: mockChatClient.user.id }
+    );
+
+    expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);
+  });
+
+  it('should emit pending invitations of user', () => {
+    const invitesSpy = jasmine.createSpy();
+    service.pendingInvites$.subscribe(invitesSpy);
+    const event1 = {
+      id: 'mockevent',
+      type: 'notification.invited',
+      channel: { cid: 'what-i-ate-for-lunch' },
+      member: { user: mockChatClient.user },
+    } as any as Event;
+    mockChatClient.handleEvent(event1.type, event1);
+
+    expect(invitesSpy).toHaveBeenCalledWith([event1.channel]);
+
+    invitesSpy.calls.reset();
+    const event2 = {
+      id: 'mockevent',
+      type: 'notification.invited',
+      channel: { cid: 'gardening' },
+      member: { user: mockChatClient.user },
+    } as any as Event;
+    mockChatClient.handleEvent(event2.type, event2);
+
+    expect(invitesSpy).toHaveBeenCalledWith([event1.channel, event2.channel]);
+
+    invitesSpy.calls.reset();
+    const event3 = {
+      id: 'mockevent',
+      type: 'notification.invite_accepted',
+      channel: { cid: 'what-i-ate-for-lunch' },
+      member: { user: mockChatClient.user },
+    } as any as Event;
+    mockChatClient.handleEvent(event3.type, event3);
+
+    expect(invitesSpy).toHaveBeenCalledWith([event2.channel]);
+
+    invitesSpy.calls.reset();
+    const event4 = {
+      id: 'mockevent',
+      type: 'notification.invite_rejected',
+      channel: { cid: 'gardening' },
+      member: { user: mockChatClient.user },
+    } as any as Event;
+    mockChatClient.handleEvent(event4.type, event4);
+
+    expect(invitesSpy).toHaveBeenCalledWith([]);
+
+    invitesSpy.calls.reset();
+    const event5 = {
+      id: 'mockevent',
+      type: 'notification.invite_rejected',
+      channel: { cid: 'gardening' },
+      member: {
+        user: { id: `not${mockChatClient.user.id}` },
+      },
+    } as any as Event;
+    mockChatClient.handleEvent(event5.type, event5);
+
+    expect(invitesSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
-import { OwnUserResponse, UserResponse } from 'stream-chat';
+import {
+  Channel,
+  ChannelResponse,
+  OwnUserResponse,
+  UserResponse,
+} from 'stream-chat';
 import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
@@ -36,11 +41,18 @@ export class ChatClientService {
    * Emits the current connection state of the user (`online` or `offline`)
    */
   connectionState$: Observable<'offline' | 'online'>;
+  /**
+   * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
+   */
+  pendingInvites$: Observable<(ChannelResponse | Channel)[]>;
   private notificationSubject = new ReplaySubject<Notification>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
   );
+  private pendingInvitesSubject = new BehaviorSubject<
+    (ChannelResponse | Channel)[]
+  >([]);
 
   constructor(
     private ngZone: NgZone,
@@ -49,6 +61,7 @@ export class ChatClientService {
     this.notification$ = this.notificationSubject.asObservable();
     this.connectionState$ = this.connectionStateSubject.asObservable();
     this.appSettings$ = this.appSettingsSubject.asObservable();
+    this.pendingInvites$ = this.pendingInvitesSubject.asObservable();
   }
 
   /**
@@ -63,16 +76,23 @@ export class ChatClientService {
     userTokenOrProvider: TokenOrProvider
   ) {
     this.chatClient = StreamChat.getInstance(apiKey);
+    this.chatClient.devToken;
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
       await this.chatClient.connectUser(user, userTokenOrProvider);
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
-      this.chatClient.getAppSettings;
     });
+    const channels = await this.chatClient.queryChannels(
+      { invite: 'pending' },
+      {},
+      { user_id: this.chatClient.user?.id }
+    );
+    this.pendingInvitesSubject.next(channels);
     this.appSettingsSubject.next(undefined);
     this.chatClient.on((e) => {
+      this.updatePendingInvites(e);
       this.notificationSubject.next({
         eventType: e.type,
         event: e,
@@ -101,6 +121,7 @@ export class ChatClientService {
    * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](./ChannelService.mdx/#reset).
    */
   async disconnectUser() {
+    this.pendingInvitesSubject.next([]);
     await this.chatClient.disconnectUser();
   }
 
@@ -140,5 +161,25 @@ export class ChatClientService {
       id: { $ne: this.chatClient.userID! },
     });
     return result.users;
+  }
+
+  private updatePendingInvites(e: Event) {
+    if (e.member?.user?.id === this.chatClient.user?.id && e.channel) {
+      const pendingInvites = this.pendingInvitesSubject.getValue();
+      if (e.type === 'notification.invited') {
+        this.pendingInvitesSubject.next([...pendingInvites, e.channel]);
+      } else if (
+        e.type === 'notification.invite_accepted' ||
+        e.type === 'notification.invite_rejected'
+      ) {
+        const index = pendingInvites.findIndex(
+          (i) => i?.cid === e.channel?.cid
+        );
+        if (index !== -1) {
+          pendingInvites.splice(index, 1);
+          this.pendingInvitesSubject.next([...pendingInvites]);
+        }
+      }
+    }
   }
 }

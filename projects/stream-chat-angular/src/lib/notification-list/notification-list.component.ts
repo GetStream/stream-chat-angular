@@ -1,9 +1,7 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
-import {
-  NotificationPayload,
-  NotificationService,
-} from '../notification.service';
+import { NotificationService } from '../notification.service';
+import { NotificationPayload } from '../types';
 
 /**
  * The `NotificationList` component displays the list of active notifications.
@@ -20,7 +18,14 @@ export class NotificationListComponent {
     this.notifications$ = this.notificationService.notifications$;
   }
 
-  trackByItem(_: number, item: NotificationPayload) {
-    return item;
+  trackById(_: number, item: NotificationPayload) {
+    return item.id;
+  }
+
+  getTemplateContext(notification: NotificationPayload) {
+    return {
+      ...notification.templateContext,
+      dismissFn: notification.dismissFn,
+    };
   }
 }

@@ -20,4 +20,12 @@
       translate:watcherCountParam) : ''}}
     </p>
   </div>
+  <ng-container *ngIf="channelActionsTemplate">
+    <ng-container
+      *ngTemplateOutlet="
+        channelActionsTemplate;
+        context: { channel: activeChannel }
+      "
+    ></ng-container>
+  </ng-container>
 </div>

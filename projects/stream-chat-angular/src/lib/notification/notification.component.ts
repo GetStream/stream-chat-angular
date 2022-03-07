@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { NotificationType } from '../notification.service';
+import { NotificationType } from '../types';
 
 /**
  * The `Notification` component displays a notification within the [`NotificationList`](./NotificationListComponent.mdx)

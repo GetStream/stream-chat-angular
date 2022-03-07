@@ -11,6 +11,7 @@ import {
   Channel,
   ChannelFilters,
   ChannelOptions,
+  ChannelResponse,
   ChannelSort,
   Event,
   FormatMessageResponse,
@@ -98,7 +99,7 @@ export class ChannelService {
    */
   usersTypingInThread$: Observable<UserResponse[]>;
   /**
-   * Emits a map that contains the date of the latest message sent by the current user by channels (this is used to detect is slow mode countdown should be started)
+   * Emits a map that contains the date of the latest message sent by the current user by channels (this is used to detect if slow mode countdown should be started)
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
@@ -106,21 +107,21 @@ export class ChannelService {
    */
   customNewMessageNotificationHandler?: (
     notification: Notification,
-    channelListSetter: (channels: Channel[]) => void
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customAddedToChannelNotificationHandler?: (
     notification: Notification,
-    channelListSetter: (channels: Channel[]) => void
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customRemovedFromChannelNotificationHandler?: (
     notification: Notification,
-    channelListSetter: (channels: Channel[]) => void
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
@@ -128,7 +129,7 @@ export class ChannelService {
   customChannelDeletedHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -139,7 +140,7 @@ export class ChannelService {
   customChannelUpdatedHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -150,7 +151,7 @@ export class ChannelService {
   customChannelTruncatedHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -161,7 +162,7 @@ export class ChannelService {
   customChannelHiddenHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -172,7 +173,7 @@ export class ChannelService {
   customChannelVisibleHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -183,7 +184,7 @@ export class ChannelService {
   customNewMessageHandler?: (
     event: Event,
     channel: Channel,
-    channelListSetter: (channels: Channel[]) => void,
+    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -218,8 +219,19 @@ export class ChannelService {
   private usersTypingInChannelSubject = new BehaviorSubject<UserResponse[]>([]);
   private usersTypingInThreadSubject = new BehaviorSubject<UserResponse[]>([]);
 
-  private channelListSetter = (channels: Channel[]) => {
-    this.channelsSubject.next(channels);
+  private channelListSetter = (channels: (Channel | ChannelResponse)[]) => {
+    const currentChannels = this.channelsSubject.getValue() || [];
+    const newChannels = channels.filter(
+      (c) => !currentChannels.find((channel) => channel.cid === c.cid)
+    );
+    const deletedChannels = currentChannels.filter(
+      (c) => !channels?.find((channel) => channel.cid === c.cid)
+    );
+    this.addChannelsFromNotification(newChannels as ChannelResponse[]);
+    this.removeChannelsFromChannelList(deletedChannels.map((c) => c.cid));
+    if (!newChannels.length && !deletedChannels.length) {
+      this.channelsSubject.next(channels as Channel[]);
+    }
   };
 
   private messageListSetter = (messages: StreamMessage[]) => {
@@ -681,30 +693,30 @@ export class ChannelService {
     }
   }
 
-  private async handleNotification(notification: Notification) {
+  private handleNotification(notification: Notification) {
     switch (notification.eventType) {
       case 'notification.message_new': {
-        await this.ngZone.run(async () => {
+        this.ngZone.run(() => {
           if (this.customNewMessageNotificationHandler) {
             this.customNewMessageNotificationHandler(
               notification,
               this.channelListSetter
             );
           } else {
-            await this.handleNewMessageNotification(notification);
+            this.handleNewMessageNotification(notification);
           }
         });
         break;
       }
       case 'notification.added_to_channel': {
-        await this.ngZone.run(async () => {
+        this.ngZone.run(() => {
           if (this.customAddedToChannelNotificationHandler) {
             this.customAddedToChannelNotificationHandler(
               notification,
               this.channelListSetter
             );
           } else {
-            await this.handleAddedToChannelNotification(notification);
+            this.handleAddedToChannelNotification(notification);
           }
         });
         break;
@@ -726,36 +738,48 @@ export class ChannelService {
 
   private handleRemovedFromChannelNotification(notification: Notification) {
     const channelIdToBeRemoved = notification.event.channel!.cid;
-    this.removeFromChannelList(channelIdToBeRemoved);
+    this.removeChannelsFromChannelList([channelIdToBeRemoved]);
   }
 
-  private async handleNewMessageNotification(notification: Notification) {
-    await this.addChannelFromNotification(notification);
+  private handleNewMessageNotification(notification: Notification) {
+    if (notification.event.channel) {
+      this.addChannelsFromNotification([notification.event.channel]);
+    }
   }
 
-  private async handleAddedToChannelNotification(notification: Notification) {
-    await this.addChannelFromNotification(notification);
+  private handleAddedToChannelNotification(notification: Notification) {
+    if (notification.event.channel) {
+      this.addChannelsFromNotification([notification.event.channel]);
+    }
   }
 
-  private async addChannelFromNotification(notification: Notification) {
-    const channel = this.chatClientService.chatClient.channel(
-      notification.event.channel?.type!,
-      notification.event.channel?.id
-    );
-    await channel.watch();
-    this.watchForChannelEvents(channel);
+  private addChannelsFromNotification(channelResponses: ChannelResponse[]) {
+    const newChannels: Channel[] = [];
+    channelResponses.forEach((channelResponse) => {
+      const channel = this.chatClientService.chatClient.channel(
+        channelResponse.type,
+        channelResponse.id
+      );
+      void channel.watch();
+      this.watchForChannelEvents(channel);
+      newChannels.push(channel);
+    });
     this.channelsSubject.next([
-      channel,
+      ...newChannels,
       ...(this.channelsSubject.getValue() || []),
     ]);
   }
 
-  private removeFromChannelList(cid: string) {
-    const channels = this.channels.filter((c) => c.cid !== cid);
+  private removeChannelsFromChannelList(cids: string[]) {
+    const channels = this.channels.filter((c) => !cids.includes(c.cid || ''));
     if (channels.length < this.channels.length) {
       this.channelsSubject.next(channels);
-      if (this.activeChannelSubject.getValue()!.cid === cid) {
-        this.setAsActiveChannel(channels[0]);
+      if (cids.includes(this.activeChannelSubject.getValue()?.cid || '')) {
+        if (channels.length > 0) {
+          this.setAsActiveChannel(channels[0]);
+        } else {
+          this.activeChannelSubject.next(undefined);
+        }
       }
     }
   }
@@ -1059,11 +1083,11 @@ export class ChannelService {
   }
 
   private handleChannelHidden(event: Event) {
-    this.removeFromChannelList(event.channel!.cid);
+    this.removeChannelsFromChannelList([event.channel!.cid]);
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeFromChannelList(event.channel!.cid);
+    this.removeChannelsFromChannelList([event.channel!.cid]);
   }
 
   private handleChannelVisible(event: Event, channel: Channel) {
