@@ -14,7 +14,8 @@ export type Icon =
   | 'close-no-outline'
   | 'reply-in-thread'
   | 'arrow-left'
-  | 'arrow-right';
+  | 'arrow-right'
+  | 'menu';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).
