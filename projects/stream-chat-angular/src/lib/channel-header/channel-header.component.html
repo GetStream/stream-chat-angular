@@ -4,9 +4,7 @@
     (click)="toggleMenu($event)"
     (keyup.enter)="toggleMenu($event)"
   >
-    <span class="str-chat__header-hamburger--line"></span>
-    <span class="str-chat__header-hamburger--line"></span>
-    <span class="str-chat__header-hamburger--line"></span>
+    <stream-icon icon="menu"></stream-icon>
   </div>
   <stream-avatar
     imageUrl="{{ activeChannel?.data?.image }}"
