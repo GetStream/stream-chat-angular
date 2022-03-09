@@ -46,7 +46,7 @@
         "prerelease": true
       }
     ],
-    "dryRun": true,
+    "dryRun": false,
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -54,7 +54,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": false
+          "npmPublish": true
         }
       ],
       [
