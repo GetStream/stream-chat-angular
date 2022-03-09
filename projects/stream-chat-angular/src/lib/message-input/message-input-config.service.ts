@@ -36,11 +36,6 @@ export class MessageInputConfigService {
    */
   emojiPickerTemplate: TemplateRef<void> | undefined;
   /**
-   * You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
-   * @deprecated use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) instead
-   */
-  acceptedFileTypes: string[] | undefined;
-  /**
    * If `false`, users can only upload one attachment per message
    */
   isMultipleFileUploadEnabled: boolean | undefined = true;

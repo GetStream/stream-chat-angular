@@ -1,0 +1,18 @@
+---
+id: upgrade-v2
+title: Upgrade from v2
+---
+
+## Inputs removed in favor of channel capabilities
+
+The following inputs are removed:
+
+| Component/service                                                        | Input name                   | Replacement                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`MessageListComponent`](../components/MessageListComponent.mdx)         | `enabledMessageActionsInput` | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |
+| [`MessageListComponent`](../components/MessageListComponent.mdx)         | `areReactionsEnabled`        | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |
+| [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) | `acceptedFileTypes`          | Use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) to control the accepted file types                                                                                                                                   |
+| [`MessageInputComponent`](../components/MessageInputComponent.mdx)       | `acceptedFileTypes`          | Use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) to control the accepted file types                                                                                                                                   |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `areReactionsEnabled`        | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users. Please note that existing reactions of a message will be displayed, even if reacting is disabled. |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `canReactToMessage`          | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users. Please note that existing reactions of a message will be displayed, even if reacting is disabled. |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `canReceiveReadEvents`       | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |

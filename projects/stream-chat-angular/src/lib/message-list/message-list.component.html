@@ -97,12 +97,9 @@
         messageTemplate;
         context: {
           message: message,
-          areReactionsEnabled: areReactionsEnabled,
-          canReactToMessage: canReactToMessage,
           lastSentMessageId: !!(
             lastSentMessageId && message?.id === lastSentMessageId
           ),
-          canReceiveReadEvents: canReceiveReadEvents,
           messageInputTemplate: messageInputTemplate,
           mentionTemplate: mentionTemplate,
           mode: mode
@@ -113,13 +110,10 @@
   <ng-template #defaultMessageTemplate>
     <stream-message
       [message]="message"
-      [areReactionsEnabled]="areReactionsEnabled"
-      [canReactToMessage]="canReactToMessage"
       [isLastSentMessage]="
         !!(lastSentMessageId && message?.id === lastSentMessageId)
       "
       [enabledMessageActions]="enabledMessageActions"
-      [canReceiveReadEvents]="canReceiveReadEvents"
       [messageInputTemplate]="messageInputTemplate"
       [mentionTemplate]="mentionTemplate"
       [mode]="mode"

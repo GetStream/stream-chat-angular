@@ -13,20 +13,6 @@ import { ChatClientService } from '../chat-client.service';
 import { MessageInputComponent } from '../message-input/message-input.component';
 import { NotificationService } from '../notification.service';
 import { StreamMessage } from '../types';
-
-/**
- * @deprecated https://getstream.io/chat/docs/sdk/angular/components/message-actions/#required-enabledactions
- */
-export type MessageActions =
-  | 'edit'
-  | 'delete'
-  | 'edit-any'
-  | 'delete-any'
-  | 'pin'
-  | 'quote'
-  | 'flag'
-  | 'mute';
-
 /**
  * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](../concepts/message-interactions.mdx) in the message interaction guide.
  */

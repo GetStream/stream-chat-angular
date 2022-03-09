@@ -271,31 +271,6 @@ describe('MessageInputComponent', () => {
     expect(queryattachmentUploadButton()).toBeNull();
   });
 
-  it('should set the accepted file types, even if app settings are defined', () => {
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: ['.txt'],
-        allowed_mime_types: ['application/json'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.png'],
-        allowed_mime_types: ['image/jpeg'],
-      },
-    });
-    const accepted = ['.jpg', '.png'];
-    component.acceptedFileTypes = accepted;
-    fixture.detectChanges();
-    const attachmentUpload = queryFileInput();
-
-    expect(attachmentUpload?.getAttribute('accept')).toBe(accepted.join(','));
-  });
-
-  it('should accept every file type if #acceptedFileTypes not provided', () => {
-    const attachmentUpload = queryFileInput();
-
-    expect(attachmentUpload?.getAttribute('accept')).toBe('');
-  });
-
   it('should set multiple attribute on file upload', () => {
     const attachmentUpload = queryFileInput();
 
@@ -546,23 +521,6 @@ describe('MessageInputComponent', () => {
     expect(queryTextarea()).toBeUndefined();
   });
 
-  it(`shouldn't set accept, if #acceptedFileTypes not defined`, () => {
-    expect(component.accept).toBe('');
-
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: ['.txt'],
-        allowed_mime_types: ['application/json'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.png'],
-        allowed_mime_types: ['image/jpeg'],
-      },
-    });
-
-    expect(component.accept).toBe('');
-  });
-
   it('should check uploaded attachments', async () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -624,17 +582,6 @@ describe('MessageInputComponent', () => {
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
       2
     );
-  });
-
-  it(`shouldn't check attachments against #acceptedFileTypes, if that is defined`, async () => {
-    const notificationService = TestBed.inject(NotificationService);
-    spyOn(notificationService, 'addTemporaryNotification');
-    component.acceptedFileTypes = ['application/pdf', '.jpg'];
-    const files = [{ name: 'test3.png', type: 'image/png' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
-    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
   });
 
   it('should load app settings, if not yet loaded', async () => {
