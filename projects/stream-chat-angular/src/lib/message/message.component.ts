@@ -48,28 +48,15 @@ export class MessageComponent implements OnChanges {
    */
   @Input() enabledMessageActions: string[] = [];
   /**
-   * If true, the message reactions are displayed. If you use the default chat UI you can also set this using the [`MessageList`](./MessageListComponent.mdx) component.
-   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
-   */
-  @Input() areReactionsEnabled: boolean | undefined;
-  /**
-   * If true, the user can add reactions to the message. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
-   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
-   */
-  @Input() canReactToMessage: boolean | undefined;
-  /**
    * If `true`, the message status (sending, sent, who read the message) is displayed.
    */
   @Input() isLastSentMessage: boolean | undefined;
   /**
-   * If true, the read indicator is displayed. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
-   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead
-   */
-  @Input() canReceiveReadEvents: boolean | undefined;
-  /**
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'thread' | 'main' = 'main';
+  canReceiveReadEvents: boolean | undefined;
+  canReactToMessage: boolean | undefined;
   isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
@@ -91,6 +78,12 @@ export class MessageComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
       this.createMessageParts();
+    }
+    if (changes.enabledMessageActions) {
+      this.canReactToMessage =
+        this.enabledMessageActions.indexOf('send-reaction') !== -1;
+      this.canReceiveReadEvents =
+        this.enabledMessageActions.indexOf('read-events') !== -1;
     }
   }
 

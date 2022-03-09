@@ -81,12 +81,6 @@ export class MessageInputComponent
    */
   @Input() mode: 'thread' | 'main' = 'main';
   /**
-   * You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
-   * If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   * @deprecated use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) instead
-   */
-  @Input() acceptedFileTypes: string[] | undefined;
-  /**
    * If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
    */
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
@@ -172,7 +166,6 @@ export class MessageInputComponent
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
-    this.acceptedFileTypes = this.configService.acceptedFileTypes;
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
     this.areMentionsEnabled = this.configService.areMentionsEnabled;
@@ -240,9 +233,6 @@ export class MessageInputComponent
     }
     if (changes.isFileUploadEnabled) {
       this.configService.isFileUploadEnabled = this.isFileUploadEnabled;
-    }
-    if (changes.acceptedFileTypes) {
-      this.configService.acceptedFileTypes = this.acceptedFileTypes;
     }
     if (changes.isMultipleFileUploadEnabled) {
       this.configService.isMultipleFileUploadEnabled =
@@ -339,10 +329,6 @@ export class MessageInputComponent
     );
   }
 
-  get accept() {
-    return this.acceptedFileTypes ? this.acceptedFileTypes?.join(',') : '';
-  }
-
   get quotedMessageAttachments() {
     const originalAttachments = this.quotedMessage?.attachments;
     return originalAttachments && originalAttachments.length
@@ -395,7 +381,7 @@ export class MessageInputComponent
   }
 
   private async areAttachemntsValid(fileList: FileList | null) {
-    if (!fileList || this.acceptedFileTypes) {
+    if (!fileList) {
       return true;
     }
     if (!this.appSettings) {
