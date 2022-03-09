@@ -40,9 +40,13 @@
   "private": true,
   "release": {
     "branches": [
-      "master"
+      "master",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
     ],
-    "dryRun": false,
+    "dryRun": true,
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -50,7 +54,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": true
+          "npmPublish": false
         }
       ],
       [
