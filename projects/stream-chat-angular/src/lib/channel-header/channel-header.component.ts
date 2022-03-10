@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { Channel } from 'stream-chat';
 import { ChannelListToggleService } from '../channel-list/channel-list-toggle.service';
 import { ChannelService } from '../channel.service';
@@ -12,6 +12,10 @@ import { ChannelService } from '../channel.service';
   styles: [],
 })
 export class ChannelHeaderComponent {
+  /**
+   * Template that can be used to add actions (such as edit, invite) to the channel header
+   */
+  @Input() channelActionsTemplate?: TemplateRef<{ channel: Channel }>;
   activeChannel: Channel | undefined;
   canReceiveConnectEvents: boolean | undefined;
 

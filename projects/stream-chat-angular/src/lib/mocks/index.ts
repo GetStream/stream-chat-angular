@@ -279,6 +279,7 @@ export type MockStreamChatClient = {
   getUserAgent: () => string;
   getAppSettings: jasmine.Spy;
   disconnectUser: jasmine.Spy;
+  queryChannels: jasmine.Spy;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
@@ -288,6 +289,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const flagMessage = jasmine.createSpy();
   const setUserAgent = jasmine.createSpy();
   const queryUsers = jasmine.createSpy();
+  const queryChannels = jasmine.createSpy().and.returnValue([]);
   const getAppSettings = jasmine.createSpy().and.returnValue({
     app: {
       file_upload_config: {
@@ -336,6 +338,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     queryUsers,
     getAppSettings,
     appSettings$,
+    queryChannels,
   };
 };
 

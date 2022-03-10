@@ -1,3 +1,4 @@
+import { TemplateRef } from '@angular/core';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { NotificationService } from './notification.service';
@@ -19,7 +20,7 @@ describe('NotificationService', () => {
     service.addTemporaryNotification(text, type);
 
     expect(spy).toHaveBeenCalledWith([
-      { text, type, translateParams: undefined },
+      jasmine.objectContaining({ text, type, translateParams: undefined }),
     ]);
   });
 
@@ -43,7 +44,9 @@ describe('NotificationService', () => {
     const translateParams = { timeout: 5000 };
     service.addPermanentNotification(text, type, translateParams);
 
-    expect(spy).toHaveBeenCalledWith([{ text, type, translateParams }]);
+    expect(spy).toHaveBeenCalledWith([
+      jasmine.objectContaining({ text, type, translateParams }),
+    ]);
     spy.calls.reset();
 
     tick(5000);
@@ -58,5 +61,36 @@ describe('NotificationService', () => {
     remove();
 
     expect(spy).toHaveBeenCalledWith([]);
+  });
+
+  it('should add HTML notification - temporary notification', () => {
+    const template = { template: 'template' } as any as TemplateRef<any>;
+    const templateContext = { channelName: 'gardening' };
+    service.addTemporaryNotification(
+      template,
+      'success',
+      5000,
+      undefined,
+      templateContext
+    );
+
+    expect(spy).toHaveBeenCalledWith([
+      jasmine.objectContaining({ templateContext, template }),
+    ]);
+  });
+
+  it('should add HTML notification - permanent notification', () => {
+    const template = { template: 'template' } as any as TemplateRef<any>;
+    const templateContext = { channelName: 'gardening' };
+    service.addPermanentNotification(
+      template,
+      'success',
+      undefined,
+      templateContext
+    );
+
+    expect(spy).toHaveBeenCalledWith([
+      jasmine.objectContaining({ templateContext, template }),
+    ]);
   });
 });

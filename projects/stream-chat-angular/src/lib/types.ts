@@ -1,3 +1,4 @@
+import { TemplateRef } from '@angular/core';
 import type {
   Attachment,
   ChannelMemberResponse,
@@ -100,4 +101,16 @@ export type MentionAutcompleteListItem = (
 
 export type ComandAutocompleteListItem = CommandResponse & {
   autocompleteLabel: string;
+};
+
+export type NotificationType = 'success' | 'error' | 'info';
+
+export type NotificationPayload<T = {}> = {
+  id: string;
+  type: NotificationType;
+  text?: string;
+  translateParams?: Object;
+  template?: TemplateRef<T>;
+  templateContext?: T;
+  dismissFn: Function;
 };

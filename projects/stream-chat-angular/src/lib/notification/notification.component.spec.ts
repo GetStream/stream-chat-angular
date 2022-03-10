@@ -45,4 +45,13 @@ describe('NotificationComponent', () => {
       notificationElement?.classList.contains('notification-error')
     ).toBeFalse();
   });
+
+  it('should add dynamic CSS class if type is info', () => {
+    component.type = 'info';
+    fixture.detectChanges();
+
+    expect(
+      queryNotification()?.classList.contains('notification-info')
+    ).toBeTrue();
+  });
 });
