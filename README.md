@@ -79,6 +79,22 @@ STREAM_USER_TOKEN=<Your user token>
 
 Run `npm start` and navigate to `http://localhost:4200/`.
 
+## Customization examples
+
+This repository includes a sample app that showcases the different customization options of our SDK:
+
+To test the app:
+
+Create a file named `.env` in the root directory with the following content:
+
+```
+STREAM_API_KEY=<Your API key>
+STREAM_USER_ID=<Your user ID>
+STREAM_USER_TOKEN=<Your user token>
+```
+
+Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
+
 ## Local development
 
 Run `npm install` in the root of the project. You can use the `npm run start:dev` command to start the SampleApp with automatic reloading.

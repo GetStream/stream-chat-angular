@@ -21,26 +21,20 @@
       <ng-container
         *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
       >
-        <ng-container
-          *ngIf="customChannelPreviewTemplate; else defaultTemplate"
-        >
-          <div (click)="channelSelected()" (keyup.enter)="channelSelected()">
-            <ng-container
-              *ngTemplateOutlet="
-                customChannelPreviewTemplate;
-                context: { channel: channel }
-              "
-            ></ng-container>
-          </div>
-        </ng-container>
-        <ng-template #defaultTemplate>
+        <ng-template #defaultTemplate let-channelInput="channel">
           <stream-channel-preview
             data-testclass="channel-preview"
-            [channel]="channel"
-            (click)="channelSelected()"
-            (keyup.enter)="channelSelected()"
+            [channel]="channelInput"
           ></stream-channel-preview>
         </ng-template>
+        <div (click)="channelSelected()" (keyup.enter)="channelSelected()">
+          <ng-container
+            *ngTemplateOutlet="
+              customChannelPreviewTemplate || defaultTemplate;
+              context: getChannelPreviewContext(channel)
+            "
+          ></ng-container>
+        </div>
       </ng-container>
       <div
         *ngIf="hasMoreChannels$ | async"

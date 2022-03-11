@@ -71,23 +71,24 @@
   "
 >
   <div class="str-chat__edit-message-form" *ngIf="isEditModalOpen">
-    <ng-container *ngIf="messageInputTemplate; else defaultInput">
-      <ng-container
-        *ngTemplateOutlet="
-          messageInputTemplate;
-          context: {
-            message: message,
-            messageUpdateHandler: modalClosed
-          }
-        "
-      ></ng-container>
-    </ng-container>
-    <ng-template #defaultInput>
+    <ng-template
+      #defaultInput
+      let-messageInput="message"
+      let-messageUpdateHandler="messageUpdateHandler"
+    >
       <stream-message-input
-        [message]="message"
-        (messageUpdate)="modalClosed()"
+        [message]="messageInput"
+        (messageUpdate)="messageUpdateHandler()"
       ></stream-message-input>
     </ng-template>
+    <ng-container
+      *ngTemplateOutlet="
+        messageInputTemplate || defaultInput;
+        context: getMessageInputContext()
+      "
+    >
+    </ng-container>
+
     <stream-notification-list></stream-notification-list>
     <div
       class="

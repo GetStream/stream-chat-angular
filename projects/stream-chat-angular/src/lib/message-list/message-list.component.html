@@ -38,17 +38,9 @@
         ></ng-container>
       </li>
     </ul>
-    <ng-container *ngIf="typingIndicatorTemplate; else defaultTypingIndicator">
-      <ng-container
-        *ngTemplateOutlet="
-          typingIndicatorTemplate;
-          context: { usersTyping$: usersTyping$ }
-        "
-      ></ng-container>
-    </ng-container>
-    <ng-template #defaultTypingIndicator>
+    <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
       <div
-        *ngIf="(usersTyping$ | async)?.length"
+        *ngIf="$any(usersTyping$ | async)?.length"
         data-testid="typing-indicator"
         class="str-chat__typing-indicator str-chat__typing-indicator--typing"
       >
@@ -64,6 +56,12 @@
         </div>
       </div>
     </ng-template>
+    <ng-container
+      *ngTemplateOutlet="
+        typingIndicatorTemplate || defaultTypingIndicator;
+        context: getTypingIndicatorContext()
+      "
+    ></ng-container>
   </div>
 </div>
 <div class="str-chat__list-notifications">
@@ -91,32 +89,24 @@
 </div>
 
 <ng-template #messageTemplateContainer let-message="message">
-  <ng-container *ngIf="messageTemplate; else defaultMessageTemplate">
-    <ng-container
-      *ngTemplateOutlet="
-        messageTemplate;
-        context: {
-          message: message,
-          lastSentMessageId: !!(
-            lastSentMessageId && message?.id === lastSentMessageId
-          ),
-          messageInputTemplate: messageInputTemplate,
-          mentionTemplate: mentionTemplate,
-          mode: mode
-        }
-      "
-    ></ng-container>
-  </ng-container>
-  <ng-template #defaultMessageTemplate>
+  <ng-template
+    #defaultMessageTemplate
+    let-messageInput="message"
+    let-isLastSentMessage="isLastSentMessage"
+    let-enabledMessageActions="enabledMessageActions"
+    let-mode="mode"
+  >
     <stream-message
-      [message]="message"
-      [isLastSentMessage]="
-        !!(lastSentMessageId && message?.id === lastSentMessageId)
-      "
+      [message]="messageInput"
+      [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
-      [messageInputTemplate]="messageInputTemplate"
-      [mentionTemplate]="mentionTemplate"
       [mode]="mode"
     ></stream-message>
   </ng-template>
+  <ng-container
+    *ngTemplateOutlet="
+      messageTemplate || defaultMessageTemplate;
+      context: getMessageContext(message)
+    "
+  ></ng-container>
 </ng-template>

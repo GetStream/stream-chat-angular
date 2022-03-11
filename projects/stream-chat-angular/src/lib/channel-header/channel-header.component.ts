@@ -1,7 +1,16 @@
-import { Component, Input, TemplateRef } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 import { Channel } from 'stream-chat';
 import { ChannelListToggleService } from '../channel-list/channel-list-toggle.service';
 import { ChannelService } from '../channel.service';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { ChannelActionsContext } from '../types';
 
 /**
  * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript)
@@ -11,17 +20,17 @@ import { ChannelService } from '../channel.service';
   templateUrl: './channel-header.component.html',
   styles: [],
 })
-export class ChannelHeaderComponent {
-  /**
-   * Template that can be used to add actions (such as edit, invite) to the channel header
-   */
-  @Input() channelActionsTemplate?: TemplateRef<{ channel: Channel }>;
+export class ChannelHeaderComponent implements OnInit, OnDestroy {
+  channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   activeChannel: Channel | undefined;
   canReceiveConnectEvents: boolean | undefined;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private channelService: ChannelService,
-    private channelListToggleService: ChannelListToggleService
+    private channelListToggleService: ChannelListToggleService,
+    private customTemplatesService: CustomTemplatesService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.channelService.activeChannel$.subscribe((c) => {
       this.activeChannel = c;
@@ -34,10 +43,28 @@ export class ChannelHeaderComponent {
         capabilities.indexOf('connect-events') !== -1;
     });
   }
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.channelActionsTemplate$.subscribe(
+        (template) => {
+          this.channelActionsTemplate = template;
+          this.cdRef.detectChanges();
+        }
+      )
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  }
 
   toggleMenu(event: Event) {
     event.stopPropagation();
     this.channelListToggleService.toggle();
+  }
+
+  getChannelActionsContext(): ChannelActionsContext {
+    return { channel: this.activeChannel! };
   }
 
   get memberCountParam() {

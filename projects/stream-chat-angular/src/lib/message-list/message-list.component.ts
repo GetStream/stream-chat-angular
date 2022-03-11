@@ -14,11 +14,17 @@ import {
 import { ChannelService } from '../channel.service';
 import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { DefaultUserType, StreamMessage } from '../types';
+import {
+  DefaultUserType,
+  MessageContext,
+  StreamMessage,
+  TypingIndicatorContext,
+} from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
 import { UserResponse } from 'stream-chat';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -32,27 +38,11 @@ export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy
 {
   /**
-   * By default, the [default message component](./MessageComponent.mdx) is used. To change the contents of the message, provide [your own custom message template](./MessageComponent.mdx/#customization).
-   */
-  @Input() messageTemplate: TemplateRef<any> | undefined;
-  /**
-   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
-   */
-  @Input() messageInputTemplate: TemplateRef<any> | undefined;
-  /**
-   * The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
-   */
-  @Input() mentionTemplate: TemplateRef<any> | undefined;
-  /**
-   * You can provide your own typing indicator template instead of the default one.
-   */
-  @Input() typingIndicatorTemplate:
-    | TemplateRef<{ usersTyping$: Observable<UserResponse<DefaultUserType>[]> }>
-    | undefined;
-  /**
    * Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'main' | 'thread' = 'main';
+  typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
+  messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
@@ -81,7 +71,8 @@ export class MessageListComponent
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-    private imageLoadService: ImageLoadService
+    private imageLoadService: ImageLoadService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -115,6 +106,16 @@ export class MessageListComponent
         }
         this.parentMessage = message;
       })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.messageTemplate$.subscribe(
+        (template) => (this.messageTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.typingIndicatorTemplate$.subscribe(
+        (template) => (this.typingIndicatorTemplate = template)
+      )
     );
     this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
     this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
@@ -159,12 +160,6 @@ export class MessageListComponent
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  get usersTyping$() {
-    return this.mode === 'thread'
-      ? this.usersTypingInThread$
-      : this.usersTypingInChannel$;
-  }
-
   trackByMessageId(index: number, item: StreamMessage) {
     return item.id;
   }
@@ -200,6 +195,23 @@ export class MessageListComponent
         : void this.channelService.loadMoreThreadReplies();
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
+  }
+
+  getTypingIndicatorContext(): TypingIndicatorContext {
+    return {
+      usersTyping$: this.usersTyping$,
+    };
+  }
+
+  getMessageContext(message: StreamMessage): MessageContext {
+    return {
+      message,
+      isLastSentMessage: !!(
+        this.lastSentMessageId && message?.id === this.lastSentMessageId
+      ),
+      enabledMessageActions: this.enabledMessageActions,
+      mode: this.mode,
+    };
   }
 
   private preserveScrollbarPosition() {
@@ -271,5 +283,11 @@ export class MessageListComponent
     this.unreadMessageCount = 0;
     this.prevScrollTop = undefined;
     this.isNewMessageSentByUser = undefined;
+  }
+
+  private get usersTyping$() {
+    return this.mode === 'thread'
+      ? this.usersTypingInThread$
+      : this.usersTypingInChannel$;
   }
 }
