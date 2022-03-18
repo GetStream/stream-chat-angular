@@ -19,9 +19,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Debug
-        run: |
-          git log --tags
       - name: Cache node modules
         uses: actions/cache@v1
         with:
@@ -57,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release --debug
+        run: npx semantic-release
       - name: Generate docs
         run: |
           npm run generate-docs
