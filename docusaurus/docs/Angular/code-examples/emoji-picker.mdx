@@ -153,36 +153,68 @@ button {
 
 ## Provide your custom template
 
-Let's provide our custom emoji picker template to the [`MessageInput`](../components/MessageInputComponent.mdx) component:
+Let's create the template for the emoji picker (for example in your `AppComponent`):
 
 ```html
-<div id="root">
-  <stream-channel-list></stream-channel-list>
-  <stream-channel>
-    <stream-channel-header></stream-channel-header>
-    <stream-message-list></stream-message-list>
-    <stream-notification-list></stream-notification-list>
-    <stream-message-input
-      [emojiPickerTemplate]="emojiPickerTemplate"
-    ></stream-message-input>
-    <stream-thread name="thread">
-      <stream-message-list
-        name="thread-message-list"
-        mode="thread"
-      ></stream-message-list>
-      <stream-message-input
-        mode="thread"
-        name="thread-message-input"
-        [emojiPickerTemplate]="emojiPickerTemplate"
-      ></stream-message-input>
-    </stream-thread>
-  </stream-channel>
-</div>
-
 <!-- The MessageInput component will provide the emojiInput$ to emit the selected emojis and insert them in the textarea -->
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
   <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
 </ng-template>
+```
+
+Register the template in your TypeScript code (for example in your `AppComponent`):
+
+```typescript
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+} from "stream-chat-angular";
+import {
+  CustomTemplatesService,
+  EmojiPickerContext,
+} from "stream-chat-angular";
+import { environment } from "../environments/environment";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements AfterViewInit {
+  @ViewChild("emojiPickerTemplate")
+  private emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
+
+  constructor(
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private customTemplatesService: CustomTemplatesService
+  ) {
+    void this.chatService.init(
+      environment.apiKey,
+      environment.userId,
+      environment.userToken
+    );
+    void this.channelService.init({
+      type: "messaging",
+      members: { $in: [environment.userId] },
+    });
+    this.streamI18nService.setTranslation();
+  }
+
+  ngAfterViewInit(): void {
+    this.customTemplatesService.emojiPickerTemplate$.next(
+      this.emojiPickerTemplate
+    );
+  }
+}
 ```
 
 This is how our emoji picker looks like:

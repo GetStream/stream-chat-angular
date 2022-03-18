@@ -38,12 +38,12 @@
           </ng-container>
         </ng-template>
       </ng-container>
-      <stream-avatar
+      <stream-avatar-placeholder
         data-testid="avatar"
         class="str-chat-angular__avatar-host"
         [imageUrl]="message?.user?.image"
         [name]="message?.user?.name || message?.user?.id"
-      ></stream-avatar>
+      ></stream-avatar-placeholder>
       <div class="str-chat__message-inner">
         <div
           class="str-chat__message-simple__actions"
@@ -60,21 +60,39 @@
               isEditing
             "
           >
-            <stream-message-actions-box
-              [isOpen]="isActionBoxOpen"
-              [isMine]="isSentByCurrentUser"
-              [enabledActions]="enabledMessageActions"
-              [message]="message"
-              (displayedActionsCount)="visibleMessageActionsCount = $event"
-              (isEditing)="isEditing = $event; isActionBoxOpen = !isEditing"
-            ></stream-message-actions-box>
-            <stream-icon
+            <ng-template
+              #defaultMessageActionsBox
+              let-isOpen="isOpen"
+              let-isMine="isMine"
+              let-enabledActions="enabledActions"
+              let-messageInput="message"
+              let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
+              let-isEditingChangeHandler="isEditingChangeHandler"
+            >
+              <stream-message-actions-box
+                [isOpen]="isOpen"
+                [isMine]="isMine"
+                [enabledActions]="enabledActions"
+                [message]="messageInput"
+                (displayedActionsCount)="
+                  displayedActionsCountChaneHanler($event)
+                "
+                (isEditing)="isEditingChangeHandler($event)"
+              ></stream-message-actions-box>
+            </ng-template>
+            <ng-container
+              *ngTemplateOutlet="
+                messageActionsBoxTemplate || defaultMessageActionsBox;
+                context: getMessageActionsBoxContext()
+              "
+            ></ng-container>
+            <stream-icon-placeholder
               *ngIf="visibleMessageActionsCount > 0"
               data-testid="action-icon"
               icon="action-icon"
               (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
               (click)="isActionBoxOpen = !isActionBoxOpen"
-            ></stream-icon>
+            ></stream-icon-placeholder>
           </div>
           <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
           <div
@@ -90,7 +108,9 @@
             (click)="setAsActiveParentMessage()"
             (keyup.enter)="setAsActiveParentMessage()"
           >
-            <stream-icon icon="reply-in-thread"></stream-icon>
+            <stream-icon-placeholder
+              icon="reply-in-thread"
+            ></stream-icon-placeholder>
           </div>
           <div
             *ngIf="canReactToMessage"
@@ -102,22 +122,54 @@
             (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
             (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
           >
-            <stream-icon icon="reaction-icon"></stream-icon>
+            <stream-icon-placeholder
+              icon="reaction-icon"
+            ></stream-icon-placeholder>
           </div>
         </div>
         <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
-        <stream-message-reactions
-          [messageReactionCounts]="message?.reaction_counts || {}"
-          [latestReactions]="message?.latest_reactions || []"
-          [(isSelectorOpen)]="isReactionSelectorOpen"
-          [messageId]="message?.id"
-          [ownReactions]="message?.own_reactions || []"
-        ></stream-message-reactions>
-        <stream-attachment-list
-          *ngIf="hasAttachment && !message?.quoted_message"
-          [attachments]="message!.attachments!"
-          [messageId]="message!.id"
-        ></stream-attachment-list>
+        <ng-template
+          #defaultMessageReactions
+          let-messageReactionCounts="messageReactionCounts"
+          let-latestReactions="latestReactions"
+          let-isSelectorOpen="isSelectorOpen"
+          let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
+          let-messageId="messageId"
+          let-ownReactions="ownReactions"
+        >
+          <stream-message-reactions
+            [messageReactionCounts]="messageReactionCounts"
+            [latestReactions]="latestReactions"
+            [isSelectorOpen]="isSelectorOpen"
+            (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
+            [messageId]="messageId"
+            [ownReactions]="ownReactions"
+          ></stream-message-reactions>
+        </ng-template>
+        <ng-container
+          *ngTemplateOutlet="
+            messageReactionsTemplate || defaultMessageReactions;
+            context: getMessageReactionsContext()
+          "
+        ></ng-container>
+        <ng-container *ngIf="hasAttachment && !message?.quoted_message">
+          <ng-template
+            #defaultAttachments
+            let-messageId="messageId"
+            let-attachments="attachments"
+          >
+            <stream-attachment-list
+              [messageId]="messageId"
+              [attachments]="attachments"
+            ></stream-attachment-list>
+          </ng-template>
+          <ng-container
+            *ngTemplateOutlet="
+              attachmentListTemplate || defaultAttachments;
+              context: getAttachmentListContext()
+            "
+          ></ng-container>
+        </ng-container>
         <div class="str-chat__message-text" *ngIf="message?.text">
           <div
             data-testid="inner-message"
@@ -202,7 +254,7 @@
             data-testid="reply-count-button"
             (click)="setAsActiveParentMessage()"
           >
-            <stream-icon icon="reply"></stream-icon>
+            <stream-icon-placeholder icon="reply"></stream-icon-placeholder>
             {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
             replies' | translate:replyCountParam)}}
           </button>
@@ -234,9 +286,9 @@
     <div class="str-chat__tooltip">
       {{ "streamChat.Sending..." | translate }}
     </div>
-    <stream-loading-indicator
+    <stream-loading-indicator-placeholder
       data-testid="loading-indicator"
-    ></stream-loading-indicator>
+    ></stream-loading-indicator-placeholder>
   </span>
 </ng-template>
 <ng-template #readStatus>
@@ -249,13 +301,13 @@
     <div class="str-chat__tooltip" data-testid="read-by-tooltip">
       {{ readByText }}
     </div>
-    <stream-avatar
+    <stream-avatar-placeholder
       class="str-chat-angular__avatar-host"
       data-test-id="last-read-user-avatar"
       [size]="15"
       [imageUrl]="lastReadUser?.image"
       [name]="lastReadUser?.name || lastReadUser?.id"
-    ></stream-avatar>
+    ></stream-avatar-placeholder>
     <span
       data-test-id="read-by-length"
       *ngIf="isReadByMultipleUsers"
@@ -276,10 +328,10 @@
     <div class="str-chat__tooltip">
       {{ "streamChat.Delivered" | translate }}
     </div>
-    <stream-icon
+    <stream-icon-placeholder
       data-testid="delivered-icon"
       icon="delivered-icon"
-    ></stream-icon>
+    ></stream-icon-placeholder>
   </span>
 </ng-template>
 
@@ -311,7 +363,7 @@
     data-testid="quoted-message-container"
     [class.mine]="isSentByCurrentUser"
   >
-    <stream-avatar
+    <stream-avatar-placeholder
       data-testid="qouted-message-avatar"
       class="str-chat-angular__avatar-host"
       [imageUrl]="message?.quoted_message?.user?.image"
@@ -319,7 +371,7 @@
         message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
       "
       [size]="20"
-    ></stream-avatar>
+    ></stream-avatar-placeholder>
     <div class="quoted-message-inner">
       <stream-attachment-list
         *ngIf="

@@ -86,6 +86,7 @@ describe('MessageActionsBoxComponent', () => {
     component = fixture.componentInstance;
     message = mockMessage();
     component.message = message;
+    component.ngOnChanges({ message: {} as SimpleChange });
     nativeElement = fixture.nativeElement as HTMLElement;
     queryActionBox = () =>
       nativeElement.querySelector('[data-testid="action-box"]');
@@ -143,6 +144,7 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should only display the #enabledActions', () => {
     component.enabledActions = [];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryDeleteAction()).toBeNull();
@@ -153,6 +155,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(queryQuoteAction()).toBeNull();
 
     component.enabledActions = ['pin', 'edit-any', 'delete-any'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryDeleteAction()).not.toBeNull();
@@ -166,11 +169,18 @@ describe('MessageActionsBoxComponent', () => {
   it(`should only display 'flag' action for other user's messages`, () => {
     component.enabledActions = ['flag-message'];
     component.isMine = false;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryFlagAction()).not.toBeNull();
 
     component.isMine = true;
+    component.ngOnChanges({
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryFlagAction()).toBeNull();
@@ -178,6 +188,7 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should handle quote action', () => {
     component.enabledActions = ['quote'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
     const spy = TestBed.inject(ChannelService).selectMessageToQuote;
     const action = queryQuoteAction();
@@ -187,6 +198,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(spy).toHaveBeenCalledWith(component.message);
 
     component.enabledActions = ['quote-message'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
     action?.click();
     fixture.detectChanges();
@@ -200,6 +212,10 @@ describe('MessageActionsBoxComponent', () => {
       quoted_message: mockMessage() as any as MessageResponseBase,
     };
     component.enabledActions = ['quote'];
+    component.ngOnChanges({
+      message: {} as SimpleChange,
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryQuoteAction()).toBeNull();
@@ -208,12 +224,17 @@ describe('MessageActionsBoxComponent', () => {
   it('should display the pin action label correctly', () => {
     component.message = { ...message, ...{ pinned: false } };
     component.enabledActions = ['pin'];
+    component.ngOnChanges({
+      message: {} as SimpleChange,
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const pinAction = queryPinAction();
 
     expect(pinAction?.textContent).toContain('Pin');
 
     component.message = { ...message, ...{ pinned: true } };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(pinAction?.textContent).toContain('Unpin');
@@ -221,6 +242,7 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should handle pin action', () => {
     component.enabledActions = ['pin'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
     spyOn(window, 'alert').and.callThrough();
     const action = queryPinAction();
@@ -232,6 +254,9 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should handle mute action', () => {
     component.enabledActions = ['mute'];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     spyOn(window, 'alert').and.callThrough();
     const action = queryMuteAction();
@@ -245,6 +270,7 @@ describe('MessageActionsBoxComponent', () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
     component.enabledActions = ['flag'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
     const action = queryFlagAction();
     action?.click();
@@ -263,6 +289,7 @@ describe('MessageActionsBoxComponent', () => {
     spyOn(notificationService, 'addTemporaryNotification');
     mockChatClient.flagMessage.and.rejectWith();
     component.enabledActions = ['flag'];
+    component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
     const action = queryFlagAction();
     action?.click();
@@ -316,11 +343,16 @@ describe('MessageActionsBoxComponent', () => {
     it('if #enabledActions contains "edit" and #isMine', () => {
       component.enabledActions = ['edit'];
       component.isMine = false;
+      component.ngOnChanges({
+        enabledActions: {} as SimpleChange,
+        isMine: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryEditAction()).toBeNull();
 
       component.isMine = true;
+      component.ngOnChanges({ isMine: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryEditAction()).not.toBeNull();
@@ -329,6 +361,10 @@ describe('MessageActionsBoxComponent', () => {
     it('if #enabledActions contains "edit-any"', () => {
       component.enabledActions = ['edit-any'];
       component.isMine = false;
+      component.ngOnChanges({
+        enabledActions: {} as SimpleChange,
+        isMine: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryEditAction()).not.toBeNull();
@@ -339,11 +375,18 @@ describe('MessageActionsBoxComponent', () => {
     it('if #enabledActions contains "delete" and #isMine', () => {
       component.enabledActions = ['delete'];
       component.isMine = false;
+      component.ngOnChanges({
+        enabledActions: {} as SimpleChange,
+        isMine: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryDeleteAction()).toBeNull();
 
       component.isMine = true;
+      component.ngOnChanges({
+        isMine: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryDeleteAction()).not.toBeNull();
@@ -352,6 +395,10 @@ describe('MessageActionsBoxComponent', () => {
     it('if #enabledActions contains "delete-any-message"', () => {
       component.enabledActions = ['delete-any-message'];
       component.isMine = false;
+      component.ngOnChanges({
+        enabledActions: {} as SimpleChange,
+        isMine: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryDeleteAction()).not.toBeNull();
@@ -362,6 +409,9 @@ describe('MessageActionsBoxComponent', () => {
     const spy = jasmine.createSpy();
     component.isEditing.subscribe(spy);
     component.enabledActions = ['pin', 'edit-any', 'delete', 'flag'];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryEditAction()?.click();
     fixture.detectChanges();
@@ -372,6 +422,10 @@ describe('MessageActionsBoxComponent', () => {
   it('should open modal if user starts to edit', () => {
     component.enabledActions = ['edit'];
     component.isMine = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryEditAction()?.click();
     fixture.detectChanges();
@@ -381,6 +435,9 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should display message input if user starts to edit', () => {
     component.enabledActions = ['edit-any'];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryEditAction()?.click();
     fixture.detectChanges();
@@ -391,6 +448,9 @@ describe('MessageActionsBoxComponent', () => {
   it('should call update message if "Send" button is clicked', () => {
     component.enabledActions = ['edit-any'];
     component.isEditModalOpen = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const messageInputComponent = queryMessageInputComponent();
     spyOn(messageInputComponent, 'messageSent');
@@ -405,6 +465,10 @@ describe('MessageActionsBoxComponent', () => {
   it('should close modal with "Cancel" button', () => {
     component.enabledActions = ['edit'];
     component.isMine = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.isEditing.subscribe(spy);
@@ -421,6 +485,10 @@ describe('MessageActionsBoxComponent', () => {
     component.enabledActions = ['edit'];
     component.isMine = true;
     component.isEditModalOpen = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.isEditing.subscribe(spy);
@@ -436,6 +504,10 @@ describe('MessageActionsBoxComponent', () => {
   it('should close modal if message was updated successfully', () => {
     component.enabledActions = ['edit'];
     component.isMine = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryEditAction()?.click();
     fixture.detectChanges();
@@ -453,6 +525,10 @@ describe('MessageActionsBoxComponent', () => {
   it('should delete message', () => {
     component.enabledActions = ['delete'];
     component.isMine = true;
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryDeleteAction()?.click();
     fixture.detectChanges();
@@ -467,6 +543,9 @@ describe('MessageActionsBoxComponent', () => {
     spyOn(notificationService, 'addTemporaryNotification');
     channelService.deleteMessage.and.rejectWith(new Error('Error'));
     component.enabledActions = ['delete-any'];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     queryDeleteAction()?.click();
     fixture.detectChanges();

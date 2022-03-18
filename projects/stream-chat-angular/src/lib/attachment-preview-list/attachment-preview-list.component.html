@@ -16,11 +16,11 @@
       <div
         *ngIf="attachmentUpload.state === 'error'"
         class="rfu-image-previewer__retry"
-        (click)="retryAttachmentUpload(attachmentUpload.file)"
-        (keyup.enter)="retryAttachmentUpload(attachmentUpload.file)"
+        (click)="attachmentUploadRetried(attachmentUpload.file)"
+        (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
         data-testclass="upload-error"
       >
-        <stream-icon icon="retry"></stream-icon>
+        <stream-icon-placeholder icon="retry"></stream-icon-placeholder>
       </div>
       <div class="rfu-thumbnail__wrapper" style="width: 100; height: 100">
         <div class="rfu-thumbnail__overlay">
@@ -28,10 +28,10 @@
             class="rfu-icon-button"
             data-testclass="delete-attachment"
             role="button"
-            (click)="deleteAttachment(attachmentUpload)"
-            (keyup.enter)="deleteAttachment(attachmentUpload)"
+            (click)="attachmentDeleted(attachmentUpload)"
+            (keyup.enter)="attachmentDeleted(attachmentUpload)"
           >
-            <stream-icon icon="close"></stream-icon>
+            <stream-icon-placeholder icon="close"></stream-icon-placeholder>
           </div>
         </div>
         <img
@@ -46,11 +46,11 @@
           data-testclass="attachment-image"
         />
       </div>
-      <stream-loading-indicator
+      <stream-loading-indicator-placeholder
         data-testclass="loading-indicator"
         color="rgba(255,255,255,0.7)"
         *ngIf="attachmentUpload.state === 'uploading'"
-      ></stream-loading-indicator>
+      ></stream-loading-indicator-placeholder>
     </div>
     <div
       class="rfu-file-previewer"
@@ -67,7 +67,7 @@
             attachmentUpload.state === 'error'
           "
         >
-          <stream-icon icon="file"></stream-icon>
+          <stream-icon-placeholder icon="file"></stream-icon-placeholder>
 
           <a
             data-testclass="file-download-link"
@@ -83,16 +83,16 @@
               <div
                 data-testclass="file-upload-retry"
                 class="rfu-file-previewer__failed"
-                (click)="retryAttachmentUpload(attachmentUpload.file)"
-                (keyup.enter)="retryAttachmentUpload(attachmentUpload.file)"
+                (click)="attachmentUploadRetried(attachmentUpload.file)"
+                (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
                 translate
               >
                 streamChat.failed
               </div>
               <div
                 class="rfu-file-previewer__retry"
-                (click)="retryAttachmentUpload(attachmentUpload.file)"
-                (keyup.enter)="retryAttachmentUpload(attachmentUpload.file)"
+                (click)="attachmentUploadRetried(attachmentUpload.file)"
+                (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
                 translate
               >
                 streamChat.retry
@@ -103,8 +103,8 @@
           <span
             data-testclass="file-delete"
             class="rfu-file-previewer__close-button"
-            (click)="deleteAttachment(attachmentUpload)"
-            (keyup.enter)="deleteAttachment(attachmentUpload)"
+            (click)="attachmentDeleted(attachmentUpload)"
+            (keyup.enter)="attachmentDeleted(attachmentUpload)"
           >
             ✘
           </span>
@@ -112,7 +112,7 @@
             *ngIf="attachmentUpload.state === 'uploading'"
             class="rfu-file-previewer__loading-indicator"
           >
-            <stream-loading-indicator></stream-loading-indicator>
+            <stream-loading-indicator-placeholder></stream-loading-indicator-placeholder>
           </div>
         </li>
       </ol>

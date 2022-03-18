@@ -1,7 +1,8 @@
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChannelService } from '../channel.service';
-import { StreamMessage } from '../types';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { StreamMessage, ThreadHeaderContext } from '../types';
 
 /**
  * The `Thread` component represents a [message thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript), it is a container component that displays a thread with a header, [`MessageList`](./MessageListComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components.
@@ -16,7 +17,10 @@ export class ThreadComponent implements OnDestroy {
   parentMessage: StreamMessage | undefined;
   private subscriptions: Subscription[] = [];
 
-  constructor(private channelService: ChannelService) {
+  constructor(
+    public customTemplatesService: CustomTemplatesService,
+    private channelService: ChannelService
+  ) {
     this.subscriptions.push(
       this.channelService.activeParentMessage$.subscribe(
         (parentMessage) => (this.parentMessage = parentMessage)
@@ -28,8 +32,15 @@ export class ThreadComponent implements OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  get replyCountParam() {
-    return { replyCount: this.parentMessage?.reply_count };
+  getThreadHeaderContext(): ThreadHeaderContext {
+    return {
+      parentMessage: this.parentMessage,
+      closeThreadHandler: () => this.closeThread(),
+    };
+  }
+
+  getReplyCountParam(parentMessage: StreamMessage | undefined) {
+    return { replyCount: parentMessage?.reply_count };
   }
 
   closeThread() {

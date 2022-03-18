@@ -20,6 +20,8 @@ import { ModalComponent } from './modal/modal.component';
 import { TextareaDirective } from './message-input/textarea.directive';
 import { StreamAvatarModule } from './stream-avatar.module';
 import { ThreadComponent } from './thread/thread.component';
+import { IconPlaceholderComponent } from './icon-placeholder/icon-placeholder.component';
+import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeholder/loading-indicator-placeholder.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +43,8 @@ import { ThreadComponent } from './thread/thread.component';
     ModalComponent,
     TextareaDirective,
     ThreadComponent,
+    IconPlaceholderComponent,
+    LoadingIndicatorPlaceholderComponent,
   ],
   imports: [CommonModule, TranslateModule, StreamAvatarModule],
   exports: [
@@ -62,6 +66,8 @@ import { ThreadComponent } from './thread/thread.component';
     ModalComponent,
     StreamAvatarModule,
     ThreadComponent,
+    IconPlaceholderComponent,
+    LoadingIndicatorPlaceholderComponent,
   ],
 })
 export class StreamChatModule {}

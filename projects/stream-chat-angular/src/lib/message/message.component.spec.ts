@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MessageResponseBase, UserResponse } from 'stream-chat';
+import {
+  MessageResponseBase,
+  ReactionResponse,
+  UserResponse,
+} from 'stream-chat';
 import { DefaultUserType, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -15,6 +19,7 @@ import { MessageReactionsComponent } from '../message-reactions/message-reaction
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -37,6 +42,7 @@ describe('MessageComponent', () => {
   let messageActionsBoxComponent: MessageActionsBoxComponent;
   let queryAttachmentComponent: () => AttachmentListComponent;
   let queryReactionIcon: () => HTMLElement | null;
+  let queryMessageReactions: () => MessageReactionsComponent;
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
@@ -63,6 +69,7 @@ describe('MessageComponent', () => {
         MessageActionsBoxComponent,
         AttachmentListComponent,
         MessageReactionsComponent,
+        AvatarPlaceholderComponent,
       ],
       providers: [
         {
@@ -103,6 +110,9 @@ describe('MessageComponent', () => {
     queryText = () => nativeElement.querySelector('[data-testid="text"]');
     queryReactionIcon = () =>
       nativeElement.querySelector('[data-testid="reaction-icon"]');
+    queryMessageReactions = () =>
+      fixture.debugElement.query(By.directive(MessageReactionsComponent))
+        .componentInstance as MessageReactionsComponent;
     queryMessageInner = () =>
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
@@ -561,17 +571,48 @@ describe('MessageComponent', () => {
   });
 
   it('should display reactions icon, if user can react to message', () => {
+    const message = {
+      ...mockMessage(),
+      id: 'messagId',
+      reaction_counts: { haha: 1 },
+      latest_reactions: [
+        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
+        { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+      ] as ReactionResponse[],
+      own_reactions: [
+        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
+      ] as any as ReactionResponse[],
+      text: 'Hi',
+    };
+    component.message = message as any as StreamMessage;
     component.enabledMessageActions = [];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    component.ngOnChanges({
+      enabledMessageActions: {} as SimpleChange,
+      message: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryReactionIcon()).toBeNull();
 
     component.enabledMessageActions = ['send-reaction'];
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    component.isReactionSelectorOpen = true;
     fixture.detectChanges();
+    const messageReactions = queryMessageReactions();
 
     expect(queryReactionIcon()).not.toBeNull();
+    expect(messageReactions.messageId).toBe(message.id);
+    expect(messageReactions.latestReactions).toBe(message.latest_reactions);
+    expect(messageReactions.messageReactionCounts).toBe(
+      message.reaction_counts
+    );
+
+    expect(messageReactions.ownReactions).toBe(message.own_reactions);
+    expect(messageReactions.isSelectorOpen).toBe(true);
+
+    messageReactions.isSelectorOpenChange.next(false);
+
+    expect(component.isReactionSelectorOpen).toBeFalse();
   });
 
   it('should toggle reactions selector', () => {

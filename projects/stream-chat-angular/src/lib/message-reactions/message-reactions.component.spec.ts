@@ -8,12 +8,11 @@ import { ReactionResponse } from 'stream-chat';
 import { By } from '@angular/platform-browser';
 import { AvatarComponent } from '../avatar/avatar.component';
 
-import {
-  MessageReactionType,
-  MessageReactionsComponent,
-} from './message-reactions.component';
+import { MessageReactionsComponent } from './message-reactions.component';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { MessageReactionType } from '../types';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -29,7 +28,7 @@ describe('MessageReactionsComponent', () => {
   ) => HTMLElement | null;
   let queryReactionAvatarComponent: (
     type: MessageReactionType
-  ) => AvatarComponent;
+  ) => AvatarPlaceholderComponent;
   let queryReactionLastUser: (type: MessageReactionType) => HTMLElement | null;
   let querySelectorTooltip: () => HTMLElement | null;
   const channelServiceMock = {
@@ -41,7 +40,11 @@ describe('MessageReactionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [MessageReactionsComponent, AvatarComponent],
+      declarations: [
+        MessageReactionsComponent,
+        AvatarComponent,
+        AvatarPlaceholderComponent,
+      ],
       providers: [{ provide: ChannelService, useValue: channelServiceMock }],
     }).compileComponents();
   });
@@ -67,7 +70,7 @@ describe('MessageReactionsComponent', () => {
       nativeElement.querySelector(`[data-testid=${type}-reaction-count]`);
     queryReactionAvatarComponent = (type) =>
       fixture.debugElement.query(By.css(`[data-testid="${type}-avatar"]`))
-        ?.componentInstance as AvatarComponent;
+        ?.componentInstance as AvatarPlaceholderComponent;
     querySelectorTooltip = () =>
       nativeElement.querySelector('[data-testid="tooltip"]');
     queryReactionLastUser = (type) =>

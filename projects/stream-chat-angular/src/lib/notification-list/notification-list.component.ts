@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
+import { CustomTemplatesService } from '../custom-templates.service';
 import { NotificationService } from '../notification.service';
 import { NotificationPayload } from '../types';
 
@@ -14,7 +15,10 @@ import { NotificationPayload } from '../types';
 export class NotificationListComponent {
   notifications$: Observable<NotificationPayload[]>;
 
-  constructor(private notificationService: NotificationService) {
+  constructor(
+    public readonly customTemplatesService: CustomTemplatesService,
+    private notificationService: NotificationService
+  ) {
     this.notifications$ = this.notificationService.notifications$;
   }
 
@@ -22,7 +26,7 @@ export class NotificationListComponent {
     return item.id;
   }
 
-  getTemplateContext(notification: NotificationPayload) {
+  getNotificationContentContext(notification: NotificationPayload) {
     return {
       ...notification.templateContext,
       dismissFn: notification.dismissFn,

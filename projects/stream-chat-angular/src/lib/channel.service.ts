@@ -21,9 +21,8 @@ import {
 } from 'stream-chat';
 import { ChatClientService, Notification } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
-import { MessageReactionType } from './message-reactions/message-reactions.component';
 import { getReadBy } from './read-by';
-import { AttachmentUpload, StreamMessage } from './types';
+import { AttachmentUpload, MessageReactionType, StreamMessage } from './types';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list. TEST

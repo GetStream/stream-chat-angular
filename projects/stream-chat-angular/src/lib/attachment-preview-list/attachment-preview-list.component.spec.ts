@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { AttachmentService } from '../attachment.service';
 import { AttachmentUpload } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
@@ -8,30 +7,16 @@ import { AttachmentPreviewListComponent } from './attachment-preview-list.compon
 describe('AttachmentPreviewListComponent', () => {
   let component: AttachmentPreviewListComponent;
   let fixture: ComponentFixture<AttachmentPreviewListComponent>;
-  let attachmentService: {
-    attachmentUploads$: Subject<AttachmentUpload[]>;
-    retryAttachmentUpload: jasmine.Spy;
-    deleteAttachment: jasmine.Spy;
-  };
+  let attachmentUploads$: Subject<AttachmentUpload[]>;
   let queryImagePreviews: () => HTMLElement[];
   let queryLoadingIndicators: () => HTMLElement[];
   let queryPreviewImages: () => HTMLImageElement[];
   let queryPreviewFiles: () => HTMLElement[];
 
   beforeEach(async () => {
-    attachmentService = {
-      attachmentUploads$: new BehaviorSubject<AttachmentUpload[]>([]),
-      retryAttachmentUpload: jasmine.createSpy(),
-      deleteAttachment: jasmine.createSpy(),
-    };
+    attachmentUploads$ = new BehaviorSubject<AttachmentUpload[]>([]);
     await TestBed.configureTestingModule({
       declarations: [AttachmentPreviewListComponent],
-      providers: [
-        {
-          provide: AttachmentService,
-          useValue: attachmentService,
-        },
-      ],
     }).compileComponents();
   });
 
@@ -59,11 +44,12 @@ describe('AttachmentPreviewListComponent', () => {
           '[data-testclass="attachment-file-preview"]'
         )
       );
+    component.attachmentUploads$ = attachmentUploads$;
     fixture.detectChanges();
   });
 
   it('should display image preview - uploading', () => {
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       {
         file: { name: 'my_image.png', type: 'image/png' } as any as File,
         type: 'image',
@@ -95,7 +81,7 @@ describe('AttachmentPreviewListComponent', () => {
 
   it('should display image preview - success', () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       { file, state: 'success', url: 'url/to/image', type: 'image' },
     ]);
     fixture.detectChanges();
@@ -114,7 +100,7 @@ describe('AttachmentPreviewListComponent', () => {
   it('should display image preview - error', () => {
     const file1 = { name: 'my_image.png', type: 'image/png' } as File;
     const file2 = { name: 'my_image2.png', type: 'image/png' } as File;
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
       { file: file2, state: 'error', type: 'image' },
     ]);
@@ -135,7 +121,7 @@ describe('AttachmentPreviewListComponent', () => {
   });
 
   it('should display file preview - uploading', () => {
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       {
         file: { name: 'my_image2.png' } as File,
         type: 'image',
@@ -159,7 +145,7 @@ describe('AttachmentPreviewListComponent', () => {
   it('should display file preview - success', () => {
     const fileName = 'note.txt';
     const url = 'url/to/download';
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       {
         file: { name: fileName, type: 'plain/text' } as File,
         state: 'success',
@@ -182,7 +168,7 @@ describe('AttachmentPreviewListComponent', () => {
   });
 
   it('should display file preview - error', () => {
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       {
         file: { name: 'note.txt', type: 'plain/text' } as File,
         state: 'success',
@@ -210,7 +196,7 @@ describe('AttachmentPreviewListComponent', () => {
   it('should display attachment url or preview', () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
     const previewUri = 'data:...';
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       { file, state: 'uploading', previewUri, type: 'image' },
     ]);
     fixture.detectChanges();
@@ -219,9 +205,7 @@ describe('AttachmentPreviewListComponent', () => {
     expect(previewImage.src).toContain(previewUri);
 
     const url = 'url/to/img';
-    attachmentService.attachmentUploads$.next([
-      { file, state: 'success', url, type: 'image' },
-    ]);
+    attachmentUploads$.next([{ file, state: 'success', url, type: 'image' }]);
     fixture.detectChanges();
 
     expect(previewImage.src).toContain(url);
@@ -233,20 +217,18 @@ describe('AttachmentPreviewListComponent', () => {
       state: 'error',
       type: 'file',
     } as AttachmentUpload;
-    attachmentService.attachmentUploads$.next([upload]);
+    attachmentUploads$.next([upload]);
     fixture.detectChanges();
+    const spy = jasmine.createSpy();
+    component.retryAttachmentUpload.subscribe(spy);
     const filePreviews = queryPreviewFiles();
     const retryButton = filePreviews[0].querySelector(
       '[data-testclass="file-upload-retry"]'
     ) as HTMLButtonElement;
-    spyOn(component, 'retryAttachmentUpload').and.callThrough();
     retryButton.click();
     fixture.detectChanges();
 
-    expect(component.retryAttachmentUpload).toHaveBeenCalledWith(upload.file);
-    expect(attachmentService.retryAttachmentUpload).toHaveBeenCalledWith(
-      upload.file
-    );
+    expect(spy).toHaveBeenCalledWith(upload.file);
   });
 
   it('should delete file', () => {
@@ -256,31 +238,29 @@ describe('AttachmentPreviewListComponent', () => {
       url: 'url',
       type: 'file',
     } as AttachmentUpload;
-    attachmentService.attachmentUploads$.next([upload]);
+    attachmentUploads$.next([upload]);
     fixture.detectChanges();
     const filePreviews = queryPreviewFiles();
     const deleteButton = filePreviews[0].querySelector(
       '[data-testclass="file-delete"]'
     ) as HTMLButtonElement;
-    spyOn(component, 'deleteAttachment').and.callThrough();
+    const spy = jasmine.createSpy();
+    component.deleteAttachment.subscribe(spy);
     deleteButton.click();
     fixture.detectChanges();
 
-    expect(component.deleteAttachment).toHaveBeenCalledWith(upload);
-    expect(attachmentService.deleteAttachment).toHaveBeenCalledWith(upload);
+    expect(spy).toHaveBeenCalledWith(upload);
   });
 
   it('should retry image upload', () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
-    attachmentService.attachmentUploads$.next([
-      { file, state: 'error', type: 'image' },
-    ]);
+    attachmentUploads$.next([{ file, state: 'error', type: 'image' }]);
     fixture.detectChanges();
     const retryButton = queryImagePreviews()[0].querySelector(
       '[data-testclass="upload-error"]'
     ) as HTMLButtonElement;
     retryButton.click();
-    attachmentService.attachmentUploads$.next([
+    attachmentUploads$.next([
       { file, state: 'success', url: 'image/url', type: 'image' },
     ]);
     fixture.detectChanges();
@@ -297,7 +277,7 @@ describe('AttachmentPreviewListComponent', () => {
       url: 'url/to/file',
       type: 'file',
     } as AttachmentUpload;
-    attachmentService.attachmentUploads$.next([upload]);
+    attachmentUploads$.next([upload]);
     fixture.detectChanges();
     const link = queryPreviewFiles()[0].querySelector(
       '[data-testclass="file-download-link"]'
@@ -317,7 +297,7 @@ describe('AttachmentPreviewListComponent', () => {
       state: 'error',
       type: 'file',
     } as AttachmentUpload;
-    attachmentService.attachmentUploads$.next([upload]);
+    attachmentUploads$.next([upload]);
     fixture.detectChanges();
     const link = queryPreviewFiles()[0].querySelector(
       '[data-testclass="file-download-link"]'

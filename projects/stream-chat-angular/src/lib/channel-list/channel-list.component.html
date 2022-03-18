@@ -52,7 +52,7 @@
             "Load more" | translate
           }}</span>
           <ng-template #loadingIndicator
-            ><stream-loading-indicator></stream-loading-indicator
+            ><stream-loading-indicator-placeholder></stream-loading-indicator-placeholder
           ></ng-template>
         </button>
       </div>
@@ -73,7 +73,9 @@
   <div data-testid="chatdown-container" class="str-chat__down">
     <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
     <div class="str-chat__down-main">
-      <stream-icon icon="connection-error"></stream-icon>
+      <stream-icon-placeholder
+        icon="connection-error"
+      ></stream-icon-placeholder>
       <h1>{{ "streamChat.Connection error" | translate }}</h1>
       <h3>
         {{

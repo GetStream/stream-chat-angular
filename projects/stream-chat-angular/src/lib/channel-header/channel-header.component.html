@@ -4,12 +4,12 @@
     (click)="toggleMenu($event)"
     (keyup.enter)="toggleMenu($event)"
   >
-    <stream-icon icon="menu"></stream-icon>
+    <stream-icon-placeholder icon="menu"></stream-icon-placeholder>
   </div>
-  <stream-avatar
+  <stream-avatar-placeholder
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ activeChannel?.data?.name }}"
-  ></stream-avatar>
+  ></stream-avatar-placeholder>
   <div class="str-chat__header-livestream-left">
     <p data-testid="name" class="str-chat__header-livestream-left--title">
       {{ activeChannel?.data?.name }}
