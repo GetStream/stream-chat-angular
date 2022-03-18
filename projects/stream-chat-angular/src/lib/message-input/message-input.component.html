@@ -74,7 +74,7 @@
             <ng-container
               *ngTemplateOutlet="
                 emojiPickerTemplate;
-                context: { emojiInput$: emojiInputService.emojiInput$ }
+                context: getEmojiPickerContext()
               "
             ></ng-container>
           </div>
@@ -95,8 +95,6 @@
           [componentRef]="textareaRef"
           (userMentions)="mentionedUsers = $event"
           [areMentionsEnabled]="areMentionsEnabled"
-          [mentionAutocompleteItemTemplate]="mentionAutocompleteItemTemplate"
-          [commandAutocompleteItemTemplate]="commandAutocompleteItemTemplate"
           [mentionScope]="mentionScope"
         ></ng-template>
         <ng-template #notAllowed>

@@ -25,6 +25,7 @@ import { ChatClientService } from '../../chat-client.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
+import { CustomTemplatesService } from '../../custom-templates.service';
 
 /**
  * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
@@ -47,18 +48,6 @@ export class AutocompleteTextareaComponent
    */
   @Input() areMentionsEnabled: boolean | undefined = true;
   /**
-   * You can provide your own template for the autocomplete list for user mentions. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
-   */
-  @Input() mentionAutocompleteItemTemplate:
-    | TemplateRef<MentionAutcompleteListItemContext>
-    | undefined;
-  /**
-   * You can provide your own template for the autocomplete list for commands. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
-   */
-  @Input() commandAutocompleteItemTemplate:
-    | TemplateRef<CommandAutocompleteListItemContext>
-    | undefined;
-  /**
    * The scope for user mentions, either members of the current channel of members of the application. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
    */
   @Input() mentionScope: 'channel' | 'application' = 'channel';
@@ -74,6 +63,12 @@ export class AutocompleteTextareaComponent
    * Emits the array of users that are mentioned in the message, it is updated when a user mentions a new user or deletes a mention.
    */
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
+  mentionAutocompleteItemTemplate:
+    | TemplateRef<MentionAutcompleteListItemContext>
+    | undefined;
+  commandAutocompleteItemTemplate:
+    | TemplateRef<CommandAutocompleteListItemContext>
+    | undefined;
   private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
   private readonly commandTriggerChar = '/';
@@ -113,7 +108,8 @@ export class AutocompleteTextareaComponent
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
     private transliterationService: TransliterationService,
-    private emojiInputService: EmojiInputService
+    private emojiInputService: EmojiInputService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.searchTerm$
       .pipe(debounceTime(300), distinctUntilChanged())
@@ -146,6 +142,16 @@ export class AutocompleteTextareaComponent
           selectionStart! + emoji.length;
         this.inputChanged();
       })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.mentionAutocompleteItemTemplate$.subscribe(
+        (template) => (this.mentionAutocompleteItemTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.commandAutocompleteItemTemplate$.subscribe(
+        (template) => (this.commandAutocompleteItemTemplate = template)
+      )
     );
     this.autocompleteConfig.mentions = [
       this.userMentionConfig,

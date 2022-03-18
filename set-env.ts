@@ -1,7 +1,10 @@
 const fs = require('fs');
 const writeFile = fs.writeFile;
 
-const targetPath = `projects/sample-app/src/environments/environment.ts`;
+const targetPathes = [
+  'projects/sample-app/src/environments/environment.ts',
+  'projects/customizations-example/src/environments/environment.ts',
+];
 
 require('dotenv').config();
 
@@ -26,12 +29,14 @@ const envConfigFile = `export const environment = {
   // I am a generated file, do not modify me directly, see set-env script
   `;
 
-writeFile(targetPath, envConfigFile, (err: any) => {
-  if (err) {
-    throw err;
-  } else {
-    console.log(
-      `Angular environment.ts file generated correctly at ${targetPath} \n`
-    );
-  }
+targetPathes.forEach((targetPath) => {
+  writeFile(targetPath, envConfigFile, (err: any) => {
+    if (err) {
+      throw err;
+    } else {
+      console.log(
+        `Angular environment.ts file generated correctly at ${targetPath} \n`
+      );
+    }
+  });
 });

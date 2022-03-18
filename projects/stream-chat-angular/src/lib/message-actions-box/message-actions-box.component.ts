@@ -3,16 +3,19 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 import { MessageInputComponent } from '../message-input/message-input.component';
 import { NotificationService } from '../notification.service';
-import { StreamMessage } from '../types';
+import { MessageInputContext, StreamMessage } from '../types';
 /**
  * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](../concepts/message-interactions.mdx) in the message interaction guide.
  */
@@ -21,11 +24,7 @@ import { StreamMessage } from '../types';
   templateUrl: './message-actions-box.component.html',
   styles: [],
 })
-export class MessageActionsBoxComponent implements OnChanges {
-  /**
-   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
-   */
-  @Input() messageInputTemplate: TemplateRef<any> | undefined;
+export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
   /**
    * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
    */
@@ -51,6 +50,8 @@ export class MessageActionsBoxComponent implements OnChanges {
    */
   @Output() readonly isEditing = new EventEmitter<boolean>();
   isEditModalOpen = false;
+  messageInputTemplate: TemplateRef<MessageInputContext> | undefined;
+  subscriptions: Subscription[] = [];
   @ViewChild(MessageInputComponent) private messageInput:
     | MessageInputComponent
     | undefined;
@@ -58,8 +59,15 @@ export class MessageActionsBoxComponent implements OnChanges {
   constructor(
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
-    private channelService: ChannelService
-  ) {}
+    private channelService: ChannelService,
+    private customTemplatesService: CustomTemplatesService
+  ) {
+    this.subscriptions.push(
+      this.customTemplatesService.messageInputTemplate$.subscribe(
+        (template) => (this.messageInputTemplate = template)
+      )
+    );
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.isMine || changes.enabledActions) {
@@ -84,6 +92,10 @@ export class MessageActionsBoxComponent implements OnChanges {
       }
       this.displayedActionsCount.next(displayedActionsCount);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   get isQuoteVisible() {
@@ -169,6 +181,18 @@ export class MessageActionsBoxComponent implements OnChanges {
     this.isEditModalOpen = false;
     this.isEditing.emit(false);
   };
+
+  getMessageInputContext(): MessageInputContext {
+    return {
+      message: this.message,
+      messageUpdateHandler: this.modalClosed,
+      isFileUploadEnabled: undefined,
+      areMentionsEnabled: undefined,
+      isMultipleFileUploadEnabled: undefined,
+      mentionScope: undefined,
+      mode: undefined,
+    };
+  }
 
   async deleteClicked() {
     try {

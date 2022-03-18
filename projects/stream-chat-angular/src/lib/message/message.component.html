@@ -67,7 +67,6 @@
               [message]="message"
               (displayedActionsCount)="visibleMessageActionsCount = $event"
               (isEditing)="isEditing = $event; isActionBoxOpen = !isEditing"
-              [messageInputTemplate]="messageInputTemplate"
             ></stream-message-actions-box>
             <stream-icon
               *ngIf="visibleMessageActionsCount > 0"
@@ -177,17 +176,15 @@
                     [innerHTML]="part.content"
                   ></span>
                   <ng-template #mention>
-                    <ng-container *ngIf="mentionTemplate; else defaultMention">
-                      <ng-container
-                        *ngTemplateOutlet="
-                          mentionTemplate;
-                          context: { user: part.user! }
-                        "
-                      ></ng-container>
-                    </ng-container>
-                    <ng-template #defaultMention>
-                      <b>{{ part.content }}</b>
+                    <ng-template #defaultMention let-content="content">
+                      <b>{{ content }}</b>
                     </ng-template>
+                    <ng-container
+                      *ngTemplateOutlet="
+                        mentionTemplate || defaultMention;
+                        context: getMentionContext(part)
+                      "
+                    ></ng-container>
                   </ng-template>
                 </ng-container>
               </p>

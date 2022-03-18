@@ -10,6 +10,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -24,17 +25,13 @@ import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
-import {
-  AttachmentUpload,
-  CommandAutocompleteListItemContext,
-  MentionAutcompleteListItemContext,
-  StreamMessage,
-} from '../types';
+import { AttachmentUpload, EmojiPickerContext, StreamMessage } from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
@@ -46,7 +43,7 @@ import { EmojiInputService } from './emoji-input.service';
   providers: [AttachmentService, EmojiInputService],
 })
 export class MessageInputComponent
-  implements OnChanges, OnDestroy, AfterViewInit
+  implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
    * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
@@ -60,22 +57,6 @@ export class MessageInputComponent
    * The scope for user mentions, either members of the current channel of members of the application. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
    */
   @Input() mentionScope: 'channel' | 'application' | undefined;
-  /**
-   * You can provide your own template for the autocomplete list for user mentions. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   */
-  @Input() mentionAutocompleteItemTemplate:
-    | TemplateRef<MentionAutcompleteListItemContext>
-    | undefined;
-  /**
-   * You can provide your own template for the autocomplete list for commands. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   */
-  @Input() commandAutocompleteItemTemplate:
-    | TemplateRef<CommandAutocompleteListItemContext>
-    | undefined;
-  /**
-   * You can add an emoji picker by [providing your own emoji picker template](../code-examples/emoji-picker.mdx)
-   */
-  @Input() emojiPickerTemplate: TemplateRef<void> | undefined;
   /**
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
@@ -103,6 +84,7 @@ export class MessageInputComponent
   typingStart$ = new Subject<void>();
   cooldown$: Observable<number> | undefined;
   isCooldownInProgress = false;
+  emojiPickerTemplate: TemplateRef<EmojiPickerContext> | undefined;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -121,7 +103,8 @@ export class MessageInputComponent
     private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
     private chatClient: ChatClientService,
-    public emojiInputService: EmojiInputService
+    private emojiInputService: EmojiInputService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
@@ -169,12 +152,7 @@ export class MessageInputComponent
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
     this.areMentionsEnabled = this.configService.areMentionsEnabled;
-    this.mentionAutocompleteItemTemplate =
-      this.configService.mentionAutocompleteItemTemplate;
     this.mentionScope = this.configService.mentionScope;
-    this.commandAutocompleteItemTemplate =
-      this.configService.commandAutocompleteItemTemplate;
-    this.emojiPickerTemplate = this.configService.emojiPickerTemplate;
 
     this.subscriptions.push(
       this.typingStart$.subscribe(
@@ -216,6 +194,15 @@ export class MessageInputComponent
     );
   }
 
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.emojiPickerTemplate$.subscribe((template) => {
+        this.emojiPickerTemplate = template;
+        this.cdRef.detectChanges();
+      })
+    );
+  }
+
   ngAfterViewInit(): void {
     this.isViewInited = true;
     this.initTextarea();
@@ -241,19 +228,8 @@ export class MessageInputComponent
     if (changes.areMentionsEnabled) {
       this.configService.areMentionsEnabled = this.areMentionsEnabled;
     }
-    if (changes.mentionAutocompleteItemTemplate) {
-      this.configService.mentionAutocompleteItemTemplate =
-        this.mentionAutocompleteItemTemplate;
-    }
-    if (changes.commandAutocompleteItemTemplate) {
-      this.configService.commandAutocompleteItemTemplate =
-        this.commandAutocompleteItemTemplate;
-    }
     if (changes.mentionScope) {
       this.configService.mentionScope = this.mentionScope;
-    }
-    if (changes.emojiPickerTemplate) {
-      this.configService.emojiPickerTemplate = this.emojiPickerTemplate;
     }
     if (changes.mode) {
       this.setCanSendMessages();
@@ -357,6 +333,12 @@ export class MessageInputComponent
 
   deselectMessageToQuote() {
     this.channelService.selectMessageToQuote(undefined);
+  }
+
+  getEmojiPickerContext(): EmojiPickerContext {
+    return {
+      emojiInput$: this.emojiInputService.emojiInput$,
+    };
   }
 
   private clearFileInput() {
