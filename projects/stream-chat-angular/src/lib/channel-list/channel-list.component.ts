@@ -2,14 +2,16 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  Input,
+  OnDestroy,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subscription } from 'rxjs';
 import { catchError, map, startWith } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { ChannelPreviewContext } from '../types';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 
 /**
@@ -20,22 +22,21 @@ import { ChannelListToggleService } from './channel-list-toggle.service';
   templateUrl: './channel-list.component.html',
   styles: [],
 })
-export class ChannelListComponent implements AfterViewInit {
-  /**
-   * By default, the [default preview component](./ChannelPreviewComponent.mdx) is used. To change the contents of the channel list, [provide your own custom template](./ChannelPreviewComponent.mdx/#customization).
-   */
-  @Input() customChannelPreviewTemplate: TemplateRef<any> | undefined;
+export class ChannelListComponent implements AfterViewInit, OnDestroy {
   channels$: Observable<Channel[] | undefined>;
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
   isLoadingMoreChannels = false;
   isOpen$: Observable<boolean>;
   hasMoreChannels$: Observable<boolean>;
+  customChannelPreviewTemplate: TemplateRef<ChannelPreviewContext> | undefined;
+  subscriptions: Subscription[] = [];
   @ViewChild('container') private container!: ElementRef<HTMLElement>;
 
   constructor(
     private channelService: ChannelService,
-    private channelListToggleService: ChannelListToggleService
+    private channelListToggleService: ChannelListToggleService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.isOpen$ = this.channelListToggleService.isOpen$;
     this.channels$ = this.channelService.channels$;
@@ -49,9 +50,18 @@ export class ChannelListComponent implements AfterViewInit {
       map((channels) => !channels),
       catchError(() => of(false))
     );
+    this.subscriptions.push(
+      this.customTemplatesService.channelPreviewTemplate$.subscribe(
+        (template) => (this.customChannelPreviewTemplate = template)
+      )
+    );
   }
   ngAfterViewInit(): void {
     this.channelListToggleService.setMenuElement(this.container.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   async loadMoreChannels() {
@@ -66,5 +76,11 @@ export class ChannelListComponent implements AfterViewInit {
 
   channelSelected() {
     this.channelListToggleService.channelSelected();
+  }
+
+  getChannelPreviewContext(channel: Channel): ChannelPreviewContext {
+    return {
+      channel,
+    };
   }
 }

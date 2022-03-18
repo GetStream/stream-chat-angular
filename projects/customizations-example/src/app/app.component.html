@@ -1,0 +1,125 @@
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <stream-channel>
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-notification-list></stream-notification-list>
+    <stream-message-input
+      style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+    ></stream-message-input>
+    <stream-thread name="thread">
+      <stream-message-list
+        name="thread-message-list"
+        mode="thread"
+      ></stream-message-list>
+      <stream-message-input
+        style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+        name="thread-message-input"
+        mode="thread"
+      ></stream-message-input>
+    </stream-thread>
+  </stream-channel>
+</div>
+
+<ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
+  <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
+</ng-template>
+
+<ng-template #channelPreviewTemplate let-channel="channel">
+  <div
+    style="
+      padding: 10px;
+      background-color: rgba(255, 192, 203, 0.4);
+      border-radius: var(--border-radius-md);
+      margin: 10px;
+      cursor: pointer;
+    "
+    (click)="channelService.setAsActiveChannel(channel)"
+    (keyup.enter)="channelService.setAsActiveChannel(channel)"
+  >
+    {{ channel?.data?.name || channel?.data?.id }}
+  </div>
+</ng-template>
+
+<ng-template
+  #messageTemplate
+  let-message="message"
+  let-isLastSentMessage="isLastSentMessage"
+  let-enabledMessageActions="enabledMessageActions"
+  let-mode="mode"
+>
+  <div
+    style="
+      padding: 15px;
+      margin: 15px;
+      background-color: rgba(255, 192, 203, 0.4);
+      border-radius: var(--border-radius-md);
+    "
+  >
+    <stream-message
+      [message]="message"
+      [isLastSentMessage]="isLastSentMessage"
+      [enabledMessageActions]="enabledMessageActions"
+      [mode]="mode"
+    ></stream-message>
+  </div>
+</ng-template>
+
+<ng-template
+  #customMessageInputTemplate
+  let-message="message"
+  let-isFileUploadEnabled="isFileUploadEnabled"
+  let-areMentionsEnabled="areMentionsEnabled"
+  let-mentionScope="mentionScope"
+  let-mode="mode"
+  let-isMultipleFileUploadEnabled="isMultipleFileUploadEnabled"
+  let-messageUpdateHandler="messageUpdateHandler"
+>
+  <stream-message-input
+    style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+    [message]="message"
+    [isFileUploadEnabled]="isFileUploadEnabled"
+    [areMentionsEnabled]="areMentionsEnabled"
+    [mentionScope]="mentionScope"
+    [mode]="mode"
+    [isMultipleFileUploadEnabled]="isMultipleFileUploadEnabled"
+    (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
+  ></stream-message-input>
+</ng-template>
+
+<ng-template #mentionTemplate let-user="user">
+  <span style="color: pink; font-weight: bold">{{
+    user?.id || user?.name
+  }}</span>
+</ng-template>
+
+<ng-template #typingIndicator let-usersTyping$="usersTyping$">
+  <div
+    style="color: pink"
+    *ngIf="$any(usersTyping$ | async)?.length"
+    class="str-chat__typing-indicator str-chat__typing-indicator--typing"
+  >
+    Currently typing...&nbsp;
+    <!--eslint-disable-next-line @angular-eslint/template/use-track-by-function-->
+    <span *ngFor="let user of usersTyping$ | async">{{
+      user.name || user.id
+    }}</span>
+  </div>
+</ng-template>
+
+<ng-template #mentionAutocompleteItemTemplate let-item="item">
+  <div style="color: pink">{{ item.autocompleteLabel }} - {{ item.role }}</div>
+</ng-template>
+
+<ng-template #commandAutocompleteItemTemplate let-item="item">
+  <div style="color: pink">
+    {{ item.autocompleteLabel | uppercase }} ({{ item.description }})
+  </div>
+</ng-template>
+
+<ng-template #channelActionsTemplate let-channel="channel">
+  <span style="color: pink">
+    You can add action buttons to manage
+    {{ channel?.data?.name || channel?.id }} channel
+  </span>
+</ng-template>

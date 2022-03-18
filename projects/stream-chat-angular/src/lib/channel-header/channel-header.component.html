@@ -24,7 +24,7 @@
     <ng-container
       *ngTemplateOutlet="
         channelActionsTemplate;
-        context: { channel: activeChannel }
+        context: getChannelActionsContext()
       "
     ></ng-container>
   </ng-container>

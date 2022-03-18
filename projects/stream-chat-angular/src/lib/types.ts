@@ -1,6 +1,8 @@
 import { TemplateRef } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 import type {
   Attachment,
+  Channel,
   ChannelMemberResponse,
   CommandResponse,
   Event,
@@ -114,3 +116,39 @@ export type NotificationPayload<T = {}> = {
   templateContext?: T;
   dismissFn: Function;
 };
+
+export type ChannelPreviewContext = {
+  channel: Channel;
+};
+
+export type MessageInputContext = {
+  isFileUploadEnabled: boolean | undefined;
+  areMentionsEnabled: boolean | undefined;
+  mentionScope: 'channel' | 'application' | undefined;
+  mode: 'thread' | 'main' | undefined;
+  isMultipleFileUploadEnabled: boolean | undefined;
+  message: StreamMessage | undefined;
+  messageUpdateHandler: Function | undefined;
+};
+
+export type MentionTemplateContext = {
+  content: string;
+  user: UserResponse;
+};
+
+export type EmojiPickerContext = {
+  emojiInput$: Subject<string>;
+};
+
+export type TypingIndicatorContext = {
+  usersTyping$: Observable<UserResponse<DefaultUserType>[]>;
+};
+
+export type MessageContext = {
+  message: StreamMessage | undefined;
+  enabledMessageActions: string[];
+  isLastSentMessage: boolean | undefined;
+  mode: 'thread' | 'main';
+};
+
+export type ChannelActionsContext = { channel: Channel };
