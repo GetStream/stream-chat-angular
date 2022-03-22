@@ -81,9 +81,9 @@ Run `npm start` and navigate to `http://localhost:4200/`.
 
 ## Customization examples
 
-This repository includes a sample app that showcases the different customization options of our SDK:
+This repository includes a sample app that showcases how you can provide your own template for different components within the SDK:
 
-To test the app:
+To run the app:
 
 Create a file named `.env` in the root directory with the following content:
 
@@ -93,6 +93,7 @@ STREAM_USER_ID=<Your user ID>
 STREAM_USER_TOKEN=<Your user token>
 ```
 
+x
 Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
 
 ## Local development

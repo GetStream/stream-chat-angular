@@ -4,6 +4,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { Channel } from 'stream-chat';
 import {
   ChatClientService,
   ChannelService,
@@ -147,6 +148,14 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.threadHeaderTemplate$.next(
       this.threadHeaderTemplate
+    );
+  }
+
+  inviteClicked(channel: Channel) {
+    alert(
+      `You can add channel actions to the channel header to manage the ${
+        channel.data?.name || (channel.data?.id as string)
+      } channel`
     );
   }
 }

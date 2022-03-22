@@ -1,11 +1,13 @@
 <div id="root">
   <stream-channel-list></stream-channel-list>
   <stream-channel>
-    <stream-channel-header></stream-channel-header>
-    <stream-message-list></stream-message-list>
+    <stream-channel-header
+      style="--white-snow: #e8f5e9"
+    ></stream-channel-header>
+    <stream-message-list style="--primary-color: #8bc34a"></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input
-      style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+      style="--grey-whisper: rgba(165, 214, 167, 0.4); --primary-color: #8bc34a"
     ></stream-message-input>
     <stream-thread name="thread">
       <stream-message-list
@@ -13,7 +15,10 @@
         mode="thread"
       ></stream-message-list>
       <stream-message-input
-        style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+        style="
+          --grey-whisper: rgba(165, 214, 167, 0.4);
+          --primary-color: #8bc34a;
+        "
         name="thread-message-input"
         mode="thread"
       ></stream-message-input>
@@ -29,7 +34,7 @@
   <div
     style="
       padding: 10px;
-      background-color: rgba(255, 192, 203, 0.4);
+      background-color: #f1f8e9;
       border-radius: var(--border-radius-md);
       margin: 10px;
       cursor: pointer;
@@ -48,15 +53,13 @@
   let-enabledMessageActions="enabledMessageActions"
   let-mode="mode"
 >
-  <div
-    style="
-      padding: 15px;
-      margin: 15px;
-      background-color: rgba(255, 192, 203, 0.4);
-      border-radius: var(--border-radius-md);
-    "
-  >
+  <div>
     <stream-message
+      style="
+        --grey-whisper: #c8e6c9;
+        --white-snow: #f1f8e9;
+        --primary-color: #689f38;
+      "
       [message]="message"
       [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
@@ -76,7 +79,7 @@
   let-messageUpdateHandler="messageUpdateHandler"
 >
   <stream-message-input
-    style="--grey-whisper: rgba(255, 192, 203, 0.4)"
+    style="--grey-whisper: rgba(165, 214, 167, 0.4); --primary-color: #8bc34a"
     [message]="message"
     [isFileUploadEnabled]="isFileUploadEnabled"
     [areMentionsEnabled]="areMentionsEnabled"
@@ -88,14 +91,14 @@
 </ng-template>
 
 <ng-template #mentionTemplate let-user="user">
-  <span style="color: pink; font-weight: bold">{{
+  <span style="color: #7cb342; font-weight: bold">{{
     user?.id || user?.name
   }}</span>
 </ng-template>
 
 <ng-template #typingIndicator let-usersTyping$="usersTyping$">
   <div
-    style="color: pink"
+    style="color: #7cb342"
     *ngIf="$any(usersTyping$ | async)?.length"
     class="str-chat__typing-indicator str-chat__typing-indicator--typing"
   >
@@ -108,20 +111,31 @@
 </ng-template>
 
 <ng-template #mentionAutocompleteItemTemplate let-item="item">
-  <div style="color: pink">{{ item.autocompleteLabel }} - {{ item.role }}</div>
+  <div style="color: #7cb342">
+    {{ item.autocompleteLabel }} - {{ item.role }}
+  </div>
 </ng-template>
 
 <ng-template #commandAutocompleteItemTemplate let-item="item">
-  <div style="color: pink">
+  <div style="color: #7cb342">
     {{ item.autocompleteLabel | uppercase }} ({{ item.description }})
   </div>
 </ng-template>
 
 <ng-template #channelActionsTemplate let-channel="channel">
-  <span style="color: pink">
-    You can add action buttons to manage
-    {{ channel?.data?.name || channel?.id }} channel
-  </span>
+  <button
+    (click)="inviteClicked(channel)"
+    style="
+      background-color: #388e3c;
+      color: white;
+      border-radius: var(--border-radius-md);
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    "
+  >
+    Invite
+  </button>
 </ng-template>
 
 <ng-template
@@ -131,7 +145,7 @@
 >
   <span
     style="
-      color: pink;
+      color: #7cb342;
       position: absolute;
       left: 50%;
       top: 50%;
@@ -156,7 +170,7 @@
   <stream-attachment-preview-list
     style="
       border-radius: var(--border-radius-md);
-      background-color: rgba(255, 192, 203, 0.4);
+      background-color: rgba(241, 248, 233, 0.4);
     "
     [attachmentUploads$]="attachmentUploads$"
     (retryAttachmentUpload)="retryUploadHandler($event)"
@@ -172,7 +186,7 @@
   let-size="size"
 >
   <stream-avatar
-    style="--primary-color: pink"
+    style="--primary-color: #8bc34a"
     [name]="name"
     [imageUrl]="imageUrl"
     [size]="size"
@@ -180,17 +194,13 @@
 </ng-template>
 
 <ng-template #iconTemplate let-icon="icon" let-size="size">
-  <stream-icon
-    style="border: 1px solid pink"
-    [icon]="icon"
-    [size]="size"
-  ></stream-icon>
+  <app-icon [icon]="icon" [size]="size"></app-icon>
 </ng-template>
 
 <ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
   <stream-loading-indicator
     [size]="size"
-    color="pink"
+    color="#F1F8E9"
   ></stream-loading-indicator>
 </ng-template>
 
@@ -204,7 +214,7 @@
   let-isEditingChangeHandler="isEditingChangeHandler"
 >
   <stream-message-actions-box
-    style="--primary-color: pink"
+    style="--primary-color: #33691e"
     [isOpen]="isOpen"
     [isMine]="isMine"
     [enabledActions]="enabledActions"
@@ -237,7 +247,7 @@
   let-ownReactions="ownReactions"
 >
   <stream-message-reactions
-    style="--black: rgba(255, 192, 203, 0.8)"
+    style="--black: rgba(51, 105, 30, 0.8)"
     [messageReactionCounts]="messageReactionCounts"
     [latestReactions]="latestReactions"
     [isSelectorOpen]="isSelectorOpen"
@@ -254,7 +264,7 @@
   let-content="content"
 >
   <stream-modal
-    style="--white: #faf2f6"
+    style="--white: #f1f8e9"
     [isOpen]="isOpen"
     (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
@@ -265,7 +275,7 @@
 <ng-template #notificationTemplate let-type="type" let-content="content">
   <div
     class="str-chat__custom-notification"
-    style="background-color: #fff0f9; color: pink"
+    style="background-color: #f1f8e9; color: #2e7d32"
   >
     {{ type | uppercase }}
     <ng-container *ngTemplateOutlet="content"></ng-container>

@@ -11,6 +11,7 @@ import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { MessageActionComponent } from './message-action/message-action.component';
 import { ThreadHeaderComponent } from './thread-header/thread-header.component';
+import { IconComponent } from './icon/icon.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { ThreadHeaderComponent } from './thread-header/thread-header.component';
     EmojiPickerComponent,
     MessageActionComponent,
     ThreadHeaderComponent,
+    IconComponent,
   ],
   imports: [
     BrowserModule,
