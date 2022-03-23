@@ -93,7 +93,6 @@ STREAM_USER_ID=<Your user ID>
 STREAM_USER_TOKEN=<Your user token>
 ```
 
-x
 Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
 
 ## Local development
