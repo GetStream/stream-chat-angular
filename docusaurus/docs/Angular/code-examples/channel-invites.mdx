@@ -441,25 +441,19 @@ To override the default behavior create a custom event handler in `app.component
 
 ```typescript
 private customAddedToChannelNotificationHandler(
-    notification: Notification,
+    clientEvent: ClientEvent,
     channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ): void {
     let channels!: Channel[];
     this.channelService.channels$
       .pipe(take(1))
       .subscribe((c) => (channels = c || []));
-    if (notification.event.member?.invited) {
+    if (clientEvent.event.member?.invited) {
       return;
     }
-    channelListSetter([notification!.event!.channel!, ...channels]);
+    channelListSetter([clientEvent!.event!.channel!, ...channels]);
   }
 ```
-
-:::important
-Make sure to add the following import to your code (your IDE might not be able to add this automatically):
-
-`import { Notification } from 'stream-chat-angular';`
-:::
 
 Now register the handler to the [channel service](../services/ChannelService.mdx) in the constructor of `app.component.ts`:
 
@@ -475,7 +469,7 @@ The `notification.invite_accepted` event emitted by the [`ChatClientService`](..
 Add this to the constructor of your `app.component.ts`:
 
 ```typescript
-this.chatService.notification$
+this.chatService.events$
   .pipe(filter((n) => n.eventType === "notification.invite_accepted"))
   .subscribe(() => {
     this.channelService.reset();
