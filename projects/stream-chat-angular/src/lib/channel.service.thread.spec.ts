@@ -11,7 +11,7 @@ import {
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
-import { ChatClientService, Notification } from './chat-client.service';
+import { ChatClientService, ClientEvent } from './chat-client.service';
 import {
   generateMockChannels,
   MockChannel,
@@ -29,7 +29,7 @@ describe('ChannelService - threads', () => {
     deleteMessage: jasmine.Spy;
     userID: string;
   };
-  let notification$: Subject<Notification>;
+  let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
   let init: (
     c?: Channel[],
@@ -51,14 +51,14 @@ describe('ChannelService - threads', () => {
       deleteMessage: jasmine.createSpy(),
       userID: user.id,
     };
-    notification$ = new Subject();
+    events$ = new Subject();
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ChatClientService,
           useValue: {
             chatClient: { ...mockChatClient, user },
-            notification$,
+            events$,
             connectionState$,
           },
         },

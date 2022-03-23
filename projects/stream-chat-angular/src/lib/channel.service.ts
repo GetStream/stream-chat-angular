@@ -19,7 +19,7 @@ import {
   UpdatedMessage,
   UserResponse,
 } from 'stream-chat';
-import { ChatClientService, Notification } from './chat-client.service';
+import { ChatClientService, ClientEvent } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
 import { getReadBy } from './read-by';
 import { AttachmentUpload, MessageReactionType, StreamMessage } from './types';
@@ -105,21 +105,21 @@ export class ChannelService {
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customNewMessageNotificationHandler?: (
-    notification: Notification,
+    clientEvent: ClientEvent,
     channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customAddedToChannelNotificationHandler?: (
-    notification: Notification,
+    clientEvent: ClientEvent,
     channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customRemovedFromChannelNotificationHandler?: (
-    notification: Notification,
+    clientEvent: ClientEvent,
     channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ) => void;
   /**
@@ -408,7 +408,7 @@ export class ChannelService {
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     await this.queryChannels();
-    this.chatClientService.notification$.subscribe(
+    this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
   }
@@ -692,17 +692,17 @@ export class ChannelService {
     }
   }
 
-  private handleNotification(notification: Notification) {
-    switch (notification.eventType) {
+  private handleNotification(clientEvent: ClientEvent) {
+    switch (clientEvent.eventType) {
       case 'notification.message_new': {
         this.ngZone.run(() => {
           if (this.customNewMessageNotificationHandler) {
             this.customNewMessageNotificationHandler(
-              notification,
+              clientEvent,
               this.channelListSetter
             );
           } else {
-            this.handleNewMessageNotification(notification);
+            this.handleNewMessageNotification(clientEvent);
           }
         });
         break;
@@ -711,11 +711,11 @@ export class ChannelService {
         this.ngZone.run(() => {
           if (this.customAddedToChannelNotificationHandler) {
             this.customAddedToChannelNotificationHandler(
-              notification,
+              clientEvent,
               this.channelListSetter
             );
           } else {
-            this.handleAddedToChannelNotification(notification);
+            this.handleAddedToChannelNotification(clientEvent);
           }
         });
         break;
@@ -724,31 +724,31 @@ export class ChannelService {
         this.ngZone.run(() => {
           if (this.customRemovedFromChannelNotificationHandler) {
             this.customRemovedFromChannelNotificationHandler(
-              notification,
+              clientEvent,
               this.channelListSetter
             );
           } else {
-            this.handleRemovedFromChannelNotification(notification);
+            this.handleRemovedFromChannelNotification(clientEvent);
           }
         });
       }
     }
   }
 
-  private handleRemovedFromChannelNotification(notification: Notification) {
-    const channelIdToBeRemoved = notification.event.channel!.cid;
+  private handleRemovedFromChannelNotification(clientEvent: ClientEvent) {
+    const channelIdToBeRemoved = clientEvent.event.channel!.cid;
     this.removeChannelsFromChannelList([channelIdToBeRemoved]);
   }
 
-  private handleNewMessageNotification(notification: Notification) {
-    if (notification.event.channel) {
-      this.addChannelsFromNotification([notification.event.channel]);
+  private handleNewMessageNotification(clientEvent: ClientEvent) {
+    if (clientEvent.event.channel) {
+      this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 
-  private handleAddedToChannelNotification(notification: Notification) {
-    if (notification.event.channel) {
-      this.addChannelsFromNotification([notification.event.channel]);
+  private handleAddedToChannelNotification(clientEvent: ClientEvent) {
+    if (clientEvent.event.channel) {
+      this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 

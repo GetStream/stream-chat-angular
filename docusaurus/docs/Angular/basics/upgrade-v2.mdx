@@ -55,3 +55,11 @@ The following inputs are removed:
 | The autocomplete list item template for mentioning users    | `MessageInputConfigService.mentionAutocompleteItemTemplate`     | [`CustomTemplatesService.mentionAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
 | The template for emoji picker                               | `MessageInputConfigService.emojiPickerTemplate`                 | [`CustomTemplatesService.emojiPickerTemplate$`](../services/CustomTemplatesService.mdx)             |
 | The template for channel actions                            | `ChannelHeaderComponent.channelActionsTemplate`                 | [`CustomTemplatesService.channelActionsTemplate$`](../services/CustomTemplatesService.mdx)          |
+
+## `ChatClient.notification$` renamed to `events$`
+
+The `notification$` stream on the [`ChatClientService`](../services/ChatClientService.mdx) was renamed to `events$` as it better represents what this Observable does.
+
+The `events$` stream emits the received [client, notification and user presence events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
+
+The payload of this Observable was renamed from `Notification` to `ClientEvent`.

@@ -10,7 +10,7 @@ import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 
-export type Notification = {
+export type ClientEvent = {
   eventType: string;
   event: Event;
 };
@@ -27,12 +27,12 @@ export class ChatClientService {
    */
   chatClient!: StreamChat;
   /**
-   * Emits [`Notification`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client and notification events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
+   * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
    * :::important
    * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
    * :::
    */
-  notification$: Observable<Notification>;
+  events$: Observable<ClientEvent>;
   /**
    * Emits the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
    */
@@ -45,7 +45,7 @@ export class ChatClientService {
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
    */
   pendingInvites$: Observable<(ChannelResponse | Channel)[]>;
-  private notificationSubject = new ReplaySubject<Notification>(1);
+  private notificationSubject = new ReplaySubject<ClientEvent>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
@@ -58,7 +58,7 @@ export class ChatClientService {
     private ngZone: NgZone,
     private notificationService: NotificationService
   ) {
-    this.notification$ = this.notificationSubject.asObservable();
+    this.events$ = this.notificationSubject.asObservable();
     this.connectionState$ = this.connectionStateSubject.asObservable();
     this.appSettings$ = this.appSettingsSubject.asObservable();
     this.pendingInvites$ = this.pendingInvitesSubject.asObservable();

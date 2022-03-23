@@ -87,7 +87,7 @@ describe('ChatClientService', () => {
 
   it('should watch for added to channel events', () => {
     const spy = jasmine.createSpy();
-    service.notification$.subscribe(spy);
+    service.events$.subscribe(spy);
     const event = {
       id: 'mockevent',
       type: 'notification.added_to_channel',
@@ -102,7 +102,7 @@ describe('ChatClientService', () => {
 
   it('should watch for new message events', () => {
     const spy = jasmine.createSpy();
-    service.notification$.subscribe(spy);
+    service.events$.subscribe(spy);
     const event = {
       id: 'mockevent',
       type: 'notification.message_new',
@@ -117,7 +117,7 @@ describe('ChatClientService', () => {
 
   it('should watch for removed from channel events', () => {
     const spy = jasmine.createSpy();
-    service.notification$.subscribe(spy);
+    service.events$.subscribe(spy);
     const event = {
       id: 'mockevent',
       type: 'notification.removed_from_channel',

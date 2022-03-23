@@ -11,7 +11,7 @@ import {
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
-import { ChatClientService, Notification } from './chat-client.service';
+import { ChatClientService, ClientEvent } from './chat-client.service';
 import {
   generateMockChannels,
   MockChannel,
@@ -29,7 +29,7 @@ describe('ChannelService', () => {
     deleteMessage: jasmine.Spy;
     userID: string;
   };
-  let notification$: Subject<Notification>;
+  let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
   let init: (
     c?: Channel[],
@@ -51,14 +51,14 @@ describe('ChannelService', () => {
       deleteMessage: jasmine.createSpy(),
       userID: user.id,
     };
-    notification$ = new Subject();
+    events$ = new Subject();
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ChatClientService,
           useValue: {
             chatClient: { ...mockChatClient, user },
-            notification$,
+            events$,
             connectionState$,
           },
         },
@@ -625,7 +625,7 @@ describe('ChannelService', () => {
     spyOn(newChannel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    notification$.next({
+    events$.next({
       eventType: 'notification.added_to_channel',
       event: { channel: newChannel } as any as Event,
     });
@@ -650,7 +650,7 @@ describe('ChannelService', () => {
     spyOn(channel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    notification$.next({
+    events$.next({
       eventType: 'notification.message_new',
       event: { channel: channel } as any as Event,
     });
@@ -673,7 +673,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     spyOn(service, 'setAsActiveChannel');
-    notification$.next({
+    events$.next({
       eventType: 'notification.removed_from_channel',
       event: { channel: channel } as any as Event,
     });
@@ -695,7 +695,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     spyOn(service, 'setAsActiveChannel');
-    notification$.next({
+    events$.next({
       eventType: 'notification.removed_from_channel',
       event: { channel: channel } as any as Event,
     });
@@ -718,7 +718,7 @@ describe('ChannelService', () => {
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
-    notification$.next({
+    events$.next({
       eventType: 'notification.message_new',
       event: event,
     });
@@ -735,7 +735,7 @@ describe('ChannelService', () => {
     await init();
     const spy = jasmine
       .createSpy()
-      .and.callFake((_: Notification, setter: (channels: Channel[]) => []) =>
+      .and.callFake((_: ClientEvent, setter: (channels: Channel[]) => []) =>
         setter([])
       );
     service.customAddedToChannelNotificationHandler = spy;
@@ -747,7 +747,7 @@ describe('ChannelService', () => {
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
-    notification$.next({
+    events$.next({
       eventType: 'notification.added_to_channel',
       event: event,
     });
@@ -772,7 +772,7 @@ describe('ChannelService', () => {
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
-    notification$.next({
+    events$.next({
       eventType: 'notification.removed_from_channel',
       event: event,
     });
