@@ -54,3 +54,6 @@ Thumbs.db
 
 # Angular environment.ts
 /**/environments/environment.ts
+
+# Encapsulated stream-chat-css
+projects/stream-chat-angular/src/assets/styles

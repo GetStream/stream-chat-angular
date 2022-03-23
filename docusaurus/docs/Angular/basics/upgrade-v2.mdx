@@ -3,6 +3,22 @@ id: upgrade-v2
 title: Upgrade from v2
 ---
 
+## Peer dependencies
+
+### stream-chat-css
+
+You can drop the `@stream-io/stream-chat-css` dependency because going forward `stream-chat-angular` will encapsulate the library.
+
+Rewrite your stylesheet imports to this:
+
+`~stream-chat-angular/src/assets/styles/scss/index.scss`
+
+Or this if you were using CSS:
+
+`~stream-chat-angular/src/assets/styles/css/index.css`
+
+It's still possible to individually import stylesheets you just have to replace the `~@stream-io/stream-chat-css/dist` prefix with `~stream-chat-angular/src/assets/styles`.
+
 ## Inputs removed in favor of channel capabilities
 
 The following inputs are removed:

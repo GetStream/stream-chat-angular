@@ -1,4 +1,4 @@
-@import "~@stream-io/stream-chat-css/dist/scss/index.scss";
+@import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
 @import "~@ctrl/ngx-emoji-mart/picker";
 @import url(https://fonts.googleapis.com/icon?family=Material+Icons);
 
@@ -41,4 +41,8 @@ body {
   &::after {
     background-image: none !important;
   }
+}
+
+.material-icons {
+  font-family: "Material Icons" !important;
 }
