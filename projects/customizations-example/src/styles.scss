@@ -27,3 +27,18 @@ body {
   max-height: 100vh;
   overflow-y: auto;
 }
+
+.str-chat__reaction-list {
+  background-image: none !important;
+  background-color: #f1f8e9 !important;
+  border-radius: var(--border-radius-md);
+  padding: 0 10px;
+
+  &::before {
+    background-image: none !important;
+  }
+
+  &::after {
+    background-image: none !important;
+  }
+}

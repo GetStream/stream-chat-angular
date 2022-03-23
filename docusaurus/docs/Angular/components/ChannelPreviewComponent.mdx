@@ -2,26 +2,7 @@ The `ChannelPreview` component displays a channel preview in the channel list, i
 
 ## Customization
 
-The channel list uses the `ChannelPreview` component to display channels, if you want to replace that with your own custom component, here is how to do it:
-
-**Example 1** - custom channel preview component:
-
-```html
-<stream-channel-list
-  [customChannelPreviewTemplate]="customChannelPreviewTemplate"
-></stream-channel-list>
-<stream-channel>
-  <stream-channel-header></stream-channel-header>
-  <stream-message-list></stream-message-list>
-  <stream-message-input></stream-message-input>
-</stream-channel>
-
-<ng-template #customChannelPreviewTemplate let-channel="channel">
-  <custom-channel-preview [channel]="channel"></custom-channel-preview>
-</ng-template>
-```
-
-Your custom template can receive the same inputs (with the same name) as the default `ChannelPreview` component.
+The channel list uses the `ChannelPreview` component to display channels, if you want to replace that with your own custom component you can use the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#channelpreviewtemplate).
 
 :::note
 
