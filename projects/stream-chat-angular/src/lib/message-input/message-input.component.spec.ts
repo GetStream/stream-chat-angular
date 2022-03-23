@@ -23,6 +23,8 @@ import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -33,6 +35,7 @@ describe('MessageInputComponent', () => {
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
   let queryCooldownTimer: () => HTMLElement | null;
+  let queryAttachmentPreviewList: () => AttachmentPreviewListComponent;
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
@@ -46,6 +49,8 @@ describe('MessageInputComponent', () => {
     filesSelected: jasmine.Spy;
     mapToAttachments: jasmine.Spy;
     createFromAttachments: jasmine.Spy;
+    deleteAttachment: jasmine.Spy;
+    retryAttachmentUpload: jasmine.Spy;
   };
   let appSettings$: Subject<AppSettings>;
   let getAppSettings: jasmine.Spy;
@@ -76,6 +81,8 @@ describe('MessageInputComponent', () => {
       filesSelected: jasmine.createSpy(),
       mapToAttachments: jasmine.createSpy(),
       createFromAttachments: jasmine.createSpy(),
+      deleteAttachment: jasmine.createSpy(),
+      retryAttachmentUpload: jasmine.createSpy(),
     };
     getAppSettings = jasmine.createSpy();
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
@@ -105,6 +112,8 @@ describe('MessageInputComponent', () => {
         AutocompleteTextareaComponent,
         AvatarComponent,
         AttachmentListComponent,
+        AvatarPlaceholderComponent,
+        AttachmentPreviewListComponent,
       ],
       providers: [
         {
@@ -145,6 +154,9 @@ describe('MessageInputComponent', () => {
       nativeElement.querySelector('[data-testid="file-input"]');
     queryCooldownTimer = () =>
       nativeElement.querySelector('[data-testid="cooldown-timer"]');
+    queryAttachmentPreviewList = () =>
+      fixture.debugElement.query(By.directive(AttachmentPreviewListComponent))
+        .componentInstance as AttachmentPreviewListComponent;
   });
 
   it('should display textarea', () => {
@@ -887,5 +899,35 @@ describe('MessageInputComponent', () => {
     });
 
     expect(component.isCooldownInProgress).toBeFalse();
+  });
+
+  it('should display attachment previews', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+
+    expect(attachmentPreviews).not.toBeUndefined();
+    expect(attachmentPreviews.attachmentUploads$).toBe(
+      attachmentService.attachmentUploads$
+    );
+  });
+
+  it('should delete attachment', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'success',
+      url: 'url',
+      type: 'file',
+    } as AttachmentUpload;
+    attachmentPreviews.deleteAttachment.next(upload);
+
+    expect(attachmentService.deleteAttachment).toHaveBeenCalledWith(upload);
+  });
+
+  it('should retry attachment upload', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+    const file = { name: 'my_image.png', type: 'image/png' } as File;
+    attachmentPreviews.retryAttachmentUpload.next(file);
+
+    expect(attachmentService.retryAttachmentUpload).toHaveBeenCalledWith(file);
   });
 });

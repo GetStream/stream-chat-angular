@@ -12,15 +12,11 @@ import {
 } from '@angular/core';
 import { ReactionResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
-import { DefaultReactionType, DefaultUserType } from '../types';
-
-export type MessageReactionType =
-  | 'angry'
-  | 'haha'
-  | 'like'
-  | 'love'
-  | 'sad'
-  | 'wow';
+import {
+  DefaultReactionType,
+  DefaultUserType,
+  MessageReactionType,
+} from '../types';
 
 const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
   like: '👍',

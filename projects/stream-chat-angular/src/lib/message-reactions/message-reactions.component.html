@@ -71,12 +71,12 @@
         (mouseleave)="hideTooltip()"
         attr.data-testid="{{ reactionType }}-last-user"
       >
-        <stream-avatar
+        <stream-avatar-placeholder
           attr.data-testid="{{ reactionType }}-avatar"
           [imageUrl]="user.image"
           [name]="user.name || user.id"
           [size]="20"
-        ></stream-avatar>
+        ></stream-avatar-placeholder>
       </div>
       <span class="emoji" style="width: 20px; height: 20px; top: 10px">
         {{ getEmojiByReaction(reactionType) }}

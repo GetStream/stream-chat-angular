@@ -2,5 +2,10 @@
   class="str-chat__custom-notification notification-{{ type }}"
   data-testid="custom-notification"
 >
-  <ng-content></ng-content>
+  <ng-container *ngIf="content; else elseContent">
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </ng-container>
+  <ng-template #elseContent>
+    <ng-content></ng-content>
+  </ng-template>
 </div>

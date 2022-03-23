@@ -1,10 +1,17 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { Action, Attachment } from 'stream-chat';
 import { ImageLoadService } from '../message-list/image-load.service';
-import { DefaultAttachmentType } from '../types';
+import { DefaultAttachmentType, ModalContext } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `AttachmentList` compontent displays the attachments of a message
@@ -26,8 +33,11 @@ export class AttachmentListComponent implements OnChanges {
   orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
   imagesToView: Attachment<DefaultAttachmentType>[] = [];
   imagesToViewCurrentIndex = 0;
+  @ViewChild('modalContent', { static: true })
+  private modalContent!: TemplateRef<void>;
 
   constructor(
+    public readonly customTemplatesService: CustomTemplatesService,
     private imageLoadService: ImageLoadService,
     private channelService: ChannelService
   ) {}
@@ -80,6 +90,14 @@ export class AttachmentListComponent implements OnChanges {
     return prettybytes(Number(attachment.file_size!));
   }
 
+  getModalContext(): ModalContext {
+    return {
+      isOpen: this.imagesToView && this.imagesToView.length > 0,
+      isOpenChangeHandler: (isOpen) => (isOpen ? null : this.closeImageModal()),
+      content: this.modalContent,
+    };
+  }
+
   trimUrl(url?: string | null) {
     if (url !== undefined && url !== null) {
       const [trimmedUrl] = url
@@ -106,10 +124,6 @@ export class AttachmentListComponent implements OnChanges {
     this.imagesToViewCurrentIndex = selectedIndex;
   }
 
-  closeImageModal() {
-    this.imagesToView = [];
-  }
-
   stepImages(dir: -1 | 1) {
     this.imagesToViewCurrentIndex += dir * 1;
   }
@@ -133,5 +147,9 @@ export class AttachmentListComponent implements OnChanges {
         images,
       },
     ];
+  }
+
+  private closeImageModal() {
+    this.imagesToView = [];
   }
 }

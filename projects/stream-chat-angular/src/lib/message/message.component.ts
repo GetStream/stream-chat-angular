@@ -7,14 +7,19 @@ import {
   SimpleChanges,
   ViewChild,
   OnDestroy,
+  OnInit,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { getDeviceWidth } from '../device-width';
 import {
+  AttachmentListContext,
   DefaultUserType,
   MentionTemplateContext,
+  MessageActionsBoxContext,
+  MessageReactionsContext,
   StreamMessage,
 } from '../types';
 import { parseDate } from './parse-date';
@@ -37,7 +42,7 @@ type MessagePart = {
   templateUrl: './message.component.html',
   styles: [],
 })
-export class MessageComponent implements OnChanges, OnDestroy {
+export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * The message to be displayed
    */
@@ -63,6 +68,9 @@ export class MessageComponent implements OnChanges, OnDestroy {
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
   mentionTemplate: TemplateRef<MentionTemplateContext> | undefined;
+  attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
+  messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
+  messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
   private user: UserResponse<DefaultUserType> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
@@ -72,12 +80,31 @@ export class MessageComponent implements OnChanges, OnDestroy {
   constructor(
     private chatClientService: ChatClientService,
     private channelService: ChannelService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.user = this.chatClientService.chatClient.user;
+  }
+
+  ngOnInit(): void {
     this.subscriptions.push(
       this.customTemplatesService.mentionTemplate$.subscribe(
         (template) => (this.mentionTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.attachmentListTemplate$.subscribe(
+        (template) => (this.attachmentListTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.messageActionsBoxTemplate$.subscribe(
+        (template) => (this.messageActionsBoxTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.messageReactionsTemplate$.subscribe(
+        (template) => (this.messageReactionsTemplate = template)
       )
     );
   }
@@ -178,6 +205,25 @@ export class MessageComponent implements OnChanges, OnDestroy {
       : [];
   }
 
+  getAttachmentListContext(): AttachmentListContext {
+    return {
+      messageId: this.message?.id || '',
+      attachments: this.message?.attachments || [],
+    };
+  }
+
+  getMessageReactionsContext(): MessageReactionsContext {
+    return {
+      messageReactionCounts: this.message?.reaction_counts || {},
+      latestReactions: this.message?.latest_reactions || [],
+      isSelectorOpen: this.isReactionSelectorOpen,
+      isSelectorOpenChangeHandler: (isOpen) =>
+        (this.isReactionSelectorOpen = isOpen),
+      messageId: this.message?.id,
+      ownReactions: this.message?.own_reactions || [],
+    };
+  }
+
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
   }
@@ -208,6 +254,24 @@ export class MessageComponent implements OnChanges, OnDestroy {
     return {
       content: messagePart.content,
       user: messagePart.user!,
+    };
+  }
+
+  getMessageActionsBoxContext(): MessageActionsBoxContext {
+    return {
+      isOpen: this.isActionBoxOpen,
+      isMine: this.isSentByCurrentUser,
+      enabledActions: this.enabledMessageActions,
+      message: this.message,
+      displayedActionsCountChaneHanler: (count) => {
+        this.visibleMessageActionsCount = count;
+        // message action box changes UI bindings in parent, so we'll have to rerun change detection
+        this.cdRef.detectChanges();
+      },
+      isEditingChangeHandler: (isEditing) => {
+        this.isEditing = isEditing;
+        this.isActionBoxOpen = !this.isEditing;
+      },
     };
   }
 

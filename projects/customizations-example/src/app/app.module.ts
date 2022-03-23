@@ -9,9 +9,16 @@ import {
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { MessageActionComponent } from './message-action/message-action.component';
+import { ThreadHeaderComponent } from './thread-header/thread-header.component';
 
 @NgModule({
-  declarations: [AppComponent, EmojiPickerComponent],
+  declarations: [
+    AppComponent,
+    EmojiPickerComponent,
+    MessageActionComponent,
+    ThreadHeaderComponent,
+  ],
   imports: [
     BrowserModule,
     TranslateModule.forRoot(),

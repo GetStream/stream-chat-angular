@@ -25,7 +25,12 @@ import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload, EmojiPickerContext, StreamMessage } from '../types';
+import {
+  AttachmentPreviewListContext,
+  AttachmentUpload,
+  EmojiPickerContext,
+  StreamMessage,
+} from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
@@ -85,6 +90,9 @@ export class MessageInputComponent
   cooldown$: Observable<number> | undefined;
   isCooldownInProgress = false;
   emojiPickerTemplate: TemplateRef<EmojiPickerContext> | undefined;
+  attachmentPreviewListTemplate:
+    | TemplateRef<AttachmentPreviewListContext>
+    | undefined;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -200,6 +208,14 @@ export class MessageInputComponent
         this.emojiPickerTemplate = template;
         this.cdRef.detectChanges();
       })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
+        (template) => {
+          this.attachmentPreviewListTemplate = template;
+          this.cdRef.detectChanges();
+        }
+      )
     );
   }
 
@@ -339,6 +355,22 @@ export class MessageInputComponent
     return {
       emojiInput$: this.emojiInputService.emojiInput$,
     };
+  }
+
+  getAttachmentPreviewListContext(): AttachmentPreviewListContext {
+    return {
+      attachmentUploads$: this.attachmentService.attachmentUploads$,
+      deleteUploadHandler: this.deleteUpload.bind(this),
+      retryUploadHandler: this.retryUpload.bind(this),
+    };
+  }
+
+  private deleteUpload(upload: AttachmentUpload) {
+    void this.attachmentService.deleteAttachment(upload);
+  }
+
+  private retryUpload(file: File) {
+    void this.attachmentService.retryAttachmentUpload(file);
   }
 
   private clearFileInput() {

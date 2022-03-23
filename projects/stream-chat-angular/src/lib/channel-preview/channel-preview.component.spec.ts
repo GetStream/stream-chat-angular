@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
 import {
@@ -17,7 +18,7 @@ describe('ChannelPreviewComponent', () => {
   let nativeElement: HTMLElement;
   let channelServiceMock: MockChannelService;
   let queryContainer: () => HTMLElement | null;
-  let queryAvatar: () => AvatarComponent;
+  let queryAvatar: () => AvatarPlaceholderComponent;
   let queryTitle: () => HTMLElement | null;
   let queryLatestMessage: () => HTMLElement | null;
 
@@ -25,7 +26,11 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [ChannelPreviewComponent, AvatarComponent],
+      declarations: [
+        ChannelPreviewComponent,
+        AvatarComponent,
+        AvatarPlaceholderComponent,
+      ],
       providers: [{ provide: ChannelService, useValue: channelServiceMock }],
     });
     fixture = TestBed.createComponent(ChannelPreviewComponent);
@@ -36,8 +41,8 @@ describe('ChannelPreviewComponent', () => {
     queryTitle = () =>
       nativeElement.querySelector('[data-testid="channel-preview-title"]');
     queryAvatar = () =>
-      fixture.debugElement.query(By.directive(AvatarComponent))
-        .componentInstance as AvatarComponent;
+      fixture.debugElement.query(By.directive(AvatarPlaceholderComponent))
+        .componentInstance as AvatarPlaceholderComponent;
     queryLatestMessage = () =>
       nativeElement.querySelector('[data-testid="latest-message"]');
   });

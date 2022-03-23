@@ -49,14 +49,14 @@
 
 <ng-template #defaultMentionTemplate let-item="item">
   <div class="str-chat__user-item">
-    <stream-avatar
+    <stream-avatar-placeholder
       data-testclass="avatar"
       class="str-chat__avatar str-chat__avatar--circle"
       style="height: 20px"
       [size]="20"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
-    ></stream-avatar>
+    ></stream-avatar-placeholder>
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel
     }}</span>

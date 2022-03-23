@@ -8,6 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { Channel } from 'stream-chat';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -39,7 +40,12 @@ describe('MessageListComponent', () => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageComponent, MessageListComponent, AvatarComponent],
+      declarations: [
+        MessageComponent,
+        MessageListComponent,
+        AvatarComponent,
+        AvatarPlaceholderComponent,
+      ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         {

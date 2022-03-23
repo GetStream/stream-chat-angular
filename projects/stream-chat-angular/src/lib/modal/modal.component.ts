@@ -6,6 +6,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
 
@@ -23,10 +24,16 @@ export class ModalComponent implements OnChanges {
    */
   @Input() isOpen = false;
   /**
+   * The content of the modal  (can also be provided using `ng-content`)
+   */
+  @Input() content: TemplateRef<void> | undefined;
+  /**
    * Emits `true` if the modal becomes visible, and `false` if the modal is closed.
    */
   @Output() readonly isOpenChange = new EventEmitter<boolean>();
-  @ViewChild('content') private content: ElementRef<HTMLElement> | undefined;
+  @ViewChild('modalInner') private innerContainer:
+    | ElementRef<HTMLElement>
+    | undefined;
 
   constructor() {}
 
@@ -63,7 +70,7 @@ export class ModalComponent implements OnChanges {
   };
 
   private watchForOutsideClicks = (event: Event) => {
-    if (!this.content?.nativeElement.contains(event.target as Node)) {
+    if (!this.innerContainer?.nativeElement.contains(event.target as Node)) {
       this.close();
     }
   };

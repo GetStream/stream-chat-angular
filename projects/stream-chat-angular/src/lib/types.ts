@@ -9,8 +9,10 @@ import type {
   FormatMessageResponse,
   LiteralStringForUnion,
   Mute,
+  ReactionResponse,
   UserResponse,
 } from 'stream-chat';
+import { Icon } from './icon/icon.component';
 
 export type UnknownType = Record<string, unknown>;
 
@@ -152,3 +154,89 @@ export type MessageContext = {
 };
 
 export type ChannelActionsContext = { channel: Channel };
+
+export type AttachmentListContext = {
+  messageId: string;
+  attachments: Attachment<DefaultAttachmentType>[];
+};
+
+export type AvatarContext = {
+  name: string | undefined;
+  imageUrl: string | undefined;
+  size: number | undefined;
+};
+
+export type AttachmentPreviewListContext = {
+  attachmentUploads$: Observable<AttachmentUpload[]> | undefined;
+  retryUploadHandler: (f: File) => any;
+  deleteUploadHandler: (u: AttachmentUpload) => any;
+};
+
+export type IconContext = {
+  icon: Icon | undefined;
+  size: number | undefined;
+};
+
+export type LoadingIndicatorContext = {
+  size: number | undefined;
+  color: string | undefined;
+};
+
+export type MessageActionsBoxContext = {
+  isOpen: boolean;
+  isMine: boolean;
+  message: StreamMessage | undefined;
+  enabledActions: string[];
+  displayedActionsCountChaneHanler: (count: number) => any;
+  isEditingChangeHandler: (isEditing: boolean) => any;
+};
+
+export type MessageActionBoxItemContext = {
+  actionName: 'quote' | 'pin' | 'flag' | 'mute' | 'edit' | 'delete';
+  actionLabelOrTranslationKey: (() => string) | string;
+  actionHandler: () => any;
+};
+
+export type MessageActionItem = {
+  actionName: 'quote' | 'pin' | 'flag' | 'mute' | 'edit' | 'delete';
+  actionLabelOrTranslationKey: (() => string) | string;
+  isVisible: (
+    enabledActions: string[],
+    isMine: boolean,
+    message: StreamMessage
+  ) => boolean;
+  actionHandler: (message: StreamMessage, isMine: boolean) => any;
+};
+
+export type MessageReactionsContext = {
+  messageId: string | undefined;
+  messageReactionCounts: { [key in MessageReactionType]?: number };
+  isSelectorOpen: boolean;
+  latestReactions: ReactionResponse<DefaultReactionType, DefaultUserType>[];
+  ownReactions: ReactionResponse<DefaultReactionType, DefaultUserType>[];
+  isSelectorOpenChangeHandler: (isOpen: boolean) => any;
+};
+
+export type ModalContext = {
+  isOpen: boolean;
+  isOpenChangeHandler: (isOpen: boolean) => any;
+  content: TemplateRef<void>;
+};
+
+export type NotificationContext = {
+  type: NotificationType | undefined;
+  content: TemplateRef<void> | undefined;
+};
+
+export type ThreadHeaderContext = {
+  parentMessage: StreamMessage | undefined;
+  closeThreadHandler: Function;
+};
+
+export type MessageReactionType =
+  | 'angry'
+  | 'haha'
+  | 'like'
+  | 'love'
+  | 'sad'
+  | 'wow';

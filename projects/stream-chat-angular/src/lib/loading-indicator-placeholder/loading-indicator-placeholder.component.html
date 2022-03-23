@@ -1,0 +1,13 @@
+<ng-template #defaultLoadingIndicator let-size="size" let-color="color">
+  <stream-loading-indicator
+    [size]="size"
+    [color]="color"
+  ></stream-loading-indicator>
+</ng-template>
+<ng-container
+  *ngTemplateOutlet="
+    (customTemplatesService.loadingIndicatorTemplate$ | async) ||
+      defaultLoadingIndicator;
+    context: getLoadingIndicatorContext()
+  "
+></ng-container>

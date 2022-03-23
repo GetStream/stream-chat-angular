@@ -44,11 +44,11 @@
         data-testid="typing-indicator"
         class="str-chat__typing-indicator str-chat__typing-indicator--typing"
       >
-        <stream-avatar
+        <stream-avatar-placeholder
           *ngFor="let user of usersTyping$ | async; trackBy: trackByUserId"
           [name]="user.name || user.id"
           [imageUrl]="user.image"
-        ></stream-avatar>
+        ></stream-avatar-placeholder>
         <div class="str-chat__typing-indicator__dots">
           <span class="str-chat__typing-indicator__dot"></span>
           <span class="str-chat__typing-indicator__dot"></span>

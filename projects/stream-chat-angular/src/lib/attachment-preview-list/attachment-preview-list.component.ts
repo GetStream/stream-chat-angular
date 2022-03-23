@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AttachmentService } from '../attachment.service';
 import { AttachmentUpload } from '../types';
 
 /**
@@ -12,18 +11,27 @@ import { AttachmentUpload } from '../types';
   styles: [],
 })
 export class AttachmentPreviewListComponent {
-  attachmentUploads$: Observable<AttachmentUpload[]>;
+  /**
+   * A stream that emits the current file uploads and their states
+   */
+  @Input() attachmentUploads$: Observable<AttachmentUpload[]> | undefined;
+  /**
+   * An output to notify the parent component if the user tries to retry a failed upload
+   */
+  @Output() readonly retryAttachmentUpload = new EventEmitter<File>();
+  /**
+   * An output to notify the parent component if the user wants to delete a file
+   */
+  @Output() readonly deleteAttachment = new EventEmitter<AttachmentUpload>();
 
-  constructor(private attachmentService: AttachmentService) {
-    this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
+  constructor() {}
+
+  attachmentUploadRetried(file: File) {
+    this.retryAttachmentUpload.emit(file);
   }
 
-  async retryAttachmentUpload(file: File) {
-    await this.attachmentService.retryAttachmentUpload(file);
-  }
-
-  async deleteAttachment(upload: AttachmentUpload) {
-    await this.attachmentService.deleteAttachment(upload);
+  attachmentDeleted(upload: AttachmentUpload) {
+    this.deleteAttachment.emit(upload);
   }
 
   trackByFile(_: number, item: AttachmentUpload) {

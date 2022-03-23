@@ -123,3 +123,162 @@
     {{ channel?.data?.name || channel?.id }} channel
   </span>
 </ng-template>
+
+<ng-template
+  #attachmentListTemplate
+  let-messageId="messageId"
+  let-attachments="attachments"
+>
+  <span
+    style="
+      color: pink;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, 0);
+      padding: 8px;
+      background-color: rgba(0, 0, 0, 0.6);
+    "
+    >Custom attachments</span
+  >
+  <stream-attachment-list
+    [messageId]="messageId"
+    [attachments]="attachments"
+  ></stream-attachment-list>
+</ng-template>
+
+<ng-template
+  #attachmentPreviewListTemplate
+  let-attachmentUploads$="attachmentUploads$"
+  let-retryUploadHandler="retryUploadHandler"
+  let-deleteUploadHandler="deleteUploadHandler"
+>
+  <stream-attachment-preview-list
+    style="
+      border-radius: var(--border-radius-md);
+      background-color: rgba(255, 192, 203, 0.4);
+    "
+    [attachmentUploads$]="attachmentUploads$"
+    (retryAttachmentUpload)="retryUploadHandler($event)"
+    (deleteAttachment)="deleteUploadHandler($event)"
+    class="rfu-image-previewer-angular-host"
+  ></stream-attachment-preview-list>
+</ng-template>
+
+<ng-template
+  #avatarTemplate
+  let-name="name"
+  let-imageUrl="imageUrl"
+  let-size="size"
+>
+  <stream-avatar
+    style="--primary-color: pink"
+    [name]="name"
+    [imageUrl]="imageUrl"
+    [size]="size"
+  ></stream-avatar>
+</ng-template>
+
+<ng-template #iconTemplate let-icon="icon" let-size="size">
+  <stream-icon
+    style="border: 1px solid pink"
+    [icon]="icon"
+    [size]="size"
+  ></stream-icon>
+</ng-template>
+
+<ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
+  <stream-loading-indicator
+    [size]="size"
+    color="pink"
+  ></stream-loading-indicator>
+</ng-template>
+
+<ng-template
+  #messageActionsBoxTemplate
+  let-isOpen="isOpen"
+  let-isMine="isMine"
+  let-enabledActions="enabledActions"
+  let-messageInput="message"
+  let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
+  let-isEditingChangeHandler="isEditingChangeHandler"
+>
+  <stream-message-actions-box
+    style="--primary-color: pink"
+    [isOpen]="isOpen"
+    [isMine]="isMine"
+    [enabledActions]="enabledActions"
+    [message]="messageInput"
+    (displayedActionsCount)="displayedActionsCountChaneHanler($event)"
+    (isEditing)="isEditingChangeHandler($event)"
+  ></stream-message-actions-box
+></ng-template>
+
+<ng-template
+  #messageActionItemTemplate
+  let-actionName="actionName"
+  let-actionHandler="actionHandler"
+  let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
+>
+  <app-message-action
+    [actionName]="actionName"
+    [actionHandler]="actionHandler"
+    [actionLabelOrTranslationKey]="actionLabelOrTranslationKey"
+  ></app-message-action>
+</ng-template>
+
+<ng-template
+  #messageReactonsTemplate
+  let-messageReactionCounts="messageReactionCounts"
+  let-latestReactions="latestReactions"
+  let-isSelectorOpen="isSelectorOpen"
+  let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
+  let-messageId="messageId"
+  let-ownReactions="ownReactions"
+>
+  <stream-message-reactions
+    style="--black: rgba(255, 192, 203, 0.8)"
+    [messageReactionCounts]="messageReactionCounts"
+    [latestReactions]="latestReactions"
+    [isSelectorOpen]="isSelectorOpen"
+    (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
+    [messageId]="messageId"
+    [ownReactions]="ownReactions"
+  ></stream-message-reactions>
+</ng-template>
+
+<ng-template
+  #modalTemplate
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    style="--white: #faf2f6"
+    [isOpen]="isOpen"
+    (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #notificationTemplate let-type="type" let-content="content">
+  <div
+    class="str-chat__custom-notification"
+    style="background-color: #fff0f9; color: pink"
+  >
+    {{ type | uppercase }}
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </div>
+</ng-template>
+
+<ng-template
+  #threadHeaderTemplate
+  let-parentMessage="parentMessage"
+  let-closeThreadHandler="closeThreadHandler"
+>
+  <app-thread-header
+    [parentMessage]="parentMessage"
+    (closeThread)="closeThreadHandler()"
+  ></app-thread-header>
+</ng-template>
