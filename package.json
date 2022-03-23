@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "prepare": "husky install",
-    "postinstall": "npm run config:dev",
+    "postinstall": "npm run config:dev & npm run copy-css",
     "ng": "ng",
     "prestart": "npm run config:dev && ng build",
     "start": "ng serve sample-app",
@@ -12,7 +12,7 @@
     "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve sample-app)",
     "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example)",
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:prod": "npm run copy-css && ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "rm -rf dist & npm run watch & (wait-on dist && ng run stream-chat-angular:test)",
     "test:ci": "ng run stream-chat-angular:test --browsers ChromeHeadlessCustom --watch false",
@@ -31,7 +31,8 @@
     "generate-docs": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs",
     "typedoc:services": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-service-docs --exclude '!**/*service.ts' --excludeNotDocumented --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "typedoc:components": "typedoc --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
-    "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)"
+    "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)",
+    "copy-css": "copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles"
   },
   "lint-staged": {
     "**/*": [
@@ -121,6 +122,7 @@
     "@types/jasmine": "~3.8.0",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
+    "copyfiles": "^2.4.1",
     "cypress": "8.4.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
