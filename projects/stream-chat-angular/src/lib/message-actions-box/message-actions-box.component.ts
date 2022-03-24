@@ -101,8 +101,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
           isMine: boolean,
           message: StreamMessage
         ) =>
-          (enabledActions.indexOf('quote') !== -1 ||
-            enabledActions.indexOf('quote-message') !== -1) &&
+          enabledActions.indexOf('quote-message') !== -1 &&
           !message?.quoted_message,
       },
       {
@@ -110,8 +109,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
         actionLabelOrTranslationKey: () =>
           this.message?.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
         actionHandler: () => alert('Feature not yet implemented'),
-        isVisible: (enabledActions: string[]) =>
-          enabledActions.indexOf('pin') !== -1,
+        isVisible: () => false,
       },
       {
         actionName: 'flag',
@@ -130,16 +128,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
           }
         },
         isVisible: (enabledActions: string[], isMine: boolean) =>
-          (enabledActions.indexOf('flag') !== -1 ||
-            enabledActions.indexOf('flag-message') !== -1) &&
-          !isMine,
-      },
-      {
-        actionName: 'mute',
-        actionLabelOrTranslationKey: 'streamChat.Mute',
-        actionHandler: () => alert('Feature not yet implemented'),
-        isVisible: (enabledActions: string[]) =>
-          enabledActions.indexOf('mute') !== -1,
+          enabledActions.indexOf('flag-message') !== -1 && !isMine,
       },
       {
         actionName: 'edit',
@@ -149,10 +138,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
           this.isEditModalOpen = true;
         },
         isVisible: (enabledActions: string[], isMine: boolean) =>
-          ((enabledActions.indexOf('edit') !== -1 ||
-            enabledActions.indexOf('update-own-message') !== -1) &&
-            isMine) ||
-          enabledActions.indexOf('edit-any') !== -1 ||
+          (enabledActions.indexOf('update-own-message') !== -1 && isMine) ||
           enabledActions.indexOf('update-any-message') !== -1,
       },
       {

@@ -456,14 +456,14 @@ describe('MessageComponent', () => {
   });
 
   it(`shouldn't display message actions if there is no visible message action`, () => {
-    component.enabledMessageActions = ['flag'];
+    component.enabledMessageActions = ['flag-message'];
     fixture.detectChanges();
 
     expect(queryActionIcon()).toBeNull();
   });
 
   it('should open and close message actions box', () => {
-    component.enabledMessageActions = ['edit', 'flag'];
+    component.enabledMessageActions = ['update-own-message', 'flag-message'];
     fixture.detectChanges();
 
     expect(messageActionsBoxComponent.isOpen).toBeFalse();
@@ -475,7 +475,7 @@ describe('MessageComponent', () => {
   });
 
   it('should close message actions box on mouseleave event', () => {
-    component.enabledMessageActions = ['edit', 'flag'];
+    component.enabledMessageActions = ['update-own-message', 'flag-message'];
     component.isActionBoxOpen = true;
     fixture.detectChanges();
 
@@ -906,7 +906,7 @@ describe('MessageComponent', () => {
   describe('in thread mode', () => {
     beforeEach(() => {
       component.mode = 'thread';
-      component.enabledMessageActions = ['edit', 'delete'];
+      component.enabledMessageActions = ['update-own-message', 'delete'];
       component.ngOnChanges({
         enabledMessageActions: {} as SimpleChange,
       });
