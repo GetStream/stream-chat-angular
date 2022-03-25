@@ -218,9 +218,18 @@ export class MessageComponent implements OnChanges {
       ) {
         // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
         const regex = new RegExp(emojiRegex(), 'g');
+        // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+        const isChrome =
+          !!(window as any).chrome &&
+          typeof (window as any).opr === 'undefined';
+        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
         content = content.replace(
           regex,
-          (match) => `<span class="str-chat__emoji-display-fix">${match}</span>`
+          (match) =>
+            `<span ${
+              isChrome ? 'class="str-chat__emoji-display-fix"' : ''
+            }>${match}</span>`
         );
         this.messageTextParts = [{ content, type: 'text' }];
       } else {
