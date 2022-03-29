@@ -15,8 +15,8 @@ import { ChannelService } from '../channel.service';
 import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import {
-  DefaultUserType,
   MessageContext,
+  DefaultStreamChatGenerics,
   StreamMessage,
   TypingIndicatorContext,
 } from '../types';
@@ -65,8 +65,12 @@ export class MessageListComponent
   private readonly isUserScrolledUpThreshold = 300;
   private subscriptions: Subscription[] = [];
   private prevScrollTop: number | undefined;
-  private usersTypingInChannel$!: Observable<UserResponse<DefaultUserType>[]>;
-  private usersTypingInThread$!: Observable<UserResponse<DefaultUserType>[]>;
+  private usersTypingInChannel$!: Observable<
+    UserResponse<DefaultStreamChatGenerics>[]
+  >;
+  private usersTypingInThread$!: Observable<
+    UserResponse<DefaultStreamChatGenerics>[]
+  >;
 
   constructor(
     private channelService: ChannelService,

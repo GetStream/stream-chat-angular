@@ -1,4 +1,4 @@
-import { DefaultUserType, StreamMessage } from '../types';
+import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import {
   AppSettings,
@@ -16,7 +16,7 @@ export const mockCurrentUser = () =>
     id: 'currentUser',
     name: 'Bob',
     image: 'link/to/photo',
-  } as UserResponse<DefaultUserType>);
+  } as UserResponse<DefaultStreamChatGenerics>);
 
 export const mockMessage = () =>
   ({
@@ -44,7 +44,7 @@ export const generateMockMessages = (offset = 0, isOlder = false) => {
   return messages;
 };
 
-export type MockChannel = Channel & {
+export type MockChannel = Channel<DefaultStreamChatGenerics> & {
   handleEvent: (name: EventTypes, payload?: any) => void;
 };
 
@@ -157,9 +157,9 @@ export const generateMockChannels = (length = 25) => {
 
 export type MockChannelService = {
   hasMoreChannels$: Subject<boolean>;
-  channels$: Subject<Channel[] | undefined>;
+  channels$: Subject<Channel<DefaultStreamChatGenerics>[] | undefined>;
   activeChannelMessages$: BehaviorSubject<StreamMessage[]>;
-  activeChannel$: Subject<Channel>;
+  activeChannel$: Subject<Channel<DefaultStreamChatGenerics>>;
   activeThreadMessages$: BehaviorSubject<StreamMessage[]>;
   activeParentMessageId$: BehaviorSubject<string | undefined>;
   activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
@@ -185,7 +185,9 @@ export const mockChannelService = (): MockChannelService => {
   );
   const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
-  const activeChannel$ = new BehaviorSubject<Channel>({
+  const activeChannel$ = new BehaviorSubject<
+    Channel<DefaultStreamChatGenerics>
+  >({
     id: 'channelid',
     data: {
       own_capabilities: [
@@ -214,8 +216,10 @@ export const mockChannelService = (): MockChannelService => {
         },
       ],
     }),
-  } as Channel);
-  const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
+  } as any as Channel<DefaultStreamChatGenerics>);
+  const channels$ = new BehaviorSubject<
+    Channel<DefaultStreamChatGenerics>[] | undefined
+  >(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);
 
   const autocompleteMembers = () => [

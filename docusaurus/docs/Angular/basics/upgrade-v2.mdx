@@ -3,6 +3,15 @@ id: upgrade-v2
 title: Upgrade from v2
 ---
 
+## About v3
+
+This version's main focus was to enhance the customizability of the SDK, the two main features are:
+
+- there are many new customization points where you can provide your own template to override the default UI - our [customization guide](../concepts/customization.mdx) covers this topic in detail
+- you can take advantage of TypeScript generics to define custom fields for messages, message reactions, attachments, commands, channels or events - our [generics guide](../concepts/generics.mdx) explain this topic in more details
+
+Below you can find the list of breaking changes and instructions on how to update your code.
+
 ## Peer dependencies
 
 ### stream-chat-css
@@ -18,6 +27,21 @@ Or this if you were using CSS:
 `~stream-chat-angular/src/assets/styles/css/index.css`
 
 It's still possible to individually import stylesheets you just have to replace the `~@stream-io/stream-chat-css/dist` prefix with `~stream-chat-angular/src/assets/styles`.
+
+### stream-chat
+
+Upgrade to stream-chat `^6.2.0`.
+
+You might need to update your code if you created custom components/services that used `stream-chat` in your application.
+
+The biggest change is that generic parameters were refactored into a single generic parameter, this has two major implications:
+
+- If you used generic parameters for handling messages, message reactions, attachments, commands, channels or events you have to change those generic parameters, the SDK uses the [`DefaultStreamChatGenerics`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) parameter instead of the individual `DefaultAttachmentType`, `DefaultChannelType`, `DefaultCommandType`, `DefaultEventType` `DefaultMessageType`, `DefaultReactionType` and `DefaultUserType` parameters.
+- If you are interacting with the `ChannelService` or `ChatClientService` you'll have to provide the [`DefaultStreamChatGenerics`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) parameter (or a descended) for message reactions, attachments, commands, channels or events (you don't need to provide it for messages as it's already part of the [`StreamMessage`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) class)
+
+Our [generics guide](../concepts/generics.mdx) explains this topic in more details.
+
+You can find the full list of breaking changes in stream-chat [v5](https://github.com/GetStream/stream-chat-js/releases/tag/v5.0.0) and [v6](https://github.com/GetStream/stream-chat-js/releases/tag/v6.0.0) on GitHub.
 
 ## Inputs removed in favor of channel capabilities
 

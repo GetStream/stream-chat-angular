@@ -10,7 +10,7 @@ import { Channel } from 'stream-chat';
 import { ChannelListToggleService } from '../channel-list/channel-list-toggle.service';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { ChannelActionsContext } from '../types';
+import { ChannelActionsContext, DefaultStreamChatGenerics } from '../types';
 
 /**
  * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript)
@@ -22,7 +22,7 @@ import { ChannelActionsContext } from '../types';
 })
 export class ChannelHeaderComponent implements OnInit, OnDestroy {
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
-  activeChannel: Channel | undefined;
+  activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
   canReceiveConnectEvents: boolean | undefined;
   private subscriptions: Subscription[] = [];
 

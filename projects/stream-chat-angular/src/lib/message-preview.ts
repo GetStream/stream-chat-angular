@@ -1,13 +1,17 @@
 import { Attachment, MessageResponse, UserResponse } from 'stream-chat';
 import { v4 as uuidv4 } from 'uuid';
+import { DefaultStreamChatGenerics } from './types';
 
-export const createMessagePreview = (
+export const createMessagePreview = <
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+>(
   user: UserResponse,
   text: string,
-  attachments: Attachment[] = [],
-  mentionedUsers: UserResponse[] = [],
+  attachments: Attachment<T>[] = [],
+  mentionedUsers: UserResponse<T>[] = [],
   parentId: undefined | string = undefined,
-  quotedMessageId: undefined | string = undefined
+  quotedMessageId: undefined | string = undefined,
+  customData: undefined | Partial<T['messageType']>
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
@@ -25,5 +29,6 @@ export const createMessagePreview = (
     mentioned_users: mentionedUsers,
     parent_id: parentId,
     quoted_message_id: quotedMessageId,
-  } as unknown as MessageResponse;
+    ...customData,
+  } as unknown as MessageResponse<T>;
 };

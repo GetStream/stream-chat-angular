@@ -12,11 +12,7 @@ import {
 } from '@angular/core';
 import { ReactionResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
-import {
-  DefaultReactionType,
-  DefaultUserType,
-  MessageReactionType,
-} from '../types';
+import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
 
 const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
   like: '👍',
@@ -52,17 +48,11 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   /**
    * List of reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
    */
-  @Input() latestReactions: ReactionResponse<
-    DefaultReactionType,
-    DefaultUserType
-  >[] = [];
+  @Input() latestReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
   /**
    * List of the user's own reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
    */
-  @Input() ownReactions: ReactionResponse<
-    DefaultReactionType,
-    DefaultUserType
-  >[] = [];
+  @Input() ownReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
   /**
    * Indicates if the selector should be opened or closed. Adding a UI element to open and close the selector is the parent's component responsibility.
    */

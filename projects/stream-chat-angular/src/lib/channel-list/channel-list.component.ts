@@ -11,7 +11,7 @@ import { catchError, map, startWith } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { ChannelPreviewContext } from '../types';
+import { ChannelPreviewContext, DefaultStreamChatGenerics } from '../types';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 
 /**
@@ -23,7 +23,7 @@ import { ChannelListToggleService } from './channel-list-toggle.service';
   styles: [],
 })
 export class ChannelListComponent implements AfterViewInit, OnDestroy {
-  channels$: Observable<Channel[] | undefined>;
+  channels$: Observable<Channel<DefaultStreamChatGenerics>[] | undefined>;
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
   isLoadingMoreChannels = false;
@@ -70,7 +70,7 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
     this.isLoadingMoreChannels = false;
   }
 
-  trackByChannelId(index: number, item: Channel) {
+  trackByChannelId(index: number, item: Channel<DefaultStreamChatGenerics>) {
     return item.cid;
   }
 
@@ -78,7 +78,9 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
     this.channelListToggleService.channelSelected();
   }
 
-  getChannelPreviewContext(channel: Channel): ChannelPreviewContext {
+  getChannelPreviewContext(
+    channel: Channel<DefaultStreamChatGenerics>
+  ): ChannelPreviewContext<DefaultStreamChatGenerics> {
     return {
       channel,
     };

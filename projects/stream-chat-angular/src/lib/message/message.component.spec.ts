@@ -5,7 +5,7 @@ import {
   ReactionResponse,
   UserResponse,
 } from 'stream-chat';
-import { DefaultUserType, StreamMessage } from '../types';
+import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -26,7 +26,7 @@ describe('MessageComponent', () => {
   let fixture: ComponentFixture<MessageComponent>;
   let nativeElement: HTMLElement;
   let message: StreamMessage;
-  let currentUser: UserResponse<DefaultUserType>;
+  let currentUser: UserResponse<DefaultStreamChatGenerics>;
   let queryContainer: () => HTMLElement | null;
   let querySender: () => HTMLElement | null;
   let queryDate: () => HTMLElement | null;

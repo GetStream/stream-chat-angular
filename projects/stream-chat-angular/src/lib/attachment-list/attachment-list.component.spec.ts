@@ -6,6 +6,8 @@ import { ChannelService } from '../channel.service';
 import { ImageLoadService } from '../message-list/image-load.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
+import { Attachment } from 'stream-chat';
+import { DefaultStreamChatGenerics } from '../types';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -285,7 +287,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    };
+    } as any as Attachment<DefaultStreamChatGenerics>;
     component.attachments = [attachment];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -337,7 +339,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    };
+    } as any as Attachment<DefaultStreamChatGenerics>;
     component.messageId = 'message-id';
     component.attachments = [attachment];
     component.ngOnChanges();

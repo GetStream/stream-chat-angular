@@ -4,9 +4,10 @@ import { version } from '../assets/version';
 import { ChatClientService } from './chat-client.service';
 import { mockStreamChatClient, MockStreamChatClient } from './mocks';
 import { NotificationService } from './notification.service';
+import { DefaultStreamChatGenerics } from './types';
 
 describe('ChatClientService', () => {
-  let service: ChatClientService;
+  let service: ChatClientService<DefaultStreamChatGenerics>;
   let mockChatClient: MockStreamChatClient;
   let apiKey: string;
   let userId: string;
@@ -43,7 +44,10 @@ describe('ChatClientService', () => {
   });
 
   it('should init with user meta data', async () => {
-    const user = { id: userId, name: 'Test user' } as OwnUserResponse;
+    const user = {
+      id: userId,
+      name: 'Test user',
+    } as OwnUserResponse<DefaultStreamChatGenerics>;
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, user, userToken);
 

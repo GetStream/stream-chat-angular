@@ -28,6 +28,7 @@ import { NotificationService } from '../notification.service';
 import {
   AttachmentPreviewListContext,
   AttachmentUpload,
+  DefaultStreamChatGenerics,
   EmojiPickerContext,
   StreamMessage,
 } from '../types';
@@ -100,7 +101,7 @@ export class MessageInputComponent
   private hideNotification: Function | undefined;
   private isViewInited = false;
   private appSettings: AppSettings | undefined;
-  private channel: Channel | undefined;
+  private channel: Channel<DefaultStreamChatGenerics> | undefined;
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -177,7 +178,7 @@ export class MessageInputComponent
           map(
             ([latestMessages, channel]): [
               Date | undefined,
-              Channel | undefined
+              Channel<DefaultStreamChatGenerics> | undefined
             ] => [latestMessages[channel?.cid || ''], channel!]
           )
         )

@@ -6,6 +6,7 @@ import type {
   ChannelMemberResponse,
   CommandResponse,
   Event,
+  ExtendableGenerics,
   FormatMessageResponse,
   LiteralStringForUnion,
   Mute,
@@ -23,10 +24,20 @@ export type CustomTrigger = {
   };
 };
 
+export type DefaultStreamChatGenerics = ExtendableGenerics & {
+  attachmentType: DefaultAttachmentType;
+  channelType: DefaultChannelType;
+  commandType: LiteralStringForUnion;
+  eventType: UnknownType;
+  messageType: DefaultMessageType;
+  reactionType: UnknownType;
+  userType: DefaultUserType;
+};
+
 export type DefaultAttachmentType = UnknownType & {
   asset_url?: string;
   id?: string;
-  images?: Array<Attachment<DefaultAttachmentType>>;
+  images?: Array<Attachment<DefaultStreamChatGenerics>>;
   mime_type?: string;
 };
 
@@ -38,47 +49,28 @@ export type DefaultChannelType = UnknownType & {
 
 export type DefaultCommandType = LiteralStringForUnion;
 
-export type DefaultEventType = UnknownType;
-
 export type DefaultMessageType = UnknownType & {
   customType?: 'channel.intro' | 'message.date';
   date?: string | Date;
   errorStatusCode?: number;
-  event?: Event<
-    DefaultAttachmentType,
-    DefaultChannelType,
-    DefaultCommandType,
-    DefaultEventType,
-    DefaultMessageType,
-    DefaultReactionType,
-    DefaultUserType
-  >;
+  event?: Event<DefaultStreamChatGenerics>;
   unread?: boolean;
-  readBy: UserResponse<DefaultUserType>[];
+  readBy: UserResponse<DefaultStreamChatGenerics>[];
 };
-
-export type DefaultReactionType = UnknownType;
 
 export type DefaultUserTypeInternal = {
   image?: string;
   status?: string;
 };
 
-export type DefaultUserType<
-  UserType extends DefaultUserTypeInternal = DefaultUserTypeInternal
-> = UnknownType &
+export type DefaultUserType = UnknownType &
   DefaultUserTypeInternal & {
-    mutes?: Array<Mute<UserType>>;
+    mutes?: Array<Mute<DefaultStreamChatGenerics>>;
   };
 
 export type StreamMessage<
-  At extends DefaultAttachmentType = DefaultAttachmentType,
-  Ch extends DefaultChannelType = DefaultChannelType,
-  Co extends DefaultCommandType = DefaultCommandType,
-  Me extends DefaultMessageType = DefaultMessageType,
-  Re extends DefaultReactionType = DefaultReactionType,
-  Us extends DefaultUserType<Us> = DefaultUserType
-> = FormatMessageResponse<At, Ch, Co, Me, Re, Us>;
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = FormatMessageResponse<T>;
 
 export type AttachmentUpload = {
   file: File;
@@ -119,8 +111,10 @@ export type NotificationPayload<T = {}> = {
   dismissFn: Function;
 };
 
-export type ChannelPreviewContext = {
-  channel: Channel;
+export type ChannelPreviewContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  channel: Channel<T>;
 };
 
 export type MessageInputContext = {
@@ -143,7 +137,7 @@ export type EmojiPickerContext = {
 };
 
 export type TypingIndicatorContext = {
-  usersTyping$: Observable<UserResponse<DefaultUserType>[]>;
+  usersTyping$: Observable<UserResponse<DefaultStreamChatGenerics>[]>;
 };
 
 export type MessageContext = {
@@ -153,11 +147,13 @@ export type MessageContext = {
   mode: 'thread' | 'main';
 };
 
-export type ChannelActionsContext = { channel: Channel };
+export type ChannelActionsContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = { channel: Channel<T> };
 
 export type AttachmentListContext = {
   messageId: string;
-  attachments: Attachment<DefaultAttachmentType>[];
+  attachments: Attachment<DefaultStreamChatGenerics>[];
 };
 
 export type AvatarContext = {
@@ -212,8 +208,8 @@ export type MessageReactionsContext = {
   messageId: string | undefined;
   messageReactionCounts: { [key in MessageReactionType]?: number };
   isSelectorOpen: boolean;
-  latestReactions: ReactionResponse<DefaultReactionType, DefaultUserType>[];
-  ownReactions: ReactionResponse<DefaultReactionType, DefaultUserType>[];
+  latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+  ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   isSelectorOpenChangeHandler: (isOpen: boolean) => any;
 };
 
