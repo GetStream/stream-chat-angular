@@ -859,6 +859,7 @@ describe('MessageComponent', () => {
     component.ngOnChanges({ message: {} as any as SimpleChange });
 
     const content = component.messageTextParts[0].content;
+
     expect(content).toContain('😂');
     expect(content).toContain('😜');
     expect(content).toContain('👨‍👩‍👧');
