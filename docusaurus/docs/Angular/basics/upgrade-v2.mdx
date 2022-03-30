@@ -63,3 +63,17 @@ The `notification$` stream on the [`ChatClientService`](../services/ChatClientSe
 The `events$` stream emits the received [client, notification and user presence events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
 
 The payload of this Observable was renamed from `Notification` to `ClientEvent`.
+
+## Custom action names removed
+
+Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control the authorization of the following message actions:
+
+| Custom action name | Channel capability   | Comment                                      |
+| ------------------ | -------------------- | -------------------------------------------- |
+| `quote`            | `quote-message`      |                                              |
+| `pin`              | `pin-message`        | Currently turned off because not implemented |
+| `flag`             | `flag-message`       |                                              |
+| `edit`             | `update-own-message` |                                              |
+| `edit-any`         | `update-any-message` |                                              |
+
+The `mute` action is removed.

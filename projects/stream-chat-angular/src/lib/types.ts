@@ -192,13 +192,13 @@ export type MessageActionsBoxContext = {
 };
 
 export type MessageActionBoxItemContext = {
-  actionName: 'quote' | 'pin' | 'flag' | 'mute' | 'edit' | 'delete';
+  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
   actionLabelOrTranslationKey: (() => string) | string;
   actionHandler: () => any;
 };
 
 export type MessageActionItem = {
-  actionName: 'quote' | 'pin' | 'flag' | 'mute' | 'edit' | 'delete';
+  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
   actionLabelOrTranslationKey: (() => string) | string;
   isVisible: (
     enabledActions: string[],

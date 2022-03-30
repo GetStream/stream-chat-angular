@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./message-action.component.scss'],
 })
 export class MessageActionComponent {
-  @Input() actionName!: 'quote' | 'pin' | 'flag' | 'mute' | 'edit' | 'delete';
+  @Input() actionName!: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
   @Input() actionLabelOrTranslationKey!: (() => string) | string;
   @Input() actionHandler!: () => any;
 
@@ -19,7 +19,6 @@ export class MessageActionComponent {
       delete: 'delete',
       flag: 'flag',
       pin: 'push_pin',
-      mute: 'volume_mute',
     };
     return iconMapping[this.actionName];
   }
