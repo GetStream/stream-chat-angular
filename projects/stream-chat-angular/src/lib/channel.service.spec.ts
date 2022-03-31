@@ -182,6 +182,28 @@ describe('ChannelService', () => {
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
   });
 
+  it('should deselect active channel', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+    const messageToQuoteSpy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
+    const latestMessagesSpy = jasmine.createSpy();
+    service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
+    messagesSpy.calls.reset();
+    activeChannelSpy.calls.reset();
+    messageToQuoteSpy.calls.reset();
+    latestMessagesSpy.calls.reset();
+    service.deselectActiveChannel();
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
+    expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
+    expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+    expect(latestMessagesSpy).toHaveBeenCalledWith({});
+  });
+
   it('should tell if user #hasMoreChannels$', async () => {
     await init();
     const spy = jasmine.createSpy();

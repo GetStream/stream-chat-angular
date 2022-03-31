@@ -326,6 +326,22 @@ export class ChannelService {
   }
 
   /**
+   * Deselects the currently active (if any) channel
+   */
+  deselectActiveChannel() {
+    const activeChannel = this.activeChannelSubject.getValue();
+    if (!activeChannel) {
+      return;
+    }
+    this.activeChannelMessagesSubject.next([]);
+    this.activeChannelSubject.next(undefined);
+    this.activeParentMessageIdSubject.next(undefined);
+    this.activeThreadMessagesSubject.next([]);
+    this.latestMessageDateByUserByChannelsSubject.next({});
+    this.selectMessageToQuote(undefined);
+  }
+
+  /**
    * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
    * @param message
    */
@@ -392,7 +408,7 @@ export class ChannelService {
    * @param filters
    * @param sort
    * @param options
-   * @param shouldSetActiveChannel Decides if the firs channel in the result should be made as active channel, or no channel should be marked as active
+   * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel, or no channel should be marked as active
    * @returns the list of channels found by the query
    */
   async init(
@@ -422,13 +438,8 @@ export class ChannelService {
    * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./ChatClientService.mdx/#disconnectuser).
    */
   reset() {
-    this.activeChannelMessagesSubject.next([]);
-    this.activeChannelSubject.next(undefined);
-    this.activeParentMessageIdSubject.next(undefined);
-    this.activeThreadMessagesSubject.next([]);
+    this.deselectActiveChannel();
     this.channelsSubject.next(undefined);
-    this.latestMessageDateByUserByChannelsSubject.next({});
-    this.selectMessageToQuote(undefined);
   }
 
   /**
