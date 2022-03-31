@@ -392,12 +392,14 @@ export class ChannelService {
    * @param filters
    * @param sort
    * @param options
+   * @param shouldSetActiveChannel Decides if the firs channel in the result should be made as active channel, or no channel should be marked as active
    * @returns the list of channels found by the query
    */
   async init(
     filters: ChannelFilters,
     sort?: ChannelSort,
-    options?: ChannelOptions
+    options?: ChannelOptions,
+    shouldSetActiveChannel: boolean = true
   ) {
     this.filters = filters;
     this.options = options || {
@@ -409,7 +411,7 @@ export class ChannelService {
       message_limit: this.messagePageSize,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
-    const result = await this.queryChannels();
+    const result = await this.queryChannels(shouldSetActiveChannel);
     this.chatClientService.notification$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
@@ -434,7 +436,7 @@ export class ChannelService {
    */
   async loadMoreChannels() {
     this.options!.offset = this.channels.length!;
-    await this.queryChannels();
+    await this.queryChannels(false);
   }
 
   /**
@@ -950,7 +952,7 @@ export class ChannelService {
     this.activeChannelSubscriptions = [];
   }
 
-  private async queryChannels() {
+  private async queryChannels(shouldSetActiveChannel: boolean) {
     try {
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,
@@ -960,7 +962,11 @@ export class ChannelService {
       channels.forEach((c) => this.watchForChannelEvents(c));
       const prevChannels = this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
-      if (channels.length > 0 && !this.activeChannelSubject.getValue()) {
+      if (
+        channels.length > 0 &&
+        !this.activeChannelSubject.getValue() &&
+        shouldSetActiveChannel
+      ) {
         this.setAsActiveChannel(channels[0]);
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);

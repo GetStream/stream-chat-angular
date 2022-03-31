@@ -35,7 +35,8 @@ describe('ChannelService', () => {
     c?: Channel[],
     sort?: ChannelSort,
     options?: ChannelOptions,
-    mockChannelQuery?: Function
+    mockChannelQuery?: Function,
+    shouldSetActiveChannel?: boolean
   ) => Promise<Channel[]>;
   let user: UserResponse;
   const filters = { type: 'messaging' };
@@ -70,7 +71,8 @@ describe('ChannelService', () => {
       channels?: Channel[],
       sort?: ChannelSort,
       options?: ChannelOptions,
-      mockChannelQuery?: Function
+      mockChannelQuery?: Function,
+      shouldSetActiveChannel?: boolean
     ) => {
       if (mockChannelQuery) {
         mockChannelQuery();
@@ -80,7 +82,7 @@ describe('ChannelService', () => {
         );
       }
 
-      return service.init(filters, sort, options);
+      return service.init(filters, sort, options, shouldSetActiveChannel);
     };
   });
 
@@ -143,6 +145,15 @@ describe('ChannelService', () => {
         mockChatClient.queryChannels.and.rejectWith(error)
       )
     ).toBeRejectedWith(error);
+  });
+
+  it('should not set active channel if #shouldSetActiveChannel is false', async () => {
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+    activeChannelSpy.calls.reset();
+    await init(undefined, undefined, undefined, undefined, false);
+
+    expect(activeChannelSpy).not.toHaveBeenCalled();
   });
 
   it('should reset', async () => {
