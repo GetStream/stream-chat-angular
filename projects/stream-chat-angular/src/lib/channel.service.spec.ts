@@ -34,8 +34,9 @@ describe('ChannelService', () => {
   let init: (
     c?: Channel[],
     sort?: ChannelSort,
-    options?: ChannelOptions
-  ) => Promise<void>;
+    options?: ChannelOptions,
+    mockChannelQuery?: Function
+  ) => Promise<Channel[]>;
   let user: UserResponse;
   const filters = { type: 'messaging' };
 
@@ -65,16 +66,21 @@ describe('ChannelService', () => {
       ],
     });
     service = TestBed.inject(ChannelService);
-    init = async (
+    init = (
       channels?: Channel[],
       sort?: ChannelSort,
-      options?: ChannelOptions
+      options?: ChannelOptions,
+      mockChannelQuery?: Function
     ) => {
-      mockChatClient.queryChannels.and.returnValue(
-        channels || generateMockChannels()
-      );
+      if (mockChannelQuery) {
+        mockChannelQuery();
+      } else {
+        mockChatClient.queryChannels.and.returnValue(
+          channels || generateMockChannels()
+        );
+      }
 
-      await service.init(filters, sort, options);
+      return service.init(filters, sort, options);
     };
   });
 
@@ -120,6 +126,23 @@ describe('ChannelService', () => {
     result.forEach((channel, index) => {
       expect(channel.cid).toEqual(mockChannels[index].cid);
     });
+  });
+
+  it('should return the result of the init', async () => {
+    const expectedResult = generateMockChannels();
+    const result = await init(expectedResult);
+
+    expect(result as any as MockChannel[]).toEqual(expectedResult);
+  });
+
+  it('should return the result of the init - error', async () => {
+    const error = 'there was an error';
+
+    await expectAsync(
+      init(undefined, undefined, undefined, () =>
+        mockChatClient.queryChannels.and.rejectWith(error)
+      )
+    ).toBeRejectedWith(error);
   });
 
   it('should reset', async () => {

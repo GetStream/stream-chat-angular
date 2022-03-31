@@ -392,6 +392,7 @@ export class ChannelService {
    * @param filters
    * @param sort
    * @param options
+   * @returns the list of channels found by the query
    */
   async init(
     filters: ChannelFilters,
@@ -408,10 +409,11 @@ export class ChannelService {
       message_limit: this.messagePageSize,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
-    await this.queryChannels();
+    const result = await this.queryChannels();
     this.chatClientService.notification$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
+    return result;
   }
 
   /**
@@ -962,8 +964,10 @@ export class ChannelService {
         this.setAsActiveChannel(channels[0]);
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
+      return channels;
     } catch (error) {
       this.channelsSubject.error(error);
+      throw error;
     }
   }
 
