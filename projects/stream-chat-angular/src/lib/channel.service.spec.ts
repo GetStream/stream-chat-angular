@@ -34,8 +34,10 @@ describe('ChannelService', () => {
   let init: (
     c?: Channel[],
     sort?: ChannelSort,
-    options?: ChannelOptions
-  ) => Promise<void>;
+    options?: ChannelOptions,
+    mockChannelQuery?: Function,
+    shouldSetActiveChannel?: boolean
+  ) => Promise<Channel[]>;
   let user: UserResponse;
   const filters = { type: 'messaging' };
 
@@ -65,16 +67,22 @@ describe('ChannelService', () => {
       ],
     });
     service = TestBed.inject(ChannelService);
-    init = async (
+    init = (
       channels?: Channel[],
       sort?: ChannelSort,
-      options?: ChannelOptions
+      options?: ChannelOptions,
+      mockChannelQuery?: Function,
+      shouldSetActiveChannel?: boolean
     ) => {
-      mockChatClient.queryChannels.and.returnValue(
-        channels || generateMockChannels()
-      );
+      if (mockChannelQuery) {
+        mockChannelQuery();
+      } else {
+        mockChatClient.queryChannels.and.returnValue(
+          channels || generateMockChannels()
+        );
+      }
 
-      await service.init(filters, sort, options);
+      return service.init(filters, sort, options, shouldSetActiveChannel);
     };
   });
 
@@ -122,6 +130,32 @@ describe('ChannelService', () => {
     });
   });
 
+  it('should return the result of the init', async () => {
+    const expectedResult = generateMockChannels();
+    const result = await init(expectedResult);
+
+    expect(result as any as MockChannel[]).toEqual(expectedResult);
+  });
+
+  it('should return the result of the init - error', async () => {
+    const error = 'there was an error';
+
+    await expectAsync(
+      init(undefined, undefined, undefined, () =>
+        mockChatClient.queryChannels.and.rejectWith(error)
+      )
+    ).toBeRejectedWith(error);
+  });
+
+  it('should not set active channel if #shouldSetActiveChannel is false', async () => {
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+    activeChannelSpy.calls.reset();
+    await init(undefined, undefined, undefined, undefined, false);
+
+    expect(activeChannelSpy).not.toHaveBeenCalled();
+  });
+
   it('should reset', async () => {
     await init();
     const messagesSpy = jasmine.createSpy();
@@ -143,6 +177,28 @@ describe('ChannelService', () => {
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(channelsSpy).toHaveBeenCalledWith(undefined);
+    expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
+    expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+    expect(latestMessagesSpy).toHaveBeenCalledWith({});
+  });
+
+  it('should deselect active channel', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+    const messageToQuoteSpy = jasmine.createSpy();
+    service.messageToQuote$.subscribe(messageToQuoteSpy);
+    const latestMessagesSpy = jasmine.createSpy();
+    service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
+    messagesSpy.calls.reset();
+    activeChannelSpy.calls.reset();
+    messageToQuoteSpy.calls.reset();
+    latestMessagesSpy.calls.reset();
+    service.deselectActiveChannel();
+
+    expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
