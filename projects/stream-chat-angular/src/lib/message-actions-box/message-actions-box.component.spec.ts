@@ -23,7 +23,7 @@ import {
 } from '../mocks';
 import { ModalComponent } from '../modal/modal.component';
 import { NotificationService } from '../notification.service';
-import { StreamMessage } from '../types';
+import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
 
@@ -46,7 +46,7 @@ describe('MessageActionsBoxComponent', () => {
   let mockChatClient: MockStreamChatClient;
   let channelService: {
     updateMessage: jasmine.Spy;
-    activeChannel$: Observable<Channel>;
+    activeChannel$: Observable<Channel<DefaultStreamChatGenerics>>;
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
     messageToQuote$: Observable<StreamMessage | undefined>;

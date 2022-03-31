@@ -7,6 +7,7 @@ import {
   MessageResponse,
 } from 'stream-chat';
 import { ChannelService } from '../channel.service';
+import { DefaultStreamChatGenerics } from '../types';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -20,7 +21,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   /**
    * The channel to be displayed
    */
-  @Input() channel: Channel | undefined;
+  @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   isActive = false;
   isUnread = false;
   latestMessage: string = 'Nothing yet...';

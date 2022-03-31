@@ -1,5 +1,6 @@
 import { Channel, FormatMessageResponse } from 'stream-chat';
 import { getReadBy } from './read-by';
+import { DefaultStreamChatGenerics } from './types';
 
 describe('getReadBy', () => {
   it('should return the users that have already read the provided #message', () => {
@@ -8,8 +9,10 @@ describe('getReadBy', () => {
     const message = {
       updated_at: new Date('2021-09-14T13:08:30.004112Z'),
       user: sender,
-    } as FormatMessageResponse;
-    const channel = { state: { read: {} } } as Channel;
+    } as FormatMessageResponse<DefaultStreamChatGenerics>;
+    const channel = {
+      state: { read: {} },
+    } as Channel<DefaultStreamChatGenerics>;
 
     expect(getReadBy(message, channel).length).toBe(0);
 

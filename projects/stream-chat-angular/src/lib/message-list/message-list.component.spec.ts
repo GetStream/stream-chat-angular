@@ -20,6 +20,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from '../mocks';
+import { DefaultStreamChatGenerics } from '../types';
 import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
 
@@ -193,7 +194,9 @@ describe('MessageListComponent', () => {
   it('should handle channel change', () => {
     component.unreadMessageCount = 3;
     component.isUserScrolledUp = true;
-    channelServiceMock.activeChannel$.next({ id: 'nextchannel' } as Channel);
+    channelServiceMock.activeChannel$.next({
+      id: 'nextchannel',
+    } as Channel<DefaultStreamChatGenerics>);
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 

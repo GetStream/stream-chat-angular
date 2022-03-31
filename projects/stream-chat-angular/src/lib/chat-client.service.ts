@@ -2,17 +2,22 @@ import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import {
   Channel,
+  ChannelFilters,
   ChannelResponse,
   OwnUserResponse,
+  UserFilters,
   UserResponse,
 } from 'stream-chat';
 import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
+import { DefaultStreamChatGenerics } from './types';
 
-export type ClientEvent = {
+export type ClientEvent<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
   eventType: string;
-  event: Event;
+  event: Event<T>;
 };
 
 /**
@@ -21,18 +26,20 @@ export type ClientEvent = {
 @Injectable({
   providedIn: 'root',
 })
-export class ChatClientService {
+export class ChatClientService<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> {
   /**
    * The [StreamChat client](https://github.com/GetStream/stream-chat-js/blob/master/src/client.ts) instance. In general you shouldn't need to access the client, but it's there if you want to use it.
    */
-  chatClient!: StreamChat;
+  chatClient!: StreamChat<T>;
   /**
    * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
    * :::important
    * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
    * :::
    */
-  events$: Observable<ClientEvent>;
+  events$: Observable<ClientEvent<T>>;
   /**
    * Emits the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
    */
@@ -44,14 +51,14 @@ export class ChatClientService {
   /**
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
    */
-  pendingInvites$: Observable<(ChannelResponse | Channel)[]>;
-  private notificationSubject = new ReplaySubject<ClientEvent>(1);
+  pendingInvites$: Observable<(ChannelResponse<T> | Channel<T>)[]>;
+  private notificationSubject = new ReplaySubject<ClientEvent<T>>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
   );
   private pendingInvitesSubject = new BehaviorSubject<
-    (ChannelResponse | Channel)[]
+    (ChannelResponse<T> | Channel<T>)[]
   >([]);
 
   constructor(
@@ -72,10 +79,10 @@ export class ChatClientService {
    */
   async init(
     apiKey: string,
-    userOrId: string | OwnUserResponse | UserResponse,
+    userOrId: string | OwnUserResponse<T> | UserResponse<T>,
     userTokenOrProvider: TokenOrProvider
   ) {
-    this.chatClient = StreamChat.getInstance(apiKey);
+    this.chatClient = StreamChat.getInstance<T>(apiKey);
     this.chatClient.devToken;
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
@@ -85,7 +92,7 @@ export class ChatClientService {
       );
     });
     const channels = await this.chatClient.queryChannels(
-      { invite: 'pending' },
+      { invite: 'pending' } as any as ChannelFilters<T>, // TODO: find out why we need this typecast
       {},
       { user_id: this.chatClient.user?.id }
     );
@@ -159,11 +166,11 @@ export class ChatClientService {
         { name: { $autocomplete: searchTerm } },
       ],
       id: { $ne: this.chatClient.userID! },
-    });
+    } as UserFilters<T>); // TODO: find out why we need this typecast
     return result.users;
   }
 
-  private updatePendingInvites(e: Event) {
+  private updatePendingInvites(e: Event<T>) {
     if (e.member?.user?.id === this.chatClient.user?.id && e.channel) {
       const pendingInvites = this.pendingInvitesSubject.getValue();
       if (e.type === 'notification.invited') {

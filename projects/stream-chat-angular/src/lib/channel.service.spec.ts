@@ -18,7 +18,11 @@ import {
   mockCurrentUser,
   mockMessage,
 } from './mocks';
-import { AttachmentUpload, StreamMessage } from './types';
+import {
+  AttachmentUpload,
+  DefaultStreamChatGenerics,
+  StreamMessage,
+} from './types';
 
 describe('ChannelService', () => {
   let service: ChannelService;
@@ -32,8 +36,8 @@ describe('ChannelService', () => {
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
   let init: (
-    c?: Channel[],
-    sort?: ChannelSort,
+    c?: Channel<DefaultStreamChatGenerics>[],
+    sort?: ChannelSort<DefaultStreamChatGenerics>,
     options?: ChannelOptions
   ) => Promise<void>;
   let user: UserResponse;
@@ -66,8 +70,8 @@ describe('ChannelService', () => {
     });
     service = TestBed.inject(ChannelService);
     init = async (
-      channels?: Channel[],
-      sort?: ChannelSort,
+      channels?: Channel<DefaultStreamChatGenerics>[],
+      sort?: ChannelSort<DefaultStreamChatGenerics>,
       options?: ChannelOptions
     ) => {
       mockChatClient.queryChannels.and.returnValue(
@@ -228,8 +232,10 @@ describe('ChannelService', () => {
 
   it('should load more messages', async () => {
     await init();
-    let activeChannel!: Channel;
-    service.activeChannel$.subscribe((c) => (activeChannel = c as Channel));
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe(
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+    );
     spyOn(activeChannel, 'query').and.callThrough();
     await service.loadMoreMessages();
 
@@ -244,7 +250,7 @@ describe('ChannelService', () => {
 
   it('should add reaction', async () => {
     await init();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     spyOn(activeChannel, 'sendReaction');
     const messageId = 'id';
@@ -258,7 +264,7 @@ describe('ChannelService', () => {
 
   it('should remove reaction', async () => {
     await init();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     spyOn(activeChannel, 'deleteReaction');
     const messageId = 'id';
@@ -277,7 +283,7 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe(spy);
     const prevCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
     spy.calls.reset();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const newMessage = mockMessage();
     activeChannel.state.messages.push(newMessage);
@@ -292,7 +298,7 @@ describe('ChannelService', () => {
 
   it(`shouldn't make "markRead" call, if user dosen't have 'read-events' capability`, async () => {
     await init();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const capabilites = activeChannel.data?.own_capabilities as string[];
     capabilites.splice(capabilites.indexOf('read-events'), 1);
@@ -313,7 +319,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
     spy.calls.reset();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const message =
       activeChannel.state.messages[activeChannel.state.messages.length - 1];
@@ -331,7 +337,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
     spy.calls.reset();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const message = {
       ...activeChannel.state.messages[activeChannel.state.messages.length - 1],
@@ -344,7 +350,7 @@ describe('ChannelService', () => {
 
   it('should move channel to the top of the list', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
@@ -353,7 +359,7 @@ describe('ChannelService', () => {
     const event = {
       message: mockMessage(),
       type: 'message.new',
-    } as any as Event;
+    } as any as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('message.new', event);
 
     const firtChannel = (spy.calls.mostRecent().args[0] as Channel[])[0];
@@ -363,7 +369,7 @@ describe('ChannelService', () => {
 
   it('should call custom #customNewMessageHandler, if handler is provided', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
@@ -372,7 +378,7 @@ describe('ChannelService', () => {
     const event = {
       message: mockMessage(),
       type: 'message.new',
-    } as any as Event;
+    } as any as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('message.new', event);
 
     expect(spy).toHaveBeenCalledWith(
@@ -387,7 +393,7 @@ describe('ChannelService', () => {
 
   it('should handle if channel visibility changes', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
@@ -412,7 +418,7 @@ describe('ChannelService', () => {
 
   it('should handle if channel visibility changes, if custom event handlers are provided', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const visibleSpy = jasmine.createSpy();
     const hiddenSpy = jasmine.createSpy();
@@ -421,7 +427,7 @@ describe('ChannelService', () => {
     const hiddenEvent = {
       type: 'channel.hidden',
       channel,
-    } as any as Event;
+    } as any as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('channel.hidden', hiddenEvent);
 
     expect(hiddenSpy).toHaveBeenCalledWith(
@@ -436,7 +442,7 @@ describe('ChannelService', () => {
     const visibleEvent = {
       type: 'channel.visible',
       channel,
-    } as any as Event;
+    } as any as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('channel.hidden', visibleEvent);
 
     expect(visibleSpy).toHaveBeenCalledWith(
@@ -451,7 +457,7 @@ describe('ChannelService', () => {
 
   it('should remove channel from list, if deleted', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
@@ -467,14 +473,14 @@ describe('ChannelService', () => {
 
   it('should call #customChannelDeletedHandler, if channel is deleted and handler is provided', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.customChannelDeletedHandler = spy;
     const event = {
       type: 'channel.deleted',
       channel,
-    } as any as Event;
+    } as any as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('channel.deleted', event);
 
     expect(spy).toHaveBeenCalledWith(
@@ -489,7 +495,7 @@ describe('ChannelService', () => {
 
   it('should update channel in list, if updated', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
@@ -510,7 +516,7 @@ describe('ChannelService', () => {
 
   it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.customChannelUpdatedHandler = spy;
@@ -520,7 +526,7 @@ describe('ChannelService', () => {
         cid: channel.cid,
         name: 'New name',
       },
-    } as any as Event;
+    } as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('channel.updated', event);
 
     expect(spy).toHaveBeenCalledWith(
@@ -535,7 +541,7 @@ describe('ChannelService', () => {
 
   it('should handle if channel is truncated', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
@@ -560,7 +566,7 @@ describe('ChannelService', () => {
 
   it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.customChannelTruncatedHandler = spy;
@@ -570,7 +576,7 @@ describe('ChannelService', () => {
         cid: channel.cid,
         name: 'New name',
       },
-    } as any as Event;
+    } as Event<DefaultStreamChatGenerics>;
     (channel as MockChannel).handleEvent('channel.truncated', event);
 
     expect(spy).toHaveBeenCalledWith(
@@ -589,7 +595,7 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe(spy);
     const message = (spy.calls.mostRecent().args[0] as StreamMessage[])[0];
     spy.calls.reset();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     (activeChannel as MockChannel).handleEvent('reaction.new', { message });
 
@@ -627,7 +633,7 @@ describe('ChannelService', () => {
     service.channels$.subscribe(spy);
     events$.next({
       eventType: 'notification.added_to_channel',
-      event: { channel: newChannel } as any as Event,
+      event: { channel: newChannel } as any as Event<DefaultStreamChatGenerics>,
     });
     tick();
 
@@ -652,7 +658,7 @@ describe('ChannelService', () => {
     service.channels$.subscribe(spy);
     events$.next({
       eventType: 'notification.message_new',
-      event: { channel: channel } as any as Event,
+      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
     tick();
 
@@ -666,7 +672,7 @@ describe('ChannelService', () => {
 
   it('should remove channel form the list if user is removed from channel', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
@@ -675,7 +681,7 @@ describe('ChannelService', () => {
     spyOn(service, 'setAsActiveChannel');
     events$.next({
       eventType: 'notification.removed_from_channel',
-      event: { channel: channel } as any as Event,
+      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
@@ -686,8 +692,8 @@ describe('ChannelService', () => {
 
   it('should remove channel form the list if user is removed from channel, and emit new active channel', async () => {
     await init();
-    let channel!: Channel;
-    let newActiveChannel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    let newActiveChannel!: Channel<DefaultStreamChatGenerics>;
     service.channels$.pipe(first()).subscribe((channels) => {
       channel = channels![0];
       newActiveChannel = channels![1];
@@ -697,7 +703,7 @@ describe('ChannelService', () => {
     spyOn(service, 'setAsActiveChannel');
     events$.next({
       eventType: 'notification.removed_from_channel',
-      event: { channel: channel } as any as Event,
+      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
@@ -710,11 +716,13 @@ describe('ChannelService', () => {
     await init();
     const spy = jasmine.createSpy();
     service.customNewMessageNotificationHandler = spy;
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
-    const event = { channel: channel } as any as Event;
+    const event = {
+      channel: channel,
+    } as any as Event<DefaultStreamChatGenerics>;
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
@@ -739,11 +747,13 @@ describe('ChannelService', () => {
         setter([])
       );
     service.customAddedToChannelNotificationHandler = spy;
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
-    const event = { channel: channel } as any as Event;
+    const event = {
+      channel: channel,
+    } as any as Event<DefaultStreamChatGenerics>;
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
@@ -764,11 +774,13 @@ describe('ChannelService', () => {
     await init();
     const spy = jasmine.createSpy();
     service.customRemovedFromChannelNotificationHandler = spy;
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.channels$
       .pipe(first())
       .subscribe((channels) => (channel = channels![1]));
-    const event = { channel: channel } as any as Event;
+    const event = {
+      channel: channel,
+    } as any as Event<DefaultStreamChatGenerics>;
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
@@ -787,7 +799,7 @@ describe('ChannelService', () => {
 
   it('should send message', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
@@ -795,6 +807,10 @@ describe('ChannelService', () => {
     const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
     const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
     const quotedMessageId = 'quotedMessage';
+    const customData = {
+      isVote: true,
+      options: ['A', 'B', 'C'],
+    };
     let prevMessageCount!: number;
     service.activeChannelMessages$
       .pipe(first())
@@ -804,7 +820,8 @@ describe('ChannelService', () => {
       attachments,
       mentionedUsers,
       undefined,
-      quotedMessageId
+      quotedMessageId,
+      customData
     );
     let latestMessage!: StreamMessage;
     let messageCount!: number;
@@ -820,6 +837,8 @@ describe('ChannelService', () => {
       id: jasmine.any(String),
       parent_id: undefined,
       quoted_message_id: quotedMessageId,
+      isVote: true,
+      options: ['A', 'B', 'C'],
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
@@ -833,7 +852,7 @@ describe('ChannelService', () => {
 
   it('should send action', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const giphy = {
       thumb_url:
@@ -847,7 +866,7 @@ describe('ChannelService', () => {
         id: 'message-1',
         attachments: [giphy],
       },
-    } as any as SendMessageAPIResponse);
+    } as any as SendMessageAPIResponse<DefaultStreamChatGenerics>);
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
@@ -859,10 +878,10 @@ describe('ChannelService', () => {
 
   it('should remove message after action, if no message is returned', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendAction').and.resolveTo(
-      {} as any as SendMessageAPIResponse
+      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>
     );
     spyOn(channel.state, 'removeMessage');
     await service.sendAction('1', { image_action: 'send' });
@@ -891,7 +910,7 @@ describe('ChannelService', () => {
       latestMessage = m[m.length - 1];
     });
     latestMessage.status = 'failed';
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
@@ -916,7 +935,7 @@ describe('ChannelService', () => {
 
   it('should set message state while sending', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage');
     const text = 'Hi';
@@ -931,7 +950,7 @@ describe('ChannelService', () => {
 
   it('should set message state after message is sent', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage');
     const text = 'Hi';
@@ -953,7 +972,7 @@ describe('ChannelService', () => {
   // this could happen when a message was added to the local state while offline
   it('should handle message order change', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const localMessage = channel.state.messages.splice(
       channel.state.messages.length - 2,
@@ -971,7 +990,7 @@ describe('ChannelService', () => {
 
   it('should set message state, if an error occured', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage').and.callFake(() =>
       Promise.reject({ status: 500 })
@@ -989,12 +1008,12 @@ describe('ChannelService', () => {
 
   it('should add sent message to message list', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage').and.callFake(() =>
       Promise.resolve({
         message: { id: 'new-message' },
-      } as SendMessageAPIResponse)
+      } as SendMessageAPIResponse<DefaultStreamChatGenerics>)
     );
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
@@ -1007,7 +1026,7 @@ describe('ChannelService', () => {
 
   it(`shouldn't duplicate new message`, async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     await service.sendMessage('Hi');
     let newMessageId!: string;
@@ -1025,7 +1044,7 @@ describe('ChannelService', () => {
 
   it('should upload attachments', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendImage').and.callFake((file: File) => {
       switch (file.name) {
@@ -1078,7 +1097,7 @@ describe('ChannelService', () => {
 
   it('should delete image attachment', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteImage');
     const url = 'url/to/image';
@@ -1094,7 +1113,7 @@ describe('ChannelService', () => {
 
   it('should delete file attachment', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteFile');
     const url = 'url/to/file';
@@ -1110,7 +1129,7 @@ describe('ChannelService', () => {
 
   it('should update #readBy array, if active channel is read', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
@@ -1136,7 +1155,7 @@ describe('ChannelService', () => {
     await init();
     const spy = jasmine.createSpy('activeMessagesSpy');
     service.activeChannelMessages$.subscribe(spy);
-    let prevActiveChannel!: Channel;
+    let prevActiveChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$
       .pipe(first())
       .subscribe((c) => (prevActiveChannel = c!));
@@ -1160,7 +1179,10 @@ describe('ChannelService', () => {
       jack: { user: { id: 'jack', name: 'Jack' } },
       john: { user: { id: 'john' } },
       [user.id]: { user },
-    } as any as Record<string, ChannelMemberResponse>;
+    } as any as Record<
+      string,
+      ChannelMemberResponse<DefaultStreamChatGenerics>
+    >;
     service.setAsActiveChannel(channel);
     const result = await service.autocompleteMembers('ja');
     const expectedResult = [
@@ -1176,7 +1198,10 @@ describe('ChannelService', () => {
     const channel = generateMockChannels(1)[0];
     spyOn(channel, 'queryMembers').and.callThrough();
     const users = Array.from({ length: 101 }, (_, i) => ({ id: `${i}` }));
-    channel.state.members = {} as any as Record<string, ChannelMemberResponse>;
+    channel.state.members = {} as any as Record<
+      string,
+      ChannelMemberResponse<DefaultStreamChatGenerics>
+    >;
     users.forEach((u) => (channel.state.members[u.id] = { user: u }));
     service.setAsActiveChannel(channel);
     const result = await service.autocompleteMembers('ja');
@@ -1211,7 +1236,7 @@ describe('ChannelService', () => {
 
   it('should notify channel if typing started', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (channel = c!));
     spyOn(channel, 'keystroke');
     await service.typingStarted();
@@ -1221,7 +1246,7 @@ describe('ChannelService', () => {
 
   it('should notify channel if typing stopped', async () => {
     await init();
-    let channel!: Channel;
+    let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (channel = c!));
     spyOn(channel, 'stopTyping');
     await service.typingStopped();
@@ -1286,10 +1311,12 @@ describe('ChannelService', () => {
 
   it('should emit the date of latest messages sent by the user by channels', async () => {
     await init();
-    let activeChannel!: Channel;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$
       .pipe(first())
-      .subscribe((c) => (activeChannel = c as Channel));
+      .subscribe(
+        (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+      );
     const newMessage = mockMessage();
     newMessage.cid = 'channel1';
     newMessage.created_at = new Date();

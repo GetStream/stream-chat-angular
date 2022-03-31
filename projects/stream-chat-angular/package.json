@@ -12,7 +12,7 @@
     "@angular/common": "^12.2.0 || ^13.0.0",
     "@angular/core": "^12.2.0 || ^13.0.0",
     "@ngx-translate/core": "^13.0.0 || ^14.0.0",
-    "stream-chat": "^4.3.0 || ^5.0.0"
+    "stream-chat": "^6.2.0"
   },
   "dependencies": {
     "angular-mentions": "^1.4.0",

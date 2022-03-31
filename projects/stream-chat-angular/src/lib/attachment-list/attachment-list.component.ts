@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { Action, Attachment } from 'stream-chat';
 import { ImageLoadService } from '../message-list/image-load.service';
-import { DefaultAttachmentType, ModalContext } from '../types';
+import { ModalContext, DefaultStreamChatGenerics } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
@@ -29,9 +29,9 @@ export class AttachmentListComponent implements OnChanges {
   /**
    * The attachments to display
    */
-  @Input() attachments: Attachment<DefaultAttachmentType>[] = [];
-  orderedAttachments: Attachment<DefaultAttachmentType>[] = [];
-  imagesToView: Attachment<DefaultAttachmentType>[] = [];
+  @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
@@ -80,13 +80,13 @@ export class AttachmentListComponent implements OnChanges {
     this.imageLoadService.imageLoad$.next();
   }
 
-  hasFileSize(attachment: Attachment<DefaultAttachmentType>) {
+  hasFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {
     return (
       attachment.file_size && Number.isFinite(Number(attachment.file_size))
     );
   }
 
-  getFileSize(attachment: Attachment<DefaultAttachmentType>) {
+  getFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {
     return prettybytes(Number(attachment.file_size!));
   }
 

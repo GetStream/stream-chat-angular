@@ -16,10 +16,10 @@ import { ChatClientService } from '../chat-client.service';
 import { getDeviceWidth } from '../device-width';
 import {
   AttachmentListContext,
-  DefaultUserType,
   MentionTemplateContext,
   MessageActionsBoxContext,
   MessageReactionsContext,
+  DefaultStreamChatGenerics,
   StreamMessage,
 } from '../types';
 import { parseDate } from './parse-date';
@@ -71,7 +71,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
   messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
   messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
-  private user: UserResponse<DefaultUserType> | undefined;
+  private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>

@@ -15,14 +15,21 @@ import {
   ChannelSort,
   Event,
   FormatMessageResponse,
+  Message,
   MessageResponse,
   UpdatedMessage,
+  UserFilters,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
 import { getReadBy } from './read-by';
-import { AttachmentUpload, MessageReactionType, StreamMessage } from './types';
+import {
+  AttachmentUpload,
+  DefaultStreamChatGenerics,
+  MessageReactionType,
+  StreamMessage,
+} from './types';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list. TEST
@@ -30,7 +37,9 @@ import { AttachmentUpload, MessageReactionType, StreamMessage } from './types';
 @Injectable({
   providedIn: 'root',
 })
-export class ChannelService {
+export class ChannelService<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> {
   /**
    * Emits `false` if there are no more pages of channels that can be loaded.
    */
@@ -60,7 +69,7 @@ export class ChannelService {
    *
    *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
    */
-  channels$: Observable<Channel[] | undefined>;
+  channels$: Observable<Channel<T>[] | undefined>;
   /**
    * Emits the currently active channel.
    *
@@ -68,11 +77,11 @@ export class ChannelService {
    * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
    * :::
    */
-  activeChannel$: Observable<Channel | undefined>;
+  activeChannel$: Observable<Channel<T> | undefined>;
   /**
    * Emits the list of currently loaded messages of the active channel.
    */
-  activeChannelMessages$: Observable<StreamMessage[]>;
+  activeChannelMessages$: Observable<StreamMessage<T>[]>;
   /**
    * Emits the id of the currently selected parent message. If no message is selected, it emits undefined.
    */
@@ -80,23 +89,23 @@ export class ChannelService {
   /**
    * Emits the list of currently loaded thread replies belonging to the selected parent message. If there is no currently active thread it emits an empty array.
    */
-  activeThreadMessages$: Observable<StreamMessage[]>;
+  activeThreadMessages$: Observable<StreamMessage<T>[]>;
   /**
    * Emits the currently selected parent message. If no message is selected, it emits undefined.
    */
-  activeParentMessage$: Observable<StreamMessage | undefined>;
+  activeParentMessage$: Observable<StreamMessage<T> | undefined>;
   /**
    * Emits the currently selected message to quote
    */
-  messageToQuote$: Observable<StreamMessage | undefined>;
+  messageToQuote$: Observable<StreamMessage<T> | undefined>;
   /**
    * Emits the list of users that are currently typing in the channel (current user is not included)
    */
-  usersTypingInChannel$: Observable<UserResponse[]>;
+  usersTypingInChannel$: Observable<UserResponse<T>[]>;
   /**
    * Emits the list of users that are currently typing in the active thread (current user is not included)
    */
-  usersTypingInThread$: Observable<UserResponse[]>;
+  usersTypingInThread$: Observable<UserResponse<T>[]>;
   /**
    * Emits a map that contains the date of the latest message sent by the current user by channels (this is used to detect if slow mode countdown should be started)
    */
@@ -106,40 +115,40 @@ export class ChannelService {
    */
   customNewMessageNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customAddedToChannelNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
   ) => void;
   /**
    * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customRemovedFromChannelNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customChannelDeletedHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    messageListSetter: (messages: StreamMessage<T>[]) => void,
+    threadListSetter: (messages: StreamMessage<T>[]) => void,
+    parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customChannelUpdatedHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -149,53 +158,53 @@ export class ChannelService {
    */
   customChannelTruncatedHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    messageListSetter: (messages: StreamMessage<T>[]) => void,
+    threadListSetter: (messages: StreamMessage<T>[]) => void,
+    parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customChannelHiddenHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    messageListSetter: (messages: StreamMessage<T>[]) => void,
+    threadListSetter: (messages: StreamMessage<T>[]) => void,
+    parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customChannelVisibleHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    messageListSetter: (messages: StreamMessage<T>[]) => void,
+    threadListSetter: (messages: StreamMessage<T>[]) => void,
+    parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
    * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customNewMessageHandler?: (
     event: Event,
-    channel: Channel,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    channel: Channel<T>,
+    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    messageListSetter: (messages: StreamMessage<T>[]) => void,
+    threadListSetter: (messages: StreamMessage<T>[]) => void,
+    parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
-  private channelsSubject = new BehaviorSubject<Channel[] | undefined>(
+  private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
-  private activeChannelSubject = new BehaviorSubject<Channel | undefined>(
+  private activeChannelSubject = new BehaviorSubject<Channel<T> | undefined>(
     undefined
   );
   private activeChannelMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>)[]
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
@@ -203,22 +212,28 @@ export class ChannelService {
     string | undefined
   >(undefined);
   private activeThreadMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>)[]
   >([]);
   private latestMessageDateByUserByChannelsSubject = new BehaviorSubject<{
     [key: string]: Date;
   }>({});
-  private filters: ChannelFilters | undefined;
-  private sort: ChannelSort | undefined;
+  private filters: ChannelFilters<T> | undefined;
+  private sort: ChannelSort<T> | undefined;
   private options: ChannelOptions | undefined;
   private readonly messagePageSize = 25;
   private messageToQuoteSubject = new BehaviorSubject<
-    StreamMessage | undefined
+    StreamMessage<T> | undefined
   >(undefined);
-  private usersTypingInChannelSubject = new BehaviorSubject<UserResponse[]>([]);
-  private usersTypingInThreadSubject = new BehaviorSubject<UserResponse[]>([]);
+  private usersTypingInChannelSubject = new BehaviorSubject<UserResponse<T>[]>(
+    []
+  );
+  private usersTypingInThreadSubject = new BehaviorSubject<UserResponse<T>[]>(
+    []
+  );
 
-  private channelListSetter = (channels: (Channel | ChannelResponse)[]) => {
+  private channelListSetter = (
+    channels: (Channel<T> | ChannelResponse<T>)[]
+  ) => {
     const currentChannels = this.channelsSubject.getValue() || [];
     const newChannels = channels.filter(
       (c) => !currentChannels.find((channel) => channel.cid === c.cid)
@@ -226,27 +241,27 @@ export class ChannelService {
     const deletedChannels = currentChannels.filter(
       (c) => !channels?.find((channel) => channel.cid === c.cid)
     );
-    this.addChannelsFromNotification(newChannels as ChannelResponse[]);
+    this.addChannelsFromNotification(newChannels as ChannelResponse<T>[]);
     this.removeChannelsFromChannelList(deletedChannels.map((c) => c.cid));
     if (!newChannels.length && !deletedChannels.length) {
-      this.channelsSubject.next(channels as Channel[]);
+      this.channelsSubject.next(channels as Channel<T>[]);
     }
   };
 
-  private messageListSetter = (messages: StreamMessage[]) => {
+  private messageListSetter = (messages: StreamMessage<T>[]) => {
     this.activeChannelMessagesSubject.next(messages);
   };
 
-  private threadListSetter = (messages: StreamMessage[]) => {
+  private threadListSetter = (messages: StreamMessage<T>[]) => {
     this.activeThreadMessagesSubject.next(messages);
   };
 
-  private parentMessageSetter = (message: StreamMessage | undefined) => {
+  private parentMessageSetter = (message: StreamMessage<T> | undefined) => {
     this.activeParentMessageIdSubject.next(message?.id);
   };
 
   constructor(
-    private chatClientService: ChatClientService,
+    private chatClientService: ChatClientService<T>,
     private ngZone: NgZone
   ) {
     this.channels$ = this.channelsSubject.asObservable();
@@ -307,7 +322,7 @@ export class ChannelService {
    * Sets the given `channel` as active.
    * @param channel
    */
-  setAsActiveChannel(channel: Channel) {
+  setAsActiveChannel(channel: Channel<T>) {
     const prevActiveChannel = this.activeChannelSubject.getValue();
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
     this.watchForActiveChannelEvents(channel);
@@ -328,7 +343,7 @@ export class ChannelService {
    * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
    * @param message
    */
-  async setAsActiveParentMessage(message: StreamMessage | undefined) {
+  async setAsActiveParentMessage(message: StreamMessage<T> | undefined) {
     const messageToQuote = this.messageToQuoteSubject.getValue();
     if (messageToQuote && !!messageToQuote.parent_id) {
       this.messageToQuoteSubject.next(undefined);
@@ -393,8 +408,8 @@ export class ChannelService {
    * @param options
    */
   async init(
-    filters: ChannelFilters,
-    sort?: ChannelSort,
+    filters: ChannelFilters<T>,
+    sort?: ChannelSort<T>,
     options?: ChannelOptions
   ) {
     this.filters = filters;
@@ -438,10 +453,16 @@ export class ChannelService {
    * Adds a reaction to a message.
    * @param messageId The id of the message to add the reaction to
    * @param reactionType The type of the reaction
+   * @param customData
    */
-  async addReaction(messageId: string, reactionType: MessageReactionType) {
+  async addReaction(
+    messageId: string,
+    reactionType: MessageReactionType,
+    customData?: T['reactionType']
+  ) {
     await this.activeChannelSubject.getValue()?.sendReaction(messageId, {
       type: reactionType,
+      ...customData,
     });
   }
 
@@ -463,13 +484,15 @@ export class ChannelService {
    * @param mentionedUsers Mentioned users
    * @param parentId Id of the parent message (if sending a thread reply)
    * @param quotedMessageId Id of the message to quote (if sending a quote reply)
+   * @param customData
    */
   async sendMessage(
     text: string,
-    attachments: Attachment[] = [],
-    mentionedUsers: UserResponse[] = [],
+    attachments: Attachment<T>[] = [],
+    mentionedUsers: UserResponse<T>[] = [],
     parentId: string | undefined = undefined,
-    quotedMessageId: string | undefined = undefined
+    quotedMessageId: string | undefined = undefined,
+    customData: undefined | Partial<T['messageType']> = undefined
   ) {
     const preview = createMessagePreview(
       this.chatClientService.chatClient.user!,
@@ -477,12 +500,13 @@ export class ChannelService {
       attachments,
       mentionedUsers,
       parentId,
-      quotedMessageId
+      quotedMessageId,
+      customData
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
     channel.state.addMessageSorted(preview, true);
-    await this.sendMessageRequest(preview);
+    await this.sendMessageRequest(preview, customData);
   }
 
   /**
@@ -493,7 +517,7 @@ export class ChannelService {
     const channel = this.activeChannelSubject.getValue()!;
     channel.state.addMessageSorted(
       {
-        ...(message as any as MessageResponse),
+        ...(message as any as MessageResponse<T>),
         errorStatusCode: undefined,
         status: 'sending',
       },
@@ -506,9 +530,9 @@ export class ChannelService {
    * Updates the message in the active channel
    * @param message Mesage to be updated
    */
-  async updateMessage(message: StreamMessage) {
+  async updateMessage(message: StreamMessage<T>) {
     await this.chatClientService.chatClient.updateMessage(
-      message as UpdatedMessage
+      message as any as UpdatedMessage<T>
     );
   }
 
@@ -587,7 +611,7 @@ export class ChannelService {
       const result = await activeChannel.queryMembers({
         name: { $autocomplete: searchTerm },
         id: { $ne: this.chatClientService.chatClient.userID! },
-      });
+      } as UserFilters<T>); // TODO: find out why we need typecast here
       return Object.values(result.members);
     }
   }
@@ -639,7 +663,10 @@ export class ChannelService {
     this.messageToQuoteSubject.next(message);
   }
 
-  private async sendMessageRequest(preview: MessageResponse | StreamMessage) {
+  private async sendMessageRequest(
+    preview: MessageResponse<T> | StreamMessage<T>,
+    customData?: Partial<T['messageType']>
+  ) {
     const channel = this.activeChannelSubject.getValue()!;
     const isThreadReply = !!preview.parent_id;
     isThreadReply
@@ -649,13 +676,14 @@ export class ChannelService {
       : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     try {
       const response = await channel.sendMessage({
+        id: preview.id,
         text: preview.text,
         attachments: preview.attachments,
         mentioned_users: preview.mentioned_users?.map((u) => u.id),
-        id: preview.id,
         parent_id: preview.parent_id,
         quoted_message_id: preview.quoted_message_id,
-      });
+        ...customData,
+      } as Message<T>); // TODO: find out why we need typecast here
       if (response?.message) {
         channel.state.addMessageSorted(
           {
@@ -678,7 +706,7 @@ export class ChannelService {
 
       channel.state.addMessageSorted(
         {
-          ...(preview as MessageResponse),
+          ...(preview as MessageResponse<T>),
           errorStatusCode: parsedError.status || undefined,
           status: 'failed',
         },
@@ -692,7 +720,7 @@ export class ChannelService {
     }
   }
 
-  private handleNotification(clientEvent: ClientEvent) {
+  private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'notification.message_new': {
         this.ngZone.run(() => {
@@ -735,25 +763,25 @@ export class ChannelService {
     }
   }
 
-  private handleRemovedFromChannelNotification(clientEvent: ClientEvent) {
+  private handleRemovedFromChannelNotification(clientEvent: ClientEvent<T>) {
     const channelIdToBeRemoved = clientEvent.event.channel!.cid;
     this.removeChannelsFromChannelList([channelIdToBeRemoved]);
   }
 
-  private handleNewMessageNotification(clientEvent: ClientEvent) {
+  private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
       this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 
-  private handleAddedToChannelNotification(clientEvent: ClientEvent) {
+  private handleAddedToChannelNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
       this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 
-  private addChannelsFromNotification(channelResponses: ChannelResponse[]) {
-    const newChannels: Channel[] = [];
+  private addChannelsFromNotification(channelResponses: ChannelResponse<T>[]) {
+    const newChannels: Channel<T>[] = [];
     channelResponses.forEach((channelResponse) => {
       const channel = this.chatClientService.chatClient.channel(
         channelResponse.type,
@@ -783,7 +811,7 @@ export class ChannelService {
     }
   }
 
-  private watchForActiveChannelEvents(channel: Channel) {
+  private watchForActiveChannelEvents(channel: Channel<T>) {
     this.activeChannelSubscriptions.push(
       channel.on('message.new', (event) => {
         this.ngZone.run(() => {
@@ -870,7 +898,7 @@ export class ChannelService {
     await activeChannel?.stopTyping(parentId);
   }
 
-  private messageUpdated(event: Event) {
+  private messageUpdated(event: Event<T>) {
     this.ngZone.run(() => {
       const isThreadReply = event.message && event.message.parent_id;
       const messages = isThreadReply
@@ -888,7 +916,7 @@ export class ChannelService {
     });
   }
 
-  private messageReactionEventReceived(e: Event) {
+  private messageReactionEventReceived(e: Event<T>) {
     this.ngZone.run(() => {
       const isThreadMessage = e.message && e.message.parent_id;
       let messages!: StreamMessage[];
@@ -912,7 +940,7 @@ export class ChannelService {
     });
   }
 
-  private formatMessage(message: MessageResponse) {
+  private formatMessage(message: MessageResponse<T>) {
     return {
       ...message,
       // parse the date..
@@ -939,7 +967,7 @@ export class ChannelService {
     return message.created_at instanceof Date;
   }
 
-  private stopWatchForActiveChannelEvents(channel: Channel | undefined) {
+  private stopWatchForActiveChannelEvents(channel: Channel<T> | undefined) {
     if (!channel) {
       return;
     }
@@ -966,8 +994,8 @@ export class ChannelService {
     }
   }
 
-  private watchForChannelEvents(channel: Channel) {
-    channel.on((event: Event) => {
+  private watchForChannelEvents(channel: Channel<T>) {
+    channel.on((event: Event<T>) => {
       switch (event.type) {
         case 'message.new': {
           this.ngZone.run(() => {
@@ -1075,7 +1103,7 @@ export class ChannelService {
     });
   }
 
-  private handleNewMessage(_: Event, channel: Channel) {
+  private handleNewMessage(_: Event, channel: Channel<T>) {
     const channelIndex = this.channels.findIndex((c) => c.cid === channel.cid);
     this.channels.splice(channelIndex, 1);
     this.channelsSubject.next([channel, ...this.channels]);
@@ -1089,7 +1117,7 @@ export class ChannelService {
     this.removeChannelsFromChannelList([event.channel!.cid]);
   }
 
-  private handleChannelVisible(event: Event, channel: Channel) {
+  private handleChannelVisible(event: Event, channel: Channel<T>) {
     if (!this.channels.find((c) => c.cid === event.cid)) {
       this.ngZone.run(() =>
         this.channelsSubject.next([...this.channels, channel])
@@ -1097,7 +1125,7 @@ export class ChannelService {
     }
   }
 
-  private handleChannelUpdate(event: Event) {
+  private handleChannelUpdate(event: Event<T>) {
     const channelIndex = this.channels.findIndex(
       (c) => c.cid === event.channel!.cid
     );
@@ -1144,8 +1172,8 @@ export class ChannelService {
   }
 
   private transformToStreamMessage(
-    message: StreamMessage | MessageResponse | FormatMessageResponse,
-    channel: Channel
+    message: StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>,
+    channel: Channel<T>
   ) {
     const isThreadMessage = !!message.parent_id;
     if (
