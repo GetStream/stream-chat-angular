@@ -58,10 +58,12 @@
       #defaultInput
       let-messageInput="message"
       let-messageUpdateHandler="messageUpdateHandler"
+      let-sendMessage$Input="sendMessage$"
     >
       <stream-message-input
         [message]="messageInput"
         (messageUpdate)="messageUpdateHandler()"
+        [sendMessage$]="sendMessage$Input"
       ></stream-message-input>
     </ng-template>
     <ng-container

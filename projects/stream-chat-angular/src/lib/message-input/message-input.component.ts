@@ -76,6 +76,10 @@ export class MessageInputComponent
    */
   @Input() message: StreamMessage | undefined;
   /**
+   * An observable that can be used to trigger message sending from the outside
+   */
+  @Input() sendMessage$: Observable<void> | undefined;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<void>();
@@ -102,6 +106,7 @@ export class MessageInputComponent
   private isViewInited = false;
   private appSettings: AppSettings | undefined;
   private channel: Channel<DefaultStreamChatGenerics> | undefined;
+  private sendMessageSubcription: Subscription | undefined;
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -251,9 +256,22 @@ export class MessageInputComponent
     if (changes.mode) {
       this.setCanSendMessages();
     }
+    if (changes.sendMessage$) {
+      if (this.sendMessageSubcription) {
+        this.sendMessageSubcription.unsubscribe();
+      }
+      if (this.sendMessage$) {
+        this.sendMessageSubcription = this.sendMessage$.subscribe(
+          () => void this.messageSent()
+        );
+      }
+    }
   }
 
   ngOnDestroy(): void {
+    if (this.sendMessageSubcription) {
+      this.sendMessageSubcription.unsubscribe();
+    }
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 

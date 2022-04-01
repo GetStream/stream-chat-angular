@@ -934,4 +934,13 @@ describe('MessageInputComponent', () => {
 
     expect(attachmentService.retryAttachmentUpload).toHaveBeenCalledWith(file);
   });
+
+  it('should trigger message send by #sendMessage$', () => {
+    const sendMessage$ = new Subject<void>();
+    component.sendMessage$ = sendMessage$;
+    component.ngOnChanges({ sendMessage$: {} as SimpleChange });
+    sendMessage$.next();
+
+    expect(component.messageSent).toHaveBeenCalledWith();
+  });
 });

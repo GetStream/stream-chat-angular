@@ -125,6 +125,7 @@ export type MessageInputContext = {
   isMultipleFileUploadEnabled: boolean | undefined;
   message: StreamMessage | undefined;
   messageUpdateHandler: Function | undefined;
+  sendMessage$: Observable<void>;
 };
 
 export type MentionTemplateContext = {

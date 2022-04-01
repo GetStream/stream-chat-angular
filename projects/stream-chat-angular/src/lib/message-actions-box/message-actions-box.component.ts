@@ -9,11 +9,10 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { MessageInputComponent } from '../message-input/message-input.component';
 import { NotificationService } from '../notification.service';
 import {
   MessageActionBoxItemContext,
@@ -63,12 +62,11 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
   modalTemplate: TemplateRef<ModalContext> | undefined;
   subscriptions: Subscription[] = [];
   visibleMessageActionItems: MessageActionItem[] = [];
+  sendMessage$: Observable<void>;
   private readonly messageActionItems: MessageActionItem[];
-  @ViewChild(MessageInputComponent) private messageInput:
-    | MessageInputComponent
-    | undefined;
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
+  private sendMessageSubject = new Subject<void>();
   constructor(
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
@@ -161,6 +159,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
           enabledActions.indexOf('delete-any-message') !== -1,
       },
     ];
+    this.sendMessage$ = this.sendMessageSubject.asObservable();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -191,7 +190,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
   }
 
   sendClicked() {
-    this.messageInput?.messageSent();
+    this.sendMessageSubject.next();
   }
 
   modalClosed = () => {
@@ -208,6 +207,7 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
       isMultipleFileUploadEnabled: undefined,
       mentionScope: undefined,
       mode: undefined,
+      sendMessage$: this.sendMessage$,
     };
   }
 

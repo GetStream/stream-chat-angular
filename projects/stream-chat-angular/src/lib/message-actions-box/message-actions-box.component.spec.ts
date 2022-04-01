@@ -39,7 +39,6 @@ describe('MessageActionsBoxComponent', () => {
   let queryDeleteAction: () => HTMLElement | null;
   let queryEditModal: () => ModalComponent;
   let queryModalCancelButton: () => HTMLElement | null;
-  let queryModalSendButton: () => HTMLElement | null;
   let queryMessageInputComponent: () => MessageInputComponent;
   let message: StreamMessage;
   let nativeElement: HTMLElement;
@@ -107,8 +106,6 @@ describe('MessageActionsBoxComponent', () => {
         .componentInstance as ModalComponent;
     queryModalCancelButton = () =>
       nativeElement.querySelector('[data-testid="cancel-button"]');
-    queryModalSendButton = () =>
-      nativeElement.querySelector('[data-testid="send-button"]');
     queryMessageInputComponent = () =>
       fixture.debugElement.query(By.directive(MessageInputComponent))
         .componentInstance as MessageInputComponent;
@@ -439,23 +436,17 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
 
     expect(queryMessageInputComponent().message).toBe(component.message);
+    expect(queryMessageInputComponent().sendMessage$).toBe(
+      component.sendMessage$
+    );
   });
 
-  it('should call update message if "Send" button is clicked', () => {
-    component.enabledActions = ['update-any-message'];
-    component.isEditModalOpen = true;
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    const messageInputComponent = queryMessageInputComponent();
-    spyOn(messageInputComponent, 'messageSent');
-    queryEditAction()?.click();
-    fixture.detectChanges();
-    queryModalSendButton()?.click();
-    fixture.detectChanges();
+  it('should trigger message if "Send" button is clicked', () => {
+    const spy = jasmine.createSpy();
+    component.sendMessage$.subscribe(spy);
+    component.sendClicked();
 
-    expect(messageInputComponent.messageSent).toHaveBeenCalledWith();
+    expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it('should close modal with "Cancel" button', () => {

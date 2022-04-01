@@ -77,6 +77,7 @@
   let-mode="mode"
   let-isMultipleFileUploadEnabled="isMultipleFileUploadEnabled"
   let-messageUpdateHandler="messageUpdateHandler"
+  let-sendMessage$="sendMessage$"
 >
   <stream-message-input
     style="--grey-whisper: rgba(165, 214, 167, 0.4); --primary-color: #8bc34a"
@@ -87,6 +88,7 @@
     [mode]="mode"
     [isMultipleFileUploadEnabled]="isMultipleFileUploadEnabled"
     (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
+    [sendMessage$]="sendMessage$"
   ></stream-message-input>
 </ng-template>
 
