@@ -162,7 +162,15 @@ Let's create the template for the emoji picker (for example in your `AppComponen
 </ng-template>
 ```
 
-Register the template in your TypeScript code (for example in your `AppComponent`):
+Register the template in your TypeScript code (for example in your `AppComponent`).
+
+These are the necessary steps:
+
+- Create a reference to the custom template
+- Import the [CustomTemplatesService](../services/CustomTemplatesService.mdx)
+- Register your custom template
+
+Here is an example file:
 
 ```typescript
 import {
@@ -188,6 +196,7 @@ import { environment } from "../environments/environment";
   styleUrls: ["./app.component.scss"],
 })
 export class AppComponent implements AfterViewInit {
+  // Create a reference to the custom template
   @ViewChild("emojiPickerTemplate")
   private emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
 
@@ -195,7 +204,7 @@ export class AppComponent implements AfterViewInit {
     private chatService: ChatClientService,
     private channelService: ChannelService,
     private streamI18nService: StreamI18nService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService // Import the customTemplatesService
   ) {
     void this.chatService.init(
       environment.apiKey,
@@ -210,6 +219,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // Register your custom template
     this.customTemplatesService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
     );
