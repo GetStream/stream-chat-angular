@@ -54,13 +54,13 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 Run the following command if you are using **Angular 13**:
 
 ```shell
-npm install stream-chat-angular @stream-io/stream-chat-css stream-chat @ngx-translate/core
+npm install stream-chat-angular stream-chat @ngx-translate/core
 ```
 
 Run this command if you are using **Angular 12**:
 
 ```shell
-npm install stream-chat-angular @stream-io/stream-chat-css stream-chat@5 @ngx-translate/core --legacy-peer-deps
+npm install stream-chat-angular stream-chat@5 @ngx-translate/core --legacy-peer-deps
 ```
 
 ## Sample App
