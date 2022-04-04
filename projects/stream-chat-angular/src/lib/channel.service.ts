@@ -21,9 +21,9 @@ import {
 } from 'stream-chat';
 import { ChatClientService, Notification } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
-import { MessageReactionType } from './message-reactions/message-reactions.component';
 import { getReadBy } from './read-by';
 import { AttachmentUpload, StreamMessage } from './types';
+import { MessageReactionType } from './message-reactions/message-reactions.component';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list. TEST
@@ -189,6 +189,28 @@ export class ChannelService {
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
+  /**
+   * You can override the default file upload request - you can use this to upload files to your own CDN
+   */
+  customFileUploadRequest?: (
+    file: File,
+    channel: Channel
+  ) => Promise<{ file: string }>;
+  /**
+   * You can override the default image upload request - you can use this to upload images to your own CDN
+   */
+  customImageUploadRequest?: (
+    file: File,
+    channel: Channel
+  ) => Promise<{ file: string }>;
+  /**
+   * You can override the default file delete request - override this if you use your own CDN
+   */
+  customFileDeleteRequest?: (url: string, channel: Channel) => Promise<void>;
+  /**
+   * You can override the default image delete request - override this if you use your own CDN
+   */
+  customImageDeleteRequest?: (url: string, channel: Channel) => Promise<void>;
   private channelsSubject = new BehaviorSubject<Channel[] | undefined>(
     undefined
   );
@@ -549,7 +571,11 @@ export class ChannelService {
     const uploadResults = await Promise.allSettled(
       uploads.map((upload) =>
         upload.type === 'image'
-          ? channel.sendImage(upload.file)
+          ? this.customImageUploadRequest
+            ? this.customImageUploadRequest(upload.file, channel)
+            : channel.sendImage(upload.file)
+          : this.customFileUploadRequest
+          ? this.customFileUploadRequest(upload.file, channel)
           : channel.sendFile(upload.file)
       )
     );
@@ -578,7 +604,11 @@ export class ChannelService {
   async deleteAttachment(attachmentUpload: AttachmentUpload) {
     const channel = this.activeChannelSubject.getValue()!;
     await (attachmentUpload.type === 'image'
-      ? channel.deleteImage(attachmentUpload.url!)
+      ? this.customImageDeleteRequest
+        ? this.customImageDeleteRequest(attachmentUpload.url!, channel)
+        : channel.deleteImage(attachmentUpload.url!)
+      : this.customFileDeleteRequest
+      ? this.customFileDeleteRequest(attachmentUpload.url!, channel)
       : channel.deleteFile(attachmentUpload.url!));
   }
 
