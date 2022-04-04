@@ -32,7 +32,7 @@ import {
 } from './types';
 
 /**
- * The `ChannelService` provides data and interaction for the channel list and message list. TEST
+ * The `ChannelService` provides data and interaction for the channel list and message list.
  */
 @Injectable({
   providedIn: 'root',
