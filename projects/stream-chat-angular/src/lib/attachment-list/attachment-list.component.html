@@ -74,6 +74,18 @@
         </button>
       </ng-container>
     </div>
+    <video
+      *ngIf="isVideo(attachment)"
+      controls
+      data-testclass="video-attachment"
+      [src]="attachment.asset_url"
+      style="
+        width: 100%;
+        max-width: 400px;
+        height: 300px;
+        border-radius: inherit;
+      "
+    ></video>
     <div
       *ngIf="isFile(attachment)"
       class="

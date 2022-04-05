@@ -1361,7 +1361,7 @@ describe('ChannelService', () => {
 
   it('should call custom #customFileUploadRequest and #customImageUploadRequest if provided', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const customImageUploadRequest = jasmine
       .createSpy()
@@ -1425,7 +1425,7 @@ describe('ChannelService', () => {
 
   it('should call custom #customImageDeleteRequest if provided', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const customImageDeleteRequest = jasmine.createSpy();
     service.customImageDeleteRequest = customImageDeleteRequest;
@@ -1444,7 +1444,7 @@ describe('ChannelService', () => {
 
   it('should call custom #customFileDeleteRequest if provided', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const customFileDeleteRequest = jasmine.createSpy();
     service.customFileDeleteRequest = customFileDeleteRequest;

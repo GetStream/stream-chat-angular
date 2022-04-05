@@ -80,7 +80,7 @@ export type AttachmentUpload = {
   file: File;
   state: 'error' | 'success' | 'uploading';
   url?: string;
-  type: 'image' | 'file';
+  type: 'image' | 'file' | 'video';
   previewUri?: string | ArrayBuffer;
 };
 

@@ -187,18 +187,26 @@ describe('AttachmentService', () => {
       { type: 'image/vnd.adobe.photoshop' },
       { type: 'plain/text' },
     ];
-    const files = [...imageFiles, ...dataFiles];
+    const videoFiles = [
+      { type: 'video/quicktime' },
+      { type: 'video/x-msvideo' },
+    ];
+    const files = [...imageFiles, ...dataFiles, ...videoFiles];
     uploadAttachmentsSpy.and.resolveTo([
       { file: imageFiles[0], state: 'success', url: 'url1', type: 'image' },
       { file: imageFiles[1], state: 'success', url: 'url2', type: 'image' },
       { file: dataFiles[0], state: 'success', url: 'url3', type: 'file' },
       { file: dataFiles[1], state: 'success', url: 'url4', type: 'file' },
+      { file: videoFiles[0], state: 'success', url: 'url5', type: 'video' },
+      { file: videoFiles[1], state: 'success', url: 'url6', type: 'video' },
     ]);
     void service.filesSelected(files as any as FileList);
 
     expect(uploadAttachmentsSpy).toHaveBeenCalledWith([
       { file: imageFiles[0], type: 'image', state: 'uploading' },
       { file: imageFiles[1], type: 'image', state: 'uploading' },
+      { file: videoFiles[0], type: 'video', state: 'uploading' },
+      { file: videoFiles[1], type: 'video', state: 'uploading' },
       { file: dataFiles[0], type: 'file', state: 'uploading' },
       { file: dataFiles[1], type: 'file', state: 'uploading' },
     ]);
