@@ -1358,4 +1358,106 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith({ channel1: newMessage.created_at });
   });
+
+  it('should call custom #customFileUploadRequest and #customImageUploadRequest if provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const customImageUploadRequest = jasmine
+      .createSpy()
+      .and.callFake((file: File) => {
+        switch (file.name) {
+          case 'file_error.jpg':
+            return Promise.reject(new Error());
+          default:
+            return Promise.resolve({ file: 'url/to/image' });
+        }
+      });
+    const customFileUploadRequest = jasmine
+      .createSpy()
+      .and.callFake((file: File) => {
+        switch (file.name) {
+          case 'file_error.pdf':
+            return Promise.reject(new Error());
+          default:
+            return Promise.resolve({ file: 'url/to/pdf' });
+        }
+      });
+    service.customImageUploadRequest = customImageUploadRequest;
+    service.customFileUploadRequest = customFileUploadRequest;
+    spyOn(channel, 'sendImage');
+    spyOn(channel, 'sendFile');
+    const file1 = { name: 'food.png' } as File;
+    const file2 = { name: 'file_error.jpg' } as File;
+    const file3 = { name: 'menu.pdf' } as File;
+    const file4 = { name: 'file_error.pdf' } as File;
+    const attachments = [
+      { file: file1, type: 'image', state: 'uploading' },
+      { file: file2, type: 'image', state: 'uploading' },
+      { file: file3, type: 'file', state: 'uploading' },
+      { file: file4, type: 'file', state: 'uploading' },
+    ] as AttachmentUpload[];
+    const result = await service.uploadAttachments(attachments);
+    const expectedResult = [
+      {
+        file: file1,
+        state: 'success',
+        url: 'url/to/image',
+        type: 'image',
+      },
+      { file: file2, state: 'error', type: 'image' },
+      {
+        file: file3,
+        state: 'success',
+        url: 'url/to/pdf',
+        type: 'file',
+      },
+      { file: file4, state: 'error', type: 'file' },
+    ];
+
+    expect(channel.sendImage).not.toHaveBeenCalled();
+    expect(channel.sendFile).not.toHaveBeenCalled();
+
+    expectedResult.forEach((r, i) => {
+      expect(r).toEqual(result[i]);
+    });
+  });
+
+  it('should call custom #customImageDeleteRequest if provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const customImageDeleteRequest = jasmine.createSpy();
+    service.customImageDeleteRequest = customImageDeleteRequest;
+    spyOn(channel, 'deleteImage');
+    const url = 'url/to/image';
+    await service.deleteAttachment({
+      url,
+      type: 'image',
+      state: 'success',
+      file: {} as any as File,
+    });
+
+    expect(customImageDeleteRequest).toHaveBeenCalledWith(url, channel);
+    expect(channel.deleteImage).not.toHaveBeenCalled();
+  });
+
+  it('should call custom #customFileDeleteRequest if provided', async () => {
+    await init();
+    let channel!: Channel;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const customFileDeleteRequest = jasmine.createSpy();
+    service.customFileDeleteRequest = customFileDeleteRequest;
+    spyOn(channel, 'deleteFile');
+    const url = 'url/to/file';
+    await service.deleteAttachment({
+      url,
+      type: 'file',
+      state: 'success',
+      file: {} as any as File,
+    });
+
+    expect(customFileDeleteRequest).toHaveBeenCalledWith(url, channel);
+    expect(channel.deleteFile).not.toHaveBeenCalled();
+  });
 });

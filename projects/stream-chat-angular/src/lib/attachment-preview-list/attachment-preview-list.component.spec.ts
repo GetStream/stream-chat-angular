@@ -329,4 +329,16 @@ describe('AttachmentPreviewListComponent', () => {
 
     expect(event.preventDefault).toHaveBeenCalledWith();
   });
+
+  it('should display video files as file attachments', () => {
+    const upload = {
+      file: { name: 'cute-video.mp4', type: 'video/mp4' } as File,
+      state: 'success',
+      type: 'video',
+    } as AttachmentUpload;
+    attachmentService.attachmentUploads$.next([upload]);
+    fixture.detectChanges();
+
+    expect(queryPreviewFiles().length).toBe(1);
+  });
 });
