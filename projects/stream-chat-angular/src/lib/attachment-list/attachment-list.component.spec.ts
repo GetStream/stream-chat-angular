@@ -24,6 +24,7 @@ describe('AttachmentListComponent', () => {
   let queryImageModalPrevButton: () => HTMLButtonElement | null;
   let queryImageModalNextButton: () => HTMLButtonElement | null;
   let queryGallery: () => HTMLElement | null;
+  let queryVideos: () => HTMLVideoElement[];
   let sendAction: jasmine.Spy;
 
   const waitForImgComplete = () => {
@@ -92,6 +93,10 @@ describe('AttachmentListComponent', () => {
       ) as HTMLButtonElement;
     queryGallery = () =>
       nativeElement.querySelector('[data-testid="image-gallery"]');
+    queryVideos = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="video-attachment"]')
+      );
   });
 
   it('should display received #attachments ordered', () => {
@@ -126,26 +131,26 @@ describe('AttachmentListComponent', () => {
         title_link: 'https://giphy.com/gifs/game-point-Eq5pb4dR4DJQc',
         type: 'giphy',
       },
+      {
+        type: 'video',
+        asset_url: 'url6',
+      },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(5);
+    expect(attachments.length).toBe(6);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
 
     expect(
-      attachments[1].classList.contains('str-chat__message-attachment--file')
+      attachments[1].classList.contains('str-chat__message-attachment--video')
     ).toBeTrue();
 
     expect(
-      attachments[1].classList.contains('str-chat__message-attachment--image')
-    ).toBeFalse();
-
-    expect(
-      attachments[2].classList.contains('str-chat__message-attachment--card')
+      attachments[2].classList.contains('str-chat__message-attachment--file')
     ).toBeTrue();
 
     expect(
@@ -157,11 +162,19 @@ describe('AttachmentListComponent', () => {
     ).toBeTrue();
 
     expect(
+      attachments[3].classList.contains('str-chat__message-attachment--image')
+    ).toBeFalse();
+
+    expect(
       attachments[4].classList.contains('str-chat__message-attachment--card')
     ).toBeTrue();
 
     expect(
-      attachments[4].classList.contains('str-chat__message-attachment--giphy')
+      attachments[5].classList.contains('str-chat__message-attachment--card')
+    ).toBeTrue();
+
+    expect(
+      attachments[5].classList.contains('str-chat__message-attachment--giphy')
     ).toBeTrue();
 
     expect(queryImages().length).toBe(1);
@@ -169,6 +182,7 @@ describe('AttachmentListComponent', () => {
     expect(queryUrlLinks().length).toBe(3);
     expect(queryCardImages().length).toBe(3);
     expect(queryActions().length).toBe(0);
+    expect(queryVideos().length).toBe(1);
   });
 
   it('should create gallery', () => {
@@ -762,5 +776,24 @@ describe('AttachmentListComponent', () => {
 
       expect(component.imagesToView).toEqual([]);
     });
+  });
+
+  it(`shouldn't display video links as video attachments`, () => {
+    const attachment = {
+      asset_url: 'https://www.youtube.com/watch?v=m4-HM_sCvtQ',
+      author_name: 'YouTube',
+      image_url: 'https://i.ytimg.com/vi/m4-HM_sCvtQ/mqdefault.jpg',
+      og_scrape_url: 'https://www.youtube.com/watch?v=m4-HM_sCvtQ',
+      text: "Java is one of the most successful and most dreaded technologies in the computer science world. Let's roast this powerful open-source programming language to find out why it has so many haters. \n\n#java #programming #comedy #100SecondsOfCode\n\n🔗 Resources\n\nJava Website https://java.com\nJava in 100 Seconds https://youtu.be/l9AzO1FMgM8\nWhy Java Sucks https://tech.jonathangardner.net/wiki/Why_Java_Sucks\nWhy Java Doesn't Suck https://smartbear.com/blog/please-stop-staying-java-sucks/\n\n🔥 Get More Content - Upgrade to PRO\n\nUpgrade to Fireship PRO at https://fireship.io/pro\nUse code lORhwXd2 for ...",
+      thumb_url: 'https://i.ytimg.com/vi/m4-HM_sCvtQ/mqdefault.jpg',
+      title: 'Java for the Haters in 100 Seconds',
+      title_link: 'https://www.youtube.com/watch?v=m4-HM_sCvtQ',
+      type: 'video',
+    };
+    component.attachments = [attachment];
+    component.ngOnChanges();
+    fixture.detectChanges();
+
+    expect(queryVideos().length).toBe(0);
   });
 });

@@ -47,6 +47,7 @@ export class AttachmentListComponent implements OnChanges {
     const containsGallery = images.length >= 2;
     this.orderedAttachments = [
       ...(containsGallery ? this.createGallery(images) : images),
+      ...this.attachments.filter((a) => this.isVideo(a)),
       ...this.attachments.filter((a) => this.isFile(a)),
       ...this.attachments.filter((a) => this.isCard(a)),
     ];
@@ -66,6 +67,14 @@ export class AttachmentListComponent implements OnChanges {
 
   isGallery(attachment: Attachment) {
     return attachment.type === 'gallery';
+  }
+
+  isVideo(attachment: Attachment) {
+    return (
+      attachment.type === 'video' &&
+      attachment.asset_url &&
+      !attachment.og_scrape_url // links from video share services (such as YouTube or Facebook) are can't be played
+    );
   }
 
   isCard(attachment: Attachment) {

@@ -54,7 +54,9 @@
     </div>
     <div
       class="rfu-file-previewer"
-      *ngIf="attachmentUpload.type === 'file'"
+      *ngIf="
+        attachmentUpload.type === 'file' || attachmentUpload.type === 'video'
+      "
       data-testclass="attachment-file-preview"
     >
       <ol>
