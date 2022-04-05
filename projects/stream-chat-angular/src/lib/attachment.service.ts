@@ -55,10 +55,13 @@ export class AttachmentService {
     }
     const imageFiles: File[] = [];
     const dataFiles: File[] = [];
+    const videoFiles: File[] = [];
 
     Array.from(fileList).forEach((file) => {
       if (isImageFile(file)) {
         imageFiles.push(file);
+      } else if (file.type.startsWith('video/')) {
+        videoFiles.push(file);
       } else {
         dataFiles.push(file);
       }
@@ -69,6 +72,11 @@ export class AttachmentService {
         file,
         state: 'uploading' as 'uploading',
         type: 'image' as 'image',
+      })),
+      ...videoFiles.map((file) => ({
+        file,
+        state: 'uploading' as 'uploading',
+        type: 'video' as 'video',
       })),
       ...dataFiles.map((file) => ({
         file,
