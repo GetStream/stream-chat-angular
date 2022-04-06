@@ -61,6 +61,6 @@ jobs:
       - name: Push to docusaurus
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+          target-branch: ${{ github.ref == 'refs/heads/master' && 'staging' || 'staging' }}
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
