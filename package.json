@@ -61,7 +61,11 @@
               "BREAKING CHANGE",
               "BREAKING CHANGES",
               "\\*\\*BREAKING CHANGE\\*\\*",
-              "\\*\\*BREAKING CHANGES\\*\\*"
+              "\\*\\*BREAKING CHANGES\\*\\*",
+              "BREAKING CHANGE:",
+              "BREAKING CHANGES:",
+              "\\*\\*BREAKING CHANGE:\\*\\*",
+              "\\*\\*BREAKING CHANGES:\\*\\*"
             ]
           }
         }
