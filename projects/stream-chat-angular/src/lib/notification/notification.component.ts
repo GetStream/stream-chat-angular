@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { NotificationType } from '../types';
 
 /**
@@ -14,6 +14,10 @@ export class NotificationComponent {
    * The type of the notification
    */
   @Input() type: NotificationType | undefined;
+  /**
+   * The content of the notification (can also be provided using `ng-content`)
+   */
+  @Input() content: TemplateRef<void> | undefined;
 
   constructor() {}
 }

@@ -28,7 +28,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.chatService.notification$
+    this.chatService.events$
       .pipe(filter((n) => n.eventType === "notification.added_to_channel"))
       .subscribe((notification) => {
         // reenter Angular's change detection zone
@@ -49,7 +49,7 @@ If you were to display the notification without reentering Angular's zone, the `
 
 You need to reenter Angular's change detection zone when
 
-- you subscribe to events using the [`notification$`](../services/ChatClientService.mdx/#notification) Observable of the `ChatClientService`
+- you subscribe to events using the [`events$`](../services/ChatClientService.mdx/#notification) Observable of the `ChatClientService`
 - you subscribe to channel events
 
 For example the [`ChannelPreview`](../components/ChannelPreviewComponent.mdx) component needs to subscribe to the `message.read` channel events to know if the channel has unread messages and reenter Angular's zone when an event is received:

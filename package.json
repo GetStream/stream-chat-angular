@@ -3,21 +3,25 @@
   "version": "0.0.0",
   "scripts": {
     "prepare": "husky install",
-    "postinstall": "npm run config:dev",
+    "postinstall": "npm run config:dev & npm run copy-css",
     "ng": "ng",
     "prestart": "npm run config:dev && ng build",
-    "start": "ng serve",
+    "start": "ng serve sample-app",
+    "prestart:customizations-example": "npm run config:dev",
+    "start:customizations-example": "ng serve customizations-example",
     "prestart:dev": "npm run config:dev",
-    "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve)",
+    "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve sample-app)",
+    "prestart:dev:customizations-example": "npm run config:dev",
+    "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example)",
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:prod": "npm run copy-css && ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "rm -rf dist & npm run watch & (wait-on dist && ng run stream-chat-angular:test)",
     "test:ci": "ng run stream-chat-angular:test --browsers ChromeHeadlessCustom --watch false",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "pree2e": "npm run config:dev && ng build",
-    "e2e": "ng e2e",
+    "e2e": "ng e2e sample-app",
     "pree2e:ci": "npm run config:prod && ng build --configuration production",
     "e2e:ci": "ng run sample-app:cypress-run --configuration production",
     "config:dev": "ANGULAR_ENV=development ts-node set-env.ts",
@@ -29,7 +33,8 @@
     "generate-docs": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs",
     "typedoc:services": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-service-docs --exclude '!**/*service.ts' --excludeNotDocumented --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "typedoc:components": "typedoc --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
-    "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)"
+    "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)",
+    "copy-css": "copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles"
   },
   "lint-staged": {
     "**/*": [
@@ -40,9 +45,13 @@
   "private": true,
   "release": {
     "branches": [
-      "master"
+      "master",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
     ],
-    "dryRun": false,
+    "dryRun": true,
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -50,7 +59,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": true
+          "npmPublish": false
         }
       ],
       [
@@ -86,7 +95,7 @@
     "@ctrl/ngx-emoji-mart": "^6.2.0",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@stream-io/stream-chat-css": "2.6.0",
+    "@stream-io/stream-chat-css": "2.7.0",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "^1.4.0",
     "dayjs": "^1.10.7",
@@ -94,7 +103,7 @@
     "emoji-regex": "^10.0.0",
     "pretty-bytes": "^5.6.0",
     "rxjs": "~6.6.0",
-    "stream-chat": "^5.6.0",
+    "stream-chat": "^6.4.0",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.0",
     "uuidv4": "^6.2.12",
@@ -115,6 +124,7 @@
     "@types/jasmine": "~3.8.0",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
+    "copyfiles": "^2.4.1",
     "cypress": "8.4.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",

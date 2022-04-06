@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MessageResponseBase, UserResponse } from 'stream-chat';
-import { DefaultUserType, StreamMessage } from '../types';
+import {
+  MessageResponseBase,
+  ReactionResponse,
+  UserResponse,
+} from 'stream-chat';
+import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -15,13 +19,14 @@ import { MessageReactionsComponent } from '../message-reactions/message-reaction
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
   let fixture: ComponentFixture<MessageComponent>;
   let nativeElement: HTMLElement;
   let message: StreamMessage;
-  let currentUser: UserResponse<DefaultUserType>;
+  let currentUser: UserResponse<DefaultStreamChatGenerics>;
   let queryContainer: () => HTMLElement | null;
   let querySender: () => HTMLElement | null;
   let queryDate: () => HTMLElement | null;
@@ -36,8 +41,8 @@ describe('MessageComponent', () => {
   let queryText: () => HTMLElement | null;
   let messageActionsBoxComponent: MessageActionsBoxComponent;
   let queryAttachmentComponent: () => AttachmentListComponent;
-  let queryMessageReactionsComponent: () => MessageReactionsComponent;
   let queryReactionIcon: () => HTMLElement | null;
+  let queryMessageReactions: () => MessageReactionsComponent;
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
@@ -64,6 +69,7 @@ describe('MessageComponent', () => {
         MessageActionsBoxComponent,
         AttachmentListComponent,
         MessageReactionsComponent,
+        AvatarPlaceholderComponent,
       ],
       providers: [
         {
@@ -104,6 +110,9 @@ describe('MessageComponent', () => {
     queryText = () => nativeElement.querySelector('[data-testid="text"]');
     queryReactionIcon = () =>
       nativeElement.querySelector('[data-testid="reaction-icon"]');
+    queryMessageReactions = () =>
+      fixture.debugElement.query(By.directive(MessageReactionsComponent))
+        .componentInstance as MessageReactionsComponent;
     queryMessageInner = () =>
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
@@ -116,7 +125,7 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="reply-in-thread"]');
     message = mockMessage();
     component.message = message;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     messageActionsBoxComponent = fixture.debugElement.query(
       By.directive(MessageActionsBoxComponent)
@@ -124,9 +133,6 @@ describe('MessageComponent', () => {
     queryAttachmentComponent = () =>
       fixture.debugElement.query(By.directive(AttachmentListComponent))
         ?.componentInstance as AttachmentListComponent;
-    queryMessageReactionsComponent = () =>
-      fixture.debugElement.query(By.directive(MessageReactionsComponent))
-        ?.componentInstance as MessageReactionsComponent;
     queryDeletedMessageContainer = () =>
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
     querySystemMessageContainer = () =>
@@ -162,7 +168,7 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message--with-reactions')).toBeTrue();
 
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
-    component.areReactionsEnabled = false;
+    component.message.reaction_counts = {};
     fixture.detectChanges();
     classList = container?.classList;
 
@@ -450,14 +456,14 @@ describe('MessageComponent', () => {
   });
 
   it(`shouldn't display message actions if there is no visible message action`, () => {
-    component.enabledMessageActions = ['flag'];
+    component.enabledMessageActions = ['flag-message'];
     fixture.detectChanges();
 
     expect(queryActionIcon()).toBeNull();
   });
 
   it('should open and close message actions box', () => {
-    component.enabledMessageActions = ['edit', 'flag'];
+    component.enabledMessageActions = ['update-own-message', 'flag-message'];
     fixture.detectChanges();
 
     expect(messageActionsBoxComponent.isOpen).toBeFalse();
@@ -469,7 +475,7 @@ describe('MessageComponent', () => {
   });
 
   it('should close message actions box on mouseleave event', () => {
-    component.enabledMessageActions = ['edit', 'flag'];
+    component.enabledMessageActions = ['update-own-message', 'flag-message'];
     component.isActionBoxOpen = true;
     fixture.detectChanges();
 
@@ -564,77 +570,56 @@ describe('MessageComponent', () => {
     expect(attachmentComponent.messageId).toBe(component.message.id);
   });
 
-  it('should display reactions icon, if reactions are enabled and user can react to message', () => {
-    expect(queryReactionIcon()).not.toBeNull();
-
-    component.enabledMessageActions = [];
-    fixture.detectChanges();
-
-    expect(queryReactionIcon()).toBeNull();
-
-    component.enabledMessageActions = ['send-reaction'];
-    component.areReactionsEnabled = false;
-    fixture.detectChanges();
-
-    expect(queryReactionIcon()).toBeNull();
-  });
-
-  it('should display message reactions, if reactions are enabled', () => {
-    const reactions = { angry: 1 };
-    const ownReactions = [
-      {
-        type: 'wow',
-        created_at: '',
-        updated_at: '',
-        user: currentUser,
-      },
-    ];
-    const latestReactions = [
-      {
-        type: 'angry',
-        created_at: '',
-        updated_at: '',
-        user: { id: 'angryuser', name: 'Jack' } as UserResponse,
-      },
-      ...ownReactions,
-    ];
-    component.message = {
-      ...message,
-      ...{
-        reaction_counts: reactions,
-        latest_reactions: latestReactions,
-        own_reactions: ownReactions,
-      },
+  it('should display reactions icon, if user can react to message', () => {
+    const message = {
+      ...mockMessage(),
+      id: 'messagId',
+      reaction_counts: { haha: 1 },
+      latest_reactions: [
+        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
+        { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+      ] as ReactionResponse[],
+      own_reactions: [
+        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
+      ] as any as ReactionResponse[],
+      text: 'Hi',
     };
-    component.enabledMessageActions = ['send-reaction'];
+    component.message = message as any as StreamMessage;
+    component.enabledMessageActions = [];
+    component.ngOnChanges({
+      enabledMessageActions: {} as SimpleChange,
+      message: {} as SimpleChange,
+    });
     fixture.detectChanges();
-    const messageReactionsComponent = queryMessageReactionsComponent();
 
-    expect(messageReactionsComponent?.messageReactionCounts).toBe(reactions);
-    expect(messageReactionsComponent?.latestReactions).toBe(latestReactions);
-    expect(messageReactionsComponent?.isSelectorOpen).toBe(
-      component.isReactionSelectorOpen
+    expect(queryReactionIcon()).toBeNull();
+
+    component.enabledMessageActions = ['send-reaction'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    component.isReactionSelectorOpen = true;
+    fixture.detectChanges();
+    const messageReactions = queryMessageReactions();
+
+    expect(queryReactionIcon()).not.toBeNull();
+    expect(messageReactions.messageId).toBe(message.id);
+    expect(messageReactions.latestReactions).toBe(message.latest_reactions);
+    expect(messageReactions.messageReactionCounts).toBe(
+      message.reaction_counts
     );
 
-    expect(messageReactionsComponent?.messageId).toBe(component.message.id);
+    expect(messageReactions.ownReactions).toBe(message.own_reactions);
+    expect(messageReactions.isSelectorOpen).toBe(true);
 
-    expect(messageReactionsComponent?.ownReactions).toBe(ownReactions);
-
-    component.areReactionsEnabled = false;
-    fixture.detectChanges();
-
-    expect(queryMessageReactionsComponent()).toBeUndefined();
-
-    component.isReactionSelectorOpen = true;
-    component.areReactionsEnabled = true;
-    fixture.detectChanges();
-    queryMessageReactionsComponent().isSelectorOpenChange.emit(false);
-    fixture.detectChanges();
+    messageReactions.isSelectorOpenChange.next(false);
 
     expect(component.isReactionSelectorOpen).toBeFalse();
   });
 
   it('should toggle reactions selector', () => {
+    component.enabledMessageActions = ['send-reaction'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    fixture.detectChanges();
+
     expect(component.isReactionSelectorOpen).toBeFalse();
 
     queryReactionIcon()?.click();
@@ -654,7 +639,7 @@ describe('MessageComponent', () => {
     const htmlContent =
       '<a href="https://getstream.io/">https://getstream.io/</a>';
     component.message = { ...component.message!, ...{ html: htmlContent } };
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryText()?.innerHTML).toContain(htmlContent);
@@ -744,14 +729,14 @@ describe('MessageComponent', () => {
     component.message = {
       text: '',
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([]);
 
     component.message = {
       text: 'This is a message without user mentions',
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       { content: 'This is a message without user mentions', type: 'text' },
@@ -760,7 +745,7 @@ describe('MessageComponent', () => {
     component.message = {
       text: 'This is just an email, not a mention test@test.com',
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       {
@@ -772,7 +757,7 @@ describe('MessageComponent', () => {
     component.message = {
       html: '<p>This is just an email, not a mention test@test.com</p>\n',
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       {
@@ -785,7 +770,7 @@ describe('MessageComponent', () => {
       text: 'Hello @Jack',
       mentioned_users: [{ id: 'jack', name: 'Jack' }],
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       { content: 'Hello ', type: 'text' },
@@ -800,7 +785,7 @@ describe('MessageComponent', () => {
       text: 'Hello @Jack, how are you?',
       mentioned_users: [{ id: 'jack', name: 'Jack' }],
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       { content: 'Hello ', type: 'text' },
@@ -819,7 +804,7 @@ describe('MessageComponent', () => {
         { id: 'id3444', name: 'Lucie' },
       ],
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       { content: 'Hello ', type: 'text' },
@@ -841,7 +826,7 @@ describe('MessageComponent', () => {
       html: `<p><a href="https://getstream.io/">https://getstream.io/</a> this is the link @sara</p>\n`,
       mentioned_users: [{ id: 'sara' }],
     } as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
       {
@@ -856,7 +841,7 @@ describe('MessageComponent', () => {
       html: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
       mentioned_users: [],
     } as any as StreamMessage;
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+    component.ngOnChanges({ message: {} as SimpleChange });
 
     const content = component.messageTextParts[0].content;
 
@@ -889,6 +874,7 @@ describe('MessageComponent', () => {
   it(`shouldn't display reply count for parent messages if user doesn't have the necessary capability`, () => {
     component.message = { ...message, reply_count: 1 };
     component.enabledMessageActions = [];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryReplyCountButton()).toBeNull();
@@ -898,6 +884,7 @@ describe('MessageComponent', () => {
     expect(queryReplyInThreadIcon()).not.toBeNull();
 
     component.enabledMessageActions = [];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryReplyInThreadIcon()).toBeNull();
@@ -905,6 +892,7 @@ describe('MessageComponent', () => {
 
   it('should select parent message, if reply in thread is clicked', () => {
     component.enabledMessageActions = ['send-reply'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     queryReplyInThreadIcon()?.click();
@@ -916,7 +904,10 @@ describe('MessageComponent', () => {
   describe('in thread mode', () => {
     beforeEach(() => {
       component.mode = 'thread';
-      component.enabledMessageActions = ['edit', 'delete'];
+      component.enabledMessageActions = ['update-own-message', 'delete'];
+      component.ngOnChanges({
+        enabledMessageActions: {} as SimpleChange,
+      });
       fixture.detectChanges();
     });
 
@@ -949,6 +940,9 @@ describe('MessageComponent', () => {
     it(`shouldn't display reply in thread for thread replies`, () => {
       component.enabledMessageActions = ['send-reply'];
       component.message!.parent_id = 'parentMessage';
+      component.ngOnChanges({
+        enabledMessageActions: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryReplyInThreadIcon()).toBeNull();
@@ -957,6 +951,9 @@ describe('MessageComponent', () => {
     it('should display message actions for thread replies', () => {
       component.enabledMessageActions = ['update-any-message'];
       component.message!.parent_id = 'parentMessage';
+      component.ngOnChanges({
+        enabledMessageActions: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryActionIcon()).not.toBeNull();
@@ -965,6 +962,9 @@ describe('MessageComponent', () => {
     it('should display message reactions for thread replies', () => {
       component.enabledMessageActions = ['send-reaction'];
       component.message!.parent_id = 'parentMessage';
+      component.ngOnChanges({
+        enabledMessageActions: {} as SimpleChange,
+      });
       fixture.detectChanges();
 
       expect(queryReactionIcon()).not.toBeNull();

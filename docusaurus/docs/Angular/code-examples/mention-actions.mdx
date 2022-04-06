@@ -10,29 +10,82 @@ In this example, we will demonstrate how to create custom mention actions if a u
 
 ## Custom mention template
 
-You can provide a custom message template to the `MessageList` component:
+You can provide a custom message template to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx):
+
+Create the template (for example in your `AppComponent`):
 
 ```html
-<div id="root">
-  <stream-channel-list></stream-channel-list>
-  <stream-channel>
-    <stream-channel-header></stream-channel-header>
-    <stream-message-list
-      [mentionTemplate]="mentionTemplate"
-    ></stream-message-list>
-    <stream-notification-list></stream-notification-list>
-    <stream-message-input></stream-message-input>
-  </stream-channel>
-</div>
-
 <ng-template #mentionTemplate let-user="user">
   <b>@{{ user.name || user.id }}</b>
 </ng-template>
 ```
 
-The `MessageList` component will provide the mentioned user in a variable called `user`, the object has a [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts) type and you can use it to display information about the user.
+The `Message` component will provide the mentioned user in a variable called `user`, the object has a [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts) type and you can use it to display information about the user.
 
 This template looks and works like the default mention template, however you can add interactions to this element.
+
+Register the template in your TypeScript code (for example in your `AppComponent`).
+
+These are the necessary steps:
+
+- Create a reference to the custom template
+- Import the [CustomTemplatesService](../services/CustomTemplatesService.mdx)
+- Register your custom template
+
+Here is an example file:
+
+```typescript
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+} from "stream-chat-angular";
+import {
+  CustomTemplatesService,
+  MentionTemplateContext,
+} from "stream-chat-angular";
+import { environment } from "../environments/environment";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements AfterViewInit {
+  // Create a reference to the custom template
+  @ViewChild("mentionTemplate")
+  private mentionTemplate!: TemplateRef<MentionTemplateContext>;
+
+  constructor(
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private customTemplatesService: CustomTemplatesService // Import the customTemplatesService
+  ) {
+    void this.chatService.init(
+      environment.apiKey,
+      environment.userId,
+      environment.userToken
+    );
+    void this.channelService.init({
+      type: "messaging",
+      members: { $in: [environment.userId] },
+    });
+    this.streamI18nService.setTranslation();
+  }
+
+  ngAfterViewInit(): void {
+    // Register your custom template
+    this.customTemplatesService.mentionTemplate$.next(this.mentionTemplate);
+  }
+}
+```
 
 ## Display user information on click
 

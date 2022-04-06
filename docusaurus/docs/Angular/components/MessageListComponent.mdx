@@ -9,28 +9,9 @@ The `MessageList` displays messages using pagination, new messages are loaded wh
 
 **Example 1** - Using a custom message list component
 
-If you want to create a custom message list component, here is how to use it:
+## Customization
 
-```html
-<stream-channel-list></stream-channel-list>
-<stream-channel>
-  <stream-channel-header></stream-channel-header>
-  <custom-message-list></custom-message-list>
-  <stream-message-input></stream-message-input>
-</stream-channel>
-```
-
-If you want to use a custom message list component in the thread UI, here is how to do it:
-
-```html
-<stream-thread name="thread">
-  <custom-message-list name="thread-message-list"></custom-message-list>
-  <stream-message-input
-    mode="thread"
-    name="thread-message-input"
-  ></stream-message-input>
-</stream-thread>
-```
+See [our customization guide](../concepts/customization.mdx) on how to provide your own message list component.
 
 :::note
 If you want to create your own message list, you can use the [`ChannelService`](../services/ChannelService.mdx) to receive the necessary messages and interact with the Stream API.

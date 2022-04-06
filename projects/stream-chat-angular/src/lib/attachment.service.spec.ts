@@ -66,6 +66,7 @@ describe('AttachmentService', () => {
       attachmentUpload = uploads[0];
     });
     void service.deleteAttachment(attachmentUpload);
+    attachmentUploadsSpy.calls.reset();
     tick();
 
     expect(attachmentUploadsSpy).toHaveBeenCalledWith([]);

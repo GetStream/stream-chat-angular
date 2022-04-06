@@ -17,12 +17,18 @@ import { ChatClientService } from '../chat-client.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { generateMockChannels, mockCurrentUser, mockMessage } from '../mocks';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload, StreamMessage } from '../types';
+import {
+  AttachmentUpload,
+  DefaultStreamChatGenerics,
+  StreamMessage,
+} from '../types';
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -33,11 +39,12 @@ describe('MessageInputComponent', () => {
   let queryattachmentUploadButton: () => HTMLElement | null;
   let queryFileInput: () => HTMLInputElement | null;
   let queryCooldownTimer: () => HTMLElement | null;
-  let mockActiveChannel$: BehaviorSubject<Channel>;
+  let queryAttachmentPreviewList: () => AttachmentPreviewListComponent;
+  let mockActiveChannel$: BehaviorSubject<Channel<DefaultStreamChatGenerics>>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
   let updateMessageSpy: jasmine.Spy;
-  let channel: Channel;
+  let channel: Channel<DefaultStreamChatGenerics>;
   let user: UserResponse;
   let attachmentService: {
     attachmentUploadInProgressCounter$: Subject<number>;
@@ -46,6 +53,8 @@ describe('MessageInputComponent', () => {
     filesSelected: jasmine.Spy;
     mapToAttachments: jasmine.Spy;
     createFromAttachments: jasmine.Spy;
+    deleteAttachment: jasmine.Spy;
+    retryAttachmentUpload: jasmine.Spy;
   };
   let appSettings$: Subject<AppSettings>;
   let getAppSettings: jasmine.Spy;
@@ -76,6 +85,8 @@ describe('MessageInputComponent', () => {
       filesSelected: jasmine.createSpy(),
       mapToAttachments: jasmine.createSpy(),
       createFromAttachments: jasmine.createSpy(),
+      deleteAttachment: jasmine.createSpy(),
+      retryAttachmentUpload: jasmine.createSpy(),
     };
     getAppSettings = jasmine.createSpy();
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
@@ -105,6 +116,8 @@ describe('MessageInputComponent', () => {
         AutocompleteTextareaComponent,
         AvatarComponent,
         AttachmentListComponent,
+        AvatarPlaceholderComponent,
+        AttachmentPreviewListComponent,
       ],
       providers: [
         {
@@ -145,6 +158,9 @@ describe('MessageInputComponent', () => {
       nativeElement.querySelector('[data-testid="file-input"]');
     queryCooldownTimer = () =>
       nativeElement.querySelector('[data-testid="cooldown-timer"]');
+    queryAttachmentPreviewList = () =>
+      fixture.debugElement.query(By.directive(AttachmentPreviewListComponent))
+        .componentInstance as AttachmentPreviewListComponent;
   });
 
   it('should display textarea', () => {
@@ -258,7 +274,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       ...channel,
       data: { own_capabilities: [] },
-    } as any as Channel);
+    } as any as Channel<DefaultStreamChatGenerics>);
     fixture.detectChanges();
 
     expect(queryattachmentUploadButton()).toBeNull();
@@ -269,31 +285,6 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(queryattachmentUploadButton()).toBeNull();
-  });
-
-  it('should set the accepted file types, even if app settings are defined', () => {
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: ['.txt'],
-        allowed_mime_types: ['application/json'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.png'],
-        allowed_mime_types: ['image/jpeg'],
-      },
-    });
-    const accepted = ['.jpg', '.png'];
-    component.acceptedFileTypes = accepted;
-    fixture.detectChanges();
-    const attachmentUpload = queryFileInput();
-
-    expect(attachmentUpload?.getAttribute('accept')).toBe(accepted.join(','));
-  });
-
-  it('should accept every file type if #acceptedFileTypes not provided', () => {
-    const attachmentUpload = queryFileInput();
-
-    expect(attachmentUpload?.getAttribute('accept')).toBe('');
   });
 
   it('should set multiple attribute on file upload', () => {
@@ -407,7 +398,7 @@ describe('MessageInputComponent', () => {
     component.textareaValue = 'text';
     mockActiveChannel$.next({
       getConfig: () => ({ commands: [] }),
-    } as any as Channel);
+    } as any as Channel<DefaultStreamChatGenerics>);
     fixture.detectChanges();
 
     expect(component.textareaValue).toBe('');
@@ -467,7 +458,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel);
+    } as any as Channel<DefaultStreamChatGenerics>);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -532,7 +523,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel);
+    } as any as Channel<DefaultStreamChatGenerics>);
 
     expect(component.canSendMessages).toBeFalse();
   });
@@ -544,23 +535,6 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(queryTextarea()).toBeUndefined();
-  });
-
-  it(`shouldn't set accept, if #acceptedFileTypes not defined`, () => {
-    expect(component.accept).toBe('');
-
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: ['.txt'],
-        allowed_mime_types: ['application/json'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.png'],
-        allowed_mime_types: ['image/jpeg'],
-      },
-    });
-
-    expect(component.accept).toBe('');
   });
 
   it('should check uploaded attachments', async () => {
@@ -626,17 +600,6 @@ describe('MessageInputComponent', () => {
     );
   });
 
-  it(`shouldn't check attachments against #acceptedFileTypes, if that is defined`, async () => {
-    const notificationService = TestBed.inject(NotificationService);
-    spyOn(notificationService, 'addTemporaryNotification');
-    component.acceptedFileTypes = ['application/pdf', '.jpg'];
-    const files = [{ name: 'test3.png', type: 'image/png' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
-    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
-  });
-
   it('should load app settings, if not yet loaded', async () => {
     const files = [{ name: 'test.pdf', type: 'application/pdf' }];
     await component.filesSelected(files as any as FileList);
@@ -680,7 +643,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: ['send-message'] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel);
+    } as any as Channel<DefaultStreamChatGenerics>);
 
     expect(component.canSendMessages).toBeFalse();
   });
@@ -940,5 +903,44 @@ describe('MessageInputComponent', () => {
     });
 
     expect(component.isCooldownInProgress).toBeFalse();
+  });
+
+  it('should display attachment previews', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+
+    expect(attachmentPreviews).not.toBeUndefined();
+    expect(attachmentPreviews.attachmentUploads$).toBe(
+      attachmentService.attachmentUploads$
+    );
+  });
+
+  it('should delete attachment', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+    const upload = {
+      file: { name: 'contract.pdf', type: 'application/pdf' } as File,
+      state: 'success',
+      url: 'url',
+      type: 'file',
+    } as AttachmentUpload;
+    attachmentPreviews.deleteAttachment.next(upload);
+
+    expect(attachmentService.deleteAttachment).toHaveBeenCalledWith(upload);
+  });
+
+  it('should retry attachment upload', () => {
+    const attachmentPreviews = queryAttachmentPreviewList();
+    const file = { name: 'my_image.png', type: 'image/png' } as File;
+    attachmentPreviews.retryAttachmentUpload.next(file);
+
+    expect(attachmentService.retryAttachmentUpload).toHaveBeenCalledWith(file);
+  });
+
+  it('should trigger message send by #sendMessage$', () => {
+    const sendMessage$ = new Subject<void>();
+    component.sendMessage$ = sendMessage$;
+    component.ngOnChanges({ sendMessage$: {} as SimpleChange });
+    sendMessage$.next();
+
+    expect(component.messageSent).toHaveBeenCalledWith();
   });
 });

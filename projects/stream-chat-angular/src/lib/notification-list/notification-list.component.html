@@ -1,21 +1,33 @@
 <div class="str-chat__list-notifications">
-  <stream-notification
+  <ng-container
     *ngFor="let notification of notifications$ | async; trackBy: trackById"
-    [type]="notification.type"
   >
-    <div
-      *ngIf="notification.text !== undefined"
-      data-testclass="notification-content"
-    >
-      {{ notification.text | translate: notification.translateParams }}
-    </div>
-    <ng-container *ngIf="notification.template !== undefined">
-      <ng-container
-        *ngTemplateOutlet="
-          notification.template;
-          context: getTemplateContext(notification)
-        "
-      ></ng-container>
-    </ng-container>
-  </stream-notification>
+    <ng-template #notificationContent>
+      <div
+        *ngIf="notification.text !== undefined"
+        data-testclass="notification-content"
+      >
+        {{ notification.text | translate: notification.translateParams }}
+      </div>
+      <ng-container *ngIf="notification.template !== undefined">
+        <ng-container
+          *ngTemplateOutlet="
+            notification.template;
+            context: getNotificationContentContext(notification)
+          "
+        ></ng-container>
+      </ng-container>
+    </ng-template>
+    <ng-container
+      *ngTemplateOutlet="
+        (customTemplatesService.notificationTemplate$ | async) ||
+          defaultNotification;
+        context: { type: notification.type, content: notificationContent }
+      "
+    ></ng-container>
+  </ng-container>
 </div>
+
+<ng-template #defaultNotification let-type="type" let-content="content">
+  <stream-notification [type]="type" [content]="content"></stream-notification>
+</ng-template>

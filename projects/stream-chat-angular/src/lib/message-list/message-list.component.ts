@@ -14,11 +14,17 @@ import {
 import { ChannelService } from '../channel.service';
 import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { DefaultUserType, StreamMessage } from '../types';
+import {
+  MessageContext,
+  DefaultStreamChatGenerics,
+  StreamMessage,
+  TypingIndicatorContext,
+} from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
 import { UserResponse } from 'stream-chat';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -32,41 +38,12 @@ export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy
 {
   /**
-   * By default, the [default message component](./MessageComponent.mdx) is used. To change the contents of the message, provide [your own custom message template](./MessageComponent.mdx/#customization).
-   */
-  @Input() messageTemplate: TemplateRef<any> | undefined;
-  /**
-   * The input used for message edit. By default, the [default message input component](./MessageInputComponent.mdx) is used. To change the input for message edit, provide [your own custom template](./MessageInputComponent.mdx/#customization).
-   */
-  @Input() messageInputTemplate: TemplateRef<any> | undefined;
-  /**
-   * The template used to display a mention in a message. It receives the mentioned user in a variable called `user` with the type [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts). You can provide your own template if you want to [add actions to mentions](../code-examples/mention-actions.mdx).
-   */
-  @Input() mentionTemplate: TemplateRef<any> | undefined;
-  /**
-   * You can provide your own typing indicator template instead of the default one.
-   */
-  @Input() typingIndicatorTemplate:
-    | TemplateRef<{ usersTyping$: Observable<UserResponse<DefaultUserType>[]> }>
-    | undefined;
-  /**
-   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead. If true, the message reactions are displayed. Users can also react to messages if they have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
-   */
-  @Input() areReactionsEnabled: boolean | undefined = undefined;
-  /**
-   * @deprecated use [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) instead. The list of [actions that are enabled](./MessageActionsBoxComponent.mdx), please note that the user also has to have the necessary [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) for actions to work. Unathorized actions won't be displayed on the UI. The `MessgaeList` component makes the necessary checks before passing the actions to the `Message` component.
-   */
-  /* eslint-disable-next-line @angular-eslint/no-input-rename */
-  @Input('enabledMessageActions') enabledMessageActionsInput:
-    | string[]
-    | undefined = undefined;
-  /**
    * Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'main' | 'thread' = 'main';
+  typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
+  messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
-  canReactToMessage: boolean | undefined;
-  canReceiveReadEvents: boolean | undefined;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
@@ -85,56 +62,28 @@ export class MessageListComponent
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
-  private authorizedMessageActions: string[] = ['flag'];
   private readonly isUserScrolledUpThreshold = 300;
   private subscriptions: Subscription[] = [];
   private prevScrollTop: number | undefined;
-  private usersTypingInChannel$!: Observable<UserResponse<DefaultUserType>[]>;
-  private usersTypingInThread$!: Observable<UserResponse<DefaultUserType>[]>;
+  private usersTypingInChannel$!: Observable<
+    UserResponse<DefaultStreamChatGenerics>[]
+  >;
+  private usersTypingInThread$!: Observable<
+    UserResponse<DefaultStreamChatGenerics>[]
+  >;
 
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-    private imageLoadService: ImageLoadService
+    private imageLoadService: ImageLoadService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         this.resetScrollState();
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
-          this.canReactToMessage = capabilites.indexOf('send-reaction') !== -1;
-          this.canReceiveReadEvents = capabilites.indexOf('read-events') !== -1;
-          this.authorizedMessageActions = [];
-          if (this.canReactToMessage) {
-            this.authorizedMessageActions.push('send-reaction');
-          }
-          if (this.canReceiveReadEvents) {
-            this.authorizedMessageActions.push('read-events');
-          }
-          if (capabilites.indexOf('flag-message') !== -1) {
-            this.authorizedMessageActions.push('flag');
-          }
-          if (capabilites.indexOf('update-own-message') !== -1) {
-            this.authorizedMessageActions.push('edit');
-          }
-          if (capabilites.indexOf('update-any-message') !== -1) {
-            this.authorizedMessageActions.push('edit');
-            this.authorizedMessageActions.push('edit-any');
-          }
-          if (capabilites.indexOf('delete-own-message') !== -1) {
-            this.authorizedMessageActions.push('delete');
-          }
-          if (capabilites.indexOf('delete-any-message') !== -1) {
-            this.authorizedMessageActions.push('delete');
-            this.authorizedMessageActions.push('delete-any');
-          }
-          if (capabilites.indexOf('send-reply') !== -1) {
-            this.authorizedMessageActions.push('send-reply');
-          }
-          if (capabilites.indexOf('quote-message') !== -1) {
-            this.authorizedMessageActions.push('quote-message');
-          }
-          this.setEnabledActions();
+          this.enabledMessageActions = capabilites;
         }
       })
     );
@@ -162,6 +111,16 @@ export class MessageListComponent
         this.parentMessage = message;
       })
     );
+    this.subscriptions.push(
+      this.customTemplatesService.messageTemplate$.subscribe(
+        (template) => (this.messageTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.typingIndicatorTemplate$.subscribe(
+        (template) => (this.typingIndicatorTemplate = template)
+      )
+    );
     this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
     this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
   }
@@ -171,9 +130,6 @@ export class MessageListComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.enabledMessageActionsInput) {
-      this.setEnabledActions();
-    }
     if (changes.mode) {
       this.setMessages$();
     }
@@ -206,12 +162,6 @@ export class MessageListComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  get usersTyping$() {
-    return this.mode === 'thread'
-      ? this.usersTypingInThread$
-      : this.usersTypingInChannel$;
   }
 
   trackByMessageId(index: number, item: StreamMessage) {
@@ -251,31 +201,27 @@ export class MessageListComponent
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
   }
 
+  getTypingIndicatorContext(): TypingIndicatorContext {
+    return {
+      usersTyping$: this.usersTyping$,
+    };
+  }
+
+  getMessageContext(message: StreamMessage): MessageContext {
+    return {
+      message,
+      isLastSentMessage: !!(
+        this.lastSentMessageId && message?.id === this.lastSentMessageId
+      ),
+      enabledMessageActions: this.enabledMessageActions,
+      mode: this.mode,
+    };
+  }
+
   private preserveScrollbarPosition() {
     this.scrollContainer.nativeElement.scrollTop =
       (this.prevScrollTop || 0) +
       (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
-  }
-
-  private setEnabledActions() {
-    this.enabledMessageActions = [];
-    if (!this.enabledMessageActionsInput) {
-      this.enabledMessageActions = this.authorizedMessageActions;
-      return;
-    }
-    this.enabledMessageActionsInput = [
-      ...this.enabledMessageActionsInput,
-      'send-reaction',
-      'read-events',
-      'send-reply',
-      'quote-message',
-    ];
-    this.enabledMessageActionsInput.forEach((action) => {
-      const isAuthorized = this.authorizedMessageActions.indexOf(action) !== -1;
-      if (isAuthorized) {
-        this.enabledMessageActions.push(action);
-      }
-    });
   }
 
   private setMessages$() {
@@ -341,5 +287,11 @@ export class MessageListComponent
     this.unreadMessageCount = 0;
     this.prevScrollTop = undefined;
     this.isNewMessageSentByUser = undefined;
+  }
+
+  private get usersTyping$() {
+    return this.mode === 'thread'
+      ? this.usersTypingInThread$
+      : this.usersTypingInChannel$;
   }
 }

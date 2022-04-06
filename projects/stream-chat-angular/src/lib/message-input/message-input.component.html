@@ -20,20 +20,20 @@
         (click)="deselectMessageToQuote()"
         (keyup.enter)="deselectMessageToQuote()"
       >
-        <stream-icon
+        <stream-icon-placeholder
           icon="close-no-outline"
           style="font-size: 10px; line-height: 10px"
-        ></stream-icon>
+        ></stream-icon-placeholder>
       </button>
     </div>
     <div class="quoted-message-preview-content">
-      <stream-avatar
+      <stream-avatar-placeholder
         data-testid="qouted-message-avatar"
         class="str-chat-angular__avatar-host"
         [imageUrl]="quotedMessage?.user?.image"
         [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
         [size]="20"
-      ></stream-avatar>
+      ></stream-avatar-placeholder>
       <div class="quoted-message-preview-content-inner">
         <stream-attachment-list
           *ngIf="
@@ -57,9 +57,25 @@
           : 'str-chat__small-message-input--textarea-wrapper'
       }}"
     >
-      <stream-attachment-preview-list
-        class="rfu-image-previewer-angular-host"
-      ></stream-attachment-preview-list>
+      <ng-template
+        #defaultAttachmentsPreview
+        let-attachmentUploads$="attachmentUploads$"
+        let-retryUploadHandler="retryUploadHandler"
+        let-deleteUploadHandler="deleteUploadHandler"
+      >
+        <stream-attachment-preview-list
+          [attachmentUploads$]="attachmentUploads$"
+          (retryAttachmentUpload)="retryUploadHandler($event)"
+          (deleteAttachment)="deleteUploadHandler($event)"
+          class="rfu-image-previewer-angular-host"
+        ></stream-attachment-preview-list>
+      </ng-template>
+      <ng-container
+        *ngTemplateOutlet="
+          attachmentPreviewListTemplate || defaultAttachmentsPreview;
+          context: getAttachmentPreviewListContext()
+        "
+      ></ng-container>
       <div class="rta str-chat__textarea str-chat-angular__textarea">
         <ng-container
           *ngIf="emojiPickerTemplate && !isCooldownInProgress"
@@ -74,7 +90,7 @@
             <ng-container
               *ngTemplateOutlet="
                 emojiPickerTemplate;
-                context: { emojiInput$: emojiInputService.emojiInput$ }
+                context: getEmojiPickerContext()
               "
             ></ng-container>
           </div>
@@ -95,8 +111,6 @@
           [componentRef]="textareaRef"
           (userMentions)="mentionedUsers = $event"
           [areMentionsEnabled]="areMentionsEnabled"
-          [mentionAutocompleteItemTemplate]="mentionAutocompleteItemTemplate"
-          [commandAutocompleteItemTemplate]="commandAutocompleteItemTemplate"
           [mentionScope]="mentionScope"
         ></ng-template>
         <ng-template #notAllowed>
@@ -129,12 +143,13 @@
               type="file"
               class="rfu-file-input"
               data-testid="file-input"
-              [accept]="accept"
               [multiple]="isMultipleFileUploadEnabled"
               (change)="filesSelected(fileInput.files)"
             />
             <span class="str-chat__input-flat-fileupload">
-              <stream-icon icon="file-upload"></stream-icon>
+              <stream-icon-placeholder
+                icon="file-upload"
+              ></stream-icon-placeholder>
             </span>
           </label>
         </div>
@@ -147,7 +162,7 @@
       (click)="messageSent()"
       (keyup.enter)="messageSent()"
     >
-      <stream-icon icon="send"></stream-icon>
+      <stream-icon-placeholder icon="send"></stream-icon-placeholder>
     </button>
   </div>
 </div>

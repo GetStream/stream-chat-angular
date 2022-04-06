@@ -10,6 +10,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -25,9 +26,10 @@ import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
 import { NotificationService } from '../notification.service';
 import {
+  AttachmentPreviewListContext,
   AttachmentUpload,
-  CommandAutocompleteListItemContext,
-  MentionAutcompleteListItemContext,
+  DefaultStreamChatGenerics,
+  EmojiPickerContext,
   StreamMessage,
 } from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
@@ -35,6 +37,7 @@ import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
@@ -46,7 +49,7 @@ import { EmojiInputService } from './emoji-input.service';
   providers: [AttachmentService, EmojiInputService],
 })
 export class MessageInputComponent
-  implements OnChanges, OnDestroy, AfterViewInit
+  implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
    * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
@@ -61,31 +64,9 @@ export class MessageInputComponent
    */
   @Input() mentionScope: 'channel' | 'application' | undefined;
   /**
-   * You can provide your own template for the autocomplete list for user mentions. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   */
-  @Input() mentionAutocompleteItemTemplate:
-    | TemplateRef<MentionAutcompleteListItemContext>
-    | undefined;
-  /**
-   * You can provide your own template for the autocomplete list for commands. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   */
-  @Input() commandAutocompleteItemTemplate:
-    | TemplateRef<CommandAutocompleteListItemContext>
-    | undefined;
-  /**
-   * You can add an emoji picker by [providing your own emoji picker template](../code-examples/emoji-picker.mdx)
-   */
-  @Input() emojiPickerTemplate: TemplateRef<void> | undefined;
-  /**
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'thread' | 'main' = 'main';
-  /**
-   * You can narrow the accepted file types by providing the [accepted types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#accept). By default every file type is accepted.
-   * If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
-   * @deprecated use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) instead
-   */
-  @Input() acceptedFileTypes: string[] | undefined;
   /**
    * If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
    */
@@ -94,6 +75,10 @@ export class MessageInputComponent
    * The message to edit
    */
   @Input() message: StreamMessage | undefined;
+  /**
+   * An observable that can be used to trigger message sending from the outside
+   */
+  @Input() sendMessage$: Observable<void> | undefined;
   /**
    * Emits when a message was successfuly sent or updated
    */
@@ -109,6 +94,10 @@ export class MessageInputComponent
   typingStart$ = new Subject<void>();
   cooldown$: Observable<number> | undefined;
   isCooldownInProgress = false;
+  emojiPickerTemplate: TemplateRef<EmojiPickerContext> | undefined;
+  attachmentPreviewListTemplate:
+    | TemplateRef<AttachmentPreviewListContext>
+    | undefined;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -116,7 +105,8 @@ export class MessageInputComponent
   private hideNotification: Function | undefined;
   private isViewInited = false;
   private appSettings: AppSettings | undefined;
-  private channel: Channel | undefined;
+  private channel: Channel<DefaultStreamChatGenerics> | undefined;
+  private sendMessageSubcription: Subscription | undefined;
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -127,7 +117,8 @@ export class MessageInputComponent
     private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
     private chatClient: ChatClientService,
-    public emojiInputService: EmojiInputService
+    private emojiInputService: EmojiInputService,
+    private customTemplatesService: CustomTemplatesService
   ) {
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
@@ -172,16 +163,10 @@ export class MessageInputComponent
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
-    this.acceptedFileTypes = this.configService.acceptedFileTypes;
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
     this.areMentionsEnabled = this.configService.areMentionsEnabled;
-    this.mentionAutocompleteItemTemplate =
-      this.configService.mentionAutocompleteItemTemplate;
     this.mentionScope = this.configService.mentionScope;
-    this.commandAutocompleteItemTemplate =
-      this.configService.commandAutocompleteItemTemplate;
-    this.emojiPickerTemplate = this.configService.emojiPickerTemplate;
 
     this.subscriptions.push(
       this.typingStart$.subscribe(
@@ -198,7 +183,7 @@ export class MessageInputComponent
           map(
             ([latestMessages, channel]): [
               Date | undefined,
-              Channel | undefined
+              Channel<DefaultStreamChatGenerics> | undefined
             ] => [latestMessages[channel?.cid || ''], channel!]
           )
         )
@@ -223,6 +208,23 @@ export class MessageInputComponent
     );
   }
 
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.emojiPickerTemplate$.subscribe((template) => {
+        this.emojiPickerTemplate = template;
+        this.cdRef.detectChanges();
+      })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
+        (template) => {
+          this.attachmentPreviewListTemplate = template;
+          this.cdRef.detectChanges();
+        }
+      )
+    );
+  }
+
   ngAfterViewInit(): void {
     this.isViewInited = true;
     this.initTextarea();
@@ -241,9 +243,6 @@ export class MessageInputComponent
     if (changes.isFileUploadEnabled) {
       this.configService.isFileUploadEnabled = this.isFileUploadEnabled;
     }
-    if (changes.acceptedFileTypes) {
-      this.configService.acceptedFileTypes = this.acceptedFileTypes;
-    }
     if (changes.isMultipleFileUploadEnabled) {
       this.configService.isMultipleFileUploadEnabled =
         this.isMultipleFileUploadEnabled;
@@ -251,26 +250,28 @@ export class MessageInputComponent
     if (changes.areMentionsEnabled) {
       this.configService.areMentionsEnabled = this.areMentionsEnabled;
     }
-    if (changes.mentionAutocompleteItemTemplate) {
-      this.configService.mentionAutocompleteItemTemplate =
-        this.mentionAutocompleteItemTemplate;
-    }
-    if (changes.commandAutocompleteItemTemplate) {
-      this.configService.commandAutocompleteItemTemplate =
-        this.commandAutocompleteItemTemplate;
-    }
     if (changes.mentionScope) {
       this.configService.mentionScope = this.mentionScope;
-    }
-    if (changes.emojiPickerTemplate) {
-      this.configService.emojiPickerTemplate = this.emojiPickerTemplate;
     }
     if (changes.mode) {
       this.setCanSendMessages();
     }
+    if (changes.sendMessage$) {
+      if (this.sendMessageSubcription) {
+        this.sendMessageSubcription.unsubscribe();
+      }
+      if (this.sendMessage$) {
+        this.sendMessageSubcription = this.sendMessage$.subscribe(
+          () => void this.messageSent()
+        );
+      }
+    }
   }
 
   ngOnDestroy(): void {
+    if (this.sendMessageSubcription) {
+      this.sendMessageSubcription.unsubscribe();
+    }
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
@@ -339,10 +340,6 @@ export class MessageInputComponent
     );
   }
 
-  get accept() {
-    return this.acceptedFileTypes ? this.acceptedFileTypes?.join(',') : '';
-  }
-
   get quotedMessageAttachments() {
     const originalAttachments = this.quotedMessage?.attachments;
     return originalAttachments && originalAttachments.length
@@ -373,6 +370,28 @@ export class MessageInputComponent
     this.channelService.selectMessageToQuote(undefined);
   }
 
+  getEmojiPickerContext(): EmojiPickerContext {
+    return {
+      emojiInput$: this.emojiInputService.emojiInput$,
+    };
+  }
+
+  getAttachmentPreviewListContext(): AttachmentPreviewListContext {
+    return {
+      attachmentUploads$: this.attachmentService.attachmentUploads$,
+      deleteUploadHandler: this.deleteUpload.bind(this),
+      retryUploadHandler: this.retryUpload.bind(this),
+    };
+  }
+
+  private deleteUpload(upload: AttachmentUpload) {
+    void this.attachmentService.deleteAttachment(upload);
+  }
+
+  private retryUpload(file: File) {
+    void this.attachmentService.retryAttachmentUpload(file);
+  }
+
   private clearFileInput() {
     this.fileInput.nativeElement.value = '';
   }
@@ -395,7 +414,7 @@ export class MessageInputComponent
   }
 
   private async areAttachemntsValid(fileList: FileList | null) {
-    if (!fileList || this.acceptedFileTypes) {
+    if (!fileList) {
       return true;
     }
     if (!this.appSettings) {

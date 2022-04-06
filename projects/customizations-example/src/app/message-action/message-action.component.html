@@ -1,0 +1,8 @@
+<button (click)="actionHandler()">
+  <li class="str-chat__message-actions-list-item">
+    <div class="row">
+      <span class="material-icons">{{ getIconName() }}</span>
+      {{ getActionLabel(actionLabelOrTranslationKey) | translate }}
+    </div>
+  </li>
+</button>

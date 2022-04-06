@@ -54,13 +54,13 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 Run the following command if you are using **Angular 13**:
 
 ```shell
-npm install stream-chat-angular @stream-io/stream-chat-css stream-chat @ngx-translate/core
+npm install stream-chat-angular stream-chat @ngx-translate/core
 ```
 
 Run this command if you are using **Angular 12**:
 
 ```shell
-npm install stream-chat-angular @stream-io/stream-chat-css stream-chat@5 @ngx-translate/core --legacy-peer-deps
+npm install stream-chat-angular stream-chat@5 @ngx-translate/core --legacy-peer-deps
 ```
 
 ## Sample App
@@ -78,6 +78,22 @@ STREAM_USER_TOKEN=<Your user token>
 ```
 
 Run `npm start` and navigate to `http://localhost:4200/`.
+
+## Customization examples
+
+This repository includes a sample app that showcases how you can provide your own template for different components within the SDK:
+
+To run the app:
+
+Create a file named `.env` in the root directory with the following content:
+
+```
+STREAM_API_KEY=<Your API key>
+STREAM_USER_ID=<Your user ID>
+STREAM_USER_TOKEN=<Your user token>
+```
+
+Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
 
 ## Local development
 

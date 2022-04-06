@@ -5,89 +5,75 @@
   [class.str-chat__message-actions-box--mine]="isMine"
 >
   <ul class="str-chat__message-actions-list">
-    <button
-      data-testid="quote-action"
-      *ngIf="isQuoteVisible"
-      (click)="quoteClicked()"
+    <ng-container
+      *ngFor="let item of visibleMessageActionItems; trackBy: trackByActionName"
     >
-      <li class="str-chat__message-actions-list-item">
-        {{ "streamChat.Reply" | translate }}
-      </li>
-    </button>
-    <button
-      data-testid="pin-action"
-      *ngIf="isPinVisible"
-      (click)="pinClicked()"
-    >
-      <li class="str-chat__message-actions-list-item">
-        {{
-          (message?.pinned ? "streamChat.Unpin" : "streamChat.Pin") | translate
-        }}
-      </li>
-    </button>
-    <button
-      data-testid="flag-action"
-      *ngIf="isFlagVisible"
-      (click)="flagClicked()"
-    >
-      <li class="str-chat__message-actions-list-item">
-        {{ "streamChat.Flag" | translate }}
-      </li>
-    </button>
-    <button
-      data-testid="mute-action"
-      *ngIf="isMuteVisible"
-      (click)="muteClicked()"
-    >
-      <li class="str-chat__message-actions-list-item">
-        {{ "streamChat.Mute" | translate }}
-      </li>
-    </button>
-    <button
-      data-testid="edit-action"
-      *ngIf="isEditVisible"
-      (click)="editClicked()"
-    >
-      <li class="str-chat__message-actions-list-item">
-        {{ "streamChat.Edit Message" | translate }}
-      </li>
-    </button>
-    <button
-      data-testid="delete-action"
-      *ngIf="isDeleteVisible"
-      (click)="deleteClicked()"
-    >
-      <li class="str-chat__message-actions-list-item">
-        {{ "streamChat.Delete" | translate }}
-      </li>
-    </button>
-  </ul>
-</div>
-
-<stream-modal
-  [isOpen]="isEditModalOpen"
-  (isOpenChange)="
-    isEditModalOpen = $event; isEditModalOpen ? '' : modalClosed()
-  "
->
-  <div class="str-chat__edit-message-form" *ngIf="isEditModalOpen">
-    <ng-container *ngIf="messageInputTemplate; else defaultInput">
       <ng-container
         *ngTemplateOutlet="
-          messageInputTemplate;
-          context: {
-            message: message,
-            messageUpdateHandler: modalClosed
-          }
+          messageActionItemTemplate || defaultMessageActionItem;
+          context: item
         "
       ></ng-container>
     </ng-container>
-    <ng-template #defaultInput>
+  </ul>
+</div>
+
+<ng-template
+  #defaultMessageActionItem
+  let-actionName="actionName"
+  let-actionHandler="actionHandler"
+  let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
+>
+  <button [attr.data-testid]="actionName + '-action'" (click)="actionHandler()">
+    <li class="str-chat__message-actions-list-item">
+      {{ getActionLabel(actionLabelOrTranslationKey) | translate }}
+    </li>
+  </button>
+</ng-template>
+
+<ng-container
+  *ngTemplateOutlet="
+    modalTemplate || defaultModal;
+    context: getEditModalContext()
+  "
+></ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    [isOpen]="isOpen"
+    (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #modalContent>
+  <div class="str-chat__edit-message-form" *ngIf="isEditModalOpen">
+    <ng-template
+      #defaultInput
+      let-messageInput="message"
+      let-messageUpdateHandler="messageUpdateHandler"
+      let-sendMessage$Input="sendMessage$"
+    >
       <stream-message-input
-        [message]="message"
-        (messageUpdate)="modalClosed()"
+        [message]="messageInput"
+        (messageUpdate)="messageUpdateHandler()"
+        [sendMessage$]="sendMessage$Input"
       ></stream-message-input>
     </ng-template>
+    <ng-container
+      *ngTemplateOutlet="
+        messageInputTemplate || defaultInput;
+        context: getMessageInputContext()
+      "
+    >
+    </ng-container>
+
     <stream-notification-list></stream-notification-list>
     <div
       class="
@@ -111,4 +97,4 @@
       </div>
     </div>
   </div>
-</stream-modal>
+</ng-template>

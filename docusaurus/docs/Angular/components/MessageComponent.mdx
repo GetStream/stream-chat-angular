@@ -18,45 +18,7 @@ The `Message` component displays a message with additional information such as s
 
 ## Customization
 
-The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, here is how to do it:
-
-**Example 1** - custom message component:
-
-```html
-<stream-channel>
-  <stream-channel-header></stream-channel-header>
-  <stream-message-list
-    [messageTemplate]="customMessageTemplate"
-  ></stream-message-list>
-  <stream-message-input></stream-message-input>
-  <stream-thread name="thread">
-    <stream-message-list
-      name="thread-message-list"
-      mode="thread"
-      [messageTemplate]="customMessageTemplate"
-    ></stream-message-list>
-    <stream-message-input
-      mode="thread"
-      name="thread-message-input"
-    ></stream-message-input>
-  </stream-thread>
-</stream-channel>
-
-<ng-template
-  #customMessageTemplate
-  let-message="message"
-  let-enabledMessageActions="enabledMessageActions"
-  let-canReactToMessage="canReactToMessage"
->
-  <app-custom-message
-    [message]="message"
-    [enabledMessageActions]="enabledMessageActions"
-    [canReactToMessage]="canReactToMessage"
-  ></app-custom-message>
-</ng-template>
-```
-
-Your custom template can receive the same inputs (with the same name) as the default `Message` component.
+The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, you can do that by providing it to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#messagetemplate). It's also possible to just override parts of the message comonent.
 
 :::note
 
@@ -94,6 +56,10 @@ The `Message` component uses the [`LoadingIndicator`](./LoadingIndicatorComponen
 
 The `Message` component uses the [`Icon`](./IconComponent.mdx) component to display icons.
 :::
+
+## Mention template
+
+You can add interactions to mentions inside a message, follow our [mention actions guide](../code-examples/mention-actions.mdx) to get to know more.
 
 [//]: # "Start of generated content"
 [//]: # "End of generated content"

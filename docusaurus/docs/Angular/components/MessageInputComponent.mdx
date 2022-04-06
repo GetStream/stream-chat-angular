@@ -4,42 +4,19 @@ The `MessageInput` component displays an input where users can type their messag
 
 The `MessageInput` component can use the [`Textarea`](./TextareaComponent.mdx) or the [`AutocompleteTextarea`](./AutocompleteTextareaComponent.mdx) component for displaying an HTML input for the users to type. You need to [provide your chosen component at module import](../concepts/opt-in-architecture.mdx).
 
+## Emoji picker
+
+The SDK doesn't have a built-in emoji picker, but it has support for providing your own template. Follow our [emoji picker guide](../code-examples/emoji-picker.mdx) to get to know more.
+
 ## Customization
 
-If you want to create your own message input, here is how to use it:
+If you want to provide your own message input component you'll have to provide it in the following places:
 
-```html
-<stream-channel-list></stream-channel-list>
-<stream-channel>
-  <stream-channel-header></stream-channel-header>
-  <stream-message-list
-    [messageInputTemplate]="customMessageInput"
-  ></stream-message-list>
-  <custom-message-input></custom-message-input>
-  <stream-thread name="thread">
-    <stream-message-list
-      name="thread-message-list"
-      mode="thread"
-    ></stream-message-list>
-    <custom-message-input name="thread-message-input"></custom-message-input>
-  </stream-thread>
-</stream-channel>
+- Replace the default message input inside the [channel](./ChannelComponent.mdx)
+- Replace the default message input inside the [thread](./ThreadComponent.mdx)
+- Provide your own [messageInputTemplate$](../services/CustomTemplatesService.mdx/#messageinputtemplate) to the `CustomTemplatesService`
 
-<ng-template
-  #customMessageInput
-  let-message="message"
-  let-messageUpdateHandler="messageUpdateHandler"
->
-  <custom-message-input
-    [message]="message"
-    (messageUpdate)="messageUpdateHandler($event)"
-  ></custom-message-input>
-</ng-template>
-```
-
-The default chat UI uses the message input in two different places: at the bottom of the channel to send new message, and in the message list to edit a message.
-
-Your custom template can receive the same inputs (with the same name) as the default `MessageInput` component.
+See [our customization guide](../concepts/customization.mdx) for more information.
 
 :::note
 If you want to create your own message input, you can use the following building blocks:

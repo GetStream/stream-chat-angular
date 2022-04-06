@@ -41,7 +41,7 @@ describe('ThreadComponent', () => {
     channelServiceMock.activeParentMessage$.next(message);
     fixture.detectChanges();
 
-    expect(component.replyCountParam.replyCount).toBe(5);
+    expect(component.getReplyCountParam(message).replyCount).toBe(5);
     expect(queryReplyCount()?.innerHTML).toContain(
       'streamChat.{{ replyCount }} replies'
     );

@@ -5,16 +5,11 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  TemplateRef,
   ViewContainerRef,
 } from '@angular/core';
 import { Directive } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserResponse } from 'stream-chat';
-import {
-  CommandAutocompleteListItemContext,
-  MentionAutcompleteListItemContext,
-} from '../types';
 import { TextareaInterface } from './textarea.interface';
 
 @Directive({
@@ -23,13 +18,7 @@ import { TextareaInterface } from './textarea.interface';
 export class TextareaDirective implements OnChanges {
   @Input() componentRef: ComponentRef<TextareaInterface> | undefined;
   @Input() areMentionsEnabled: boolean | undefined;
-  @Input() mentionAutocompleteItemTemplate:
-    | TemplateRef<MentionAutcompleteListItemContext>
-    | undefined;
   @Input() mentionScope?: 'channel' | 'application';
-  @Input() commandAutocompleteItemTemplate:
-    | TemplateRef<CommandAutocompleteListItemContext>
-    | undefined;
   @Input() value = '';
   @Output() readonly valueChange = new EventEmitter<string>();
   @Output() readonly send = new EventEmitter<void>();
@@ -64,24 +53,12 @@ export class TextareaDirective implements OnChanges {
           );
         }
         this.componentRef.instance.areMentionsEnabled = this.areMentionsEnabled;
-        this.componentRef.instance.mentionAutocompleteItemTemplate =
-          this.mentionAutocompleteItemTemplate;
-        this.componentRef.instance.commandAutocompleteItemTemplate =
-          this.commandAutocompleteItemTemplate;
         this.componentRef.instance.mentionScope = this.mentionScope;
         this.componentRef.instance.value = this.value;
       }
     }
     if (changes.areMentionsEnabled) {
       this.componentRef.instance.areMentionsEnabled = this.areMentionsEnabled;
-    }
-    if (changes.mentionAutocompleteItemTemplate) {
-      this.componentRef.instance.mentionAutocompleteItemTemplate =
-        this.mentionAutocompleteItemTemplate;
-    }
-    if (changes.commandAutocompleteItemTemplate) {
-      this.componentRef.instance.commandAutocompleteItemTemplate =
-        this.commandAutocompleteItemTemplate;
     }
     if (changes.mentionScope) {
       this.componentRef.instance.mentionScope = this.mentionScope;

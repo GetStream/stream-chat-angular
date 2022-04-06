@@ -113,19 +113,25 @@ export class AttachmentService {
    */
   async deleteAttachment(upload: AttachmentUpload) {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
+    let result!: AttachmentUpload[];
     if (upload.state === 'success') {
       try {
         await this.channelService.deleteAttachment(upload);
-        attachmentUploads.splice(attachmentUploads.indexOf(upload), 1);
+        result = [...attachmentUploads];
+        const index = attachmentUploads.indexOf(upload);
+        result.splice(index, 1);
       } catch (error) {
+        result = attachmentUploads;
         this.notificationService.addTemporaryNotification(
           'streamChat.Error deleting attachment'
         );
       }
     } else {
-      attachmentUploads.splice(attachmentUploads.indexOf(upload), 1);
+      result = [...attachmentUploads];
+      const index = attachmentUploads.indexOf(upload);
+      result.splice(index, 1);
     }
-    this.attachmentUploadsSubject.next([...attachmentUploads]);
+    this.attachmentUploadsSubject.next([...result]);
   }
 
   /**
@@ -207,11 +213,11 @@ export class AttachmentService {
   }
 
   private async uploadAttachments(uploads: AttachmentUpload[]) {
-    const attachmentUploads = this.attachmentUploadsSubject.getValue();
     this.attachmentUploadInProgressCounterSubject.next(
       this.attachmentUploadInProgressCounterSubject.getValue() + 1
     );
     const result = await this.channelService.uploadAttachments(uploads);
+    const attachmentUploads = this.attachmentUploadsSubject.getValue();
     result.forEach((r) => {
       const upload = attachmentUploads.find((upload) => upload.file === r.file);
       if (!upload) {

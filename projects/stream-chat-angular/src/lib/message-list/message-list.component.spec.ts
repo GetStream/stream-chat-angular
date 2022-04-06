@@ -8,6 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { Channel } from 'stream-chat';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -19,6 +20,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from '../mocks';
+import { DefaultStreamChatGenerics } from '../types';
 import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
 
@@ -39,7 +41,12 @@ describe('MessageListComponent', () => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageComponent, MessageListComponent, AvatarComponent],
+      declarations: [
+        MessageComponent,
+        MessageListComponent,
+        AvatarComponent,
+        AvatarPlaceholderComponent,
+      ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         {
@@ -99,18 +106,8 @@ describe('MessageListComponent', () => {
         i === messages.length - 2 ? true : false
       );
 
-      expect(m.areReactionsEnabled).toBe(component.areReactionsEnabled);
-      expect(m.canReactToMessage).toBe(component.canReactToMessage);
-      expect(m.enabledMessageActions).toEqual([
-        'send-reaction', // added automatically
-        'flag',
-        'edit',
-        'edit-any',
-        'delete',
-        'delete-any',
-      ]);
+      expect(m.enabledMessageActions).toEqual(component.enabledMessageActions);
 
-      expect(m.canReceiveReadEvents).toBe(component.canReceiveReadEvents);
       expect(m.mode).toBe(component.mode);
     });
   });
@@ -197,7 +194,9 @@ describe('MessageListComponent', () => {
   it('should handle channel change', () => {
     component.unreadMessageCount = 3;
     component.isUserScrolledUp = true;
-    channelServiceMock.activeChannel$.next({ id: 'nextchannel' } as Channel);
+    channelServiceMock.activeChannel$.next({
+      id: 'nextchannel',
+    } as Channel<DefaultStreamChatGenerics>);
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 
@@ -312,130 +311,6 @@ describe('MessageListComponent', () => {
       expect(m.classList.toString()).toMatch(/middle|top|bottom|single/)
     );
     /* eslint-enable jasmine/new-line-before-expect */
-  });
-
-  it('should only enable reactions if channel capabilites permit it', () => {
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: [] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(component.canReactToMessage).toBeFalse();
-    expect(queryMessageComponents()[0].canReactToMessage).toBeFalse();
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['send-reaction'] },
-    } as any as Channel);
-
-    expect(component.canReactToMessage).toBeTrue();
-  });
-
-  it('should only enable flag action if channel capabilites permit it', () => {
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: [] },
-    } as any as Channel);
-    component.enabledMessageActionsInput = ['flag'];
-    component.ngOnChanges({
-      enabledMessageActionsInput: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([]);
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['flag-message'] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual(['flag']);
-  });
-
-  it('should only enable edit action if channel capabilites permit it', () => {
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: [] },
-    } as any as Channel);
-    component.enabledMessageActionsInput = ['edit'];
-    component.ngOnChanges({
-      enabledMessageActionsInput: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([]);
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['update-own-message'] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual(['edit']);
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['update-any-message'] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual(['edit']);
-
-    component.enabledMessageActionsInput = ['edit-any'];
-    component.ngOnChanges({
-      enabledMessageActionsInput: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([
-      'edit-any',
-    ]);
-  });
-
-  it('should only enable delete action if channel capabilites permit it', () => {
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: [] },
-    } as any as Channel);
-    component.enabledMessageActionsInput = ['delete'];
-    component.ngOnChanges({
-      enabledMessageActionsInput: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([]);
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['delete-own-message'] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([
-      'delete',
-    ]);
-
-    channelServiceMock.activeChannel$.next({
-      id: 'id',
-      data: { own_capabilities: ['delete-any-message'] },
-    } as any as Channel);
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([
-      'delete',
-    ]);
-
-    component.enabledMessageActionsInput = ['delete-any'];
-    component.ngOnChanges({
-      enabledMessageActionsInput: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryMessageComponents()[0].enabledMessageActions).toEqual([
-      'delete-any',
-    ]);
   });
 
   it('should display typing indicator', () => {

@@ -12,7 +12,7 @@ This guide gives you a step-by-step tutorial on how to use [channel invites](htt
 
 ## Invite button
 
-The [`ChannelHeader`](../components/ChannelHeaderComponent.mdx) component has an input called `channelActionsTemplate` that can be used to add action buttons to the channel header.
+The [`CustomTemplatesService`](../services/CustomTemplatesService.mdx) has a property called `channelActionsTemplate$` that can be used to add action buttons to the [channel header](../components/ChannelHeaderComponent.mdx).
 
 Let's create a component for the invite button that we'll add to the channel header:
 
@@ -199,37 +199,77 @@ export class InviteButtonComponent implements OnInit, OnChanges {
 
 ### Providing the invite button to the channel header
 
-Lastly, we provide the `InviteButton` component to the `ChannelHeader`
+Lastly, we provide the `InviteButton` component to the `ChannelHeader`.
+
+Create the template (for example in your `AppComponent`):
 
 ```html
-<div id="root">
-  <stream-channel-list></stream-channel-list>
-  <stream-channel>
-    <stream-channel-header
-      [channelActionsTemplate]="channelActionsTemplate"
-    ></stream-channel-header>
-    <stream-message-list></stream-message-list>
-    <stream-notification-list></stream-notification-list>
-    <stream-message-input
-      [emojiPickerTemplate]="emojiPickerTemplate"
-    ></stream-message-input>
-    <stream-thread name="thread">
-      <stream-message-list
-        name="thread-message-list"
-        mode="thread"
-      ></stream-message-list>
-      <stream-message-input
-        mode="thread"
-        name="thread-message-input"
-        [emojiPickerTemplate]="emojiPickerTemplate"
-      ></stream-message-input>
-    </stream-thread>
-  </stream-channel>
-</div>
-
 <ng-template #channelActionsTemplate let-channel="channel">
   <app-invite-button [channel]="channel"></app-invite-button>
 </ng-template>
+```
+
+Register the template in your TypeScript code (for example in your `AppComponent`).
+
+These are the necessary steps:
+
+- Create a reference to the custom template
+- Import the [CustomTemplatesService](../services/CustomTemplatesService.mdx)
+- Register your custom template
+
+```typescript
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+} from "stream-chat-angular";
+import {
+  CustomTemplatesService,
+  ChannelActionsContext,
+} from "stream-chat-angular";
+import { environment } from "../environments/environment";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements AfterViewInit {
+  // Create a reference to the custom template
+  @ViewChild("channelActionsTemplate")
+  private channelActionsTemplate!: TemplateRef<ChannelActionsContext>;
+
+  constructor(
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private customTemplatesService: CustomTemplatesService // Import customTemplatesService
+  ) {
+    void this.chatService.init(
+      environment.apiKey,
+      environment.userId,
+      environment.userToken
+    );
+    void this.channelService.init({
+      type: "messaging",
+      members: { $in: [environment.userId] },
+    });
+    this.streamI18nService.setTranslation();
+  }
+
+  ngAfterViewInit(): void {
+    // Register your custom template
+    this.customTemplatesService.channelActionsTemplate$.next(
+      this.channelActionsTemplate
+    );
+  }
+}
 ```
 
 This is how the channel header looks with the invite button present:
@@ -352,8 +392,7 @@ Add a reference to the template in your `app.component.ts`:
 
 ```typescript
 @ViewChild('inviteTemplate') private inviteTemplate!: TemplateRef<{
-  channel: Channel | ChannelResponse;
-}>;
+    channel: Channel<DefaultStreamChatGenerics> | ChannelResponse<DefaultStreamChatGenerics>;
 ```
 
 #### Displaying the invitations
@@ -409,25 +448,19 @@ To override the default behavior create a custom event handler in `app.component
 
 ```typescript
 private customAddedToChannelNotificationHandler(
-    notification: Notification,
+    clientEvent: ClientEvent,
     channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
   ): void {
     let channels!: Channel[];
     this.channelService.channels$
       .pipe(take(1))
       .subscribe((c) => (channels = c || []));
-    if (notification.event.member?.invited) {
+    if (clientEvent.event.member?.invited) {
       return;
     }
-    channelListSetter([notification!.event!.channel!, ...channels]);
+    channelListSetter([clientEvent!.event!.channel!, ...channels]);
   }
 ```
-
-:::important
-Make sure to add the following import to your code (your IDE might not be able to add this automatically):
-
-`import { Notification } from 'stream-chat-angular';`
-:::
 
 Now register the handler to the [channel service](../services/ChannelService.mdx) in the constructor of `app.component.ts`:
 
@@ -443,7 +476,7 @@ The `notification.invite_accepted` event emitted by the [`ChatClientService`](..
 Add this to the constructor of your `app.component.ts`:
 
 ```typescript
-this.chatService.notification$
+this.chatService.events$
   .pipe(filter((n) => n.eventType === "notification.invite_accepted"))
   .subscribe(() => {
     this.channelService.reset();

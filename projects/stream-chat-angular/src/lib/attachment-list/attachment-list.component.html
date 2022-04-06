@@ -93,7 +93,10 @@
         str-chat-angular__message-attachment-file-single
       "
     >
-      <stream-icon icon="file" [size]="30"></stream-icon>
+      <stream-icon-placeholder
+        icon="file"
+        [size]="30"
+      ></stream-icon-placeholder>
       <div class="str-chat__message-attachment-file--item-text">
         <a
           data-testclass="file-link"
@@ -175,11 +178,30 @@
   </div>
 </ng-container>
 
-<stream-modal
-  *ngIf="imagesToView && imagesToView.length > 0"
-  [isOpen]="imagesToView && imagesToView.length > 0"
-  (isOpenChange)="$event ? null : closeImageModal()"
+<ng-container *ngIf="imagesToView && imagesToView.length > 0">
+  <ng-container
+    *ngTemplateOutlet="
+      (customTemplatesService.modalTemplate$ | async) || defaultModal;
+      context: getModalContext()
+    "
+  ></ng-container>
+</ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
 >
+  <stream-modal
+    [isOpen]="isOpen"
+    (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #modalContent>
   <div class="stream-chat-angular__image-modal">
     <button
       class="stream-chat-angular__image-modal-stepper"
@@ -191,7 +213,7 @@
       (click)="stepImages(-1)"
       (keyup.enter)="stepImages(-1)"
     >
-      <stream-icon icon="arrow-left"></stream-icon>
+      <stream-icon-placeholder icon="arrow-left"></stream-icon-placeholder>
     </button>
     <img
       class="stream-chat-angular__image-modal-image"
@@ -213,7 +235,7 @@
       (click)="stepImages(1)"
       (keyup.enter)="stepImages(1)"
     >
-      <stream-icon icon="arrow-right"></stream-icon>
+      <stream-icon-placeholder icon="arrow-right"></stream-icon-placeholder>
     </button>
   </div>
-</stream-modal>
+</ng-template>
