@@ -365,6 +365,22 @@ export class ChannelService<
   }
 
   /**
+   * Deselects the currently active (if any) channel
+   */
+  deselectActiveChannel() {
+    const activeChannel = this.activeChannelSubject.getValue();
+    if (!activeChannel) {
+      return;
+    }
+    this.activeChannelMessagesSubject.next([]);
+    this.activeChannelSubject.next(undefined);
+    this.activeParentMessageIdSubject.next(undefined);
+    this.activeThreadMessagesSubject.next([]);
+    this.latestMessageDateByUserByChannelsSubject.next({});
+    this.selectMessageToQuote(undefined);
+  }
+
+  /**
    * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
    * @param message
    */
@@ -431,11 +447,14 @@ export class ChannelService<
    * @param filters
    * @param sort
    * @param options
+   * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel, or no channel should be marked as active
+   * @returns the list of channels found by the query
    */
   async init(
     filters: ChannelFilters<T>,
     sort?: ChannelSort<T>,
-    options?: ChannelOptions
+    options?: ChannelOptions,
+    shouldSetActiveChannel: boolean = true
   ) {
     this.filters = filters;
     this.options = options || {
@@ -447,23 +466,19 @@ export class ChannelService<
       message_limit: this.messagePageSize,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
-    await this.queryChannels();
+    const result = await this.queryChannels(shouldSetActiveChannel);
     this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
+    return result;
   }
 
   /**
    * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./ChatClientService.mdx/#disconnectuser).
    */
   reset() {
-    this.activeChannelMessagesSubject.next([]);
-    this.activeChannelSubject.next(undefined);
-    this.activeParentMessageIdSubject.next(undefined);
-    this.activeThreadMessagesSubject.next([]);
+    this.deselectActiveChannel();
     this.channelsSubject.next(undefined);
-    this.latestMessageDateByUserByChannelsSubject.next({});
-    this.selectMessageToQuote(undefined);
   }
 
   /**
@@ -471,7 +486,7 @@ export class ChannelService<
    */
   async loadMoreChannels() {
     this.options!.offset = this.channels.length!;
-    await this.queryChannels();
+    await this.queryChannels(false);
   }
 
   /**
@@ -1008,7 +1023,7 @@ export class ChannelService<
     this.activeChannelSubscriptions = [];
   }
 
-  private async queryChannels() {
+  private async queryChannels(shouldSetActiveChannel: boolean) {
     try {
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,
@@ -1018,12 +1033,18 @@ export class ChannelService<
       channels.forEach((c) => this.watchForChannelEvents(c));
       const prevChannels = this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
-      if (channels.length > 0 && !this.activeChannelSubject.getValue()) {
+      if (
+        channels.length > 0 &&
+        !this.activeChannelSubject.getValue() &&
+        shouldSetActiveChannel
+      ) {
         this.setAsActiveChannel(channels[0]);
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
+      return channels;
     } catch (error) {
       this.channelsSubject.error(error);
+      throw error;
     }
   }
 
