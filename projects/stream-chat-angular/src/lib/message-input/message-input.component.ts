@@ -290,9 +290,16 @@ export class MessageInputComponent
       return;
     }
     const attachments = this.attachmentService.mapToAttachments();
-    const text = this.textareaValue;
-    if (!text && (!attachments || attachments.length === 0)) {
+    let text = this.textareaValue;
+    const textContainsOnlySpaceChars = !text.replace(/ /g, ''); //spcae
+    if (
+      (!text || textContainsOnlySpaceChars) &&
+      (!attachments || attachments.length === 0)
+    ) {
       return;
+    }
+    if (textContainsOnlySpaceChars) {
+      text = '';
     }
     if (this.containsLinks && !this.canSendLinks) {
       this.notificationService.addTemporaryNotification(
