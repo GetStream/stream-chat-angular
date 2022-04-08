@@ -441,6 +441,36 @@ describe('MessageInputComponent', () => {
     expect(sendMessageSpy).not.toHaveBeenCalled();
   });
 
+  it(`shouldn't send messages with only spaces`, () => {
+    const textarea = queryTextarea();
+    component.textareaValue = ' '; // single space
+    textarea?.send.next();
+    fixture.detectChanges();
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+  });
+
+  it(`should remove text if attachments are uploaded, but text contains only space characters`, () => {
+    attachmentService.mapToAttachments.and.returnValue([
+      {
+        type: 'image',
+        img_url: 'url',
+      },
+    ]);
+    const textarea = queryTextarea();
+    component.textareaValue = '    '; // multiple spaces
+    textarea?.send.next();
+    fixture.detectChanges();
+
+    expect(sendMessageSpy).toHaveBeenCalledWith(
+      '',
+      jasmine.any(Array),
+      jasmine.any(Object),
+      undefined,
+      undefined
+    );
+  });
+
   it('should apply CSS class if attachments are present', () => {
     const cssClass = 'str-chat__input-flat-has-attachments';
 
