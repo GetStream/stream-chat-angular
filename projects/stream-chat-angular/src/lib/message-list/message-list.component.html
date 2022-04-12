@@ -66,21 +66,25 @@
 </div>
 <div class="str-chat__list-notifications">
   <button
-    data-testid="scroll-to-bottom"
-    *ngIf="isUserScrolledUp"
+    data-testid="scroll-to-latest"
+    *ngIf="isUserScrolled"
     class="
       str-chat__message-notification
       str-chat__message-notification-right
-      str-chat__message-notification-scroll-down
+      str-chat__message-notification-scroll-to-latest
     "
-    (keyup.enter)="scrollToBottom()"
-    (click)="scrollToBottom()"
+    (keyup.enter)="scrollToLatestMessage()"
+    (click)="scrollToLatestMessage()"
   >
+    <stream-icon
+      style="display: inline-block; height: 24px"
+      [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
+    ></stream-icon>
     <div
       *ngIf="unreadMessageCount > 0"
       class="
         str-chat__message-notification
-        str-chat__message-notification-scroll-down-unread-count
+        str-chat__message-notification-scroll-to-latest-unread-count
       "
     >
       {{ unreadMessageCount }}

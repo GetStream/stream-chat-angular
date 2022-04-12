@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { ChannelService } from '../channel.service';
 import { Observable, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import {
   MessageContext,
   DefaultStreamChatGenerics,
@@ -41,6 +41,10 @@ export class MessageListComponent
    * Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'main' | 'thread' = 'main';
+  /**
+   * The direction of the messages in the list, `bottom-to-top` means newest message is at the bottom of the message list and users scroll upwards to load older messages
+   */
+  @Input() direction: 'bottom-to-top' | 'top-to-bottom' = 'bottom-to-top';
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
@@ -48,7 +52,7 @@ export class MessageListComponent
   @HostBinding('class') private class =
     'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
   unreadMessageCount = 0;
-  isUserScrolledUp: boolean | undefined;
+  isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];
   lastSentMessageId: string | undefined;
   parentMessage: StreamMessage | undefined;
@@ -89,7 +93,7 @@ export class MessageListComponent
     );
     this.subscriptions.push(
       this.imageLoadService.imageLoad$.subscribe(() => {
-        if (!this.isUserScrolledUp) {
+        if (!this.isUserScrolled && this.direction === 'bottom-to-top') {
           this.scrollToBottom();
           // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
           setTimeout(() => {
@@ -130,33 +134,50 @@ export class MessageListComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.mode) {
+    if (changes.mode || changes.direction) {
       this.setMessages$();
+    }
+    if (changes.direction) {
+      if (this.scrollContainer?.nativeElement) {
+        this.scrollToLatestMessage();
+      }
     }
   }
 
   ngAfterViewChecked() {
-    if (this.hasNewMessages) {
-      if (!this.isUserScrolledUp || this.isNewMessageSentByUser) {
-        this.scrollToBottom();
-        // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
-        setTimeout(() => {
-          this.scrollToBottom();
-        }, 300);
+    if (this.direction === 'top-to-bottom') {
+      if (
+        this.hasNewMessages &&
+        (this.isNewMessageSentByUser || !this.isUserScrolled)
+      ) {
+        this.scrollToTop();
+        this.hasNewMessages = false;
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       }
-      this.hasNewMessages = false;
-      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-    } else if (this.olderMassagesLoaded) {
-      this.preserveScrollbarPosition();
-      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      this.olderMassagesLoaded = false;
-    } else if (
-      this.containerHeight !== undefined &&
-      this.containerHeight < this.scrollContainer.nativeElement.scrollHeight &&
-      !this.isUserScrolledUp
-    ) {
-      this.scrollToBottom();
-      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+    } else {
+      if (this.hasNewMessages) {
+        if (!this.isUserScrolled || this.isNewMessageSentByUser) {
+          this.scrollToBottom();
+          // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 300);
+        }
+        this.hasNewMessages = false;
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+      } else if (this.olderMassagesLoaded) {
+        this.preserveScrollbarPosition();
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+        this.olderMassagesLoaded = false;
+      } else if (
+        this.containerHeight !== undefined &&
+        this.containerHeight <
+          this.scrollContainer.nativeElement.scrollHeight &&
+        !this.isUserScrolled
+      ) {
+        this.scrollToBottom();
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+      }
     }
   }
 
@@ -172,27 +193,33 @@ export class MessageListComponent
     return user.id;
   }
 
+  scrollToLatestMessage() {
+    this.direction === 'bottom-to-top'
+      ? this.scrollToBottom()
+      : this.scrollToTop();
+  }
+
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight;
   }
 
+  scrollToTop() {
+    this.scrollContainer.nativeElement.scrollTop = 0;
+  }
+
   scrolled() {
-    this.isUserScrolledUp =
-      this.scrollContainer.nativeElement.scrollHeight -
-        (this.scrollContainer.nativeElement.scrollTop +
-          this.scrollContainer.nativeElement.clientHeight) >
-      this.isUserScrolledUpThreshold;
-    if (!this.isUserScrolledUp) {
+    this.isUserScrolled =
+      this.direction === 'bottom-to-top'
+        ? this.scrollContainer.nativeElement.scrollHeight -
+            (this.scrollContainer.nativeElement.scrollTop +
+              this.scrollContainer.nativeElement.clientHeight) >
+          this.isUserScrolledUpThreshold
+        : this.scrollContainer.nativeElement.scrollTop > 0;
+    if (!this.isUserScrolled) {
       this.unreadMessageCount = 0;
     }
-    if (
-      this.scrollContainer.nativeElement.scrollTop <=
-        (this.parentMessageElement?.nativeElement.clientHeight || 0) &&
-      (this.prevScrollTop === undefined ||
-        this.prevScrollTop >
-          (this.parentMessageElement?.nativeElement.clientHeight || 0))
-    ) {
+    if (this.shouldLoadMoreMessages()) {
       this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       this.mode === 'main'
         ? void this.channelService.loadMoreMessages()
@@ -224,6 +251,24 @@ export class MessageListComponent
       (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
   }
 
+  private shouldLoadMoreMessages() {
+    if (this.direction === 'bottom-to-top') {
+      return (
+        this.scrollContainer.nativeElement.scrollTop <=
+          (this.parentMessageElement?.nativeElement.clientHeight || 0) &&
+        (this.prevScrollTop === undefined ||
+          this.prevScrollTop >
+            (this.parentMessageElement?.nativeElement.clientHeight || 0))
+      );
+    } else {
+      return (
+        this.scrollContainer.nativeElement.scrollTop +
+          this.scrollContainer.nativeElement.clientHeight >=
+        this.scrollContainer.nativeElement.scrollHeight
+      );
+    }
+  }
+
   private setMessages$() {
     this.messages$ = (
       this.mode === 'main'
@@ -245,7 +290,7 @@ export class MessageListComponent
           this.isNewMessageSentByUser =
             messages[messages.length - 1].user?.id ===
             this.chatClientService.chatClient?.user?.id;
-          if (this.isUserScrolledUp) {
+          if (this.isUserScrolled) {
             this.unreadMessageCount++;
           }
         }
@@ -259,11 +304,6 @@ export class MessageListComponent
           this.olderMassagesLoaded = true;
         }
       }),
-      tap((messages) => {
-        this.groupStyles = messages.map((m, i) =>
-          getGroupStyles(m, messages[i - 1], messages[i + 1])
-        );
-      }),
       tap(
         (messages) =>
           (this.lastSentMessageId = [...messages]
@@ -273,14 +313,22 @@ export class MessageListComponent
                 m.user?.id === this.chatClientService.chatClient?.user?.id &&
                 m.status !== 'sending'
             )?.id)
-      )
+      ),
+      map((messages) =>
+        this.direction === 'bottom-to-top' ? messages : [...messages].reverse()
+      ),
+      tap((messages) => {
+        this.groupStyles = messages.map((m, i) =>
+          getGroupStyles(m, messages[i - 1], messages[i + 1])
+        );
+      })
     );
   }
 
   private resetScrollState() {
     this.latestMessageDate = undefined;
     this.hasNewMessages = true;
-    this.isUserScrolledUp = false;
+    this.isUserScrolled = false;
     this.containerHeight = undefined;
     this.olderMassagesLoaded = false;
     this.oldestMessageDate = undefined;
