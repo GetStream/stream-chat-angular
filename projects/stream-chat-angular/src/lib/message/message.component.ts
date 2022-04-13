@@ -23,10 +23,10 @@ import {
   StreamMessage,
 } from '../types';
 import { parseDate } from './parse-date';
-import { getReadByText } from './read-by-text';
 import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { listUsers } from '../list-users';
 
 type MessagePart = {
   content: string;
@@ -130,7 +130,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get readByText() {
-    return getReadByText(this.message!.readBy);
+    return listUsers(this.message!.readBy);
   }
 
   get lastReadUser() {

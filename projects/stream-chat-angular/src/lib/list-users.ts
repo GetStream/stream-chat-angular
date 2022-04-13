@@ -1,6 +1,6 @@
 import { UserResponse } from 'stream-chat';
 
-export const getReadByText = (users: UserResponse[]) => {
+export const listUsers = (users: UserResponse[]) => {
   let outStr = '';
 
   const slicedArr = users.map((item) => item.name || item.id).slice(0, 5);
