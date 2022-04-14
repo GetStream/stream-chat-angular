@@ -21,7 +21,7 @@ export * from './lib/channel-list/channel-list.component';
 export * from './lib/channel-list/channel-list-toggle.service';
 export * from './lib/message/message.component';
 export * from './lib/message/parse-date';
-export * from './lib/message/read-by-text';
+export * from './lib/list-users';
 export * from './lib/message-input/message-input.component';
 export * from './lib/message-input/textarea/textarea.component';
 export * from './lib/message-input/autocomplete-textarea/autocomplete-textarea.component';
