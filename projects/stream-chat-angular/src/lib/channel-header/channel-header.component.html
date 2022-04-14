@@ -8,11 +8,11 @@
   </div>
   <stream-avatar-placeholder
     imageUrl="{{ activeChannel?.data?.image }}"
-    name="{{ activeChannel?.data?.name }}"
+    name="{{ avatarName }}"
   ></stream-avatar-placeholder>
   <div class="str-chat__header-livestream-left">
     <p data-testid="name" class="str-chat__header-livestream-left--title">
-      {{ activeChannel?.data?.name }}
+      {{ displayText }}
     </p>
     <p data-testid="info" class="str-chat__header-livestream-left--members">
       {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}

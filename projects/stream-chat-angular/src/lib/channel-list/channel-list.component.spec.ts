@@ -3,6 +3,7 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelPreviewComponent } from '../channel-preview/channel-preview.component';
 import { ChannelService } from '../channel.service';
+import { ChatClientService } from '../chat-client.service';
 import {
   generateMockChannels,
   mockChannelService,
@@ -28,7 +29,13 @@ describe('ChannelListComponent', () => {
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [ChannelListComponent, ChannelPreviewComponent],
-      providers: [{ provide: ChannelService, useValue: channelServiceMock }],
+      providers: [
+        { provide: ChannelService, useValue: channelServiceMock },
+        {
+          provide: ChatClientService,
+          useValue: { chatClient: { user: { id: 'userid' } } },
+        },
+      ],
     });
     fixture = TestBed.createComponent(ChannelListComponent);
     nativeElement = fixture.nativeElement as HTMLElement;

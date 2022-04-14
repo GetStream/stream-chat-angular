@@ -9,7 +9,9 @@ import { Subscription } from 'rxjs';
 import { Channel } from 'stream-chat';
 import { ChannelListToggleService } from '../channel-list/channel-list-toggle.service';
 import { ChannelService } from '../channel.service';
+import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChannelActionsContext, DefaultStreamChatGenerics } from '../types';
 
 /**
@@ -30,7 +32,8 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
     private channelService: ChannelService,
     private channelListToggleService: ChannelListToggleService,
     private customTemplatesService: CustomTemplatesService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private chatClientService: ChatClientService
   ) {
     this.channelService.activeChannel$.subscribe((c) => {
       this.activeChannel = c;
@@ -73,5 +76,28 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
 
   get watcherCountParam() {
     return { watcherCount: this.activeChannel?.state?.watcher_count || 0 };
+  }
+
+  get displayText() {
+    if (!this.activeChannel) {
+      return '';
+    }
+    return getChannelDisplayText(
+      this.activeChannel,
+      this.chatClientService.chatClient.user!
+    );
+  }
+
+  get avatarName() {
+    if (this.activeChannel?.data?.name) {
+      return this.activeChannel?.data?.name;
+    }
+    const otherMembers = Object.values(
+      this.activeChannel?.state.members || {}
+    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user!.id);
+    if (otherMembers.length === 1) {
+      return otherMembers[0].user?.name || otherMembers[0].user?.name;
+    }
+    return '#';
   }
 }

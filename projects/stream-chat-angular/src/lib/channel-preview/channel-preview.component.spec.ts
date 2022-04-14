@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { UserResponse } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
+import { ChatClientService } from '../chat-client.service';
 import {
   generateMockChannels,
   mockChannelService,
@@ -17,6 +19,9 @@ describe('ChannelPreviewComponent', () => {
   let component: ChannelPreviewComponent;
   let nativeElement: HTMLElement;
   let channelServiceMock: MockChannelService;
+  let chatClientServiceMock: {
+    chatClient: { user: UserResponse };
+  };
   let queryContainer: () => HTMLElement | null;
   let queryAvatar: () => AvatarPlaceholderComponent;
   let queryTitle: () => HTMLElement | null;
@@ -24,6 +29,9 @@ describe('ChannelPreviewComponent', () => {
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
+    chatClientServiceMock = {
+      chatClient: { user: { id: 'currentUser' } },
+    };
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [
@@ -31,7 +39,10 @@ describe('ChannelPreviewComponent', () => {
         AvatarComponent,
         AvatarPlaceholderComponent,
       ],
-      providers: [{ provide: ChannelService, useValue: channelServiceMock }],
+      providers: [
+        { provide: ChannelService, useValue: channelServiceMock },
+        { provide: ChatClientService, useValue: chatClientServiceMock },
+      ],
     });
     fixture = TestBed.createComponent(ChannelPreviewComponent);
     component = fixture.componentInstance;
@@ -146,13 +157,19 @@ describe('ChannelPreviewComponent', () => {
     expect(avatar.imageUrl).toBe(channel.data?.image as string);
   });
 
-  it('should display channel name', () => {
+  it('should display channel display text', () => {
     const channel = generateMockChannels()[0];
-    channelServiceMock.activeChannel$.next(channel);
+    channel.data!.name = undefined;
+    channel.state.members = {
+      user1: { user: { id: 'user1', name: 'Ben' } },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user: { id: chatClientServiceMock.chatClient.user.id },
+      },
+    };
     component.channel = channel;
     fixture.detectChanges();
 
-    expect(queryTitle()?.textContent).toBe(channel.data?.name);
+    expect(queryTitle()?.textContent).toContain('Ben');
   });
 
   describe('should display latest message of channel', () => {
@@ -262,5 +279,48 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(queryLatestMessage()?.textContent).toContain('Nothing yet...');
+  });
+
+  it('should use "#" as avatar name fallback', () => {
+    const channel = generateMockChannels()[0];
+    channel.data!.name = undefined;
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(component.avatarName).toBe('#');
+  });
+
+  it('should use the name of the other member if channel only has two members', () => {
+    const channel = generateMockChannels()[0];
+    channel.data!.name = undefined;
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(component.avatarName).toBe('Jack');
+
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack' },
+      },
+      otheruser2: {
+        user_id: 'otheruser2',
+        user: { id: 'otheruser2', name: 'Sara' },
+      },
+    };
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(component.avatarName).toBe('#');
   });
 });

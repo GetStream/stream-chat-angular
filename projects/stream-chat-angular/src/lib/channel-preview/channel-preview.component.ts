@@ -7,7 +7,9 @@ import {
   MessageResponse,
 } from 'stream-chat';
 import { ChannelService } from '../channel.service';
+import { getChannelDisplayText } from '../get-channel-display-text';
 import { DefaultStreamChatGenerics } from '../types';
+import { ChatClientService } from '../chat-client.service';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -28,7 +30,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
 
-  constructor(private channelService: ChannelService, private ngZone: NgZone) {}
+  constructor(
+    private channelService: ChannelService,
+    private ngZone: NgZone,
+    private chatClientService: ChatClientService
+  ) {}
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -76,11 +82,26 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   get avatarName() {
-    return this.channel?.data?.name;
+    if (this.channel?.data?.name) {
+      return this.channel?.data?.name;
+    }
+    const otherMembers = Object.values(
+      this.channel?.state.members || {}
+    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user!.id);
+    if (otherMembers.length === 1) {
+      return otherMembers[0].user?.name || otherMembers[0].user?.name;
+    }
+    return '#';
   }
 
   get title() {
-    return this.channel?.data?.name;
+    if (!this.channel) {
+      return '';
+    }
+    return getChannelDisplayText(
+      this.channel,
+      this.chatClientService.chatClient.user!
+    );
   }
 
   setAsActiveChannel(): void {
