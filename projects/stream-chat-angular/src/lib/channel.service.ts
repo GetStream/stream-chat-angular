@@ -76,6 +76,8 @@ export class ChannelService<
    * :::important
    * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
    * :::
+   *
+   * The active channel will always be marked as read when a new message is received
    */
   activeChannel$: Observable<Channel<T> | undefined>;
   /**
@@ -344,7 +346,7 @@ export class ChannelService<
   }
 
   /**
-   * Sets the given `channel` as active.
+   * Sets the given `channel` as active and marks it as read.
    * @param channel
    */
   setAsActiveChannel(channel: Channel<T>) {
@@ -443,7 +445,7 @@ export class ChannelService<
   }
 
   /**
-   * Queries the channels with the given filters, sorts and options. More info about [channel querying](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript) can be found in the platform documentation.
+   * Queries the channels with the given filters, sorts and options. More info about [channel querying](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
    * @param filters
    * @param sort
    * @param options
