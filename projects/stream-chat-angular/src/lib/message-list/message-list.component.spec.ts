@@ -32,7 +32,7 @@ describe('MessageListComponent', () => {
   let queryScrollContainer: () => HTMLElement | null;
   let queryMessageComponents: () => MessageComponent[];
   let queryMessages: () => HTMLElement[];
-  let queryScrollToBottomButton: () => HTMLElement | null;
+  let queryScrollToLatestButton: () => HTMLElement | null;
   let queryParentMessage: () => MessageComponent | undefined;
   let queryTypingIndicator: () => HTMLElement | null;
   let queryTypingUserAvatars: () => AvatarComponent[];
@@ -70,8 +70,8 @@ describe('MessageListComponent', () => {
         );
     queryMessages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="message"]'));
-    queryScrollToBottomButton = () =>
-      nativeElement.querySelector('[data-testid="scroll-to-bottom"]');
+    queryScrollToLatestButton = () =>
+      nativeElement.querySelector('[data-testid="scroll-to-latest"]');
     queryParentMessage = () =>
       fixture.debugElement
         .query(By.css('[data-testid="parent-message"]'))
@@ -112,6 +112,23 @@ describe('MessageListComponent', () => {
     });
   });
 
+  it('should display messages - top-to-bottom direction', () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    const messages = channelServiceMock.activeChannelMessages$.getValue();
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channelServiceMock.activeChannelMessages$.next([...messages]);
+    fixture.detectChanges();
+    const messagesComponents = queryMessageComponents();
+
+    expect(messagesComponents.length).toBe(messages.length);
+    messagesComponents.forEach((m, i) => {
+      expect(m.message).toBe(messages[messages.length - 1 - i]);
+      expect(m.isLastSentMessage).toBe(i === 1 ? true : false);
+    });
+  });
+
   it(`should display messages - and shouldn't mark unsent messages as last sent message`, () => {
     const messages = channelServiceMock.activeChannelMessages$.getValue();
     messages[messages.length - 1].status = 'sending';
@@ -132,12 +149,32 @@ describe('MessageListComponent', () => {
     );
   });
 
+  it(`shouldn't scroll to bottom, after loading the messages if direction is top to bottom`, () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    const scrollContainer = queryScrollContainer()!;
+
+    expect(scrollContainer.scrollTop).toBe(0);
+  });
+
   it('should scroll to bottom, after an image has been loaded', () => {
     const imageLoadService = TestBed.inject(ImageLoadService);
     spyOn(component, 'scrollToBottom');
     imageLoadService.imageLoad$.next();
 
     expect(component.scrollToBottom).toHaveBeenCalledWith();
+  });
+
+  it(`shouldn't scroll to bottom, after an image has been loaded if direction is top to bottom`, () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    const imageLoadService = TestBed.inject(ImageLoadService);
+    spyOn(component, 'scrollToBottom');
+    imageLoadService.imageLoad$.next();
+
+    expect(component.scrollToBottom).not.toHaveBeenCalledWith();
   });
 
   it('should scroll to bottom, if container grows', () => {
@@ -149,8 +186,20 @@ describe('MessageListComponent', () => {
     expect(component.scrollToBottom).toHaveBeenCalledWith();
   });
 
+  it(`shouldn't scroll to bottom, if container grows and direction is top to bottom`, () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    spyOn(component, 'scrollToBottom');
+    const child = queryScrollContainer()!.getElementsByTagName('div')[0];
+    child.style.height = (child.offsetHeight * 2).toString() + 'px';
+    fixture.detectChanges();
+
+    expect(component.scrollToBottom).not.toHaveBeenCalled();
+  });
+
   it(`shouldn't scroll to bottom, after an image has been loaded, if user is scrolled up`, () => {
-    component.isUserScrolledUp = true;
+    component.isUserScrolled = true;
     fixture.detectChanges();
     const imageLoadService = TestBed.inject(ImageLoadService);
     spyOn(component, 'scrollToBottom');
@@ -180,6 +229,27 @@ describe('MessageListComponent', () => {
     );
   });
 
+  it(`shouldn't scroll to bottom, if user has new message and direction if top to bottom`, () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    const newMessage = mockMessage();
+    newMessage.created_at = new Date();
+    channelServiceMock.activeChannelMessages$.next([
+      ...channelServiceMock.activeChannelMessages$.getValue(),
+      newMessage,
+    ]);
+    fixture.detectChanges();
+
+    expect(queryMessageComponents().length).toBe(
+      channelServiceMock.activeChannelMessages$.getValue().length
+    );
+
+    const scrollContainer = queryScrollContainer()!;
+
+    expect(scrollContainer.scrollTop).toBe(0);
+  });
+
   it('should load more messages, if user scrolls up', () => {
     spyOn(channelServiceMock, 'loadMoreMessages');
 
@@ -191,9 +261,23 @@ describe('MessageListComponent', () => {
     expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith();
   });
 
+  it('should load more messages, if user scrolls down and direction is top-to-bottom', () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    spyOn(channelServiceMock, 'loadMoreMessages');
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: scrollContainer.scrollHeight });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith();
+  });
+
   it('should handle channel change', () => {
     component.unreadMessageCount = 3;
-    component.isUserScrolledUp = true;
+    component.isUserScrolled = true;
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
     } as Channel<DefaultStreamChatGenerics>);
@@ -201,7 +285,7 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(component.unreadMessageCount).toBe(0);
-    expect(component.isUserScrolledUp).toBeFalse();
+    expect(component.isUserScrolled).toBeFalse();
     expect(queryMessageComponents().length).toBe(0);
   });
 
@@ -237,7 +321,7 @@ describe('MessageListComponent', () => {
     });
 
     it('should display unread message count', () => {
-      expect(queryScrollToBottomButton()).toBeNull();
+      expect(queryScrollToLatestButton()).toBeNull();
 
       const scrollContainer = queryScrollContainer()!;
       scrollContainer.scrollTo({
@@ -253,7 +337,7 @@ describe('MessageListComponent', () => {
       ]);
       fixture.detectChanges();
 
-      expect(queryScrollToBottomButton()?.textContent).toContain('1');
+      expect(queryScrollToLatestButton()?.textContent).toContain('1');
     });
 
     it('should use a treshold when determining if user is scrolled up', () => {
@@ -264,7 +348,7 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
 
-      expect(queryScrollToBottomButton()).toBeNull();
+      expect(queryScrollToLatestButton()).toBeNull();
     });
 
     it('should scroll down if user sends new message', () => {
@@ -287,19 +371,91 @@ describe('MessageListComponent', () => {
       );
     });
 
-    it('should display scroll to bottom button', fakeAsync(() => {
+    it('should display scroll to bottom button and scroll to bottom if clicked', fakeAsync(() => {
       const scrollContainer = queryScrollContainer()!;
       scrollContainer.scrollTo({
         top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
       });
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
-      queryScrollToBottomButton()?.click();
+      queryScrollToLatestButton()?.click();
       fixture.detectChanges();
 
       expect(scrollContainer.scrollTop + scrollContainer.clientHeight).toBe(
         scrollContainer.scrollHeight
       );
+    }));
+  });
+
+  describe('if user scrolled down and direction is top-to-bottom', () => {
+    beforeEach(() => {
+      component.direction = 'top-to-bottom';
+      component.ngOnChanges({ direction: {} as SimpleChange });
+      fixture.detectChanges();
+      const scrollContainer = queryScrollContainer()!;
+      scrollContainer.scrollTo({
+        top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
+      });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+    });
+
+    it(`shouldn't scroll up for new messages`, () => {
+      const scrollContainer = queryScrollContainer()!;
+      const newMessage = mockMessage();
+      newMessage.created_at = new Date();
+      newMessage.user!.id = 'not' + mockCurrentUser().id;
+      channelServiceMock.activeChannelMessages$.next([
+        ...channelServiceMock.activeChannelMessages$.getValue(),
+        newMessage,
+      ]);
+      fixture.detectChanges();
+
+      expect(scrollContainer.scrollTop).not.toBe(0);
+    });
+
+    it('should display unread message count if direction is top-to-bottom', () => {
+      const newMessage = mockMessage();
+      newMessage.created_at = new Date();
+      channelServiceMock.activeChannelMessages$.next([
+        ...channelServiceMock.activeChannelMessages$.getValue(),
+        newMessage,
+      ]);
+      fixture.detectChanges();
+
+      expect(queryScrollToLatestButton()?.textContent).toContain('1');
+    });
+
+    it(`shouldn't use a treshold when determining if user is scrolled down`, () => {
+      const scrollContainer = queryScrollContainer()!;
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight - scrollContainer.clientHeight - 150,
+      });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+
+      expect(queryScrollToLatestButton()).not.toBeNull();
+    });
+
+    it('should scroll up if user sends new message', () => {
+      const scrollContainer = queryScrollContainer()!;
+      const newMessage = mockMessage();
+      newMessage.created_at = new Date();
+      channelServiceMock.activeChannelMessages$.next([
+        ...channelServiceMock.activeChannelMessages$.getValue(),
+        newMessage,
+      ]);
+      fixture.detectChanges();
+
+      expect(scrollContainer.scrollTop).toBe(0);
+    });
+
+    it('should display scroll to latest button and scroll to top if clicked', fakeAsync(() => {
+      const scrollContainer = queryScrollContainer()!;
+      queryScrollToLatestButton()?.click();
+      fixture.detectChanges();
+
+      expect(scrollContainer.scrollTop).toBe(0);
     }));
   });
 
@@ -399,13 +555,13 @@ describe('MessageListComponent', () => {
       const parentMessage = mockMessage();
       parentMessage.id = 'parentMessage2';
       component.unreadMessageCount = 4;
-      component.isUserScrolledUp = true;
+      component.isUserScrolled = true;
       channelServiceMock.activeParentMessage$.next(parentMessage);
       channelServiceMock.activeThreadMessages$.next([]);
       fixture.detectChanges();
 
       expect(component.unreadMessageCount).toBe(0);
-      expect(component.isUserScrolledUp).toBeFalse();
+      expect(component.isUserScrolled).toBeFalse();
       expect(queryMessageComponents().length).toBe(0);
     });
 
@@ -415,12 +571,12 @@ describe('MessageListComponent', () => {
       const parentMessage = mockMessage();
       parentMessage.id = 'parentMessage2';
       component.unreadMessageCount = 4;
-      component.isUserScrolledUp = true;
+      component.isUserScrolled = true;
       channelServiceMock.activeParentMessage$.next(parentMessage);
       fixture.detectChanges();
 
       expect(component.unreadMessageCount).toBe(4);
-      expect(component.isUserScrolledUp).toBeTrue();
+      expect(component.isUserScrolled).toBeTrue();
     });
 
     it('should display typing indicator in thread', () => {
