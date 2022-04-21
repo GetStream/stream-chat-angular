@@ -408,9 +408,15 @@ export class MessageInputComponent
   }
 
   private initTextarea() {
+    // cleanup previously built textarea
+    if (!this.canSendMessages) {
+      this.textareaRef = undefined;
+    }
+
     if (!this.canSendMessages || this.textareaRef || !this.textareaAnchor) {
       return;
     }
+
     const componentFactory =
       this.componentFactoryResolver.resolveComponentFactory(this.textareaType);
     this.textareaRef =
