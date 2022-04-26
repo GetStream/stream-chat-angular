@@ -26,7 +26,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   isActive = false;
   isUnread = false;
-  latestMessage: string = 'Nothing yet...';
+  latestMessage: string = 'streamChat.Nothing yet...';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
 
@@ -111,7 +111,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   private handleMessageEvent(event: Event) {
     this.ngZone.run(() => {
       if (this.channel?.state.messages.length === 0) {
-        this.latestMessage = 'Nothing yet...';
+        this.latestMessage = 'streamChat.Nothing yet...';
         return;
       }
       if (
