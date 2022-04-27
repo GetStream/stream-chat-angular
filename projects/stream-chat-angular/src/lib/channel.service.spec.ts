@@ -352,6 +352,23 @@ describe('ChannelService', () => {
     expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
+  it('should pause read events', async () => {
+    await init();
+    service.shouldMarkActiveChannelAsRead = false;
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const newMessage = mockMessage();
+    activeChannel.state.messages.push(newMessage);
+    spyOn(activeChannel, 'markRead');
+    (activeChannel as MockChannel).handleEvent('message.new', newMessage);
+
+    expect(activeChannel.markRead).not.toHaveBeenCalledWith();
+
+    service.setAsActiveChannel(activeChannel);
+
+    expect(activeChannel.markRead).not.toHaveBeenCalledWith();
+  });
+
   it(`shouldn't make "markRead" call, if user dosen't have 'read-events' capability`, async () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
