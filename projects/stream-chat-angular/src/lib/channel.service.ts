@@ -224,10 +224,6 @@ export class ChannelService<
     url: string,
     channel: Channel<T>
   ) => Promise<void>;
-  /**
-   * If set to false, read events won't be sent as new messages are received
-   */
-  shouldMarkActiveChannelAsRead = true;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -261,6 +257,7 @@ export class ChannelService<
   private usersTypingInThreadSubject = new BehaviorSubject<UserResponse<T>[]>(
     []
   );
+  private _shouldMarkActiveChannelAsRead = true;
 
   private channelListSetter = (
     channels: (Channel<T> | ChannelResponse<T>)[]
@@ -347,6 +344,23 @@ export class ChannelService<
     this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
     this.latestMessageDateByUserByChannels$ =
       this.latestMessageDateByUserByChannelsSubject.asObservable();
+  }
+
+  /**
+   * If set to false, read events won't be sent as new messages are received. If set to true active channel (if any) will immediately be marked as read.
+   */
+  get shouldMarkActiveChannelAsRead() {
+    return this._shouldMarkActiveChannelAsRead;
+  }
+
+  /**
+   * If set to false, read events won't be sent as new messages are received. If set to true active channel (if any) will immediately be marked as read.
+   */
+  set shouldMarkActiveChannelAsRead(shouldMarkActiveChannelAsRead: boolean) {
+    if (!this._shouldMarkActiveChannelAsRead && shouldMarkActiveChannelAsRead) {
+      this.activeChannelSubject.getValue()?.markRead();
+    }
+    this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
   }
 
   /**

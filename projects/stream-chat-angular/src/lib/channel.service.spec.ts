@@ -367,6 +367,10 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(activeChannel.markRead).not.toHaveBeenCalledWith();
+
+    service.shouldMarkActiveChannelAsRead = true;
+
+    expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
   it(`shouldn't make "markRead" call, if user dosen't have 'read-events' capability`, async () => {
