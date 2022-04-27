@@ -224,6 +224,10 @@ export class ChannelService<
     url: string,
     channel: Channel<T>
   ) => Promise<void>;
+  /**
+   * If set to false, read events won't be sent as new messages are received
+   */
+  shouldMarkActiveChannelAsRead = true;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -357,7 +361,7 @@ export class ChannelService<
     channel.state.messages.forEach((m) => {
       m.readBy = getReadBy(m, channel);
     });
-    if (this.canSendReadEvents) {
+    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
       void channel.markRead();
     }
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
@@ -873,7 +877,7 @@ export class ChannelService<
                 ...channel.state.messages,
               ]);
           this.activeChannel$.pipe(first()).subscribe((c) => {
-            if (this.canSendReadEvents) {
+            if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
               void c?.markRead();
             }
           });
