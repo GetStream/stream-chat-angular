@@ -1508,4 +1508,19 @@ describe('ChannelService', () => {
     expect(customFileDeleteRequest).toHaveBeenCalledWith(url, channel);
     expect(channel.deleteFile).not.toHaveBeenCalled();
   });
+
+  it('should reset state after connection recovered', async () => {
+    await init();
+    spyOn(service, 'init');
+    spyOn(service, 'reset');
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    expect(service.init).toHaveBeenCalledWith(
+      service['filters']!,
+      service['sort'],
+      service['options'],
+      service['shouldSetActiveChannel']
+    );
+    expect(service.reset).toHaveBeenCalledWith();
+  });
 });

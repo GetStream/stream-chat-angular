@@ -258,6 +258,7 @@ export class ChannelService<
     []
   );
   private _shouldMarkActiveChannelAsRead = true;
+  private shouldSetActiveChannel: boolean | undefined;
 
   private channelListSetter = (
     channels: (Channel<T> | ChannelResponse<T>)[]
@@ -486,7 +487,8 @@ export class ChannelService<
       message_limit: this.messagePageSize,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
-    const result = await this.queryChannels(shouldSetActiveChannel);
+    this.shouldSetActiveChannel = shouldSetActiveChannel;
+    const result = await this.queryChannels(this.shouldSetActiveChannel);
     this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
@@ -790,6 +792,18 @@ export class ChannelService<
 
   private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
+      case 'connection.recovered': {
+        this.ngZone.run(() => {
+          this.reset();
+          this.init(
+            this.filters!,
+            this.sort,
+            this.options,
+            this.shouldSetActiveChannel
+          );
+        });
+        break;
+      }
       case 'notification.message_new': {
         this.ngZone.run(() => {
           if (this.customNewMessageNotificationHandler) {
