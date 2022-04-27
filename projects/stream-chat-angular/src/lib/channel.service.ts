@@ -4,6 +4,7 @@ import {
   combineLatest,
   Observable,
   ReplaySubject,
+  Subscription,
 } from 'rxjs';
 import { filter, first, map, shareReplay } from 'rxjs/operators';
 import {
@@ -259,6 +260,7 @@ export class ChannelService<
   );
   private _shouldMarkActiveChannelAsRead = true;
   private shouldSetActiveChannel: boolean | undefined;
+  private clientEventsSubscription: Subscription | undefined;
 
   private channelListSetter = (
     channels: (Channel<T> | ChannelResponse<T>)[]
@@ -393,6 +395,7 @@ export class ChannelService<
     if (!activeChannel) {
       return;
     }
+    this.stopWatchForActiveChannelEvents(activeChannel);
     this.activeChannelMessagesSubject.next([]);
     this.activeChannelSubject.next(undefined);
     this.activeParentMessageIdSubject.next(undefined);
@@ -489,7 +492,7 @@ export class ChannelService<
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     this.shouldSetActiveChannel = shouldSetActiveChannel;
     const result = await this.queryChannels(this.shouldSetActiveChannel);
-    this.chatClientService.events$.subscribe(
+    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
     return result;
@@ -501,6 +504,7 @@ export class ChannelService<
   reset() {
     this.deselectActiveChannel();
     this.channelsSubject.next(undefined);
+    this.clientEventsSubscription?.unsubscribe();
   }
 
   /**
@@ -795,7 +799,7 @@ export class ChannelService<
       case 'connection.recovered': {
         this.ngZone.run(() => {
           this.reset();
-          this.init(
+          void this.init(
             this.filters!,
             this.sort,
             this.options,
