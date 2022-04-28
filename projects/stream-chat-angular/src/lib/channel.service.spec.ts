@@ -1,10 +1,11 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { first, take } from 'rxjs/operators';
 import {
   Channel,
   ChannelMemberResponse,
   ChannelOptions,
+  ChannelResponse,
   ChannelSort,
   Event,
   SendMessageAPIResponse,
@@ -184,10 +185,24 @@ describe('ChannelService', () => {
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
+
+    channelsSpy.calls.reset();
+    events$.next({
+      eventType: 'message.new',
+      event: {
+        channel: {
+          id: 'channel',
+        } as ChannelResponse<DefaultStreamChatGenerics>,
+      } as Event<DefaultStreamChatGenerics>,
+    });
+
+    expect(channelsSpy).not.toHaveBeenCalled();
   });
 
   it('should deselect active channel', async () => {
     await init();
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.pipe(take(1)).subscribe((c) => (activeChannel = c!));
     const messagesSpy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(messagesSpy);
     const activeChannelSpy = jasmine.createSpy();
@@ -206,6 +221,11 @@ describe('ChannelService', () => {
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
+
+    messagesSpy.calls.reset();
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(messagesSpy).not.toHaveBeenCalled();
   });
 
   it('should tell if user #hasMoreChannels$', async () => {
@@ -1507,5 +1527,21 @@ describe('ChannelService', () => {
 
     expect(customFileDeleteRequest).toHaveBeenCalledWith(url, channel);
     expect(channel.deleteFile).not.toHaveBeenCalled();
+  });
+
+  it('should reset state after connection recovered', async () => {
+    await init();
+    spyOn(service, 'init');
+    spyOn(service, 'reset');
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    expect(service.init).toHaveBeenCalledWith(
+      service['filters']!,
+      service['sort'],
+      service['options'],
+      service['shouldSetActiveChannel']
+    );
+
+    expect(service.reset).toHaveBeenCalledWith();
   });
 });
