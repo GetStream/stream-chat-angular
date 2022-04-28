@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { Channel, UserResponse } from 'stream-chat';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { StreamI18nService } from '../stream-i18n.service';
+import { DefaultStreamChatGenerics } from '../types';
 import { ChannelHeaderComponent } from './channel-header.component';
 
 describe('ChannelHeaderComponent', () => {
@@ -12,6 +15,7 @@ describe('ChannelHeaderComponent', () => {
   let nativeElement: HTMLElement;
   let queryName: () => HTMLElement | null;
   let queryInfo: () => HTMLElement | null;
+  let queryAvatar: () => AvatarPlaceholderComponent;
   let channelServiceMock: {
     activeChannel$: Subject<Channel>;
   };
@@ -28,7 +32,7 @@ describe('ChannelHeaderComponent', () => {
     };
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [ChannelHeaderComponent],
+      declarations: [ChannelHeaderComponent, AvatarPlaceholderComponent],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: ChatClientService, useValue: chatClientServiceMock },
@@ -40,6 +44,9 @@ describe('ChannelHeaderComponent', () => {
     nativeElement = fixture.nativeElement as HTMLElement;
     queryName = () => nativeElement.querySelector('[data-testid="name"]');
     queryInfo = () => nativeElement.querySelector('[data-testid="info"]');
+    queryAvatar = () =>
+      fixture.debugElement.query(By.directive(AvatarPlaceholderComponent))
+        .componentInstance as AvatarPlaceholderComponent;
   });
 
   it('should display members count', () => {
@@ -86,5 +93,26 @@ describe('ChannelHeaderComponent', () => {
     fixture.detectChanges();
 
     expect(queryInfo()?.textContent).not.toContain('5 online');
+  });
+
+  it('should display avatar component', () => {
+    const channel = {
+      id: 'running-club',
+      data: {
+        name: 'Running club',
+        image: 'url/to/img',
+      },
+    } as any as Channel;
+    channelServiceMock.activeChannel$.next(channel);
+    const avatar = queryAvatar();
+    fixture.detectChanges();
+
+    expect(avatar.name).toBe('Running club');
+    expect(avatar.imageUrl).toBe('url/to/img');
+    expect(avatar.type).toBe('channel');
+    expect(avatar.location).toBe('channel-header');
+    expect(avatar.channel).toBe(
+      channel as any as Channel<DefaultStreamChatGenerics>
+    );
   });
 });

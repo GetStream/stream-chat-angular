@@ -11,6 +11,7 @@ import type {
   LiteralStringForUnion,
   Mute,
   ReactionResponse,
+  User,
   UserResponse,
 } from 'stream-chat';
 import { Icon } from './icon/icon.component';
@@ -157,10 +158,26 @@ export type AttachmentListContext = {
   attachments: Attachment<DefaultStreamChatGenerics>[];
 };
 
+export type AvatarType = 'channel' | 'user';
+
+export type AvatarLocation =
+  | 'channel-preview'
+  | 'channel-header'
+  | 'message-sender'
+  | 'message-reader'
+  | 'quoted-message-sender'
+  | 'autocomplete-item'
+  | 'typing-indicator'
+  | 'reaction';
+
 export type AvatarContext = {
   name: string | undefined;
   imageUrl: string | undefined;
   size: number | undefined;
+  type: AvatarType | undefined;
+  location: AvatarLocation | undefined;
+  channel?: Channel<DefaultStreamChatGenerics>;
+  user?: User<DefaultStreamChatGenerics>;
 };
 
 export type AttachmentPreviewListContext = {

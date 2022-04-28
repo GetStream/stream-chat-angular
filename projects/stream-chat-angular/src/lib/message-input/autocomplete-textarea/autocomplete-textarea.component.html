@@ -56,6 +56,9 @@
       [size]="20"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
+      type="user"
+      location="autocomplete-item"
+      [user]="item.user || item"
     ></stream-avatar-placeholder>
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel

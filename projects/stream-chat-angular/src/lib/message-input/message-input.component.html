@@ -33,6 +33,9 @@
         [imageUrl]="quotedMessage?.user?.image"
         [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
         [size]="20"
+        type="user"
+        location="quoted-message-sender"
+        [user]="quotedMessage?.user || undefined"
       ></stream-avatar-placeholder>
       <div class="quoted-message-preview-content-inner">
         <stream-attachment-list

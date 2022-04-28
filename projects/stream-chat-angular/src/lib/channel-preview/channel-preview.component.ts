@@ -82,16 +82,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   get avatarName() {
-    if (this.channel?.data?.name) {
-      return this.channel?.data?.name;
-    }
-    const otherMembers = Object.values(
-      this.channel?.state.members || {}
-    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user!.id);
-    if (otherMembers.length === 1) {
-      return otherMembers[0].user?.name || otherMembers[0].user?.name;
-    }
-    return '#';
+    return this.channel?.data?.name;
   }
 
   get title() {

@@ -43,6 +43,9 @@
         class="str-chat-angular__avatar-host"
         [imageUrl]="message?.user?.image"
         [name]="message?.user?.name || message?.user?.id"
+        type="user"
+        location="message-sender"
+        [user]="message?.user || undefined"
       ></stream-avatar-placeholder>
       <div class="str-chat__message-inner">
         <div
@@ -307,6 +310,9 @@
       [size]="15"
       [imageUrl]="lastReadUser?.image"
       [name]="lastReadUser?.name || lastReadUser?.id"
+      type="user"
+      location="message-reader"
+      [user]="lastReadUser"
     ></stream-avatar-placeholder>
     <span
       data-test-id="read-by-length"
@@ -371,6 +377,9 @@
         message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
       "
       [size]="20"
+      type="user"
+      location="quoted-message-sender"
+      [user]="message?.quoted_message?.user || undefined"
     ></stream-avatar-placeholder>
     <div class="quoted-message-inner">
       <stream-attachment-list

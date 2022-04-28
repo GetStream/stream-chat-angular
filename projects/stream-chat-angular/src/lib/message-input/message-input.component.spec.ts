@@ -715,14 +715,18 @@ describe('MessageInputComponent', () => {
     ).not.toBeNull();
     const avatar = fixture.debugElement
       .query(By.css(quotedMessageContainerSelector))
-      .query(By.directive(AvatarComponent))
-      .componentInstance as AvatarComponent;
+      .query(By.directive(AvatarPlaceholderComponent))
+      .componentInstance as AvatarPlaceholderComponent;
     const attachments = fixture.debugElement
       .query(By.css(quotedMessageContainerSelector))
       .query(By.directive(AttachmentListComponent))
       .componentInstance as AttachmentListComponent;
 
     expect(avatar.name).toBe(message.user!.name);
+    expect(avatar.imageUrl).toBe(message.user!.image);
+    expect(avatar.type).toBe('user');
+    expect(avatar.location).toBe('quoted-message-sender');
+    expect(avatar.user).toBe(message.user!);
     expect(attachments.attachments).toEqual([{ id: '1' }]);
     expect(
       nativeElement.querySelector('[data-testid="quoted-message-text"]')

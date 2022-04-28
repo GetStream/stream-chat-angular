@@ -34,8 +34,8 @@ describe('MessageComponent', () => {
   let queryDeliveredIndicator: () => HTMLElement | null;
   let queryReadIndicator: () => HTMLElement | null;
   let queryReadByCounter: () => HTMLElement | null;
-  let queryAvatar: () => HTMLElement | null;
-  let queryLastReadUserAvatar: () => HTMLElement | null;
+  let queryAvatar: () => AvatarPlaceholderComponent;
+  let queryLastReadUserAvatar: () => AvatarPlaceholderComponent;
   let queryMessageOptions: () => HTMLElement | null;
   let queryActionIcon: () => HTMLElement | null;
   let queryText: () => HTMLElement | null;
@@ -100,9 +100,13 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="read-indicator"]');
     queryReadByCounter = () =>
       nativeElement.querySelector('[data-test-id="read-by-length"]');
-    queryAvatar = () => nativeElement.querySelector('[data-testid="avatar"]');
+    queryAvatar = () =>
+      fixture.debugElement.query(By.css('[data-testid="avatar"]'))
+        ?.componentInstance as AvatarPlaceholderComponent;
     queryLastReadUserAvatar = () =>
-      nativeElement.querySelector('[data-test-id="last-read-user-avatar"]');
+      fixture.debugElement.query(
+        By.css('[data-test-id="last-read-user-avatar"]')
+      ).componentInstance as AvatarPlaceholderComponent;
     queryMessageOptions = () =>
       nativeElement.querySelector('[data-testid=message-options]');
     queryActionIcon = () =>
@@ -220,6 +224,7 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
       const readIndicator = queryReadIndicator();
       const deliveredIndicator = queryDeliveredIndicator();
+      const lastReadByUserAvatar = queryLastReadUserAvatar();
 
       expect(readIndicator).not.toBeNull();
       expect(deliveredIndicator).toBeNull();
@@ -229,7 +234,10 @@ describe('MessageComponent', () => {
           ?.textContent
       ).toContain(message.readBy[0].name);
 
-      expect(queryLastReadUserAvatar()).not.toBeNull();
+      expect(lastReadByUserAvatar.name).toBe(component.lastReadUser?.name);
+      expect(lastReadByUserAvatar.type).toBe('user');
+      expect(lastReadByUserAvatar.user).toBe(component.lastReadUser);
+      expect(lastReadByUserAvatar.location).toBe('message-reader');
 
       expect(queryReadByCounter()).toBeNull();
     });
@@ -292,8 +300,11 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
     const avatar = queryAvatar();
 
-    expect(avatar?.innerHTML).toContain(senderName);
-    expect(avatar?.innerHTML).toContain(senderImage);
+    expect(avatar.name).toContain(senderName);
+    expect(avatar.imageUrl).toContain(senderImage);
+    expect(avatar.type).toBe('user');
+    expect(avatar.location).toBe('message-sender');
+    expect(avatar.user).toBe(component.message.user!);
   });
 
   it('should use user id as a fallback if name is not provided', () => {
@@ -309,8 +320,8 @@ describe('MessageComponent', () => {
     };
     fixture.detectChanges();
 
-    expect(queryAvatar()?.innerHTML).toContain(currentUser.id);
-    expect(queryLastReadUserAvatar()?.innerHTML).toContain(userWithoutName.id);
+    expect(queryAvatar()?.name).toContain(currentUser.id);
+    expect(queryLastReadUserAvatar()?.name).toContain(userWithoutName.id);
 
     component.message = {
       ...message,
@@ -318,7 +329,7 @@ describe('MessageComponent', () => {
     };
     fixture.detectChanges();
 
-    expect(queryAvatar()?.innerHTML).toContain(userWithoutName.id);
+    expect(queryAvatar()?.name).toContain(userWithoutName.id);
     expect(querySender()?.innerHTML).toContain(userWithoutName.id);
   });
 
@@ -689,7 +700,7 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(queryDeletedMessageContainer()).not.toBeNull();
-    expect(queryAvatar()).toBeNull();
+    expect(queryAvatar()).toBeUndefined();
     expect(queryMessageOptions()).toBeNull();
   });
 
@@ -978,7 +989,7 @@ describe('MessageComponent', () => {
     beforeEach(() => {
       const quotedMessage = mockMessage();
       quotedMessage.id = 'quoted-message';
-      quotedMessage.user = { id: 'sara', name: 'Sara' };
+      quotedMessage.user = { id: 'sara', name: 'Sara', image: 'url/to/img' };
       quotedMessage.attachments = [{ id: '1' }, { id: '2' }];
       quotedMessage.text = 'This message was quoted';
       component.message = {
@@ -995,14 +1006,21 @@ describe('MessageComponent', () => {
       ).not.toBeNull();
       const avatar = fixture.debugElement
         .query(By.css(quotedMessageContainerSelector))
-        .query(By.directive(AvatarComponent))
-        .componentInstance as AvatarComponent;
+        .query(By.directive(AvatarPlaceholderComponent))
+        .componentInstance as AvatarPlaceholderComponent;
       const attachments = fixture.debugElement
         .query(By.css(quotedMessageContainerSelector))
         .query(By.directive(AttachmentListComponent))
         .componentInstance as AttachmentListComponent;
 
       expect(avatar.name).toBe(component.message!.quoted_message!.user!.name);
+      expect(avatar.imageUrl).toBe(
+        component.message!.quoted_message!.user!.image
+      );
+
+      expect(avatar.type).toBe('user');
+      expect(avatar.location).toBe('quoted-message-sender');
+      expect(avatar.user).toBe(component.message!.quoted_message!.user!);
       expect(attachments.attachments).toEqual([{ id: '1' }]);
       expect(
         nativeElement.querySelector('[data-testid="quoted-message-text"]')
