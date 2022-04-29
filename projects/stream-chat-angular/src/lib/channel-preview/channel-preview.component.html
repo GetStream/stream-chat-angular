@@ -7,9 +7,12 @@
 >
   <div class="str-chat__channel-preview-messenger--left">
     <stream-avatar-placeholder
-      imageUrl="{{ avatarImage }}"
       name="{{ avatarName }}"
+      imageUrl="{{ avatarImage }}"
       [size]="40"
+      type="channel"
+      [channel]="channel"
+      location="channel-preview"
     ></stream-avatar-placeholder>
   </div>
   <div class="str-chat__channel-preview-messenger--right">

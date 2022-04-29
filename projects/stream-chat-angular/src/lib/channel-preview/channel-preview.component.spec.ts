@@ -153,8 +153,11 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
     const avatar = queryAvatar();
 
-    expect(avatar.name).toBe(channel.data?.name);
     expect(avatar.imageUrl).toBe(channel.data?.image as string);
+    expect(avatar.name).toBe(channel.data?.name);
+    expect(avatar.type).toBe('channel');
+    expect(avatar.channel).toBe(channel);
+    expect(avatar.location).toBe('channel-preview');
   });
 
   it('should display channel display text', () => {
@@ -279,48 +282,5 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(queryLatestMessage()?.textContent).toContain('Nothing yet...');
-  });
-
-  it('should use "#" as avatar name fallback', () => {
-    const channel = generateMockChannels()[0];
-    channel.data!.name = undefined;
-    component.channel = channel;
-    fixture.detectChanges();
-
-    expect(component.avatarName).toBe('#');
-  });
-
-  it('should use the name of the other member if channel only has two members', () => {
-    const channel = generateMockChannels()[0];
-    channel.data!.name = undefined;
-    channel.state.members = {
-      otheruser: {
-        user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack' },
-      },
-      [chatClientServiceMock.chatClient.user.id]: {
-        user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
-    };
-    component.channel = channel;
-    fixture.detectChanges();
-
-    expect(component.avatarName).toBe('Jack');
-
-    channel.state.members = {
-      otheruser: {
-        user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack' },
-      },
-      otheruser2: {
-        user_id: 'otheruser2',
-        user: { id: 'otheruser2', name: 'Sara' },
-      },
-    };
-    component.channel = channel;
-    fixture.detectChanges();
-
-    expect(component.avatarName).toBe('#');
   });
 });

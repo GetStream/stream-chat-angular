@@ -89,15 +89,6 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
   }
 
   get avatarName() {
-    if (this.activeChannel?.data?.name) {
-      return this.activeChannel?.data?.name;
-    }
-    const otherMembers = Object.values(
-      this.activeChannel?.state.members || {}
-    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user!.id);
-    if (otherMembers.length === 1) {
-      return otherMembers[0].user?.name || otherMembers[0].user?.name;
-    }
-    return '#';
+    return this.activeChannel?.data?.name;
   }
 }

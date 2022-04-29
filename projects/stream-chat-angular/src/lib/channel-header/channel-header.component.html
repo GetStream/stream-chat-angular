@@ -9,6 +9,9 @@
   <stream-avatar-placeholder
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ avatarName }}"
+    type="channel"
+    location="channel-header"
+    [channel]="activeChannel"
   ></stream-avatar-placeholder>
   <div class="str-chat__header-livestream-left">
     <p data-testid="name" class="str-chat__header-livestream-left--title">

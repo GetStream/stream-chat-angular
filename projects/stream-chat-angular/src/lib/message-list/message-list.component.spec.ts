@@ -474,7 +474,7 @@ describe('MessageListComponent', () => {
 
     channelServiceMock.usersTypingInChannel$.next([
       { id: 'jack' },
-      { id: 'john', name: 'John' },
+      { id: 'john', name: 'John', image: 'url/to/img' },
     ]);
     fixture.detectChanges();
 
@@ -484,6 +484,9 @@ describe('MessageListComponent', () => {
     expect(avatars.length).toBe(2);
     expect(avatars[0].name).toBe('jack');
     expect(avatars[1].name).toBe('John');
+    expect(avatars[1].imageUrl).toBe('url/to/img');
+    expect(avatars[1].type).toBe('user');
+    expect(avatars[1].location).toBe('typing-indicator');
   });
 
   describe('thread mode', () => {
