@@ -71,8 +71,8 @@ export class AppComponent implements AfterViewInit {
   private messageActionsBoxTemplate!: TemplateRef<MessageActionsBoxContext>;
   @ViewChild('messageActionItemTemplate')
   private messageActionItemTemplate!: TemplateRef<MessageActionBoxItemContext>;
-  @ViewChild('messageReactonsTemplate')
-  private messageReactonsTemplate!: TemplateRef<MessageReactionsContext>;
+  @ViewChild('messageReactionsTemplate')
+  private messageReactionsTemplate!: TemplateRef<MessageReactionsContext>;
   @ViewChild('modalTemplate')
   private modalTemplate!: TemplateRef<ModalContext>;
   @ViewChild('notificationTemplate')
