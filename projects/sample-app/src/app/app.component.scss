@@ -1,0 +1,13 @@
+#root {
+  display: flex;
+  height: 100%;
+
+  .channel-list {
+    width: 25%;
+    height: 100%;
+  }
+
+  .channel {
+    width: 75%;
+  }
+}

@@ -4,10 +4,12 @@ on:
     branches:
       - master
       - beta
+      - theming-v2
   pull_request:
     branches:
       - master
       - beta
+      - theming-v2
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -43,13 +45,14 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      - name: E2e tests
-        env:
-          STREAM_API_KEY: ${{ secrets.API_KEY }}
-          STREAM_USER_ID: ${{ secrets.USER_ID }}
-          STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
-        run: |
-          npm run e2e:ci
+      # Turned off until we have a (pre)release for theming-v2
+      # - name: E2e tests
+      #   env:
+      #     STREAM_API_KEY: ${{ secrets.API_KEY }}
+      #     STREAM_USER_ID: ${{ secrets.USER_ID }}
+      #     STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
+      #   run: |
+      #     npm run e2e:ci
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -1,7 +1,9 @@
 <div
   #container
   data-testid="channel-list-container"
-  class="str-chat str-chat-channel-list messaging"
+  class="str-chat str-chat-channel-list messaging str-chat__theme-{{
+    theme$ | async
+  }}"
   [class.str-chat-channel-list--open]="(isOpen$ | async) === true"
 >
   <div
