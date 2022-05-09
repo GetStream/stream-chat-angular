@@ -1544,4 +1544,21 @@ describe('ChannelService', () => {
 
     expect(service.reset).toHaveBeenCalledWith();
   });
+
+  it(`shouldn't do duplicate state reset after connection recovered`, async () => {
+    await init();
+    spyOn(service, 'init');
+    spyOn(service, 'reset');
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    expect(service.init).toHaveBeenCalledOnceWith(
+      service['filters']!,
+      service['sort'],
+      service['options'],
+      service['shouldSetActiveChannel']
+    );
+
+    expect(service.reset).toHaveBeenCalledOnceWith();
+  });
 });
