@@ -35,12 +35,21 @@ describe('ChatClientService', () => {
 
   it('should disconnect user', async () => {
     const pendingInvitesSpy = jasmine.createSpy();
+    const eventsSpy = jasmine.createSpy();
+    service.events$.subscribe(eventsSpy);
     service.pendingInvites$.subscribe(pendingInvitesSpy);
     pendingInvitesSpy.calls.reset();
+    eventsSpy.calls.reset();
     await service.disconnectUser();
+    const event = {
+      id: 'mockevent',
+      type: 'notification.added_to_channel',
+    } as any as Event;
+    mockChatClient.handleEvent(event.type, event);
 
     expect(mockChatClient.disconnectUser).toHaveBeenCalledWith();
     expect(pendingInvitesSpy).toHaveBeenCalledWith([]);
+    expect(eventsSpy).not.toHaveBeenCalled();
   });
 
   it('should init with user meta data', async () => {
