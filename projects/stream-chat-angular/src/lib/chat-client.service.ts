@@ -4,6 +4,7 @@ import {
   Channel,
   ChannelFilters,
   ChannelResponse,
+  ConnectAPIResponse,
   OwnUserResponse,
   UserFilters,
   UserResponse,
@@ -60,6 +61,7 @@ export class ChatClientService<
   private pendingInvitesSubject = new BehaviorSubject<
     (ChannelResponse<T> | Channel<T>)[]
   >([]);
+  private subscriptions: { unsubscribe: () => void }[] = [];
 
   constructor(
     private ngZone: NgZone,
@@ -81,12 +83,13 @@ export class ChatClientService<
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T>,
     userTokenOrProvider: TokenOrProvider
-  ) {
+  ): ConnectAPIResponse<T> {
     this.chatClient = StreamChat.getInstance<T>(apiKey);
     this.chatClient.devToken;
+    let result;
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
-      await this.chatClient.connectUser(user, userTokenOrProvider);
+      result = await this.chatClient.connectUser(user, userTokenOrProvider);
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
@@ -98,30 +101,35 @@ export class ChatClientService<
     );
     this.pendingInvitesSubject.next(channels);
     this.appSettingsSubject.next(undefined);
-    this.chatClient.on((e) => {
-      this.updatePendingInvites(e);
-      this.notificationSubject.next({
-        eventType: e.type,
-        event: e,
-      });
-    });
+    this.subscriptions.push(
+      this.chatClient.on((e) => {
+        this.updatePendingInvites(e);
+        this.notificationSubject.next({
+          eventType: e.type,
+          event: e,
+        });
+      })
+    );
     let removeNotification: undefined | Function;
-    this.chatClient.on('connection.changed', (e) => {
-      this.ngZone.run(() => {
-        const isOnline = e.online;
-        if (isOnline) {
-          if (removeNotification) {
-            removeNotification();
+    this.subscriptions.push(
+      this.chatClient.on('connection.changed', (e) => {
+        this.ngZone.run(() => {
+          const isOnline = e.online;
+          if (isOnline) {
+            if (removeNotification) {
+              removeNotification();
+            }
+          } else {
+            removeNotification =
+              this.notificationService.addPermanentNotification(
+                'streamChat.Connection failure, reconnecting now...'
+              );
           }
-        } else {
-          removeNotification =
-            this.notificationService.addPermanentNotification(
-              'streamChat.Connection failure, reconnecting now...'
-            );
-        }
-        this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
-      });
-    });
+          this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
+        });
+      })
+    );
+    return result;
   }
 
   /**
@@ -130,6 +138,7 @@ export class ChatClientService<
   async disconnectUser() {
     this.pendingInvitesSubject.next([]);
     await this.chatClient.disconnectUser();
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   /**
