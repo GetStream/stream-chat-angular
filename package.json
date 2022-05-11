@@ -34,7 +34,7 @@
     "typedoc:services": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-service-docs --exclude '!**/*service.ts' --excludeNotDocumented --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "typedoc:components": "typedoc --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)",
-    "copy-css": "copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles"
+    "copy-css": "copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles && copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist-v2/**/*\" projects/stream-chat-angular/src/assets/styles/v2"
   },
   "lint-staged": {
     "**/*": [

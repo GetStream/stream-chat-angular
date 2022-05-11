@@ -1,5 +1,9 @@
-@import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 @import "~@ctrl/ngx-emoji-mart/picker";
+
+html {
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -8,6 +12,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
 }
 
 .str-chat__thread {
@@ -20,9 +25,4 @@ body {
     min-width: 35%;
     max-width: 35%;
   }
-}
-
-.str-chat-channel-list {
-  max-height: 100vh;
-  overflow-y: auto;
 }

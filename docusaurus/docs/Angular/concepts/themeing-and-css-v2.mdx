@@ -1,0 +1,333 @@
+---
+id: themeingv2
+title: Themeing and CSS v2
+---
+
+import ChannelPreviewThemeScreenshot1 from "../assets/channel-preview-theme1-screenshot.png";
+import ChannelPreviewThemeScreenshot2 from "../assets/channel-preview-theme2-screenshot.png";
+import ChannelListScreenshot from "../assets/channel-list-screenshot.png";
+import ChannelListDarkScreenshot from "../assets/channel-list-dark-screenshot.png";
+import ChannelListCustomizedScreenshot from "../assets/channel-list-customized-screenshot.png";
+import ChannelListLayoutScreenshot from "../assets/channel-list-layout-screenshot.png";
+import ChannelListRtlScreenshot from "../assets/channel-list-rtl-screenshot.png";
+
+:::info
+The default chat UI has a new theming and customization system, this page contains information about the new version (version 2). The most important improvements of the new version:
+
+- Refreshed design
+- Better customization
+- Support for RTL layout
+
+The [old theme](./themeing-and-css.mdx) can still be used with the latest SDK versions, but it's now deprecated and will be removed in a future release.
+:::
+
+:::info
+The following page contains code examples using SCSS but our library supports CSS as well:
+
+```css
+@import "../../stream-chat-angular/src/assets/styles/v2/css/index.css";
+```
+
+:::
+
+## Customization
+
+Our theming system has various different customization options allowing for smaller and large scale UI changes as well. The above list contains all the different customization options.
+
+### CSS variables
+
+CSS variables are the easieast way for customizing the theme. The variables are organized into two layers:
+
+- theme
+- component
+
+#### Theme variables
+
+You can use theme layer variables to change the look and feels for the whole chat UI (as opposed to changing the design of individual components), these variables can be grouped into three categories:
+
+- Colors
+- Fonts
+- Border radiuses
+- Spacing (makes the chat UI more spacious/compact)
+
+The full list of theme variables (TODO: provide a better list with descriptions)
+
+```scss
+// used for elements where sizing is necessary (such as icons, avatar)
+--str-chat__spacing-px: 1px;
+// used for margins, padding
+--str-chat__spacing-0: 0;
+--str-chat__spacing-0_5: 0.125rem;
+--str-chat__spacing-1: 0.25rem;
+--str-chat__spacing-1_5: 0.375rem;
+--str-chat__spacing-2: 0.5rem;
+--str-chat__spacing-2_5: 0.625rem;
+--str-chat__spacing-3: 0.75rem;
+--str-chat__spacing-3_5: 0.875rem;
+--str-chat__spacing-4: 1rem;
+--str-chat__spacing-5: 1.25rem;
+--str-chat__spacing-6: 1.5rem;
+--str-chat__spacing-7: 1.75rem;
+--str-chat__spacing-8: 2rem;
+--str-chat__spacing-9: 2.25rem;
+--str-chat__spacing-10: 2.5rem;
+--str-chat__spacing-11: 2.75rem;
+--str-chat__spacing-12: 3rem;
+--str-chat__spacing-14: 3.5rem;
+--str-chat__spacing-16: 4rem;
+
+--str-chat__border-radius-sm: 16px;
+--str-chat__border-radius-md: 20px;
+--str-chat__border-radius-circle: 999px;
+
+// https://systemfontstack.com/
+--str-chat__font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans,
+  Ubuntu, Cantarell, Helvetica Neue, sans-serif;
+
+--str-chat__primary-color: var(--str-chat__blue500);
+--str-chat__active-primary-color: var(--str-chat__blue600);
+--str-chat__on-primary-color: var(--str-chat__grey50);
+--str-chat__background-color: var(--str-chat__grey50);
+--str-chat__secondary-background-color: var(--str-chat__grey50);
+--str-chat__primary-surface-color: var(--str-chat__blue100);
+--str-chat__surface-color: var(--str-chat__grey300);
+--str-chat__secondary-surface-color: var(--str-chat__grey200);
+--str-chat__text-color: var(--str-chat__grey950);
+--str-chat__text-low-emphasis-color: var(--str-chat__grey500);
+--str-chat__disabled-color: var(--str-chat__grey400);
+--str-chat__on-disabled-color: var(--str-chat__grey5);
+--str-chat__danger-color: var(--str-chat__red600);
+--str-chat__online-indicator-color: var(--str-chat__green500);
+--str-chat__message-highlight-color: var(--str-chat__yellow100);
+--str-chat__unread-badge-color: var(--str-chat__red600);
+--str-chat__on-unread-badge-color: var(--str-chat__grey50);
+--str-chat__overlay-color: rgba(252, 252, 252, 0.9);
+```
+
+Here is the default chat UI:
+TODO: replace with screenshot including channel as well
+
+<img src={ChannelListScreenshot} width="500" />
+
+Here is how you can customize theme variables:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+
+.str-chat {
+  --str-chat__spacing-px: 1.2px;
+  --str-chat__primary-color: #6c5a86;
+  --str-chat__active-primary-color: #30234d;
+  --str-chat__surface-color: #e9e7ed;
+  --str-chat__secondary-surface-color: #e9e7ed;
+}
+```
+
+Here is the result:
+TODO: replace with screenshot including channel as well
+
+<img src={ChannelListCustomizedScreenshot} width="500" />
+
+:::note
+The `str-chat` class is applied to the [channel list](../components/ChannelListComponent.mdx) and [channel](../components/ChannelComponent.mdx) component, all CSS variables are declared on this level, if you don't use those components in your chat application you'll have apply this class manually.
+:::
+
+#### Component variables
+
+You can use component layer variables to change the design of individual components. The full list of component layer variables can be found TODO.
+
+Component variables don't inherit, so for example if you set the font on the channel preview (`--str-chat__channel-preview-font-family`) the channel avatar component won't inherit that setting:
+
+```scss
+.sstr-chat {
+  --str-chat__channel-preview-font-family: "Times New Roman", Times, serif;
+}
+```
+
+Here is the result:
+
+<img src={ChannelPreviewThemeScreenshot1} width="500" />
+
+If you want the avatar component to use the same font as the channel preview component, you'll have to change the avatar's font settings as well:
+
+```scss
+.str-chat__channel-preview {
+  --str-chat__avatar-font-family: "Times New Roman", Times, serif;
+}
+```
+
+The above code snippet will change the font only for the avatar components that are located inside the channel preview component.
+
+Here is the result:
+
+<img src={ChannelPreviewThemeScreenshot2} width="500" />
+
+### CSS overrides
+
+If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+
+// Provide your overrides after the stream-chat-angular stylesheet imports
+.str-chat__channel-preview-messenger--last-message {
+  font-style: italic;
+}
+```
+
+If you're using SCSS it's also possible to import component stylesheets separately (instead of our bundled stylesheet):
+
+```scss
+// Use default theme for channel list and channel preview components
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-layout.scss";
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-theme.scss";
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-layout.scss";
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-theme.scss";
+
+.str-chat__avatar {
+  // Custom CSS for avatar component
+}
+```
+
+### Apply your own look and feel
+
+If you want to create a truly custom look and feel it can be exhausting to override the default styling, in that case it's possible to only apply layout rules from the default theme.
+
+Here is how you can import the layout stylesheet:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.layout.scss";
+```
+
+or if you're using CSS:
+
+```css
+@import "../../stream-chat-angular/src/assets/styles/v2/css/index.layout.css";
+```
+
+<img src={ChannelListLayoutScreenshot} width="500" />
+
+The result will be a minimalistic UI without
+
+- coloring
+- fonts
+- borders
+- shadows
+
+## Dark and light themes
+
+The default theme has dark and light variants, you can switch between the two using the [`ThemeService`](../services/ThemeService.mdx).
+
+```typescript
+import { ThemeService } from 'stream-chat-angular';
+
+constructor(themeService: ThemeService) {
+  themeService.theme$.next('dark');
+}
+```
+
+Here is how the dark theme looks like:
+TODO: replace with screenshot containing channel as well
+
+<img src={ChannelListDarkScreenshot} width="500" />
+
+:::note
+The `str-chat__theme-dark`/`str-chat__theme-light` class is applied to the [channel list](../components/ChannelListComponent.mdx) and [channel](../components/ChannelComponent.mdx) components, this class is responsible for switching between the dark and light theme color combinations, if you don't use those components in you chat application you'll have apply the theme classes manually.
+:::
+
+Here is how you can provide different color configurations for the dark and light themes:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+
+.str-chat__theme-light {
+  --str-chat__primary-color: #6c5a86;
+  --str-chat__active-primary-color: #30234d;
+  --str-chat__surface-color: #e9e7ed;
+  --str-chat__secondary-surface-color: #e9e7ed;
+}
+
+.str-chat__theme-dark {
+  --str-chat__primary-color: #84759a;
+  --str-chat__active-primary-color: #554173;
+  --str-chat__surface-color: #30234d;
+  --str-chat__secondary-surface-color: #3d2f5a;
+}
+```
+
+You can add component layer overrides to light and dark themes:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+
+.str-chat__theme-light {
+  --str-chat__primary-color: #6c5a86;
+  --str-chat__active-primary-color: #30234d;
+  --str-chat__surface-color: #e9e7ed;
+  --str-chat__secondary-surface-color: #e9e7ed;
+  --str-chat__avatar-background-color: #57634b;
+}
+
+.str-chat__theme-dark {
+  --str-chat__primary-color: #84759a;
+  --str-chat__active-primary-color: #554173;
+  --str-chat__surface-color: #30234d;
+  --str-chat__secondary-surface-color: #3d2f5a;
+  --str-chat__avatar-background-color: #d2deb7;
+}
+```
+
+### Creating your own theme
+
+It's possible to extend the existing themes with your own themes.
+
+Here is an example creating 'blue', 'pink' and 'purple' themes:
+
+```scss
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+
+// Make sure to use the proper naming convention: str-chat__theme-<your theme>
+.str-chat__theme-blue {
+  // You can use the predefined theme and component layer variables
+  --str-chat__primary-color: #1976d2;
+  --str-chat__avatar-background-color: #004ba0;
+}
+
+.str-chat__theme-pink {
+  --str-chat__primary-color: #d81b60;
+  --str-chat__avatar-background-color: #a00037;
+}
+
+.str-chat__theme-purple {
+  --str-chat__primary-color: #5e35b1;
+  --str-chat__avatar-background-color: #65499c;
+}
+```
+
+Set the theme using the [`ThemeService`](../services/ThemeService.mdx):
+
+```typescript
+import { ThemeService } from 'stream-chat-angular';
+
+constructor(themeService: ThemeService) {
+  themeService.theme$.next('blue');
+}
+```
+
+## RTL support
+
+The layout was built with RTL support in mind, you can use the RTL layout by using the `direction` CSS attribute:
+
+```scss
+html {
+  direction: rtl;
+}
+```
+
+Here is the result:
+
+<img src={ChannelListRtlScreenshot} width="500" />
+
+## CSS logical properties and polyfills
+
+Our CSS implementation uses [CSS logical properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties) for RTL support, [browser support](https://caniuse.com/?search=logical%20properties) for these properties isn't ubiquitous. Our implementation contains polyfills for logical properties, to use them you'll have to [provide at least one `[dir]` attribute in your HTML](https://github.com/csstools/postcss-dir-pseudo-class#maintaining-specificity).

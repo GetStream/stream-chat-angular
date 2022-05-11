@@ -9,6 +9,7 @@ import {
   mockChannelService,
   MockChannelService,
 } from '../mocks';
+import { ThemeService } from '../theme.service';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 import { ChannelListComponent } from './channel-list.component';
 
@@ -35,6 +36,7 @@ describe('ChannelListComponent', () => {
           provide: ChatClientService,
           useValue: { chatClient: { user: { id: 'userid' } } },
         },
+        ThemeService,
       ],
     });
     fixture = TestBed.createComponent(ChannelListComponent);
@@ -152,6 +154,22 @@ describe('ChannelListComponent', () => {
     fixture.detectChanges();
 
     expect(container?.classList.contains(openClass)).toBeTrue();
+  });
+
+  it('should apply dark/light theme', () => {
+    const service = TestBed.inject(ThemeService);
+    const lightClass = 'str-chat__theme-light';
+    const darkClass = 'str-chat__theme-dark';
+    const container = queryContainer();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(lightClass)).toBeTrue();
+    expect(container?.classList.contains(darkClass)).toBeFalse();
+
+    service.theme$.next('dark');
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(darkClass)).toBeTrue();
   });
 
   it('should notify the channelListToggleService if a channel is selected', () => {
