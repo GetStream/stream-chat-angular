@@ -18,7 +18,9 @@ export class LoadingIndicatorPlaceholderComponent {
   /**
    * The color of the indicator
    */
-  @Input() color = '#006CFF';
+  @Input()
+  color = `var(--str-chat__loading-indicator-color, var(--str-chat__primary-color, '#006CFF'))`;
+
   constructor(public customTemplatesService: CustomTemplatesService) {}
 
   getLoadingIndicatorContext(): LoadingIndicatorContext {

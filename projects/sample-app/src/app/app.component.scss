@@ -3,11 +3,22 @@
   height: 100%;
 
   .channel-list {
-    width: 25%;
+    width: 100%;
     height: 100%;
   }
 
   .channel {
-    width: 75%;
+    width: 100%;
+  }
+
+  @media screen and (min-width: 768px) {
+    .channel-list {
+      width: 35%;
+      height: 100%;
+    }
+
+    .channel {
+      width: 65%;
+    }
   }
 }

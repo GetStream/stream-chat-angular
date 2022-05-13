@@ -13,17 +13,29 @@ This page contains information about the component variables.
 
 ## Channel list
 
-| Name                                           | Description                                             |
-| ---------------------------------------------- | ------------------------------------------------------- |
-| `--str-chat__channel-list-font-family`         | The font used in the component                          |
-| `--str-chat__channel-list-color`               | The text/icon color of the the component                |
-| `--str-chat__channel-list-background-color`    | The background color of the component                   |
-| `--str-chat__channel-list-border-radius`       | The border radius used for the borders of the component |
-| `--str-chat__channel-list-border-block-start`  | Top border of the component                             |
-| `--str-chat__channel-list-border-block-end`    | Bottom border of the component                          |
-| `--str-chat__channel-list-border-inline-start` | Left (right in RTL layout) border of the component      |
-| `--str-chat__channel-list-border-inline-start` | Right (lrft in RTL layout) border of the component      |
-| `--str-chat__channel-list-box-shadow`          | Box shadow applied to the component                     |
+| Name                                                           | Description                                                    |
+| -------------------------------------------------------------- | -------------------------------------------------------------- |
+| `--str-chat__channel-list-font-family`                         | The font used in the component                                 |
+| `--str-chat__channel-list-color`                               | The text/icon color of the component                           |
+| `--str-chat__channel-list-background-color`                    | The background color of the component                          |
+| `--str-chat__channel-list-border-radius`                       | The border radius used for the borders of the component        |
+| `--str-chat__channel-list-border-block-start`                  | Top border of the component                                    |
+| `--str-chat__channel-list-border-block-end`                    | Bottom border of the component                                 |
+| `--str-chat__channel-list-border-inline-start`                 | Left (right in RTL layout) border of the component             |
+| `--str-chat__channel-list-border-inline-start`                 | Right (lrft in RTL layout) border of the component             |
+| `--str-chat__channel-list-box-shadow`                          | Box shadow applied to the component                            |
+| `--str-chat__channel-list-load-more-font-family`               | The font used for the load more button                         |
+| `--str-chat__channel-list-load-more-color`                     | The text/icon color of the load more button                    |
+| `--str-chat__channel-list-load-more-background-color`          | The background color of the load more button                   |
+| `--str-chat__channel-list-load-more-border-radius`             | The border radius used for the borders of the load more button |
+| `--str-chat__channel-list-load-more-border-block-start`        | Top border of the load more button                             |
+| `--str-chat__channel-list-load-more-border-block-end`          | Bottom border of the load more button                          |
+| `--str-chat__channel-list-load-more-border-inline-start`       | Left (right in RTL layout) border of the load more button      |
+| `--str-chat__channel-list-load-more-border-inline-start`       | Right (lrft in RTL layout) border of the load more button      |
+| `--str-chat__channel-list-load-more-box-shadow`                | Box shadow applied to the load more button                     |
+| `--str-chat__channel-list-load-more-pressed-background-color`  | The background color of the load more button in pressed state  |
+| `--str-chat__channel-list-load-more-disabled-background-color` | The background color of the load more button in disabled state |
+| `--str-chat__channel-list-load-more-disabled-color`            | The text/icon color of the load more button in disabled state  |
 
 Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelList/ChannelList-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelList/ChannelList-theme.scss)
 
@@ -43,6 +55,7 @@ Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/style
 | `--str-chat__channel-preview-active-background-color`        | Background color used for selected channel preview components            |
 | `--str-chat__channel-preview-hover-background-color`         | Background color used for the hover state                                |
 | `--str-chat__channel-preview-latest-message-secondary-color` | Text color of the latest message when preview is not hovered or selected |
+| `--str-chat__channel-preview-loading-state-color`            | The color of the loading indicator while initializing the channel list   |
 
 Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelPreview/ChannelPreview-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelPreview/ChannelPreview-theme.scss)
 
@@ -61,3 +74,34 @@ Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/style
 | `--str-chat__avatar-box-shadow`          | Box shadow applied to the component                     |
 
 Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/Avatar/Avatar-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/Avatar/Avatar-theme.scss)
+
+## Loading indicator
+
+| Name                                  | Description                                                |
+| ------------------------------------- | ---------------------------------------------------------- |
+| `--str-chat__loading-indicator-color` | Color of the spinner used to display the loading indicator |
+
+## Call-to-action button
+
+This is a generic component used to display action buttons.
+
+Call-to-actions buttons: channel list load more button
+
+You can override the following variables if you want to adjust the style of all call-to-action buttons in the chat UI
+
+| Name                                               | Description                                          |
+| -------------------------------------------------- | ---------------------------------------------------- |
+| `--str-chat__cta-button-font-family`               | The font used for the button                         |
+| `--str-chat__cta-button-color`                     | The text/icon color of the button                    |
+| `--str-chat__cta-button-background-color`          | The background color of the button                   |
+| `--str-chat__cta-button-border-radius`             | The border radius used for the borders of the button |
+| `--str-chat__cta-button-border-block-start`        | Top border of the button                             |
+| `--str-chat__cta-button-border-block-end`          | Bottom border of the button                          |
+| `--str-chat__cta-button-border-inline-start`       | Left (right in RTL layout) border of the button      |
+| `--str-chat__cta-button-border-inline-start`       | Right (lrft in RTL layout) border of the button      |
+| `--str-chat__cta-button-more-box-shadow`           | Box shadow applied to the button                     |
+| `--str-chat__cta-button-pressed-background-color`  | The background color of the button in pressed state  |
+| `--str-chat__cta-button-disabled-background-color` | The background color of the button in disabled state |
+| `--str-chat__cta-button-disabled-color`            | The text/icon color of the button in disabled state  |
+
+Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CTAButton/CTAButton-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CTAButton/CTAButton-theme.scss)
