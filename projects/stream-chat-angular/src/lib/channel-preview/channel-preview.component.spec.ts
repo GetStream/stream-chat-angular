@@ -145,6 +145,20 @@ describe('ChannelPreviewComponent', () => {
     expect(queryUnreadBadge()).toBeNull();
   });
 
+  it(`shouldn't set unread state for active channels`, () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    const countUnreadSpy = spyOn(channel, 'countUnread');
+    countUnreadSpy.and.returnValue(1);
+    component.channel = channel;
+    channelServiceMock.activeChannel$.next(channel);
+    component.channel = channel;
+    component.ngOnInit();
+
+    expect(component.isUnread).toBe(false);
+    expect(component.unreadCount).toBe(0);
+  });
+
   it('should set channel as active', () => {
     const channel = generateMockChannels()[0];
     component.channel = channel;

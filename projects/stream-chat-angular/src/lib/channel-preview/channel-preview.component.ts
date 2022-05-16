@@ -128,12 +128,12 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private updateUnreadState() {
-    if (this.canSendReadEvents) {
-      this.unreadCount = this.channel!.countUnread();
-      this.isUnread = !!this.unreadCount;
-    } else {
-      this.unreadCount = undefined;
+    if (this.isActive || !this.canSendReadEvents) {
+      this.unreadCount = 0;
       this.isUnread = false;
+      return;
     }
+    this.unreadCount = this.channel!.countUnread();
+    this.isUnread = !!this.unreadCount;
   }
 }
