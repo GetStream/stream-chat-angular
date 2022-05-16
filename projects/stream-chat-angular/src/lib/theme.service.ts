@@ -4,7 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 export type Theme = 'light' | 'dark';
 
 /**
- * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [themeing guide](../concepts/themeing-and-css-v2.mdx) gives a complete overview about the topic.
+ * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [theming guide](../theming/introduction.mdx) gives a complete overview about the topic.
  */
 @Injectable({
   providedIn: 'root',
@@ -62,7 +62,7 @@ export class ThemeService {
 
   /**
    * A getter that returns the currently set custom light theme variables.
-   * @deprecated Only use with [theme v1](../concepts/themeing-and-css.mdx)
+   * @deprecated Only use with [theme v1](../concepts/theming-and-css.mdx)
    * @returns An object where the keys are theme variables, and the values are the currently set CSS values.
    */
   get customLightThemeVariables() {
@@ -71,7 +71,7 @@ export class ThemeService {
 
   /**
    * A setter that can be used to overwrite the values of the CSS theme variables of the light theme.
-   * @deprecated Only use with [theme v1](../concepts/themeing-and-css.mdx)
+   * @deprecated Only use with [theme v1](../concepts/theming-and-css.mdx)
    * @param variables An object where the keys are theme variables, and the values are CSS values.
    */
   set customLightThemeVariables(
@@ -89,7 +89,7 @@ export class ThemeService {
 
   /**
    * A getter that returns the currently set custom dark theme variables.
-   * @deprecated Only use with [theme v1](../concepts/themeing-and-css.mdx)
+   * @deprecated Only use with [theme v1](../concepts/theming-and-css.mdx)
    * @returns An object where the keys are theme variables, and the values are the currently set CSS values.
    */
   get customDarkThemeVariables() {
@@ -98,7 +98,7 @@ export class ThemeService {
 
   /**
    * A setter that can be used to overwrite the values of the CSS theme variables of the dark theme.
-   * @deprecated Only use with [theme v1](../concepts/themeing-and-css.mdx)
+   * @deprecated Only use with [theme v1](../concepts/theming-and-css.mdx)
    * @param variables An object where the keys are theme variables, and the values are CSS values.
    */
   set customDarkThemeVariables(
