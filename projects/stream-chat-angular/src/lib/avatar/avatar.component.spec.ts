@@ -150,6 +150,10 @@ describe('AvatarComponent', () => {
 
     expect(component.initials).toBe('J');
 
+    delete channel.state.members['otheruser'].user!.name;
+
+    expect(component.initials).toBe('o');
+
     channel.state.members = {
       otheruser: {
         user_id: 'otheruser',
