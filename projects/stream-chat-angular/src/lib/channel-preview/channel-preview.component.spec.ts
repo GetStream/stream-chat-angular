@@ -26,6 +26,7 @@ describe('ChannelPreviewComponent', () => {
   let queryAvatar: () => AvatarPlaceholderComponent;
   let queryTitle: () => HTMLElement | null;
   let queryLatestMessage: () => HTMLElement | null;
+  let queryUnreadBadge: () => HTMLElement | null;
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
@@ -56,6 +57,8 @@ describe('ChannelPreviewComponent', () => {
         .componentInstance as AvatarPlaceholderComponent;
     queryLatestMessage = () =>
       nativeElement.querySelector('[data-testid="latest-message"]');
+    queryUnreadBadge = () =>
+      nativeElement.querySelector('[data-testid="unread-badge"]');
   });
 
   it('should apply active class if channel is active', () => {
@@ -80,7 +83,7 @@ describe('ChannelPreviewComponent', () => {
     expect(queryContainer()?.classList.contains(activeClass)).toBeFalse();
   });
 
-  it('should apply unread class, if channel has unread messages', () => {
+  it('should apply unread class and display unread badge, if channel has unread messages', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
     component.channel = channel;
@@ -91,6 +94,7 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeFalse();
+    expect(queryUnreadBadge()).toBeNull();
 
     countUnreadSpy.and.returnValue(1);
     const newMessage = mockMessage();
@@ -99,6 +103,8 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeTrue();
+    expect(component.unreadCount).toBe(1);
+    expect(queryUnreadBadge()?.innerHTML).toContain('1');
   });
 
   it(`shouldn't apply unread class, if user doesn't have 'read-events' capabilities`, () => {
@@ -114,25 +120,29 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeFalse();
+    expect(queryUnreadBadge()).toBeNull();
   });
 
-  it('should remove unread class, if user marked channel as read', () => {
+  it('should remove unread class and badge, if user marked channel as read', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
     component.channel = channel;
-    let undreadCount = 1;
+    let undreadCount = 3;
     spyOn(channel, 'countUnread').and.callFake(() => undreadCount);
     const unreadClass = 'str-chat__channel-preview-messenger--unread';
     const container = queryContainer();
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeTrue();
+    expect(component.unreadCount).toBe(3);
+    expect(queryUnreadBadge()?.innerHTML).toContain('3');
 
     undreadCount = 0;
     channel.handleEvent('message.read', {});
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeFalse();
+    expect(queryUnreadBadge()).toBeNull();
   });
 
   it('should set channel as active', () => {
