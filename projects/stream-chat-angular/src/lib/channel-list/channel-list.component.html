@@ -1,7 +1,8 @@
 <div
   #container
   data-testid="channel-list-container"
-  class="str-chat str-chat-channel-list messaging str-chat__theme-{{
+  style="max-width: unset"
+  class="str-chat str-chat__channel-list str-chat-channel-list messaging str-chat__theme-{{
     theme$ | async
   }}"
   [class.str-chat-channel-list--open]="(isOpen$ | async) === true"
@@ -14,9 +15,19 @@
     class="str-chat__channel-list-messenger"
   >
     <div class="str-chat__channel-list-messenger__main">
-      <p
-        data-testid="empty-channel-list-indicator"
+      <div
+        class="str-chat__channel-list-empty"
         *ngIf="!(channels$ | async)?.length"
+      >
+        <stream-icon icon="chat-bubble"></stream-icon>
+        <p data-testid="empty-channel-list-indicator">
+          {{ "streamChat.You have no channels currently" | translate }}
+        </p>
+      </div>
+      <p
+        *ngIf="!(channels$ | async)?.length"
+        class="str-chat__channel-list-empty-v1"
+        data-testid="empty-channel-list-indicator"
       >
         {{ "streamChat.You have no channels currently" | translate }}
       </p>
