@@ -26,6 +26,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   isActive = false;
   isUnread = false;
+  unreadCount: number | undefined;
   latestMessage: string = 'streamChat.Nothing yet...';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
@@ -47,7 +48,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     if (messages && messages.length > 0) {
       this.setLatestMessage(messages[messages.length - 1]);
     }
-    this.isUnread = !!this.channel!.countUnread() && this.canSendReadEvents;
+    this.updateUnreadState();
     const capabilities =
       (this.channel?.data?.own_capabilities as string[]) || [];
     this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
@@ -66,8 +67,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.channel!.on('message.read', () =>
         this.ngZone.run(() => {
-          this.isUnread =
-            !!this.channel!.countUnread() && this.canSendReadEvents;
+          this.updateUnreadState();
         })
       )
     );
@@ -113,7 +113,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         return;
       }
       this.setLatestMessage(event.message);
-      this.isUnread = !!this.channel.countUnread() && this.canSendReadEvents;
+      this.updateUnreadState();
     });
   }
 
@@ -125,5 +125,15 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     } else if (message?.attachments && message.attachments.length) {
       this.latestMessage = 'streamChat.🏙 Attachment...';
     }
+  }
+
+  private updateUnreadState() {
+    if (this.isActive || !this.canSendReadEvents) {
+      this.unreadCount = 0;
+      this.isUnread = false;
+      return;
+    }
+    this.unreadCount = this.channel!.countUnread();
+    this.isUnread = !!this.unreadCount;
   }
 }

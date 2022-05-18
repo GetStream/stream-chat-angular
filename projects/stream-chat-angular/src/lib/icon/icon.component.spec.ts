@@ -138,6 +138,13 @@ describe('IconComponent', () => {
     expect(queryIcon('arrow-down')).not.toBeNull();
   });
 
+  it('should display chat-bubble icon', () => {
+    component.icon = 'chat-bubble';
+    fixture.detectChanges();
+
+    expect(queryIcon('chat-bubble')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

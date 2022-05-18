@@ -21,11 +21,17 @@
       str-chat__channel-preview-messenger--right str-chat__channel-preview-end
     "
   >
-    <div
-      style="position: relative"
-      class="str-chat__channel-preview-messenger--name"
-    >
-      <span data-testid="channel-preview-title">{{ title }}</span>
+    <div class="str-chat__channel-preview-end-first-row">
+      <div class="str-chat__channel-preview-messenger--name">
+        <span data-testid="channel-preview-title">{{ title }}</span>
+      </div>
+      <div
+        data-testid="unread-badge"
+        *ngIf="unreadCount"
+        class="str-chat__channel-preview-unread-badge"
+      >
+        {{ unreadCount }}
+      </div>
     </div>
     <div
       data-testid="latest-message"
