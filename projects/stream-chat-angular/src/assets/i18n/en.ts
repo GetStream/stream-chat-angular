@@ -58,7 +58,7 @@ export const en = {
     'Slow Mode ON': 'Slow Mode ON',
     'Start of a new thread': 'Start of a new thread',
     'This message was deleted...': 'This message was deleted...',
-    Thread: 'Thread',
+    Thread: 'Thread reply',
     'Type your message': 'Type your message',
     Unmute: 'Unmute',
     Unpin: 'Unpin',
@@ -95,5 +95,6 @@ export const en = {
     "You can't send thread replies in this channel":
       "You can't send thread replies in this channel",
     'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
+    'No chats here yet…': 'No chats here yet…',
   },
 };

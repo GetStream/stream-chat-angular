@@ -1,50 +1,72 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { Channel } from 'stream-chat';
+import { ChatClientService } from '../chat-client.service';
+import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ChannelService } from '../channel.service';
 import { MessageListComponent } from '../message-list/message-list.component';
-import { mockChannelService, MockChannelService, mockMessage } from '../mocks';
+import {
+  generateMockChannels,
+  mockChannelService,
+  MockChannelService,
+  mockMessage,
+} from '../mocks';
+import { DefaultStreamChatGenerics } from '../types';
 
 import { ThreadComponent } from './thread.component';
 
 describe('ThreadComponent', () => {
-  let component: ThreadComponent;
   let fixture: ComponentFixture<ThreadComponent>;
-  let queryReplyCount: () => HTMLElement | null;
   let queryCloseButton: () => HTMLElement | null;
+  let queryAvatar: () => AvatarPlaceholderComponent;
   let channelServiceMock: MockChannelService;
+  let channel: Channel<DefaultStreamChatGenerics>;
 
   beforeEach(async () => {
     channelServiceMock = mockChannelService();
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [ThreadComponent, MessageListComponent],
-      providers: [{ provide: ChannelService, useValue: channelServiceMock }],
+      declarations: [
+        ThreadComponent,
+        MessageListComponent,
+        AvatarPlaceholderComponent,
+      ],
+      providers: [
+        { provide: ChannelService, useValue: channelServiceMock },
+        {
+          provide: ChatClientService,
+          useValue: { chatClient: { user: { id: 'userid' } } },
+        },
+      ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ThreadComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
     const nativeElement = fixture.nativeElement as HTMLElement;
-    queryReplyCount = () =>
-      nativeElement.querySelector('[data-testid="reply-count"]');
     queryCloseButton = () =>
       nativeElement.querySelector('[data-testid="close-button"]');
+    queryAvatar = () =>
+      fixture.debugElement.query(By.directive(AvatarPlaceholderComponent))
+        .componentInstance as AvatarPlaceholderComponent;
+    channel = generateMockChannels()[0] as Channel<DefaultStreamChatGenerics>;
+    channelServiceMock.activeChannel$.next(channel);
+    fixture.detectChanges();
   });
 
-  it('should show reply count', () => {
-    const message = mockMessage();
-    message.id = 'parent-message';
-    message.reply_count = 5;
-    channelServiceMock.activeChannelMessages$.next([message]);
-    channelServiceMock.activeParentMessage$.next(message);
-    fixture.detectChanges();
+  it('should display channel name and avatar', () => {
+    const avatar = queryAvatar();
 
-    expect(component.getReplyCountParam(message).replyCount).toBe(5);
-    expect(queryReplyCount()?.innerHTML).toContain(
-      'streamChat.{{ replyCount }} replies'
-    );
+    expect(avatar.location).toBe('thread-header');
+    expect(avatar.channel!.id).toBe(channel.id);
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="channel-name"]'
+      )!.innerHTML
+    ).toContain(channel.data?.name!);
   });
 
   it('should close thread', () => {

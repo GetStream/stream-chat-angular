@@ -45,7 +45,7 @@ Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/style
 | Name                                                           | Description                                                              |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `--str-chat__channel-preview-font-family`                      | The font used in the component                                           |
-| `--str-chat__channel-preview-color`                            | The text/icon color of the the component                                 |
+| `--str-chat__channel-preview-color`                            | The text/icon color of the component                                     |
 | `--str-chat__channel-preview-background-color`                 | The background color of the component                                    |
 | `--str-chat__channel-preview-border-radius`                    | The border radius used for the borders of the component                  |
 | `--str-chat__channel-preview-border-block-start`               | Top border of the component                                              |
@@ -65,12 +65,56 @@ Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/style
 
 Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelPreview/ChannelPreview-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/ChannelPreview/ChannelPreview-theme.scss)
 
+## Channel
+
+| Name                                      | Description                                             |
+| ----------------------------------------- | ------------------------------------------------------- |
+| `--str-chat__channel-font-family`         | The font used in the component                          |
+| `--str-chat__channel-color`               | The text/icon color of the component                    |
+| `--str-chat__channel-background-color`    | The background color of the component                   |
+| `--str-chat__channel-border-radius`       | The border radius used for the borders of the component |
+| `--str-chat__channel-border-block-start`  | Top border of the component                             |
+| `--str-chat__channel-border-block-end`    | Bottom border of the component                          |
+| `--str-chat__channel-border-inline-start` | Left (right in RTL layout) border of the component      |
+| `--str-chat__channel-border-inline-start` | Right (lrft in RTL layout) border of the component      |
+| `--str-chat__channel-box-shadow`          | Box shadow applied to the component                     |
+
+Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/Channel/Channel-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/Channel/Channel-theme.scss)
+
+## Message list
+
+| Name                                                               | Description                                                                            |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `--str-chat__message-list-font-family`                             | The font used in the component                                                         |
+| `--str-chat__message-list-color`                                   | The text/icon color of the component                                                   |
+| `--str-chat__message-list-background-color`                        | The background color of the component                                                  |
+| `--str-chat__message-list-border-radius`                           | The border radius used for the borders of the component                                |
+| `--str-chat__message-list-border-block-start`                      | Top border of the component                                                            |
+| `--str-chat__message-list-border-block-end`                        | Bottom border of the component                                                         |
+| `--str-chat__message-list-inline-start`                            | Left (right in RTL layout) border of the component                                     |
+| `--str-chat__message-list-border-inline-start`                     | Right (lrft in RTL layout) border of the component                                     |
+| `--str-chat__message-list-box-shadow`                              | Box shadow applied to the component                                                    |
+| `--str-chat__jump-to-latest-message-font-family`                   | The font used in the jump to latest message button                                     |
+| `--str-chat__jump-to-latest-message-color`                         | The text/icon color of the jump to latest message button                               |
+| `--str-chat__jump-to-latest-message-background-color`              | The background color of the jump to latest message button                              |
+| `--str-chat__jump-to-latest-message-pressed-background-color`      | The background color of the jump to latest message button in pressed state             |
+| `--str-chat__jump-to-latest-message-border-radius`                 | The border radius used for the borders of the jump to latest message button            |
+| `--str-chat__jump-to-latest-message-border-block-start`            | Top border of the jump to latest message button                                        |
+| `--str-chat__jump-to-latest-message-border-block-end`              | Bottom border of the jump to latest message button                                     |
+| `--str-chat__jump-to-latest-message-inline-start`                  | Left (right in RTL layout) border of the jump to latest message button                 |
+| `--str-chat__jump-to-latest-message-border-inline-start`           | Right (lrft in RTL layout) border of the jump to latest message button                 |
+| `--str-chat__jump-to-latest-message-box-shadow`                    | Box shadow applied to the jump to latest message button                                |
+| `--str-chat__jump-to-latest-message-unread-count-color`            | The text/icon color of the unread messages count on the jump to latest message button  |
+| `--str-chat__jump-to-latest-message-unread-count-background-color` | The background color of the unread messages count on the jump to latest message button |
+
+Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/MessageList/MessageList-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/MessageList/CMessageList-theme.scss)
+
 ## Avatar
 
 | Name                                     | Description                                             |
 | ---------------------------------------- | ------------------------------------------------------- |
 | `--str-chat__avatar-font-family`         | The font used in the component                          |
-| `--str-chat__avatar-color`               | The text/icon color of the the component                |
+| `--str-chat__avatar-color`               | The text/icon color of the component                    |
 | `--str-chat__avatar-background-color`    | The background color of the component                   |
 | `--str-chat__avatar-border-radius`       | The border radius used for the borders of the component |
 | `--str-chat__avatar-border-block-start`  | Top border of the component                             |
@@ -91,7 +135,7 @@ Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/style
 
 This is a generic component used to display action buttons.
 
-Call-to-actions buttons: channel list load more button
+Call-to-actions buttons on the chat UI: channel list load more button
 
 You can override the following variables if you want to adjust the style of all call-to-action buttons in the chat UI
 
@@ -111,3 +155,26 @@ You can override the following variables if you want to adjust the style of all 
 | `--str-chat__cta-button-disabled-color`            | The text/icon color of the button in disabled state  |
 
 Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CTAButton/CTAButton-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CTAButton/CTAButton-theme.scss)
+
+## Circle floating action button
+
+This is a generic component used to display floating action buttons.
+
+Floating action buttons on the chat UI: jump to latest messages button
+
+You can override the following variables if you want to adjust the style of all floating action buttons in the chat UI
+
+| Name                                              | Description                                          |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| `--str-chat__circle-fab-font-family`              | The font used for the button                         |
+| `--str-chat__circle-fab-color`                    | The text/icon color of the button                    |
+| `--str-chat__circle-fab-background-color`         | The background color of the button                   |
+| `--str-chat__circle-fab-border-radius`            | The border radius used for the borders of the button |
+| `--str-chat__circle-fab-border-block-start`       | Top border of the button                             |
+| `--str-chat__circle-fab-border-block-end`         | Bottom border of the button                          |
+| `--str-chat__circle-fab-border-inline-start`      | Left (right in RTL layout) border of the button      |
+| `--str-chat__circle-fab-border-inline-start`      | Right (lrft in RTL layout) border of the button      |
+| `--str-chat__circle-fab-more-box-shadow`          | Box shadow applied to the button                     |
+| `--str-chat__circle-fab-pressed-background-color` | The background color of the button in pressed state  |
+
+Defined in: [https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CircleFAButton/CircleFAButton-theme.scss](https://github.com/GetStream/stream-chat-css/blob/main/src-v2/styles/common/CircleFAButton/CircleFAButton-theme.scss)

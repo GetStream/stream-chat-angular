@@ -1,8 +1,17 @@
 <div
-  *ngIf="(isError$ | async) === false && (isInitializing$ | async) === false"
-  class="str-chat str-chat-channel messaging"
+  class="str-chat str-chat-channel messaging str-chat__channel str-chat__theme-{{
+    theme$ | async
+  }}"
 >
-  <div class="str-chat__container">
+  <div
+    class="str-chat__container"
+    *ngIf="
+      (isError$ | async) === false &&
+        (isInitializing$ | async) === false &&
+        (isActiveChannel$ | async) === true;
+      else emptyChannel
+    "
+  >
     <div class="str-chat__main-panel">
       <ng-content></ng-content>
     </div>
@@ -11,4 +20,19 @@
       select='[name="thread"]'
     ></ng-content>
   </div>
+  <ng-template #emptyChannel>
+    <div
+      class="str-chat__empty-channel"
+      *ngIf="
+        (isInitializing$ | async) === true ||
+        (isError$ | async) === true ||
+        (isActiveChannel$ | async) === false
+      "
+    >
+      <stream-icon icon="chat-bubble"></stream-icon>
+      <p class="str-chat__empty-channel-text">
+        {{ "streamChat.No chats here yet…" | translate }}
+      </p>
+    </div>
+  </ng-template>
 </div>

@@ -5,6 +5,8 @@ import { getDeviceWidth } from '../device-width';
 
 /**
  * The `ChannelListToggleService` can be used to toggle the channel list.
+ *
+ * @deprecated This service can only be used with [theming-v1](../concepts/theming-and-css.mdx), if you are using [thmeing-v2](../theming/introduction.mdx) please refer to our [responsive layout guide](../code-examples/responsive-layout.mdx)
  */
 @Injectable({ providedIn: 'root' })
 export class ChannelListToggleService {
