@@ -26,7 +26,7 @@ The [old theme](../concepts/theming-and-css.mdx) can still be used with the late
 The following page contains code examples using SCSS, but our library supports CSS as well:
 
 ```css
-@import "../../stream-chat-angular/src/assets/styles/v2/css/index.css";
+@import "~stream-chat-angular/src/assets/styles/v2/css/index.css";
 ```
 
 :::
@@ -61,7 +61,7 @@ TODO: replace with screenshot including channel as well
 Here is how you can customize theme variables:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 
 .str-chat {
   --str-chat__spacing-px: 1.2px;
@@ -116,7 +116,7 @@ Here is the result:
 If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 
 // Provide your overrides after the stream-chat-angular stylesheet imports
 .str-chat__channel-preview-messenger--last-message {
@@ -128,10 +128,10 @@ If you're using SCSS it's also possible to import component stylesheets separate
 
 ```scss
 // Use default theme for channel list and channel preview components
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-layout.scss";
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-theme.scss";
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-layout.scss";
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-theme.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-layout.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-theme.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-layout.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-theme.scss";
 
 .str-chat__avatar {
   // Custom CSS for avatar component
@@ -145,13 +145,13 @@ If you want to create a truly custom look and feel, it can be exhausting to over
 Here is how you can import the layout stylesheet:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.layout.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.layout.scss";
 ```
 
 or if you're using CSS:
 
 ```css
-@import "../../stream-chat-angular/src/assets/styles/v2/css/index.layout.css";
+@import "~stream-chat-angular/src/assets/styles/v2/css/index.layout.css";
 ```
 
 <img src={ChannelListLayoutScreenshot} width="500" />
@@ -187,7 +187,7 @@ The `str-chat__theme-dark`/`str-chat__theme-light` class is applied to the [chan
 Here is how you can provide different color configurations for the dark and light themes:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 
 .str-chat__theme-light {
   --str-chat__primary-color: #6c5a86;
@@ -207,7 +207,7 @@ Here is how you can provide different color configurations for the dark and ligh
 You can add component layer overrides to light and dark themes:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 
 .str-chat__theme-light {
   --str-chat__primary-color: #6c5a86;
@@ -233,7 +233,7 @@ It's possible to extend the existing themes with your own themes.
 Here is an example creating 'blue', 'pink' and 'purple' themes:
 
 ```scss
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+@import "~stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 
 // Make sure to use the proper naming convention: str-chat__theme-<your theme>
 .str-chat__theme-blue {
