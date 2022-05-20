@@ -9,7 +9,7 @@
       (isError$ | async) === false &&
         (isInitializing$ | async) === false &&
         (isActiveChannel$ | async) === true;
-      else emptyChannel
+      else noChannel
     "
   >
     <div class="str-chat__main-panel">
@@ -20,19 +20,70 @@
       select='[name="thread"]'
     ></ng-content>
   </div>
-  <ng-template #emptyChannel>
+  <ng-template #noChannel>
     <div
       class="str-chat__empty-channel"
       *ngIf="
-        (isInitializing$ | async) === true ||
-        (isError$ | async) === true ||
-        (isActiveChannel$ | async) === false
+        (isInitializing$ | async) === false &&
+        ((isError$ | async) === true || (isActiveChannel$ | async) === false)
       "
     >
       <stream-icon icon="chat-bubble"></stream-icon>
       <p class="str-chat__empty-channel-text">
         {{ "streamChat.No chats here yet…" | translate }}
       </p>
+    </div>
+    <div
+      *ngIf="
+        (isInitializing$ | async) === true &&
+        (isError$ | async) === false &&
+        (isActiveChannel$ | async) === false
+      "
+      class="str-chat__loading-channel"
+    >
+      <div class="str-chat__loading-channel-header">
+        <div class="str-chat__loading-channel-header-avatar"></div>
+        <div class="str-chat__loading-channel-header-end">
+          <div class="str-chat__loading-channel-header-name"></div>
+          <div class="str-chat__loading-channel-header-info"></div>
+        </div>
+      </div>
+      <div class="str-chat__loading-channel-message-list">
+        <div class="str-chat__loading-channel-message">
+          <div class="str-chat__loading-channel-message-avatar"></div>
+          <div class="str-chat__loading-channel-message-end">
+            <div class="str-chat__loading-channel-message-sender"></div>
+            <div class="str-chat__loading-channel-message-last-row">
+              <div class="str-chat__loading-channel-message-text"></div>
+              <div class="str-chat__loading-channel-message-date"></div>
+            </div>
+          </div>
+        </div>
+        <div class="str-chat__loading-channel-message">
+          <div class="str-chat__loading-channel-message-avatar"></div>
+          <div class="str-chat__loading-channel-message-end">
+            <div class="str-chat__loading-channel-message-sender"></div>
+            <div class="str-chat__loading-channel-message-last-row">
+              <div class="str-chat__loading-channel-message-text"></div>
+              <div class="str-chat__loading-channel-message-date"></div>
+            </div>
+          </div>
+        </div>
+        <div class="str-chat__loading-channel-message">
+          <div class="str-chat__loading-channel-message-avatar"></div>
+          <div class="str-chat__loading-channel-message-end">
+            <div class="str-chat__loading-channel-message-sender"></div>
+            <div class="str-chat__loading-channel-message-last-row">
+              <div class="str-chat__loading-channel-message-text"></div>
+              <div class="str-chat__loading-channel-message-date"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="str-chat__loading-channel-message-input-row">
+        <div class="str-chat__loading-channel-message-input"></div>
+        <div class="str-chat__loading-channel-message-send"></div>
+      </div>
     </div>
   </ng-template>
 </div>
