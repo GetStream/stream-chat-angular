@@ -50,7 +50,7 @@ export class MessageListComponent
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
-    'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
+    'str-chat-angular__main-panel-inner str-chat-angular__message-list-host str-chat__main-panel-inner';
   unreadMessageCount = 0;
   isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];

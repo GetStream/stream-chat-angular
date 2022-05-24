@@ -1,13 +1,15 @@
-<ng-container
-  *ngTemplateOutlet="
-    (customTemplatesService.threadHeaderTemplate$ | async) ||
-      defaultThreadHeader;
-    context: getThreadHeaderContext()
-  "
-></ng-container>
-<ng-content select='[name="thread-message-list"]'></ng-content>
-<div class="str-chat__small-message-input__wrapper">
-  <ng-content select='[name="thread-message-input"]'></ng-content>
+<div class="str-chat__thread-container">
+  <ng-container
+    *ngTemplateOutlet="
+      (customTemplatesService.threadHeaderTemplate$ | async) ||
+        defaultThreadHeader;
+      context: getThreadHeaderContext()
+    "
+  ></ng-container>
+  <ng-content select='[name="thread-message-list"]'></ng-content>
+  <div class="str-chat__small-message-input__wrapper">
+    <ng-content select='[name="thread-message-input"]'></ng-content>
+  </div>
 </div>
 
 <ng-template
@@ -16,15 +18,27 @@
   let-closeThreadHandler="closeThreadHandler"
 >
   <div class="str-chat__thread-header">
+    <stream-avatar-placeholder
+      imageUrl="{{ channel?.data?.image }}"
+      name="{{ channel?.data?.name }}"
+      type="channel"
+      location="thread-header"
+      [channel]="channel"
+      [size]="40"
+    ></stream-avatar-placeholder>
     <div class="str-chat__thread-header-details">
-      <strong translate>streamChat.Thread</strong>
-      <small data-testid="reply-count">
-        {{parentMessage?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
-        replies' | translate:getReplyCountParam(parentMessage))}}
-      </small>
+      <div class="str-chat__thread-header-name" translate>
+        streamChat.Thread
+      </div>
+      <div
+        class="str-chat__thread-header-channel-name"
+        data-testid="channel-name"
+      >
+        {{ channelName }}
+      </div>
     </div>
     <button
-      class="str-chat__square-button"
+      class="str-chat__square-button str-chat__close-thread-button"
       data-testid="close-button"
       (click)="closeThreadHandler()"
     >

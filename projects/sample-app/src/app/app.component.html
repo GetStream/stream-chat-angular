@@ -1,11 +1,23 @@
 <div id="root">
-  <stream-channel-list class="channel-list"></stream-channel-list>
-  <stream-channel class="channel">
-    <stream-channel-header></stream-channel-header>
+  <stream-channel-list
+    (click)="isMenuOpen = false"
+    class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
+      isThreadOpen ? 'open' : 'close'
+    }}"
+  ></stream-channel-list>
+  <stream-channel class="channel" (click)="isMenuOpen = false">
+    <stream-channel-header>
+      <button
+        class="menu-button"
+        (click)="isMenuOpen = !isMenuOpen; $event.stopPropagation()"
+      >
+        <stream-icon-placeholder icon="menu"></stream-icon-placeholder>
+      </button>
+    </stream-channel-header>
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
-    <stream-thread name="thread">
+    <stream-thread class="thread" name="thread">
       <stream-message-list
         name="thread-message-list"
         mode="thread"

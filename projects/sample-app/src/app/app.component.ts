@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { map } from 'rxjs/operators';
 import {
   ChatClientService,
   ChannelService,
@@ -12,6 +13,8 @@ import { environment } from '../environments/environment';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+  isMenuOpen = false;
+  isThreadOpen = false;
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
@@ -27,5 +30,8 @@ export class AppComponent {
       members: { $in: [environment.userId] },
     });
     this.streamI18nService.setTranslation();
+    this.channelService.activeParentMessage$
+      .pipe(map((m) => !!m))
+      .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
   }
 }
