@@ -145,6 +145,27 @@ describe('IconComponent', () => {
     expect(queryIcon('chat-bubble')).not.toBeNull();
   });
 
+  it('should display attach icon', () => {
+    component.icon = 'attach';
+    fixture.detectChanges();
+
+    expect(queryIcon('attach')).not.toBeNull();
+  });
+
+  it('should display unspecified-filetype icon', () => {
+    component.icon = 'unspecified-filetype';
+    fixture.detectChanges();
+
+    expect(queryIcon('unspecified-filetype')).not.toBeNull();
+  });
+
+  it('should display download icon', () => {
+    component.icon = 'download';
+    fixture.detectChanges();
+
+    expect(queryIcon('download')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

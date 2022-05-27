@@ -1,4 +1,5 @@
 <div
+  *ngIf="themeVersion !== '2'"
   class="{{
     mode === 'main' ? 'str-chat__input-flat' : 'str-chat__small-message-input'
   }}"
@@ -80,10 +81,7 @@
         "
       ></ng-container>
       <div class="rta str-chat__textarea str-chat-angular__textarea">
-        <ng-container
-          *ngIf="emojiPickerTemplate && !isCooldownInProgress"
-          data-testid="emoji-picker"
-        >
+        <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
           <div
             class="
               str-chat__input-flat-emojiselect
@@ -98,25 +96,20 @@
             ></ng-container>
           </div>
         </ng-container>
-        <div
-          class="str-chat__input-flat-cooldown str-chat-angular__cooldown"
-          *ngIf="isCooldownInProgress"
-          data-testid="cooldown-timer"
-        >
-          {{ cooldown$ | async }}
-        </div>
-        <ng-template
-          *ngIf="canSendMessages && !isCooldownInProgress; else notAllowed"
-          streamTextarea
-          [(value)]="textareaValue"
-          (valueChange)="typingStart$.next()"
-          (send)="messageSent()"
-          [componentRef]="textareaRef"
-          (userMentions)="mentionedUsers = $event"
-          [areMentionsEnabled]="areMentionsEnabled"
-          [mentionScope]="mentionScope"
-        ></ng-template>
-        <ng-template #notAllowed>
+        <ng-container *ngIf="canSendMessages; else disabledTextarea">
+          <ng-container
+            streamTextarea
+            [(value)]="textareaValue"
+            (valueChange)="typingStart$.next()"
+            (send)="messageSent()"
+            [componentRef]="textareaRef"
+            (userMentions)="mentionedUsers = $event"
+            [areMentionsEnabled]="areMentionsEnabled"
+            [mentionScope]="mentionScope"
+            [placeholder]="textareaPlaceholder"
+          ></ng-container>
+        </ng-container>
+        <ng-template #disabledTextarea>
           <textarea
             disabled
             rows="1"
@@ -127,12 +120,7 @@
         </ng-template>
       </div>
       <div
-        *ngIf="
-          isFileUploadEnabled &&
-          isFileUploadAuthorized &&
-          canSendMessages &&
-          !isCooldownInProgress
-        "
+        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
         class="str-chat__fileupload-wrapper"
         data-testid="file-upload-button"
       >
@@ -159,7 +147,88 @@
       </div>
     </div>
     <button
-      *ngIf="canSendMessages"
+      *ngIf="canSendMessages && !isCooldownInProgress"
+      data-testid="send-button"
+      class="str-chat__send-button"
+      (click)="messageSent()"
+      (keyup.enter)="messageSent()"
+    >
+      <stream-icon-placeholder
+        class="str-chat__send-button-angular"
+        icon="send"
+      ></stream-icon-placeholder>
+    </button>
+    <div
+      class="str-chat__input-flat-cooldown"
+      *ngIf="isCooldownInProgress"
+      data-testid="cooldown-timer"
+    >
+      <div class="str-chat__message-input-cooldown-text">
+        {{ cooldown$ | async }}
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="themeVersion === '2'" class="str-chat__message-input">
+  <ng-container *ngIf="canSendMessages; else notAllowed">
+    <div
+      *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
+      class="str-chat__file-input-container"
+      data-testid="file-upload-button"
+    >
+      <input
+        #fileInput
+        type="file"
+        class="str-chat__file-input"
+        data-testid="file-input"
+        [multiple]="isMultipleFileUploadEnabled"
+        (change)="filesSelected(fileInput.files)"
+        id="{{ fileInputId }}"
+      />
+      <label class="str-chat__file-input-label" for="{{ fileInputId }}">
+        <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
+      </label>
+    </div>
+    <div class="str-chat__message-textarea-container">
+      <ng-template
+        #defaultAttachmentsPreview
+        let-attachmentUploads$="attachmentUploads$"
+        let-retryUploadHandler="retryUploadHandler"
+        let-deleteUploadHandler="deleteUploadHandler"
+      >
+        <stream-attachment-preview-list
+          [attachmentUploads$]="attachmentUploads$"
+          (retryAttachmentUpload)="retryUploadHandler($event)"
+          (deleteAttachment)="deleteUploadHandler($event)"
+          class="str-chat__attachment-preview-list-angular-host"
+        ></stream-attachment-preview-list>
+      </ng-template>
+      <ng-container
+        *ngTemplateOutlet="
+          attachmentPreviewListTemplate || defaultAttachmentsPreview;
+          context: getAttachmentPreviewListContext()
+        "
+      ></ng-container>
+      <div class="str-chat__message-textarea-with-emoji-picker">
+        <ng-container
+          streamTextarea
+          [(value)]="textareaValue"
+          (valueChange)="typingStart$.next()"
+          (send)="messageSent()"
+          [componentRef]="textareaRef"
+          (userMentions)="mentionedUsers = $event"
+          [areMentionsEnabled]="areMentionsEnabled"
+          [mentionScope]="mentionScope"
+          [placeholder]="textareaPlaceholder"
+        ></ng-container>
+      </div>
+    </div>
+    <button
+      *ngIf="canSendMessages && !isCooldownInProgress"
+      [disabled]="
+        (attachmentUploadInProgressCounter$ | async)! > 0 ||
+        (!textareaValue && (attachmentUploads$ | async)!.length === 0)
+      "
       data-testid="send-button"
       class="str-chat__send-button"
       (click)="messageSent()"
@@ -167,5 +236,20 @@
     >
       <stream-icon-placeholder icon="send"></stream-icon-placeholder>
     </button>
-  </div>
+    <div
+      class="str-chat__message-input-cooldown"
+      *ngIf="isCooldownInProgress"
+      data-testid="cooldown-timer"
+    >
+      {{ cooldown$ | async }}
+    </div>
+  </ng-container>
+  <ng-template #notAllowed>
+    <div
+      class="str-chat__message-input-not-allowed"
+      data-testid="disabled-textarea"
+    >
+      {{ disabledTextareaText | translate }}
+    </div>
+  </ng-template>
 </div>

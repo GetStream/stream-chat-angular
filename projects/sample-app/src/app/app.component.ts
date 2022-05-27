@@ -34,4 +34,8 @@ export class AppComponent {
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
   }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
 }

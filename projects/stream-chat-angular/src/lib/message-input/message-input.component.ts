@@ -6,6 +6,7 @@ import {
   ComponentRef,
   ElementRef,
   EventEmitter,
+  HostBinding,
   Inject,
   Input,
   OnChanges,
@@ -38,6 +39,8 @@ import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { ThemeService } from '../theme.service';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
@@ -83,10 +86,12 @@ export class MessageInputComponent
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<void>();
+  @HostBinding() class = 'str-chat__message-input-angular-host';
   isFileUploadAuthorized: boolean | undefined;
   canSendLinks: boolean | undefined;
   canSendMessages: boolean | undefined;
   attachmentUploads$: Observable<AttachmentUpload[]>;
+  attachmentUploadInProgressCounter$: Observable<number>;
   textareaValue = '';
   textareaRef: ComponentRef<TextareaInterface> | undefined;
   mentionedUsers: UserResponse[] = [];
@@ -98,6 +103,9 @@ export class MessageInputComponent
   attachmentPreviewListTemplate:
     | TemplateRef<AttachmentPreviewListContext>
     | undefined;
+  textareaPlaceholder: string;
+  themeVersion: '1' | '2';
+  fileInputId = uuidv4();
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -107,6 +115,8 @@ export class MessageInputComponent
   private appSettings: AppSettings | undefined;
   private channel: Channel<DefaultStreamChatGenerics> | undefined;
   private sendMessageSubcription: Subscription | undefined;
+  private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
+  private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -118,8 +128,11 @@ export class MessageInputComponent
     private cdRef: ChangeDetectorRef,
     private chatClient: ChatClientService,
     private emojiInputService: EmojiInputService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    themeService: ThemeService
   ) {
+    this.themeVersion = themeService.themeVersion;
+    this.textareaPlaceholder = this.defaultTextareaPlaceholder;
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
         (counter) => {
@@ -162,6 +175,8 @@ export class MessageInputComponent
       })
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
+    this.attachmentUploadInProgressCounter$ =
+      this.attachmentService.attachmentUploadInProgressCounter$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
     this.isMultipleFileUploadEnabled =
       this.configService.isMultipleFileUploadEnabled;
@@ -276,6 +291,9 @@ export class MessageInputComponent
   }
 
   async messageSent() {
+    if (this.isCooldownInProgress) {
+      return;
+    }
     let attachmentUploadInProgressCounter!: number;
     this.attachmentService.attachmentUploadInProgressCounter$
       .pipe(first())
@@ -359,8 +377,6 @@ export class MessageInputComponent
       return this.mode === 'thread'
         ? "streamChat.You can't send thread replies in this channel"
         : "streamChat.You can't send messages in this channel";
-    } else if (this.cooldown$) {
-      return 'streamChat.Slow Mode ON';
     }
     return '';
   }
@@ -526,6 +542,7 @@ export class MessageInputComponent
   }
 
   private startCooldown(cooldown: number) {
+    this.textareaPlaceholder = this.slowModeTextareaPlaceholder;
     this.isCooldownInProgress = true;
     this.cooldown$ = timer(0, 1000).pipe(
       take(cooldown + 1),
@@ -541,9 +558,6 @@ export class MessageInputComponent
   private stopCooldown() {
     this.cooldown$ = undefined;
     this.isCooldownInProgress = false;
-    // the anchor directive will be recreated because of *ngIf, so we will have to reinit the textarea as well
-    this.textareaRef = undefined;
-    // we can only create the textarea after the anchor was recreated, so we will have to wait a change detection cycle with setTimeout
-    setTimeout(() => this.initTextarea());
+    this.textareaPlaceholder = this.defaultTextareaPlaceholder;
   }
 }

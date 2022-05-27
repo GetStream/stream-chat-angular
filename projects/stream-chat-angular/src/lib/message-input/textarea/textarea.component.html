@@ -3,8 +3,13 @@
   autofocus
   data-testid="textarea"
   #input
-  placeholder="{{ 'streamChat.Type your message' | translate }}"
-  class="rta__textarea str-chat__textarea__textarea str-chat__angular-textarea"
+  placeholder="{{ placeholder | translate }}"
+  class="
+    rta__textarea
+    str-chat__textarea__textarea
+    str-chat__angular-textarea
+    str-chat__message-textarea
+  "
   rows="1"
   (input)="inputChanged()"
   (keydown.enter)="sent($event)"
