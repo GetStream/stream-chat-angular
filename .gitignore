@@ -44,6 +44,8 @@ testem.log
 temp-service-docs
 temp-component-docs
 docusaurus/docs/Angular/services/*.mdx
+docusaurus/docs/Angular/theming/*
+docusaurus/docs/Angular/assets/stream-chat-css*
 
 # System Files
 .DS_Store
