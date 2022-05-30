@@ -94,7 +94,7 @@ We create a button that can be used to toggle the emoji picker.
 
 The [`emoji-mart`](https://www.npmjs.com/package/@ctrl/ngx-emoji-mart) component has a lot of configuration options, feel free to explore those.
 
-We set the `color` input to the `primary-color` defined in the [stream-chat-css theme](https://github.com/GetStream/stream-chat-css/blob/develop/src/styles/_variables.scss).
+We set the `color` input to `--str-chat__primary-color` defined in the [stream-chat-css theme](../theming/theme-variables.mdx).
 
 The [`ngIf`](https://angular.io/api/common/NgIf) directive is used to hide/show the emoji picker.
 
@@ -114,19 +114,21 @@ The `emojiSelect` event is fired when a user selects an emoji, we emit the selec
       ></path>
     </g>
   </svg>
-</button>
 
-<emoji-mart
-  class="picker"
-  color="var(--primary-color)"
-  *ngIf="isOpened"
-  title="Pick your emoji…"
-  emoji="point_up"
-  (emojiSelect)="emojiSelected($event)"
-></emoji-mart>
+  <emoji-mart
+    class="picker"
+    color="var(--str-chat__primary-color)"
+    *ngIf="isOpened"
+    title="Pick your emoji…"
+    emoji="point_up"
+    (emojiSelect)="emojiSelected($event)"
+  ></emoji-mart>
+</button>
 ```
 
 5. Component styles
+
+If you want to match the color of the emoji picker toggle button to the other tool buttons in the message input, you can use the `--str-chat__message-input-tools-color` to do that as defined in the [stream-chat-css theme](../theming/theme-variables.mdx)
 
 ```scss
 button {
@@ -134,19 +136,26 @@ button {
   border: none;
   cursor: pointer;
   padding: 0;
+  position: relative;
+
+  svg path {
+    fill: var(--str-chat__message-input-tools-color);
+  }
 }
 
 .picker {
+  z-index: 2;
   position: absolute;
   bottom: 100%;
-  left: 0;
   transform: scale(0.8);
+  right: -20%;
   transform-origin: 0% 100%;
 }
 
 @media only screen and (min-device-width: 1024px) {
   .picker {
     transform: scale(1);
+    right: 0;
   }
 }
 ```
@@ -230,3 +239,31 @@ export class AppComponent implements AfterViewInit {
 This is how our emoji picker looks like:
 
 <img src={Screenshot} width="500" />
+
+## Dark and light mode
+
+If your application supports dark and light themes, here how you can toggle the theme on the emoji input component:
+
+Add this to you emoji picker component class:
+
+```typescript
+theme$: Observable<string>;
+
+constructor(themeService: ThemeService) {
+  this.theme$ = themeService.theme$;
+}
+```
+
+And set the `darkMode` input on the `emoji-mart` component:
+
+```html
+<emoji-mart
+  class="picker"
+  color="var(--str-chat__primary-color)"
+  *ngIf="isOpened"
+  title="Pick your emoji…"
+  emoji="point_up"
+  (emojiSelect)="emojiSelected($event)"
+  [darkMode]="(theme$ | async) === 'dark'"
+></emoji-mart>
+```

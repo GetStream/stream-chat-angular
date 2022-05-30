@@ -42,13 +42,16 @@
 <ng-template #defaultCommandTemplate let-item="item">
   <div class="str-chat__slash-command">
     <span class="str-chat__slash-command-header">
-      <strong data-testclass="command-name">{{ item.name }}</strong>
-      {{ item.args }}
+      <strong
+        class="str-chat__slash-command-name"
+        data-testclass="command-name"
+        >{{ item.name }}</strong
+      >
+      <span class="str-chat__slash-command-args"
+        >/{{ item.name }} {{ item.args }}</span
+      >
     </span>
     <br />
-    <span class="str-chat__slash-command-description">{{
-      item.description
-    }}</span>
   </div>
 </ng-template>
 
@@ -57,8 +60,8 @@
     <stream-avatar-placeholder
       data-testclass="avatar"
       class="str-chat__avatar str-chat__avatar--circle"
-      style="height: 20px"
-      [size]="20"
+      style="height: 56px"
+      [size]="56"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
       type="user"
@@ -68,5 +71,6 @@
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel
     }}</span>
+    <div class="str-chat__user-item-at">@</div>
   </div>
 </ng-template>

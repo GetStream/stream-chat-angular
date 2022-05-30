@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { ThemeService } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-emoji-picker',
@@ -8,9 +9,12 @@ import { Subject } from 'rxjs';
 })
 export class EmojiPickerComponent {
   isOpened = false;
+  theme$: Observable<string>;
   @Input() emojiInput$: Subject<string> | undefined;
 
-  constructor() {}
+  constructor(themeService: ThemeService) {
+    this.theme$ = themeService.theme$;
+  }
 
   emojiSelected(event: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
