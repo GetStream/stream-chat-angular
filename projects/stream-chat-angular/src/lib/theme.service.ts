@@ -14,6 +14,10 @@ export class ThemeService {
    * A Subject that can be used to get or set the currently active theme.
    */
   theme$ = new BehaviorSubject<Theme | string>('light');
+  /**
+   * Stream chat theme version - this is used internally by some UI components of the SDK, integrators shouldn't need to use this variable
+   */
+  themeVersion: '1' | '2';
   private _customLightThemeVariables: { [key: string]: string } | undefined;
   private _customDarkThemeVariables: { [key: string]: string } | undefined;
   private defaultDarkModeVariables = {
@@ -58,6 +62,10 @@ export class ThemeService {
         this.setVariables(lightVariables);
       }
     });
+
+    this.themeVersion = (getComputedStyle(document.documentElement)
+      .getPropertyValue('--str-chat__theme-version')
+      .replace(' ', '') || '1') as '1' | '2';
   }
 
   /**

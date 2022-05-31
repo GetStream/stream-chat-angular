@@ -20,6 +20,7 @@ export class TextareaDirective implements OnChanges {
   @Input() areMentionsEnabled: boolean | undefined;
   @Input() mentionScope?: 'channel' | 'application';
   @Input() value = '';
+  @Input() placeholder: string | undefined;
   @Output() readonly valueChange = new EventEmitter<string>();
   @Output() readonly send = new EventEmitter<void>();
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
@@ -55,6 +56,7 @@ export class TextareaDirective implements OnChanges {
         this.componentRef.instance.areMentionsEnabled = this.areMentionsEnabled;
         this.componentRef.instance.mentionScope = this.mentionScope;
         this.componentRef.instance.value = this.value;
+        this.componentRef.instance.placeholder = this.placeholder;
       }
     }
     if (changes.areMentionsEnabled) {
@@ -65,6 +67,9 @@ export class TextareaDirective implements OnChanges {
     }
     if (changes.value) {
       this.componentRef.instance.value = this.value;
+    }
+    if (changes.placeholder) {
+      this.componentRef.instance.placeholder = this.placeholder;
     }
     // ngOnChanges not called for dynamic components since we don't use template binding
     let changesToPropagate = {};

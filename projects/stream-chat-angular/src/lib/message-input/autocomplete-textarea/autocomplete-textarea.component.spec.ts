@@ -15,6 +15,7 @@ import { AutocompleteTextareaComponent } from './autocomplete-textarea.component
 import { Subject } from 'rxjs';
 import { EmojiInputService } from '../emoji-input.service';
 import { DefaultStreamChatGenerics } from '../../types';
+import { ThemeService } from '../../theme.service';
 
 describe('AutocompleteTextareaComponent', () => {
   let component: AutocompleteTextareaComponent;
@@ -49,6 +50,10 @@ describe('AutocompleteTextareaComponent', () => {
         {
           provide: EmojiInputService,
           useValue: { emojiInput$ },
+        },
+        {
+          provide: ThemeService,
+          useValue: { themeVersion: '2' },
         },
       ],
     }).compileComponents();
@@ -135,6 +140,29 @@ describe('AutocompleteTextareaComponent', () => {
     fixture.detectChanges();
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('shouldn increase and decrease textarea height with text input', () => {
+    const spy = jasmine.createSpy();
+    component.send.subscribe(spy);
+    const textarea = queryTextarea();
+    textarea!.value = 'This is my message';
+    fixture.detectChanges();
+    const initialHeight = textarea!.offsetHeight;
+    textarea?.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+    );
+    textarea?.dispatchEvent(new KeyboardEvent('input', { key: 'R' }));
+    fixture.detectChanges();
+    const newHeight = textarea!.offsetHeight;
+
+    expect(newHeight).toBeGreaterThan(initialHeight);
+
+    component.value = '';
+    component.ngOnChanges({ value: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(textarea!.offsetHeight).toBeLessThan(newHeight);
   });
 
   it('should add channel members to autocomplete config', () => {
