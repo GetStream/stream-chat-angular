@@ -1,4 +1,5 @@
 <div
+  #actionBox
   data-testid="action-box"
   class="str-chat__message-actions-box"
   [class.str-chat__message-actions-box--open]="isOpen"
@@ -24,7 +25,11 @@
   let-actionHandler="actionHandler"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
 >
-  <button [attr.data-testid]="actionName + '-action'" (click)="actionHandler()">
+  <button
+    class="str-chat__message-actions-list-item-button"
+    [attr.data-testid]="actionName + '-action'"
+    (click)="actionHandler()"
+  >
     <li class="str-chat__message-actions-list-item">
       {{ getActionLabel(actionLabelOrTranslationKey) | translate }}
     </li>

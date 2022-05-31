@@ -27,6 +27,7 @@ import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
+import { ThemeService } from '../theme.service';
 
 type MessagePart = {
   content: string;
@@ -59,6 +60,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'thread' | 'main' = 'main';
+  readonly themeVersion: '1' | '2';
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isEditing: boolean | undefined;
@@ -81,8 +83,10 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     private chatClientService: ChatClientService,
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    themeService: ThemeService
   ) {
+    this.themeVersion = themeService.themeVersion;
     this.user = this.chatClientService.chatClient.user;
   }
 
@@ -123,6 +127,14 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  get shouldDisplayThreadLink() {
+    return (
+      !!this.message?.reply_count &&
+      this.mode !== 'thread' &&
+      this.enabledMessageActions.indexOf('send-reply') !== -1
+    );
   }
 
   get isSentByCurrentUser() {

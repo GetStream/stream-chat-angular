@@ -12,6 +12,7 @@ import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { ThemeService } from '../theme.service';
 
 /**
  * The `AttachmentList` compontent displays the attachments of a message
@@ -33,14 +34,18 @@ export class AttachmentListComponent implements OnChanges {
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
+  themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private imageLoadService: ImageLoadService,
-    private channelService: ChannelService
-  ) {}
+    private channelService: ChannelService,
+    themeService: ThemeService
+  ) {
+    this.themeVersion = themeService.themeVersion;
+  }
 
   ngOnChanges(): void {
     const images = this.attachments.filter(this.isImage);

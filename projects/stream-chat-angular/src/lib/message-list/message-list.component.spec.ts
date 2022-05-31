@@ -34,6 +34,7 @@ describe('MessageListComponent', () => {
   let queryMessages: () => HTMLElement[];
   let queryScrollToLatestButton: () => HTMLElement | null;
   let queryParentMessage: () => MessageComponent | undefined;
+  let queryParentMessageReplyCount: () => HTMLElement | null;
   let queryTypingIndicator: () => HTMLElement | null;
   let queryTypingUserAvatars: () => AvatarComponent[];
 
@@ -84,6 +85,8 @@ describe('MessageListComponent', () => {
         .query(By.css('[data-testid="typing-indicator"]'))
         ?.queryAll(By.directive(AvatarComponent))
         .map((e) => e.componentInstance as AvatarComponent);
+    queryParentMessageReplyCount = () =>
+      nativeElement.querySelector('[data-testid="reply-count"]');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.style.maxHeight = '300px';
@@ -552,6 +555,23 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(queryParentMessage()).toBeUndefined();
+    });
+
+    it('should show reply count in thread', () => {
+      component.parentMessage!.reply_count = 1;
+      fixture.detectChanges();
+      const replyCount = queryParentMessageReplyCount();
+
+      expect(replyCount?.innerHTML).toContain('streamChat.1 reply');
+
+      component.parentMessage!.reply_count = 3;
+      fixture.detectChanges();
+
+      expect(replyCount?.innerHTML).toContain(
+        'streamChat.{{ replyCount }} replies'
+      );
+
+      expect(component.replyCountParam).toEqual({ replyCount: 3 });
     });
 
     it('should reset scroll state after parent message changed', () => {

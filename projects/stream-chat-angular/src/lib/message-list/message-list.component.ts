@@ -245,6 +245,10 @@ export class MessageListComponent
     };
   }
 
+  get replyCountParam() {
+    return { replyCount: this.parentMessage?.reply_count };
+  }
+
   private preserveScrollbarPosition() {
     this.scrollContainer.nativeElement.scrollTop =
       (this.prevScrollTop || 0) +

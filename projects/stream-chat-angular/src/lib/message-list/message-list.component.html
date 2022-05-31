@@ -10,6 +10,7 @@
         #parentMessageElement
         *ngIf="mode === 'thread'"
         data-testid="parent-message"
+        class="str-chat__parent-message-li"
       >
         <ng-container
           *ngTemplateOutlet="
@@ -17,8 +18,9 @@
             context: { message: parentMessage }
           "
         ></ng-container>
-        <div class="str-chat__thread-start" translate>
-          streamChat.Start of a new thread
+        <div data-testid="reply-count" class="str-chat__thread-start">
+          {{parentMessage?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+          replies' | translate:replyCountParam)}}
         </div>
       </li>
       <li

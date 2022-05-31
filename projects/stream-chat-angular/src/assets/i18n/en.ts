@@ -26,13 +26,13 @@ export const en = {
     'Error uploading file': 'Error uploading file',
     'Error uploading image': 'Error uploading image',
     'Error deleting attachment': 'Error deleting attachment',
-    'Error · Unsent': 'Error · Unsent',
+    'Error · Unsent': "Message couldn't be sent",
     'Error: {{ errorMessage }}': 'Error: {{ errorMessage }}',
     Flag: 'Flag',
     'Message Failed': 'Message Failed',
-    'Message Failed · Unauthorized': 'Message Failed · Unauthorized',
+    'Message Failed · Unauthorized': 'Unauthorized to send message',
     'Message Failed · Click to try again':
-      'Message Failed · Click to try again',
+      "Message couldn't be sent, click to try again",
     'Message deleted': 'Message deleted',
     'Message has been successfully flagged':
       'Message has been successfully flagged',

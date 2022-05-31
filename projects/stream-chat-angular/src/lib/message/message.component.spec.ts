@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { ThemeService } from '../theme.service';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -82,6 +83,10 @@ describe('MessageComponent', () => {
             resendMessage: resendMessageSpy,
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
           },
+        },
+        {
+          provide: ThemeService,
+          useValue: { themeVersion: '2' },
         },
       ],
     });
@@ -170,17 +175,26 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message--me')).toBeTrue();
     expect(classList?.contains('str-chat__message-simple--me')).toBeTrue();
     expect(classList?.contains('str-chat__message--with-reactions')).toBeTrue();
+    expect(
+      classList?.contains('str-chat__message-with-thread-link')
+    ).toBeFalse();
 
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
     component.message.reaction_counts = {};
+    component.message.reply_count = 3;
     fixture.detectChanges();
     classList = container?.classList;
 
     expect(classList?.contains('str-chat__message--me')).toBeFalse();
     expect(classList?.contains('str-chat__message-simple--me')).toBeFalse();
+    expect(classList?.contains('str-chat__message--other')).toBeTrue();
     expect(
       classList?.contains('str-chat__message--with-reactions')
     ).toBeFalse();
+
+    expect(
+      classList?.contains('str-chat__message-with-thread-link')
+    ).toBeTrue();
   });
 
   describe('should display the correct message status', () => {

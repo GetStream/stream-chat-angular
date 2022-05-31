@@ -21,7 +21,8 @@ export type Icon =
   | 'chat-bubble'
   | 'attach'
   | 'unspecified-filetype'
-  | 'download';
+  | 'download'
+  | 'error';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).
