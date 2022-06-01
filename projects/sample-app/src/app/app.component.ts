@@ -1,9 +1,16 @@
-import { Component } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { map } from 'rxjs/operators';
 import {
   ChatClientService,
   ChannelService,
   StreamI18nService,
+  EmojiPickerContext,
+  CustomTemplatesService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -12,13 +19,16 @@ import { environment } from '../environments/environment';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   isMenuOpen = false;
   isThreadOpen = false;
+  @ViewChild('emojiPickerTemplate')
+  emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
-    private streamI18nService: StreamI18nService
+    private streamI18nService: StreamI18nService,
+    private customTemplateService: CustomTemplatesService
   ) {
     void this.chatService.init(
       environment.apiKey,
@@ -33,6 +43,11 @@ export class AppComponent {
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
+  }
+  ngAfterViewInit(): void {
+    this.customTemplateService.emojiPickerTemplate$.next(
+      this.emojiPickerTemplate
+    );
   }
 
   closeMenu() {

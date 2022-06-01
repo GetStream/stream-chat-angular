@@ -3,18 +3,25 @@ button {
   border: none;
   cursor: pointer;
   padding: 0;
+  position: relative;
+
+  svg path {
+    fill: var(--str-chat__message-input-tools-color);
+  }
 }
 
 .picker {
+  z-index: 2;
   position: absolute;
   bottom: 100%;
-  left: 0;
   transform: scale(0.8);
+  right: -20%;
   transform-origin: 0% 100%;
 }
 
 @media only screen and (min-device-width: 1024px) {
   .picker {
     transform: scale(1);
+    right: 0;
   }
 }

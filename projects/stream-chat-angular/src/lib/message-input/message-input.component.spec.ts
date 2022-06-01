@@ -673,9 +673,7 @@ describe('MessageInputComponent', () => {
     expect(component.canSendMessages).toBeFalse();
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should deselect quoted message, after message sent', async () => {
+  it('should deselect quoted message, after message sent', async () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
@@ -687,9 +685,7 @@ describe('MessageInputComponent', () => {
     expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should deselect quoted message, even if message send failed', async () => {
+  it('should deselect quoted message, even if message send failed', async () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
@@ -701,9 +697,7 @@ describe('MessageInputComponent', () => {
     expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should display quoted message', () => {
+  it('should display quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
     const message = mockMessage();
@@ -742,24 +736,7 @@ describe('MessageInputComponent', () => {
     ).toBeNull();
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should apply necessary CSS class when quoting a message', () => {
-    expect(
-      nativeElement.querySelector('.str-chat__input-flat-quoted')
-    ).toBeNull();
-
-    mockMessageToQuote$.next(mockMessage());
-    fixture.detectChanges();
-
-    expect(
-      nativeElement.querySelector('.str-chat__input-flat-quoted')
-    ).not.toBeNull();
-  });
-
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should deselect message to quote when close button clicked', () => {
+  it('should deselect message to quote when close button clicked', () => {
     mockMessageToQuote$.next(mockMessage());
     fixture.detectChanges();
     (
@@ -772,9 +749,7 @@ describe('MessageInputComponent', () => {
     expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should display message to quote in thread mode, but only if selected message is thread reply', () => {
+  it('should display message to quote in thread mode, but only if selected message is thread reply', () => {
     component.mode = 'thread';
     mockMessageToQuote$.next(mockMessage());
     fixture.detectChanges();
@@ -795,8 +770,6 @@ describe('MessageInputComponent', () => {
     ).not.toBeNull();
   });
 
-  // Coming up in next PR
-  // eslint-disable-next-line jasmine/no-disabled-tests
   it('should deselect message to quote in thread mode', () => {
     component.mode = 'thread';
     const threadReply = mockMessage();

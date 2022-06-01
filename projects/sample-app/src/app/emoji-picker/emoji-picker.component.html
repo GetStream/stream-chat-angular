@@ -11,13 +11,14 @@
       ></path>
     </g>
   </svg>
-</button>
 
-<emoji-mart
-  class="picker"
-  color="var(--primary-color)"
-  *ngIf="isOpened"
-  title="Pick your emoji…"
-  emoji="point_up"
-  (emojiSelect)="emojiSelected($event)"
-></emoji-mart>
+  <emoji-mart
+    class="picker"
+    color="var(--str-chat__primary-color)"
+    *ngIf="isOpened"
+    title="Pick your emoji…"
+    emoji="point_up"
+    (emojiSelect)="emojiSelected($event)"
+    [darkMode]="(theme$ | async) === 'dark'"
+  ></emoji-mart>
+</button>
