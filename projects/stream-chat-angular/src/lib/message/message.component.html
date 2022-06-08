@@ -50,33 +50,42 @@
             [class.str-chat-angular__message-simple__actions__action--options--editing]="
               isEditing
             "
+            [popper]="popperContent"
+            popperTrigger="click"
+            popperPlacement="auto"
+            [popperHideOnScroll]="true"
+            [popperHideOnClickOutside]="true"
+            [popperHideOnMouseLeave]="true"
           >
-            <ng-template
-              #defaultMessageActionsBox
-              let-isOpen="isOpen"
-              let-isMine="isMine"
-              let-enabledActions="enabledActions"
-              let-messageInput="message"
-              let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
-              let-isEditingChangeHandler="isEditingChangeHandler"
-            >
-              <stream-message-actions-box
-                [isOpen]="isOpen"
-                [isMine]="isMine"
-                [enabledActions]="enabledActions"
-                [message]="messageInput"
-                (displayedActionsCount)="
-                  displayedActionsCountChaneHanler($event)
+            <popper-content #popperContent>
+              <ng-template
+                #defaultMessageActionsBox
+                let-isOpen="isOpen"
+                let-isMine="isMine"
+                let-enabledActions="enabledActions"
+                let-messageInput="message"
+                let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
+                let-isEditingChangeHandler="isEditingChangeHandler"
+              >
+                <stream-message-actions-box
+                  [isOpen]="isOpen"
+                  [isMine]="isMine"
+                  [enabledActions]="enabledActions"
+                  [message]="messageInput"
+                  (displayedActionsCount)="
+                    displayedActionsCountChaneHanler($event)
+                  "
+                  (isEditing)="isEditingChangeHandler($event)"
+                ></stream-message-actions-box>
+              </ng-template>
+              <ng-container
+                *ngTemplateOutlet="
+                  messageActionsBoxTemplate || defaultMessageActionsBox;
+                  context: getMessageActionsBoxContext()
                 "
-                (isEditing)="isEditingChangeHandler($event)"
-              ></stream-message-actions-box>
-            </ng-template>
-            <ng-container
-              *ngTemplateOutlet="
-                messageActionsBoxTemplate || defaultMessageActionsBox;
-                context: getMessageActionsBoxContext()
-              "
-            ></ng-container>
+              >
+              </ng-container>
+            </popper-content>
             <div
               class="str-chat__message-actions-box-button"
               *ngIf="visibleMessageActionsCount > 0"
@@ -408,10 +417,17 @@
           str-chat__message-status
         "
         data-testid="delivered-indicator"
+        [popper]="popperContent"
+        popperTrigger="hover"
+        popperPlacement="auto"
+        [popperHideOnScroll]="true"
+        [popperHideOnClickOutside]="true"
       >
-        <div class="str-chat__tooltip">
-          {{ "streamChat.Delivered" | translate }}
-        </div>
+        <popper-content #popperContent>
+          <div class="str-chat__tooltip str-chat__tooltip-angular">
+            {{ "streamChat.Delivered" | translate }}
+          </div>
+        </popper-content>
         <stream-icon-placeholder
           data-testid="delivered-icon"
           icon="delivered-icon"
@@ -426,10 +442,17 @@
           str-chat__message-status
         "
         data-testid="sending-indicator"
+        [popper]="popperContent"
+        popperTrigger="hover"
+        popperPlacement="auto"
+        [popperHideOnScroll]="true"
+        [popperHideOnClickOutside]="true"
       >
-        <div class="str-chat__tooltip">
-          {{ "streamChat.Sending..." | translate }}
-        </div>
+        <popper-content #popperContent>
+          <div class="str-chat__tooltip str-chat__tooltip-angular">
+            {{ "streamChat.Sending..." | translate }}
+          </div>
+        </popper-content>
         <stream-loading-indicator-placeholder
           data-testid="loading-indicator"
         ></stream-loading-indicator-placeholder>
@@ -443,10 +466,20 @@
           str-chat__message-status
         "
         data-testid="read-indicator"
+        [popper]="popperContent"
+        popperTrigger="hover"
+        popperPlacement="auto"
+        [popperHideOnScroll]="true"
+        [popperHideOnClickOutside]="true"
       >
-        <div class="str-chat__tooltip" data-testid="read-by-tooltip">
-          {{ readByText }}
-        </div>
+        <popper-content #popperContent>
+          <div
+            class="str-chat__tooltip str-chat__tooltip-angular"
+            data-testid="read-by-tooltip"
+          >
+            {{ readByText }}
+          </div>
+        </popper-content>
         <stream-avatar-placeholder
           class="str-chat-angular__avatar-host"
           data-test-id="last-read-user-avatar"

@@ -30,7 +30,6 @@ import { MessageActionsBoxComponent } from './message-actions-box.component';
 describe('MessageActionsBoxComponent', () => {
   let component: MessageActionsBoxComponent;
   let fixture: ComponentFixture<MessageActionsBoxComponent>;
-  let queryActionBox: () => HTMLElement | null;
   let queryQuoteAction: () => HTMLElement | null;
   let queryPinAction: () => HTMLElement | null;
   let queryFlagAction: () => HTMLElement | null;
@@ -87,8 +86,6 @@ describe('MessageActionsBoxComponent', () => {
     component.message = message;
     component.ngOnChanges({ message: {} as SimpleChange });
     nativeElement = fixture.nativeElement as HTMLElement;
-    queryActionBox = () =>
-      nativeElement.querySelector('[data-testid="action-box"]');
     queryQuoteAction = () =>
       nativeElement.querySelector('[data-testid="quote-action"]');
     queryPinAction = () =>
@@ -109,34 +106,6 @@ describe('MessageActionsBoxComponent', () => {
     queryMessageInputComponent = () =>
       fixture.debugElement.query(By.directive(MessageInputComponent))
         .componentInstance as MessageInputComponent;
-  });
-
-  it('should apply the necessary CSS classes based on #isOpen', () => {
-    component.isOpen = true;
-    fixture.detectChanges();
-    const actionBox = queryActionBox();
-    const isOpenClass = 'str-chat__message-actions-box--open';
-
-    expect(actionBox?.classList.contains(isOpenClass)).toBeTrue();
-
-    component.isOpen = false;
-    fixture.detectChanges();
-
-    expect(actionBox?.classList.contains(isOpenClass)).toBeFalse();
-  });
-
-  it('should apply the necessary CSS classes based on #isMine', () => {
-    component.isMine = true;
-    fixture.detectChanges();
-    const actionBox = queryActionBox();
-    const isMineClass = 'str-chat__message-actions-box--mine';
-
-    expect(actionBox?.classList.contains(isMineClass)).toBeTrue();
-
-    component.isMine = false;
-    fixture.detectChanges();
-
-    expect(actionBox?.classList.contains(isMineClass)).toBeFalse();
   });
 
   it('should only display the #enabledActions', () => {
