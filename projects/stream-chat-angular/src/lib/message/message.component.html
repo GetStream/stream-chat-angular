@@ -47,38 +47,46 @@
               isEditing
             "
           >
-            <ng-template
-              #defaultMessageActionsBox
-              let-isOpen="isOpen"
-              let-isMine="isMine"
-              let-enabledActions="enabledActions"
-              let-messageInput="message"
-              let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
-              let-isEditingChangeHandler="isEditingChangeHandler"
-            >
-              <stream-message-actions-box
-                [isOpen]="isOpen"
-                [isMine]="isMine"
-                [enabledActions]="enabledActions"
-                [message]="messageInput"
-                (displayedActionsCount)="
-                  displayedActionsCountChaneHanler($event)
+            <popper-content #popperContent>
+              <ng-template
+                #defaultMessageActionsBox
+                let-isOpen="isOpen"
+                let-isMine="isMine"
+                let-enabledActions="enabledActions"
+                let-messageInput="message"
+                let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
+                let-isEditingChangeHandler="isEditingChangeHandler"
+              >
+                <stream-message-actions-box
+                  [isOpen]="isOpen"
+                  [isMine]="isMine"
+                  [enabledActions]="enabledActions"
+                  [message]="messageInput"
+                  (displayedActionsCount)="
+                    displayedActionsCountChaneHanler($event)
+                  "
+                  (isEditing)="isEditingChangeHandler($event)"
+                ></stream-message-actions-box>
+              </ng-template>
+              <ng-container
+                *ngTemplateOutlet="
+                  messageActionsBoxTemplate || defaultMessageActionsBox;
+                  context: getMessageActionsBoxContext()
                 "
-                (isEditing)="isEditingChangeHandler($event)"
-              ></stream-message-actions-box>
-            </ng-template>
-            <ng-container
-              *ngTemplateOutlet="
-                messageActionsBoxTemplate || defaultMessageActionsBox;
-                context: getMessageActionsBoxContext()
-              "
-            ></ng-container>
+              ></ng-container>
+            </popper-content>
             <stream-icon-placeholder
               *ngIf="visibleMessageActionsCount > 0"
               data-testid="action-icon"
               icon="action-icon"
               (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
               (click)="isActionBoxOpen = !isActionBoxOpen"
+              [popper]="popperContent"
+              popperTrigger="click"
+              popperPlacement="auto"
+              [popperHideOnMouseLeave]="true"
+              [popperHideOnScroll]="true"
+              [popperHideOnClickOutside]="true"
             ></stream-icon-placeholder>
           </div>
           <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
