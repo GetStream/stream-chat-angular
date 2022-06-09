@@ -8,6 +8,7 @@ import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
+import { ThemeService } from '../theme.service';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -16,6 +17,7 @@ describe('AttachmentListComponent', () => {
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
   let queryFileLinks: () => HTMLAnchorElement[];
+  let queryFileNames: () => HTMLElement[];
   let queryUrlLinks: () => HTMLAnchorElement[];
   let queryCardImages: () => HTMLImageElement[];
   let queryActions: () => HTMLElement[];
@@ -44,6 +46,7 @@ describe('AttachmentListComponent', () => {
       declarations: [AttachmentListComponent, ModalComponent],
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
+        { provide: ThemeService, useValue: { themeVersion: '2' } },
         StreamI18nService,
       ],
       imports: [TranslateModule.forRoot()],
@@ -66,6 +69,10 @@ describe('AttachmentListComponent', () => {
     queryFileLinks = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="file-link"]')
+      );
+    queryFileNames = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="file-title"]')
       );
     queryUrlLinks = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="url-link"]'));
@@ -182,6 +189,10 @@ describe('AttachmentListComponent', () => {
     expect(queryUrlLinks().length).toBe(3);
     expect(queryCardImages().length).toBe(3);
     expect(queryActions().length).toBe(0);
+    expect(
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+    ).toBeNull();
+
     expect(queryVideos().length).toBe(1);
   });
 
@@ -220,6 +231,9 @@ describe('AttachmentListComponent', () => {
     expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(2);
     expect(imageElemnts[0].src).toContain('url1');
     expect(imageElemnts[1].src).toContain('url2');
+    expect(
+      nativeElement.querySelector('.str-chat__gallery-two-rows')
+    ).toBeNull();
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
@@ -237,6 +251,9 @@ describe('AttachmentListComponent', () => {
     expect(imageElemnts[1].src).toContain('url2');
     expect(imageElemnts[2].src).toContain('url3');
     expect(imageElemnts[3].src).toContain('url4');
+    expect(
+      nativeElement.querySelector('.str-chat__gallery-two-rows')
+    ).not.toBeNull();
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
@@ -262,7 +279,7 @@ describe('AttachmentListComponent', () => {
     expect(lastImage.innerHTML).toContain('1 more');
   });
 
-  it('should display attachment actions', () => {
+  it('should display attachment actions and apply CSS class', () => {
     const attachment = {
       type: 'giphy',
       title: 'cats',
@@ -312,6 +329,9 @@ describe('AttachmentListComponent', () => {
     expect(actions[0].innerHTML).toContain('Send');
     expect(actions[1].innerHTML).toContain('Shuffle');
     expect(actions[2].innerHTML).toContain('Cancel');
+    expect(
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+    ).not.toBeNull();
   });
 
   it('should send attachment action, if clicked', () => {
@@ -441,10 +461,11 @@ describe('AttachmentListComponent', () => {
       component.ngOnChanges();
       fixture.detectChanges();
       const link = queryFileLinks()[0];
+      const titleElement = queryFileNames()[0];
 
       expect(link.hasAttribute('download')).toBeTrue();
       expect(link.href).toContain(asset_url);
-      expect(link.textContent).toContain(title);
+      expect(titleElement.textContent).toContain(title);
     });
 
     it('should add CSS class for files', () => {
@@ -764,7 +785,9 @@ describe('AttachmentListComponent', () => {
       expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
     });
 
-    it('should deselect images if modal is closed', () => {
+    // Will be part of modal implementation
+    // eslint-disable-next-line jasmine/no-disabled-tests
+    xit('should deselect images if modal is closed', () => {
       const attachment = {
         type: 'image',
         image_url: 'url1',

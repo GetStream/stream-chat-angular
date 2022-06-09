@@ -166,6 +166,13 @@ describe('IconComponent', () => {
     expect(queryIcon('download')).not.toBeNull();
   });
 
+  it('should display error icon', () => {
+    component.icon = 'error';
+    fixture.detectChanges();
+
+    expect(queryIcon('error')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

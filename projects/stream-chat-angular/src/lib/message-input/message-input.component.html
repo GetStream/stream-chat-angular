@@ -208,31 +208,36 @@
           class="str-chat__quoted-message-preview"
           *ngIf="quotedMessage"
         >
-          <div class="quoted-message-preview-content">
-            <stream-avatar-placeholder
-              data-testid="qouted-message-avatar"
-              class="str-chat-angular__avatar-host"
-              [imageUrl]="quotedMessage?.user?.image"
-              [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
-              [size]="20"
-              type="user"
-              location="quoted-message-sender"
-              [user]="quotedMessage?.user || undefined"
-            ></stream-avatar-placeholder>
-            <div class="quoted-message-preview-content-inner">
-              <stream-attachment-list
-                *ngIf="
-                  quotedMessage?.attachments &&
-                  quotedMessage?.attachments?.length
-                "
-                [attachments]="quotedMessageAttachments"
-                [messageId]="quotedMessage?.id"
-              ></stream-attachment-list>
-              <div
-                data-testid="quoted-message-text"
-                [innerHTML]="quotedMessage?.html || quotedMessage?.text"
-              ></div>
-            </div>
+          <stream-avatar-placeholder
+            data-testid="qouted-message-avatar"
+            class="
+              str-chat-angular__avatar-host
+              str-chat__message-sender-avatar
+            "
+            [imageUrl]="quotedMessage?.user?.image"
+            [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
+            [size]="20"
+            type="user"
+            location="quoted-message-sender"
+            [user]="quotedMessage?.user || undefined"
+          ></stream-avatar-placeholder>
+          <div
+            class="
+              quoted-message-preview-content-inner
+              str-chat__quoted-message-bubble
+            "
+          >
+            <stream-attachment-list
+              *ngIf="
+                quotedMessage?.attachments && quotedMessage?.attachments?.length
+              "
+              [attachments]="quotedMessageAttachments"
+              [messageId]="quotedMessage?.id"
+            ></stream-attachment-list>
+            <div
+              data-testid="quoted-message-text"
+              [innerHTML]="quotedMessage?.html || quotedMessage?.text"
+            ></div>
           </div>
         </div>
         <ng-template

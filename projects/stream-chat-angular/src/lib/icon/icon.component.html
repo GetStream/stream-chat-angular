@@ -13,17 +13,21 @@
 </svg>
 <svg
   *ngIf="icon === 'delivered-icon'"
-  height="16"
-  width="16"
-  xmlns="http://www.w3.org/2000/svg"
   data-testid="delivered-icon"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
 >
   <path
-    d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.72 6.633a.955.955 0 1 0-1.352-1.352L6.986 8.663 5.633 7.31A.956.956 0 1 0 4.28 8.663l2.029 2.028a.956.956 0 0 0 1.353 0l4.058-4.058z"
-    fill="#006CFF"
-    fillRule="evenodd"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M8.9999 16.2L4.7999 12L3.3999 13.4L8.9999 19L20.9999 6.99998L19.5999 5.59998L8.9999 16.2Z"
+    fill="black"
   />
 </svg>
+
 <svg
   *ngIf="icon === 'reaction-icon'"
   height="12"
@@ -355,4 +359,20 @@
     d="M19.35 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14C0 17.31 2.69 20 6 20H19C21.76 20 24 17.76 24 15C24 12.36 21.95 10.22 19.35 10.04ZM19 18H6C3.79 18 2 16.21 2 14C2 11.95 3.53 10.24 5.56 10.03L6.63 9.92L7.13 8.97C8.08 7.14 9.94 6 12 6C14.62 6 16.88 7.86 17.39 10.43L17.69 11.93L19.22 12.04C20.78 12.14 22 13.45 22 15C22 16.65 20.65 18 19 18ZM13.45 10H10.55V13H8L12 17L16 13H13.45V10Z"
     fill="black"
   />
+</svg>
+<svg
+  *ngIf="icon === 'error'"
+  data-testid="error"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    id="background"
+    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+    fill="black"
+  />
+  <path d="M13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="white" />
 </svg>
