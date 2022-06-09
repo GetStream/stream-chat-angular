@@ -1,27 +1,38 @@
-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+.emoji-picker-container {
   position: relative;
+  width: 24px;
+  height: 24px;
 
-  svg path {
-    fill: var(--str-chat__message-input-tools-color);
+  button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+
+    svg {
+      width: 24px;
+      height: 24px;
+
+      path {
+        fill: var(--str-chat__message-input-tools-color);
+      }
+    }
   }
-}
 
-.picker {
-  z-index: 2;
-  position: absolute;
-  bottom: 100%;
-  transform: scale(0.8);
-  right: -20%;
-  transform-origin: 0% 100%;
-}
-
-@media only screen and (min-device-width: 1024px) {
   .picker {
-    transform: scale(1);
-    right: 0;
+    z-index: 2;
+    position: absolute;
+    bottom: 100%;
+    transform: scale(0.8);
+    right: -20%;
+    transform-origin: 0% 100%;
+  }
+
+  @media only screen and (min-device-width: 1024px) {
+    .picker {
+      transform: scale(1);
+      right: 0;
+    }
   }
 }
