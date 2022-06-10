@@ -168,8 +168,7 @@ export type AvatarLocation =
   | 'quoted-message-sender'
   | 'autocomplete-item'
   | 'typing-indicator'
-  | 'reaction'
-  | 'thread-header';
+  | 'reaction';
 
 export type AvatarContext = {
   name: string | undefined;

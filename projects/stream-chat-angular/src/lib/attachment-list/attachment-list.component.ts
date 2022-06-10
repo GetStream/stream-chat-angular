@@ -1,5 +1,6 @@
 import {
   Component,
+  HostBinding,
   Input,
   OnChanges,
   TemplateRef,
@@ -31,6 +32,7 @@ export class AttachmentListComponent implements OnChanges {
    * The attachments to display
    */
   @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  @HostBinding() class = 'str-chat__attachment-list-angular-host';
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
@@ -54,8 +56,14 @@ export class AttachmentListComponent implements OnChanges {
       ...(containsGallery ? this.createGallery(images) : images),
       ...this.attachments.filter((a) => this.isVideo(a)),
       ...this.attachments.filter((a) => this.isFile(a)),
-      ...this.attachments.filter((a) => this.isCard(a)),
     ];
+    // Display link attachments only if there are no other attachments
+    // Giphy-s always sent without other attachments
+    if (this.orderedAttachments.length === 0) {
+      this.orderedAttachments.push(
+        ...this.attachments.filter((a) => this.isCard(a))
+      );
+    }
   }
 
   trackById(index: number) {
