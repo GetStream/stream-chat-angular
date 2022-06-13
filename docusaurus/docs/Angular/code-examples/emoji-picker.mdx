@@ -65,25 +65,61 @@ Your emoji picker component should have an input with the type `Subject<string>`
 
 We also defined an `isOpened` property that tells if the emoji picker should be opened or closed.
 
+The emoji picker will close on outside clicks.
+
 ```typescript
-import { Component, Input, OnInit } from "@angular/core";
-import { Subject } from "rxjs";
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
+import { Observable, Subject } from "rxjs";
 
 @Component({
   selector: "app-emoji-picker",
   templateUrl: "./emoji-picker.component.html",
   styleUrls: ["./emoji-picker.component.scss"],
 })
-export class EmojiPickerComponent implements OnInit {
+export class EmojiPickerComponent implements OnInit, OnDestroy {
   isOpened = false;
   @Input() emojiInput$: Subject<string> | undefined;
+  @ViewChild("container") container: ElementRef<HTMLElement> | undefined;
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    document.addEventListener("click", () => {});
+  }
+  ngOnDestroy(): void {
+    throw new Error("Method not implemented.");
+  }
 
   emojiSelected(event: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     this.emojiInput$?.next(event.emoji.native);
+  }
+
+  eventHandler = (event: Event) => {
+    // Watching for outside clicks
+    if (!this.container?.nativeElement.contains(event.target as Node)) {
+      this.isOpened = false;
+      window.removeEventListener("click", this.eventHandler);
+    }
+  };
+
+  toggled() {
+    if (!this.container) {
+      return;
+    }
+    this.isOpened = !this.isOpened;
+    if (this.isOpened) {
+      window.addEventListener("click", this.eventHandler);
+    } else {
+      window.removeEventListener("click", this.eventHandler);
+    }
   }
 }
 ```
@@ -101,19 +137,21 @@ The [`ngIf`](https://angular.io/api/common/NgIf) directive is used to hide/show 
 The `emojiSelect` event is fired when a user selects an emoji, we emit the selected emoji using the `emojiSelected` method.
 
 ```html
-<button (click)="isOpened = !isOpened">
-  <svg
-    viewBox="0 0 28 28"
-    width="100%"
-    preserveAspectRatio="xMinYMin"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <g clip-rule="evenodd" fill-rule="evenodd">
-      <path
-        d="M14 4.4C8.6 4.4 4.4 8.6 4.4 14c0 5.4 4.2 9.6 9.6 9.6c5.4 0 9.6-4.2 9.6-9.6c0-5.4-4.2-9.6-9.6-9.6zM2 14c0-6.6 5.4-12 12-12s12 5.4 12 12s-5.4 12-12 12s-12-5.4-12-12zM12.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM18.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM8.6 15.4c.6-.4 1.2-.2 1.6.2c.6.8 1.6 1.8 3 2c1.2.4 2.8.2 4.8-2c.4-.4 1.2-.6 1.6 0c.4.4.6 1.2 0 1.6c-2.2 2.6-4.8 3.4-7 3c-2-.4-3.6-1.8-4.4-3c-.4-.6-.2-1.2.4-1.8z"
-      ></path>
-    </g>
-  </svg>
+<div #container class="emoji-picker-container">
+  <button (click)="toggled()">
+    <svg
+      viewBox="0 0 28 28"
+      width="100%"
+      preserveAspectRatio="xMinYMin"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g clip-rule="evenodd" fill-rule="evenodd">
+        <path
+          d="M14 4.4C8.6 4.4 4.4 8.6 4.4 14c0 5.4 4.2 9.6 9.6 9.6c5.4 0 9.6-4.2 9.6-9.6c0-5.4-4.2-9.6-9.6-9.6zM2 14c0-6.6 5.4-12 12-12s12 5.4 12 12s-5.4 12-12 12s-12-5.4-12-12zM12.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM18.8 11c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8s1.8.8 1.8 1.8zM8.6 15.4c.6-.4 1.2-.2 1.6.2c.6.8 1.6 1.8 3 2c1.2.4 2.8.2 4.8-2c.4-.4 1.2-.6 1.6 0c.4.4.6 1.2 0 1.6c-2.2 2.6-4.8 3.4-7 3c-2-.4-3.6-1.8-4.4-3c-.4-.6-.2-1.2.4-1.8z"
+        ></path>
+      </g>
+    </svg>
+  </button>
 
   <emoji-mart
     class="picker"
@@ -123,7 +161,7 @@ The `emojiSelect` event is fired when a user selects an emoji, we emit the selec
     emoji="point_up"
     (emojiSelect)="emojiSelected($event)"
   ></emoji-mart>
-</button>
+</div>
 ```
 
 5. Component styles
@@ -131,31 +169,42 @@ The `emojiSelect` event is fired when a user selects an emoji, we emit the selec
 If you want to match the color of the emoji picker toggle button to the other tool buttons in the message input, you can use the `--str-chat__message-input-tools-color` to do that as defined in the [stream-chat-css theme](../theming/theme-variables.mdx)
 
 ```scss
-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+.emoji-picker-container {
   position: relative;
+  width: 24px;
+  height: 24px;
 
-  svg path {
-    fill: var(--str-chat__message-input-tools-color);
+  button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+
+    svg {
+      width: 24px;
+      height: 24px;
+
+      path {
+        fill: var(--str-chat__message-input-tools-color);
+      }
+    }
   }
-}
 
-.picker {
-  z-index: 2;
-  position: absolute;
-  bottom: 100%;
-  transform: scale(0.8);
-  right: -20%;
-  transform-origin: 0% 100%;
-}
-
-@media only screen and (min-device-width: 1024px) {
   .picker {
-    transform: scale(1);
-    right: 0;
+    z-index: 2;
+    position: absolute;
+    bottom: 100%;
+    transform: scale(0.8);
+    right: -20%;
+    transform-origin: 0% 100%;
+  }
+
+  @media only screen and (min-device-width: 1024px) {
+    .picker {
+      transform: scale(1);
+      right: 0;
+    }
   }
 }
 ```
