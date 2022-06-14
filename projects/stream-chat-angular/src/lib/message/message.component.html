@@ -119,31 +119,33 @@
             ></stream-icon-placeholder>
           </div>
         </div>
-        <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
-        <ng-template
-          #defaultMessageReactions
-          let-messageReactionCounts="messageReactionCounts"
-          let-latestReactions="latestReactions"
-          let-isSelectorOpen="isSelectorOpen"
-          let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
-          let-messageId="messageId"
-          let-ownReactions="ownReactions"
-        >
-          <stream-message-reactions
-            [messageReactionCounts]="messageReactionCounts"
-            [latestReactions]="latestReactions"
-            [isSelectorOpen]="isSelectorOpen"
-            (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
-            [messageId]="messageId"
-            [ownReactions]="ownReactions"
-          ></stream-message-reactions>
-        </ng-template>
-        <ng-container
-          *ngTemplateOutlet="
-            messageReactionsTemplate || defaultMessageReactions;
-            context: getMessageReactionsContext()
-          "
-        ></ng-container>
+        <div class="str-chat__message-reactions-host">
+          <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
+          <ng-template
+            #defaultMessageReactions
+            let-messageReactionCounts="messageReactionCounts"
+            let-latestReactions="latestReactions"
+            let-isSelectorOpen="isSelectorOpen"
+            let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
+            let-messageId="messageId"
+            let-ownReactions="ownReactions"
+          >
+            <stream-message-reactions
+              [messageReactionCounts]="messageReactionCounts"
+              [latestReactions]="latestReactions"
+              [isSelectorOpen]="isSelectorOpen"
+              (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
+              [messageId]="messageId"
+              [ownReactions]="ownReactions"
+            ></stream-message-reactions>
+          </ng-template>
+          <ng-container
+            *ngTemplateOutlet="
+              messageReactionsTemplate || defaultMessageReactions;
+              context: getMessageReactionsContext()
+            "
+          ></ng-container>
+        </div>
         <div class="str-chat__message-bubble">
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
             <ng-template

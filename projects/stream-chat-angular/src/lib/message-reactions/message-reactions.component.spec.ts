@@ -31,6 +31,7 @@ describe('MessageReactionsComponent', () => {
   ) => AvatarPlaceholderComponent;
   let queryReactionLastUser: (type: MessageReactionType) => HTMLElement | null;
   let querySelectorTooltip: () => HTMLElement | null;
+  let queryReactionCountsFromReactionList: () => HTMLElement[];
   const channelServiceMock = {
     // eslint-disable-next-line no-unused-vars
     addReaction: (id: string, type: MessageReactionType) => {},
@@ -75,6 +76,12 @@ describe('MessageReactionsComponent', () => {
       nativeElement.querySelector('[data-testid="tooltip"]');
     queryReactionLastUser = (type) =>
       nativeElement.querySelector(`[data-testid="${type}-last-user"]`);
+    queryReactionCountsFromReactionList = () =>
+      Array.from(
+        nativeElement.querySelectorAll(
+          '[data-testclass="reaction-list-reaction-count"]'
+        )
+      );
   });
 
   it('should display message reactions', () => {
@@ -84,8 +91,12 @@ describe('MessageReactionsComponent', () => {
       like: 1,
     };
     fixture.detectChanges();
+    const reactionCounts = queryReactionCountsFromReactionList();
 
     expect(queryEmojis().length).toBe(3);
+    expect(reactionCounts[0].textContent).toContain('1');
+    expect(reactionCounts[1].textContent).toContain('2');
+    expect(reactionCounts[2].textContent).toContain('1');
   });
 
   it('should display total count', () => {
@@ -110,12 +121,17 @@ describe('MessageReactionsComponent', () => {
     };
 
     expect(queryReactionsSelector()).toBeNull();
+    expect(
+      nativeElement.querySelector('.str-chat__reaction-list-hidden')
+    ).toBeNull();
 
     component.isSelectorOpen = true;
     fixture.detectChanges();
 
     expect(queryReactionsSelector()).not.toBeNull();
-    expect(queryReactionList()).toBeNull();
+    expect(
+      nativeElement.querySelector('.str-chat__reaction-list-hidden')
+    ).not.toBeNull();
   });
 
   it('should display detailed reactions', () => {
@@ -163,7 +179,7 @@ describe('MessageReactionsComponent', () => {
     expect(queryReactionAvatarComponent('like')).toBeUndefined();
   });
 
-  it('should display tooltip', () => {
+  it('should display tooltip - selector', () => {
     component.messageReactionCounts = {
       wow: 3,
       sad: 2,
@@ -186,6 +202,30 @@ describe('MessageReactionsComponent', () => {
 
     expect(tooltip).not.toBeNull();
     expect(tooltip?.innerHTML).toContain('Sara, jackid');
+  });
+
+  it('should display tooltip - list', () => {
+    component.messageReactionCounts = {
+      wow: 3,
+      sad: 2,
+    };
+    component.latestReactions = [
+      { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
+      { type: 'wow', user: { id: 'jackid' } },
+      { type: 'wow' },
+      { type: 'sad', user: { id: 'jim' } },
+      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+    ] as ReactionResponse[];
+    component.isSelectorOpen = true;
+    fixture.detectChanges();
+
+    const wowEmoji = queryEmojis()[0];
+    const wowTooltip = wowEmoji.querySelector('[data-testclass="tooltip"]');
+    const sadEmoji = queryEmojis()[1];
+    const sadTooltip = sadEmoji.querySelector('[data-testclass="tooltip"]');
+
+    expect(wowTooltip?.innerHTML).toContain('Sara, jackid');
+    expect(sadTooltip?.innerHTML).toContain('jim, Ben');
   });
 
   it('should add reaction, if user has no reaction with the type', () => {
@@ -258,5 +298,56 @@ describe('MessageReactionsComponent', () => {
       'click',
       jasmine.any(Function)
     );
+  });
+
+  it('should mark reaction types of current user - selector', () => {
+    component.ownReactions = [
+      { type: 'like', user: { id: 'jackid' } },
+    ] as ReactionResponse[];
+    component.isSelectorOpen = true;
+    fixture.detectChanges();
+
+    const emojiOptions = queryEmojiOptions();
+    const likeEmojiOption = emojiOptions.splice(0, 1)[0];
+    const otherEmojiOptions = emojiOptions;
+    fixture.detectChanges();
+
+    expect(likeEmojiOption.classList).toContain(
+      'str-chat__message-reactions-option-selected'
+    );
+    /* eslint-disable jasmine/new-line-before-expect */
+    otherEmojiOptions.forEach((o) =>
+      expect(o.classList).not.toContain(
+        'str-chat__message-reactions-option-selected'
+      )
+    );
+    /* eslint-enable jasmine/new-line-before-expect */
+  });
+
+  it('should mark reaction types of current user - list', () => {
+    component.messageReactionCounts = {
+      wow: 3,
+      sad: 2,
+    };
+    component.latestReactions = [
+      { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
+      { type: 'wow', user: { id: 'jackid' } },
+      { type: 'wow' },
+      { type: 'sad', user: { id: 'jim' } },
+      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+    ] as ReactionResponse[];
+    component.ownReactions = [
+      { type: 'wow', user: { id: 'jackid' } },
+    ] as ReactionResponse[];
+    fixture.detectChanges();
+
+    const reactions = queryEmojis();
+
+    /* eslint-disable jasmine/new-line-before-expect */
+    expect(reactions[0].classList).toContain('str-chat__message-reaction-own');
+    expect(reactions[1].classList).not.toContain(
+      'str-chat__message-reaction-own'
+    );
+    /* eslint-disable jasmine/new-line-before-expect */
   });
 });

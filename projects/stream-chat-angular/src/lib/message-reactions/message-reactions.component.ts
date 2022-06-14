@@ -142,6 +142,10 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
       : void this.channelService.addReaction(this.messageId!, type);
   }
 
+  isOwnReaction(reactionType: MessageReactionType) {
+    return !!this.ownReactions.find((r) => r.type === reactionType);
+  }
+
   private eventHandler = (event: Event) => {
     if (!this.selectorContainer?.nativeElement.contains(event.target as Node)) {
       this.isSelectorOpenChange.emit(false);
