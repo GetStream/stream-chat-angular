@@ -374,6 +374,9 @@ describe('MessageComponent', () => {
 
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toContain('Unauthorized');
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).toBeNull();
     });
 
     it('if error occured during send', () => {
@@ -392,6 +395,9 @@ describe('MessageComponent', () => {
       expect(queryReadIndicator()).toBeNull();
       expect(errorMessage!.textContent).toContain('Message Failed');
       expect(errorMessage!.textContent).not.toContain('Unauthorized');
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).not.toBeNull();
     });
 
     it('if message was not sent due to client error', () => {

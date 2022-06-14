@@ -12,6 +12,9 @@
   [class.str-chat__message--has-attachment]="hasAttachment"
   [class.str-chat__message--with-reactions]="hasReactions"
   [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
+  [class.str-chat__message-send-can-be-retried]="
+    message?.status === 'failed' && message?.errorStatusCode !== 403
+  "
   data-testid="message-container"
   (mouseleave)="isActionBoxOpen = false"
 >

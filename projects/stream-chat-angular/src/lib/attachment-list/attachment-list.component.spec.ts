@@ -115,29 +115,7 @@ describe('AttachmentListComponent', () => {
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
-      {
-        title: 'BBC - Homepage',
-        title_link: 'https://www.bbc.com/',
-        og_scrape_url: 'https://www.bbc.com/',
-        image_url: 'https://assets/images/favicons/favicon-194x194.png',
-      },
       { type: 'file', asset_url: 'url3' },
-      {
-        image_url: 'https://getstream.io/images/og/OG_Home.png',
-        og_scrape_url: 'https://getstream.io/',
-        text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
-        thumb_url: 'https://getstream.io/images/og/OG_Home.png',
-        title: 'The #1 Chat Messaging + Activity Feed Infrastructure',
-        title_link: '/',
-        type: 'image',
-      },
-      {
-        thumb_url:
-          'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
-        title: 'cats',
-        title_link: 'https://giphy.com/gifs/game-point-Eq5pb4dR4DJQc',
-        type: 'giphy',
-      },
       {
         type: 'video',
         asset_url: 'url6',
@@ -147,7 +125,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(6);
+    expect(attachments.length).toBe(3);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
@@ -164,30 +142,9 @@ describe('AttachmentListComponent', () => {
       attachments[2].classList.contains('str-chat__message-attachment--image')
     ).toBeFalse();
 
-    expect(
-      attachments[3].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[3].classList.contains('str-chat__message-attachment--image')
-    ).toBeFalse();
-
-    expect(
-      attachments[4].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[5].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[5].classList.contains('str-chat__message-attachment--giphy')
-    ).toBeTrue();
-
     expect(queryImages().length).toBe(1);
     expect(queryFileLinks().length).toBe(1);
-    expect(queryUrlLinks().length).toBe(3);
-    expect(queryCardImages().length).toBe(3);
+    expect(queryCardImages().length).toBe(0);
     expect(queryActions().length).toBe(0);
     expect(
       nativeElement.querySelector('.str-chat__message-attachment-with-actions')
@@ -199,12 +156,6 @@ describe('AttachmentListComponent', () => {
   it('should create gallery', () => {
     component.attachments = [
       { type: 'image', img_url: 'url1' },
-      {
-        title: 'BBC - Homepage',
-        title_link: 'https://www.bbc.com/',
-        og_scrape_url: 'https://www.bbc.com/',
-        image_url: 'https://assets/images/favicons/favicon-194x194.png',
-      },
       { type: 'file', asset_url: 'url3' },
       { type: 'image', img_url: 'url2' },
     ];
@@ -212,7 +163,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const orderedAttachments = component.orderedAttachments;
 
-    expect(orderedAttachments.length).toBe(3);
+    expect(orderedAttachments.length).toBe(2);
     expect(orderedAttachments[0].type).toBe('gallery');
     expect(orderedAttachments[0].images![0].img_url).toBe('url1');
     expect(orderedAttachments[0].images![1].img_url).toBe('url2');
@@ -568,6 +519,27 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(thumbUrl);
+    });
+
+    it(`shouldn't display url preview if there are other attachments`, () => {
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: 'https://getstream.io/images/og/OG_Home.png',
+          og_scrape_url: 'https://getstream.io',
+          title: 'Stream',
+          title_link: '/',
+          type: 'image',
+        },
+        {
+          type: 'image',
+          image_url: 'url/to/flower.png',
+        },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(component.orderedAttachments.length).toBe(1);
     });
 
     it('should display attachment #title, if exists', () => {

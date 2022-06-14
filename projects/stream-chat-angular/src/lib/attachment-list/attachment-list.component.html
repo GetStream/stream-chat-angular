@@ -84,11 +84,11 @@
         </ng-container>
       </div>
       <video
+        class="str-chat__video-angular"
         *ngIf="isVideo(attachment)"
         controls
         data-testclass="video-attachment"
         [src]="attachment.asset_url"
-        style="width: 100%; max-width: 400px; height: 300px"
       ></video>
       <div
         *ngIf="isFile(attachment)"
@@ -116,6 +116,7 @@
               {{ attachment.title }}
             </div>
             <a
+              class="str-chat__message-attachment-file--item-download"
               data-testclass="file-link"
               download
               href="{{ attachment.asset_url }}"
