@@ -231,9 +231,12 @@
 </ng-template>
 
 <ng-template #modalContent>
-  <div class="stream-chat-angular__image-modal">
+  <div class="stream-chat-angular__image-modal str-chat__image-carousel">
     <button
-      class="stream-chat-angular__image-modal-stepper"
+      class="
+        stream-chat-angular__image-modal-stepper
+        str-chat__image-carousel-stepper
+      "
       [ngStyle]="{
         visibility: isImageModalPrevButtonVisible ? 'visible' : 'hidden'
       }"
@@ -245,7 +248,10 @@
       <stream-icon-placeholder icon="arrow-left"></stream-icon-placeholder>
     </button>
     <img
-      class="stream-chat-angular__image-modal-image"
+      class="
+        stream-chat-angular__image-modal-image
+        str-chat__image-carousel-image
+      "
       data-testid="modal-image"
       [src]="
         imagesToView[imagesToViewCurrentIndex].img_url ||
@@ -255,7 +261,10 @@
       [alt]="imagesToView[imagesToViewCurrentIndex].fallback"
     />
     <button
-      class="stream-chat-angular__image-modal-stepper"
+      class="
+        stream-chat-angular__image-modal-stepper
+        str-chat__image-carousel-stepper
+      "
       type="button"
       [ngStyle]="{
         visibility: isImageModalNextButtonVisible ? 'visible' : 'hidden'

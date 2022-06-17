@@ -123,17 +123,15 @@ describe('TextareaComponent', () => {
     expect(spy).toHaveBeenCalledWith('Emoji here: 🥑!');
   });
 
-  it('shouldn increase and decrease textarea height with text input', () => {
-    const spy = jasmine.createSpy();
-    component.send.subscribe(spy);
+  it('should increase and decrease textarea height with text input', () => {
     const textarea = queryTextarea();
     textarea!.value = 'This is my message';
     fixture.detectChanges();
     const initialHeight = textarea!.offsetHeight;
+    textarea!.value = 'This is my message \n';
     textarea?.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('input', { key: 'Enter', shiftKey: true })
     );
-    textarea?.dispatchEvent(new KeyboardEvent('input', { key: 'R' }));
     fixture.detectChanges();
     const newHeight = textarea!.offsetHeight;
 
@@ -144,5 +142,16 @@ describe('TextareaComponent', () => {
     fixture.detectChanges();
 
     expect(textarea!.offsetHeight).toBeLessThan(newHeight);
+  });
+
+  it('should set initial height of the textarea based on value received', () => {
+    const textarea = queryTextarea();
+    textarea!.value = 'This is my \n multiline message';
+    component.ngAfterViewInit();
+    fixture.detectChanges();
+
+    const height = parseInt(textarea?.style.height?.replace('px', '') || '');
+
+    expect(height).toBeGreaterThan(0);
   });
 });

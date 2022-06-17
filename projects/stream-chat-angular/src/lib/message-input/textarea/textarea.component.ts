@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -24,7 +25,7 @@ import { TextareaInterface } from '../textarea.interface';
   styles: [],
 })
 export class TextareaComponent
-  implements TextareaInterface, OnChanges, OnDestroy
+  implements TextareaInterface, OnChanges, OnDestroy, AfterViewInit
 {
   @HostBinding() class =
     'str-chat__textarea str-chat__message-textarea-angular-host';
@@ -71,20 +72,30 @@ export class TextareaComponent
     }
   }
 
+  ngAfterViewInit(): void {
+    if (this.messageInput.nativeElement.scrollHeight > 0) {
+      this.adjustTextareaHeight();
+    }
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);
-    if (this.themeService.themeVersion === '2') {
-      this.messageInput.nativeElement.style.height = '';
-      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-    }
+    this.adjustTextareaHeight();
   }
 
   sent(event: Event) {
     event.preventDefault();
     this.send.next();
+  }
+
+  private adjustTextareaHeight() {
+    if (this.themeService.themeVersion === '2') {
+      this.messageInput.nativeElement.style.height = '';
+      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+    }
   }
 }

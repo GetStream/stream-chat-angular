@@ -36,6 +36,7 @@
         <div
           class="str-chat__message-simple__actions str-chat__message-options"
           data-testid="message-options"
+          [class.str-chat__message-edit-in-progress]="isEditing"
           *ngIf="areOptionsVisible"
         >
           <div
@@ -80,6 +81,7 @@
               *ngIf="visibleMessageActionsCount > 0"
               data-testid="action-icon"
               icon="action-icon"
+              class="str-chat__message-action-icon"
               (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
               (click)="isActionBoxOpen = !isActionBoxOpen"
             ></stream-icon-placeholder>
@@ -100,6 +102,7 @@
             (keyup.enter)="setAsActiveParentMessage()"
           >
             <stream-icon-placeholder
+              class="str-chat__message-action-icon"
               icon="reply-in-thread"
             ></stream-icon-placeholder>
           </div>
@@ -115,6 +118,7 @@
             (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
           >
             <stream-icon-placeholder
+              class="str-chat__message-action-icon"
               icon="reaction-icon"
             ></stream-icon-placeholder>
           </div>

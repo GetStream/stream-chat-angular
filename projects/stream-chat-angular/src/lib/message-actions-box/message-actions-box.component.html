@@ -87,12 +87,18 @@
       "
     >
       <div class="str-chat__edit-message-form-options">
-        <button translate data-testid="cancel-button" (click)="modalClosed()">
+        <button
+          class="str-chat__edit-message-cancel"
+          translate
+          data-testid="cancel-button"
+          (click)="modalClosed()"
+        >
           streamChat.Cancel
         </button>
         <button
           type="submit"
           translate
+          class="str-chat__edit-message-send"
           data-testid="send-button"
           (click)="sendClicked()"
           (keyup.enter)="sendClicked()"
