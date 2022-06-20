@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -37,7 +38,7 @@ import { ThemeService } from '../../theme.service';
   styles: [],
 })
 export class AutocompleteTextareaComponent
-  implements TextareaInterface, OnChanges
+  implements TextareaInterface, OnChanges, AfterViewInit
 {
   @HostBinding() class =
     'str-chat__textarea str-chat__message-textarea-angular-host';
@@ -187,6 +188,12 @@ export class AutocompleteTextareaComponent
     }
   }
 
+  ngAfterViewInit(): void {
+    if (this.messageInput.nativeElement.scrollHeight > 0) {
+      this.adjustTextareaHeight();
+    }
+  }
+
   filter(searchString: string, items: { autocompleteLabel: string }[]) {
     return items.filter((item) =>
       this.transliterate(item.autocompleteLabel.toLowerCase()).includes(
@@ -220,10 +227,7 @@ export class AutocompleteTextareaComponent
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);
-    if (this.themeService.themeVersion === '2') {
-      this.messageInput.nativeElement.style.height = '';
-      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-    }
+    this.adjustTextareaHeight();
   }
 
   inputLeft() {
@@ -234,6 +238,13 @@ export class AutocompleteTextareaComponent
     event.preventDefault();
     this.updateMentionedUsersFromText();
     this.send.next();
+  }
+
+  private adjustTextareaHeight() {
+    if (this.themeService.themeVersion === '2') {
+      this.messageInput.nativeElement.style.height = '';
+      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+    }
   }
 
   private transliterate(s: string) {

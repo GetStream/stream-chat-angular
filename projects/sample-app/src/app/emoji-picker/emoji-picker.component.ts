@@ -1,11 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { ThemeService } from 'stream-chat-angular';
 
@@ -14,7 +7,7 @@ import { ThemeService } from 'stream-chat-angular';
   templateUrl: './emoji-picker.component.html',
   styleUrls: ['./emoji-picker.component.scss'],
 })
-export class EmojiPickerComponent implements OnInit, OnDestroy {
+export class EmojiPickerComponent {
   isOpened = false;
   theme$: Observable<string>;
   @Input() emojiInput$: Subject<string> | undefined;
@@ -22,13 +15,6 @@ export class EmojiPickerComponent implements OnInit, OnDestroy {
 
   constructor(themeService: ThemeService) {
     this.theme$ = themeService.theme$;
-  }
-
-  ngOnInit(): void {
-    document.addEventListener('click', () => {});
-  }
-  ngOnDestroy(): void {
-    throw new Error('Method not implemented.');
   }
 
   emojiSelected(event: any) {
