@@ -15,9 +15,7 @@
       </button>
     </stream-channel-header>
     <stream-message-list></stream-message-list>
-    <stream-notification-list
-      *ngIf="themeVersion === '1'"
-    ></stream-notification-list>
+    <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
     <stream-thread class="thread" name="thread">
       <stream-message-list
@@ -30,9 +28,6 @@
       ></stream-message-input>
     </stream-thread>
   </stream-channel>
-  <stream-notification-list
-    *ngIf="themeVersion === '2'"
-  ></stream-notification-list>
 </div>
 
 <!-- To use custom message, add this input to stream-message-list: [messageTemplate]="customMessagetemplate"-->

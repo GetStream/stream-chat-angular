@@ -17,7 +17,7 @@ export const en = {
     'Empty message...': 'Empty message...',
     'Error adding flag': 'Error adding flag',
     'Error connecting to chat, refresh the page to try again.':
-      'Error connecting to chat, refresh the page to try again.',
+      'Error connecting to chat, refresh the page to try again',
     'Error deleting message': 'Error deleting message',
     'Error muting a user ...': 'Error muting a user ...',
     'Error pinning message': 'Error pinning message',
@@ -98,5 +98,6 @@ export const en = {
     'No chats here yet…': 'No chats here yet…',
     'user is typing': '{{ user }} is typing',
     'users are typing': '{{ users }} are typing',
+    'Error loading channels': 'Error loading channels',
   },
 };
