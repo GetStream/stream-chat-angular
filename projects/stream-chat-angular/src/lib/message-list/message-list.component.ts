@@ -25,6 +25,7 @@ import { getGroupStyles, GroupStyle } from './group-styles';
 import { ImageLoadService } from './image-load.service';
 import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { listUsers } from '../list-users';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -243,6 +244,12 @@ export class MessageListComponent
       enabledMessageActions: this.enabledMessageActions,
       mode: this.mode,
     };
+  }
+
+  getTypingIndicatorText(users: UserResponse[]) {
+    const text = listUsers(users);
+
+    return text;
   }
 
   get replyCountParam() {

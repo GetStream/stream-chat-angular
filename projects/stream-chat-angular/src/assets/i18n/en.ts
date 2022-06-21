@@ -96,5 +96,7 @@ export const en = {
       "You can't send thread replies in this channel",
     'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
     'No chats here yet…': 'No chats here yet…',
+    'user is typing': '{{ user }} is typing',
+    'users are typing': '{{ users }} are typing',
   },
 };
