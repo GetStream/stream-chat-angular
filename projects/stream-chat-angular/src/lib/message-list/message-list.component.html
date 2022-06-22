@@ -41,25 +41,32 @@
       </li>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
-      <div
-        *ngIf="$any(usersTyping$ | async)?.length"
-        data-testid="typing-indicator"
-        class="str-chat__typing-indicator str-chat__typing-indicator--typing"
-      >
-        <stream-avatar-placeholder
-          *ngFor="let user of usersTyping$ | async; trackBy: trackByUserId"
-          [name]="user.name || user.id"
-          [imageUrl]="user.image"
-          type="user"
-          location="typing-indicator"
-          [user]="user"
-        ></stream-avatar-placeholder>
-        <div class="str-chat__typing-indicator__dots">
-          <span class="str-chat__typing-indicator__dot"></span>
-          <span class="str-chat__typing-indicator__dot"></span>
-          <span class="str-chat__typing-indicator__dot"></span>
+      <!-- eslint-disable-next-line @angular-eslint/template/no-any -->
+      <ng-container *ngIf="$any(usersTyping$ | async) as users">
+        <div
+          *ngIf="users.length > 0"
+          data-testid="typing-indicator"
+          class="str-chat__typing-indicator str-chat__typing-indicator--typing"
+        >
+          <div class="str-chat__typing-indicator__dots">
+            <span class="str-chat__typing-indicator__dot"></span>
+            <span class="str-chat__typing-indicator__dot"></span>
+            <span class="str-chat__typing-indicator__dot"></span>
+          </div>
+          <div
+            data-testid="typing-users"
+            class="str-chat__typing-indicator__users"
+          >
+            {{
+              users.length === 1
+                ? ("streamChat.user is typing"
+                  | translate: { user: getTypingIndicatorText(users) })
+                : ("streamChat.users are typing"
+                  | translate: { users: getTypingIndicatorText(users) })
+            }}
+          </div>
         </div>
-      </div>
+      </ng-container>
     </ng-template>
     <ng-container
       *ngTemplateOutlet="
