@@ -43,9 +43,9 @@
             data-testid="message-actions-container"
             #messageActionsToggle
             class="
+              str-chat__message-actions-container
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--options
-              str-chat__message-actions-box-button
             "
             [class.str-chat-angular__message-simple__actions__action--options--editing]="
               isEditing
@@ -77,14 +77,18 @@
                 context: getMessageActionsBoxContext()
               "
             ></ng-container>
-            <stream-icon-placeholder
+            <div
+              class="str-chat__message-actions-box-button"
               *ngIf="visibleMessageActionsCount > 0"
               data-testid="action-icon"
-              icon="action-icon"
-              class="str-chat__message-action-icon"
-              (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
               (click)="isActionBoxOpen = !isActionBoxOpen"
-            ></stream-icon-placeholder>
+              (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
+            >
+              <stream-icon-placeholder
+                icon="action-icon"
+                class="str-chat__message-action-icon"
+              ></stream-icon-placeholder>
+            </div>
           </div>
           <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
           <div
