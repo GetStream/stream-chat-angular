@@ -24,6 +24,7 @@ import {
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
+import { NotificationService } from './notification.service';
 import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
@@ -293,7 +294,8 @@ export class ChannelService<
 
   constructor(
     private chatClientService: ChatClientService<T>,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private notificationService: NotificationService
   ) {
     this.channels$ = this.channelsSubject.asObservable();
     this.activeChannel$ = this.activeChannelSubject.asObservable();
@@ -491,11 +493,19 @@ export class ChannelService<
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     this.shouldSetActiveChannel = shouldSetActiveChannel;
-    const result = await this.queryChannels(this.shouldSetActiveChannel);
-    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
-      (notification) => void this.handleNotification(notification)
-    );
-    return result;
+    try {
+      const result = await this.queryChannels(this.shouldSetActiveChannel);
+      this.clientEventsSubscription = this.chatClientService.events$.subscribe(
+        (notification) => void this.handleNotification(notification)
+      );
+      return result;
+    } catch (error) {
+      this.notificationService.addPermanentNotification(
+        'streamChat.Error loading channels',
+        'error'
+      );
+      throw error;
+    }
   }
 
   /**

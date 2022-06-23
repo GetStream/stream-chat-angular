@@ -33,6 +33,33 @@ describe('ChatClientService', () => {
     expect(spy).toHaveBeenCalledWith(undefined);
   });
 
+  it(`should notify if connection wasn't successful`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    const spy = jasmine.createSpy();
+    notificationService.notifications$.subscribe(spy);
+    spy.calls.reset();
+
+    await service.init(apiKey, userId, userToken);
+
+    expect(spy).not.toHaveBeenCalled();
+
+    const error = new Error('error');
+    mockChatClient.connectUser.and.rejectWith(error);
+
+    await expectAsync(service.init(apiKey, userId, userToken)).toBeRejectedWith(
+      error
+    );
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([
+        jasmine.objectContaining({
+          type: 'error',
+          text: 'streamChat.Error connecting to chat, refresh the page to try again.',
+        }),
+      ])
+    );
+  });
+
   it('should disconnect user', async () => {
     const pendingInvitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(pendingInvitesSpy);

@@ -86,7 +86,15 @@ export class ChatClientService<
     this.chatClient.devToken;
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
-      await this.chatClient.connectUser(user, userTokenOrProvider);
+      try {
+        await this.chatClient.connectUser(user, userTokenOrProvider);
+      } catch (error) {
+        this.notificationService.addPermanentNotification(
+          'streamChat.Error connecting to chat, refresh the page to try again.',
+          'error'
+        );
+        throw error;
+      }
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );

@@ -11,6 +11,7 @@ import {
   StreamI18nService,
   EmojiPickerContext,
   CustomTemplatesService,
+  ThemeService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -24,11 +25,14 @@ export class AppComponent implements AfterViewInit {
   isThreadOpen = false;
   @ViewChild('emojiPickerTemplate')
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
+  themeVersion: '1' | '2';
+
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
     private streamI18nService: StreamI18nService,
-    private customTemplateService: CustomTemplatesService
+    private customTemplateService: CustomTemplatesService,
+    themeService: ThemeService
   ) {
     void this.chatService.init(
       environment.apiKey,
@@ -43,7 +47,9 @@ export class AppComponent implements AfterViewInit {
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
+    this.themeVersion = themeService.themeVersion;
   }
+
   ngAfterViewInit(): void {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate

@@ -32,6 +32,9 @@
       <p class="str-chat__empty-channel-text">
         {{ "streamChat.No chats here yet…" | translate }}
       </p>
+      <div class="str-chat__empty-channel-notifications">
+        <stream-notification-list></stream-notification-list>
+      </div>
     </div>
     <div
       *ngIf="
