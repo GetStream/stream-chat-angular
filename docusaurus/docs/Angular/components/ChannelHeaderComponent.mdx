@@ -8,8 +8,6 @@ The `ChannelHeader` component displays the avatar and name of the currently acti
 
 ## Customization
 
-You can provide your own channel header component by the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx)
-
 If you create your own channel header, you can use the [`ChannelService`](../services/ChannelService.mdx) to access the currently active channel. Please note that, the default channel header also contains the menu button to [toggle the channel list](../services/ChannelListToggleService.mdx). Here is a simple implementation of a custom channel header to guide you:
 
 ```typescript
@@ -38,6 +36,8 @@ export class ChannelHeaderComponent {
   }
 }
 ```
+
+If you want to create your own channel component check out our [customization guide](../concepts/customization.mdx) for more information.
 
 ## Channel actions
 

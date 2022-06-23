@@ -262,6 +262,7 @@ export class ChannelService<
   private _shouldMarkActiveChannelAsRead = true;
   private shouldSetActiveChannel: boolean | undefined;
   private clientEventsSubscription: Subscription | undefined;
+  private isStateRecoveryInProgress = false;
 
   private channelListSetter = (
     channels: (Channel<T> | ChannelResponse<T>)[]
@@ -807,14 +808,23 @@ export class ChannelService<
   private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
-        this.ngZone.run(() => {
+        void this.ngZone.run(async () => {
+          if (this.isStateRecoveryInProgress) {
+            return;
+          }
+          this.isStateRecoveryInProgress = true;
           this.reset();
-          void this.init(
-            this.filters!,
-            this.sort,
-            this.options,
-            this.shouldSetActiveChannel
-          );
+          try {
+            await this.init(
+              this.filters!,
+              this.sort,
+              this.options,
+              this.shouldSetActiveChannel
+            );
+            this.isStateRecoveryInProgress = false;
+          } catch {
+            this.isStateRecoveryInProgress = false;
+          }
         });
         break;
       }

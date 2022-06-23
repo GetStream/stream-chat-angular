@@ -60,11 +60,10 @@ export class AvatarComponent {
         const otherMembers = Object.values(
           this.channel?.state?.members || {}
         ).filter(
-          (m) => m.user_id !== this.chatClientService.chatClient.user!.id
+          (m) => m.user_id !== this.chatClientService.chatClient.user?.id
         );
         if (otherMembers.length === 1) {
-          result =
-            otherMembers[0].user?.name || otherMembers[0].user?.name || '';
+          result = otherMembers[0].user?.name || otherMembers[0].user?.id || '';
         } else {
           result = '#';
         }

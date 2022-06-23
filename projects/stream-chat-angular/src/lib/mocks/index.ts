@@ -275,7 +275,7 @@ export type MockStreamChatClient = {
   appSettings$: Subject<AppSettings>;
   user: UserResponse;
   connectUser: jasmine.Spy;
-  on: (name: EventTypes, handler: () => {}) => void;
+  on: (name: EventTypes, handler: () => {}) => { unsubscribe: () => void };
   handleEvent: (name: EventTypes, event: Event) => void;
   flagMessage: jasmine.Spy;
   setUserAgent: jasmine.Spy;
@@ -319,11 +319,15 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     } else {
       eventHandlers['all'] = name;
     }
+    return {
+      unsubscribe: () =>
+        delete eventHandlers[typeof name === 'string' ? name : 'all'],
+    };
   };
   const handleEvent = (name: EventTypes, event: Event) => {
     if (eventHandlers[name as string]) {
       eventHandlers[name as string](event);
-    } else {
+    } else if (eventHandlers['all']) {
       eventHandlers['all']({ ...event, type: name });
     }
   };
