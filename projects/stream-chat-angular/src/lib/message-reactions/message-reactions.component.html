@@ -14,12 +14,22 @@
       "
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
       data-testclass="emoji"
+      [popper]="popperContent"
+      popperTrigger="hover"
+      popperPlacement="auto"
+      [popperHideOnScroll]="true"
+      [popperHideOnClickOutside]="true"
     >
-      <div data-testclass="tooltip" class="str-chat__tooltip">
-        <span>
-          {{ getUsersByReaction(reactionType) }}
-        </span>
-      </div>
+      <popper-content #popperContent>
+        <div
+          data-testclass="tooltip"
+          class="str-chat__tooltip str-chat__tooltip-angular"
+        >
+          <span>
+            {{ getUsersByReaction(reactionType) }}
+          </span>
+        </div>
+      </popper-content>
       <span class="emoji str-chat__message-reaction-emoji">
         {{ getEmojiByReaction(reactionType) }}&nbsp;
       </span>

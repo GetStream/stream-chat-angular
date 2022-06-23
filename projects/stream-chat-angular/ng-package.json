@@ -11,6 +11,8 @@
     "@stream-io/transliterate",
     "uuidv4",
     "pretty-bytes",
-    "emoji-regex"
+    "emoji-regex",
+    "ngx-popper",
+    "popper.js"
   ]
 }
