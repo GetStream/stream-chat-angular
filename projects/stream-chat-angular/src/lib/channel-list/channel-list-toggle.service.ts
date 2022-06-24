@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, first } from 'rxjs/operators';
-import { getDeviceWidth } from '../device-width';
 
 /**
  * The `ChannelListToggleService` can be used to toggle the channel list.
@@ -22,9 +21,7 @@ export class ChannelListToggleService {
       .asObservable()
       .pipe(distinctUntilChanged());
     this.isOpen$.pipe(filter((s) => s)).subscribe(() => {
-      if (getDeviceWidth().device === 'mobile') {
-        this.watchForOutsideClicks();
-      }
+      this.watchForOutsideClicks();
     });
   }
 
@@ -61,9 +58,7 @@ export class ChannelListToggleService {
    * This method should be called if a channel was selected, if on mobile, the channel list will be closed.
    */
   channelSelected() {
-    if (getDeviceWidth().device === 'mobile') {
-      this.close();
-    }
+    this.close();
   }
 
   private watchForOutsideClicks() {
