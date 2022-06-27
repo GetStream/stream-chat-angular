@@ -537,34 +537,6 @@ describe('MessageComponent', () => {
     expect(messageActionsBoxComponent.message).toBe(message);
   });
 
-  it('should add CSS class if text is clicked on mobile', () => {
-    expect(component.isPressedOnMobile).toBeFalse();
-    spyOnProperty(window, 'innerWidth').and.returnValue(300);
-    const text = queryText();
-    text?.click();
-    fixture.detectChanges();
-
-    expect(component.isPressedOnMobile).toBeTrue();
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeTrue();
-  });
-
-  it('should remove CSS class after message is deselected', () => {
-    component.isPressedOnMobile = false;
-    fixture.detectChanges();
-
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
-  });
-
-  it(`shouldn't add CSS class if text was clicked on desktop`, () => {
-    spyOnProperty(window, 'innerWidth').and.returnValue(1200);
-    const text = queryText();
-    text?.click();
-    fixture.detectChanges();
-
-    expect(component.isPressedOnMobile).toBeFalse();
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
-  });
-
   it('should display attachment if message has attachment', () => {
     expect(
       queryContainer()?.classList.contains('str-chat__message--has-attachment')

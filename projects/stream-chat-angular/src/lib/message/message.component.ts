@@ -13,7 +13,6 @@ import {
 import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
-import { getDeviceWidth } from '../device-width';
 import {
   AttachmentListContext,
   MentionTemplateContext,
@@ -66,7 +65,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
-  isPressedOnMobile = false;
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
   mentionTemplate: TemplateRef<MentionTemplateContext> | undefined;
@@ -238,24 +236,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
-  }
-
-  textClicked() {
-    if (getDeviceWidth().device !== 'mobile') {
-      this.isPressedOnMobile = false;
-      return;
-    }
-    if (this.isPressedOnMobile) {
-      return;
-    }
-    this.isPressedOnMobile = true;
-    const eventHandler = (event: Event) => {
-      if (!this.container?.nativeElement.contains(event.target as Node)) {
-        this.isPressedOnMobile = false;
-        window.removeEventListener('click', eventHandler);
-      }
-    };
-    window.addEventListener('click', eventHandler);
   }
 
   setAsActiveParentMessage() {
