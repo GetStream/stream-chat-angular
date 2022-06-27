@@ -99,4 +99,12 @@ describe('getGroupStyles', () => {
       'bottom'
     );
   });
+
+  it('should start new group if a message has reaction', () => {
+    messages[1].reaction_counts = { wow: 1 };
+
+    expect(getGroupStyles(messages[0], undefined, messages[1])).toBe('single');
+
+    expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe('top');
+  });
 });

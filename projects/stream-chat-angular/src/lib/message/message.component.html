@@ -419,8 +419,9 @@
         [popper]="popperContent"
         [popperTrigger]="popperTriggerHover"
         [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -444,8 +445,9 @@
         [popper]="popperContent"
         [popperTrigger]="popperTriggerHover"
         [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -468,8 +470,9 @@
         [popper]="popperContent"
         [popperTrigger]="popperTriggerHover"
         [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div

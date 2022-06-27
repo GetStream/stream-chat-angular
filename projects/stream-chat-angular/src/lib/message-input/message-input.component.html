@@ -288,7 +288,7 @@
         </div>
       </div>
       <button
-        *ngIf="canSendMessages && !isCooldownInProgress"
+        *ngIf="canSendMessages && !isCooldownInProgress && !message"
         [disabled]="
           (attachmentUploadInProgressCounter$ | async)! > 0 ||
           (!textareaValue && (attachmentUploads$ | async)!.length === 0)
