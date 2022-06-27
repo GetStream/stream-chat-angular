@@ -16,7 +16,6 @@
   "
   data-testid="message-container"
   (mouseleave)="isActionBoxOpen = false"
-  tabindex="0"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
@@ -182,7 +181,11 @@
               "
             ></ng-container>
           </ng-container>
-          <div class="str-chat__message-text" *ngIf="message?.text">
+          <div
+            class="str-chat__message-text"
+            tabindex="0"
+            *ngIf="message?.text"
+          >
             <div
               data-testid="inner-message"
               class="
