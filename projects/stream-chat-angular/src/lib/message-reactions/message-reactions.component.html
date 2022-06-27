@@ -15,8 +15,8 @@
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
       data-testclass="emoji"
       [popper]="popperContent"
-      popperTrigger="hover"
-      popperPlacement="auto"
+      [popperTrigger]="popperTriggerHover"
+      [popperPlacement]="popperPlacementAuto"
       [popperHideOnScroll]="true"
       [popperHideOnClickOutside]="true"
     >

@@ -12,7 +12,7 @@
     "uuidv4",
     "pretty-bytes",
     "emoji-regex",
-    "ngx-popper",
+    "ngx-popperjs",
     "popper.js"
   ]
 }

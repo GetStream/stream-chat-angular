@@ -19,7 +19,7 @@
     "@stream-io/transliterate": "^1.5.2",
     "dayjs": "^1.10.7",
     "emoji-regex": "^10.0.0",
-    "ngx-popper": "^7.0.0",
+    "ngx-popperjs": "^12.2.1",
     "popper.js": "^1.16.1",
     "pretty-bytes": "^5.6.0",
     "tslib": "^2.3.0",

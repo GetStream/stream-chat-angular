@@ -50,11 +50,11 @@
               isEditing
             "
             [popper]="popperContent"
-            popperTrigger="click"
-            popperPlacement="auto"
+            [popperTrigger]="popperTriggerClick"
+            [popperPlacement]="popperPlacementAuto"
             [popperHideOnScroll]="true"
             [popperHideOnClickOutside]="true"
-            [popperHideOnMouseLeave]="true"
+            [popperHideOnMouseLeave]="false"
           >
             <popper-content #popperContent>
               <ng-template
@@ -417,8 +417,8 @@
         "
         data-testid="delivered-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
         [popperHideOnScroll]="true"
         [popperHideOnClickOutside]="true"
       >
@@ -442,8 +442,8 @@
         "
         data-testid="sending-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
         [popperHideOnScroll]="true"
         [popperHideOnClickOutside]="true"
       >
@@ -466,8 +466,8 @@
         "
         data-testid="read-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
         [popperHideOnScroll]="true"
         [popperHideOnClickOutside]="true"
       >

@@ -27,6 +27,7 @@ import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
+import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 
 type MessagePart = {
   content: string;
@@ -71,6 +72,9 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
   messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
   messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
+  popperTriggerClick = NgxPopperjsTriggers.click;
+  popperTriggerHover = NgxPopperjsTriggers.hover;
+  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
