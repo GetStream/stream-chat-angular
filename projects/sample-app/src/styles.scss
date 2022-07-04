@@ -65,7 +65,7 @@ body {
         width: 30%;
         max-width: 420px;
         position: initial;
-        z-index: 0;
+        z-index: auto;
 
         & + .channel .menu-button {
           display: none;
@@ -88,7 +88,7 @@ body {
         width: 30%;
         max-width: 420px;
         position: initial;
-        z-index: 0;
+        z-index: auto;
       }
 
       .thread {
