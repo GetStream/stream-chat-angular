@@ -30,6 +30,13 @@ export class IconComponent {
       'reply-in-thread': 'reply',
       retry: 'replay',
       send: 'send',
+      attach: 'upload_file',
+      'unspecified-filetype': 'draft',
+      download: 'download_for_offline',
+      error: 'error',
+      'arrow-up': 'keyboard_arrow_up',
+      'arrow-down': 'keyboard_arrow_down',
+      'chat-bubble': 'chat',
     };
 
     return map[this.icon!];
