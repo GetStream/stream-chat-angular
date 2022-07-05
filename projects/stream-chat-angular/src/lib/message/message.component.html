@@ -50,11 +50,11 @@
               isEditing
             "
             [popper]="popperContent"
-            popperTrigger="click"
-            popperPlacement="auto"
+            [popperTrigger]="popperTriggerClick"
+            [popperPlacement]="popperPlacementAuto"
             [popperHideOnScroll]="true"
             [popperHideOnClickOutside]="true"
-            [popperHideOnMouseLeave]="true"
+            [popperHideOnMouseLeave]="false"
           >
             <popper-content #popperContent>
               <ng-template
@@ -417,10 +417,11 @@
         "
         data-testid="delivered-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -442,10 +443,11 @@
         "
         data-testid="sending-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -466,10 +468,11 @@
         "
         data-testid="read-indicator"
         [popper]="popperContent"
-        popperTrigger="hover"
-        popperPlacement="auto"
-        [popperHideOnScroll]="true"
-        [popperHideOnClickOutside]="true"
+        [popperTrigger]="popperTriggerHover"
+        [popperPlacement]="popperPlacementAuto"
+        [popperHideOnScroll]="false"
+        [popperHideOnClickOutside]="false"
+        (hover)="$event.stopPropagation()"
       >
         <popper-content #popperContent>
           <div

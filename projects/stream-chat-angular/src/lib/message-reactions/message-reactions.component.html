@@ -15,10 +15,11 @@
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
       data-testclass="emoji"
       [popper]="popperContent"
-      popperTrigger="hover"
-      popperPlacement="auto"
-      [popperHideOnScroll]="true"
-      [popperHideOnClickOutside]="true"
+      [popperTrigger]="popperTriggerHover"
+      [popperPlacement]="popperPlacementAuto"
+      [popperHideOnScroll]="false"
+      [popperHideOnClickOutside]="false"
+      (hover)="$event.stopPropagation()"
     >
       <popper-content #popperContent>
         <div

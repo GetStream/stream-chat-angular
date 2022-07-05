@@ -4,6 +4,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   ChatClientService,
@@ -26,6 +27,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('emojiPickerTemplate')
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   themeVersion: '1' | '2';
+  theme$: Observable<string>;
 
   constructor(
     private chatService: ChatClientService,
@@ -48,6 +50,7 @@ export class AppComponent implements AfterViewInit {
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
     this.themeVersion = themeService.themeVersion;
+    this.theme$ = themeService.theme$;
   }
 
   ngAfterViewInit(): void {

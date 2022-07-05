@@ -223,6 +223,14 @@ describe('MessageInputComponent', () => {
     expect(spy).not.toHaveBeenCalledWith();
   });
 
+  it(`shouldn't display send button in edit mode`, () => {
+    component.message = mockMessage();
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+    fixture.detectChanges();
+
+    expect(querySendButton()).toBeNull();
+  });
+
   it('should emit #messageUpdate event if message update was successful', async () => {
     component.message = mockMessage();
     component.ngOnChanges({ message: {} as any as SimpleChange });
