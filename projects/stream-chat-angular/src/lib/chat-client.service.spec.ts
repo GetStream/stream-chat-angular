@@ -2,7 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
 import { version } from '../assets/version';
 import { ChatClientService } from './chat-client.service';
-import { mockStreamChatClient, MockStreamChatClient } from './mocks';
+import {
+  mockCurrentUser,
+  mockStreamChatClient,
+  MockStreamChatClient,
+} from './mocks';
 import { NotificationService } from './notification.service';
 import { DefaultStreamChatGenerics } from './types';
 
@@ -29,8 +33,11 @@ describe('ChatClientService', () => {
     expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey);
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
+    const userSpy = jasmine.createSpy();
+    service.user$.subscribe(userSpy);
 
     expect(spy).toHaveBeenCalledWith(undefined);
+    expect(userSpy).toHaveBeenCalledWith(mockCurrentUser());
   });
 
   it('should disconnect user', async () => {
@@ -40,6 +47,9 @@ describe('ChatClientService', () => {
     service.pendingInvites$.subscribe(pendingInvitesSpy);
     pendingInvitesSpy.calls.reset();
     eventsSpy.calls.reset();
+    const userSpy = jasmine.createSpy();
+    service.user$.subscribe(userSpy);
+    userSpy.calls.reset();
     await service.disconnectUser();
     const event = {
       id: 'mockevent',
@@ -50,6 +60,7 @@ describe('ChatClientService', () => {
     expect(mockChatClient.disconnectUser).toHaveBeenCalledWith();
     expect(pendingInvitesSpy).toHaveBeenCalledWith([]);
     expect(eventsSpy).not.toHaveBeenCalled();
+    expect(userSpy).toHaveBeenCalledWith(undefined);
   });
 
   it('should init with user meta data', async () => {
