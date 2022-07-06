@@ -1,0 +1,6 @@
+<textarea
+  [value]="value"
+  (input)="inputChanged($any($event.target).value)"
+  (keydown.enter)="sent($event)"
+  [disabled]="!isEnabled"
+></textarea>
