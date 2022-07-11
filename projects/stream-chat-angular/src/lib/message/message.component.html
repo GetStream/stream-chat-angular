@@ -173,7 +173,10 @@
             "
           ></ng-container>
         </ng-container>
-        <div class="str-chat__message-text" *ngIf="message?.text">
+        <div
+          class="str-chat__message-text"
+          *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
+        >
           <div
             data-testid="inner-message"
             class="
