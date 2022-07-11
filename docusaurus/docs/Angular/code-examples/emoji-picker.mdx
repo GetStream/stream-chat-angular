@@ -68,33 +68,23 @@ We also defined an `isOpened` property that tells if the emoji picker should be 
 The emoji picker will close on outside clicks.
 
 ```typescript
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from "@angular/core";
+import { Component, ElementRef, Input, ViewChild } from "@angular/core";
 import { Observable, Subject } from "rxjs";
+import { ThemeService } from "stream-chat-angular";
 
 @Component({
   selector: "app-emoji-picker",
   templateUrl: "./emoji-picker.component.html",
   styleUrls: ["./emoji-picker.component.scss"],
 })
-export class EmojiPickerComponent implements OnInit, OnDestroy {
+export class EmojiPickerComponent {
   isOpened = false;
+  theme$: Observable<string>;
   @Input() emojiInput$: Subject<string> | undefined;
   @ViewChild("container") container: ElementRef<HTMLElement> | undefined;
 
-  constructor() {}
-
-  ngOnInit(): void {
-    document.addEventListener("click", () => {});
-  }
-  ngOnDestroy(): void {
-    throw new Error("Method not implemented.");
+  constructor(themeService: ThemeService) {
+    this.theme$ = themeService.theme$;
   }
 
   emojiSelected(event: any) {
@@ -160,6 +150,7 @@ The `emojiSelect` event is fired when a user selects an emoji, we emit the selec
     title="Pick your emoji…"
     emoji="point_up"
     (emojiSelect)="emojiSelected($event)"
+    [darkMode]="(theme$ | async) === 'dark'"
   ></emoji-mart>
 </div>
 ```
@@ -192,18 +183,17 @@ If you want to match the color of the emoji picker toggle button to the other to
   }
 
   .picker {
-    z-index: 2;
+    z-index: 3;
     position: absolute;
     bottom: 100%;
     transform: scale(0.8);
-    right: -20%;
-    transform-origin: 0% 100%;
+    right: 0;
+    transform-origin: bottom right;
   }
 
   @media only screen and (min-device-width: 1024px) {
     .picker {
       transform: scale(1);
-      right: 0;
     }
   }
 }
