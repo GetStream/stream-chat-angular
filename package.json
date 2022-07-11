@@ -50,9 +50,13 @@
       {
         "name": "beta",
         "prerelease": true
+      },
+      {
+        "name": "theming-v2",
+        "prerelease": true
       }
     ],
-    "dryRun": false,
+    "dryRun": true,
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
@@ -76,7 +80,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": true
+          "npmPublish": false
         }
       ],
       [
