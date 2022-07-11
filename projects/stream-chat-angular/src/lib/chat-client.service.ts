@@ -53,6 +53,10 @@ export class ChatClientService<
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
    */
   pendingInvites$: Observable<(ChannelResponse<T> | Channel<T>)[]>;
+  /**
+   * Emits the current chat user
+   */
+  user$: Observable<UserResponse<T> | undefined>;
   private notificationSubject = new ReplaySubject<ClientEvent<T>>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
@@ -61,6 +65,7 @@ export class ChatClientService<
   private pendingInvitesSubject = new BehaviorSubject<
     (ChannelResponse<T> | Channel<T>)[]
   >([]);
+  private userSubject = new ReplaySubject<UserResponse<T> | undefined>(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
 
   constructor(
@@ -71,6 +76,7 @@ export class ChatClientService<
     this.connectionState$ = this.connectionStateSubject.asObservable();
     this.appSettings$ = this.appSettingsSubject.asObservable();
     this.pendingInvites$ = this.pendingInvitesSubject.asObservable();
+    this.user$ = this.userSubject.asObservable();
   }
 
   /**
@@ -101,6 +107,7 @@ export class ChatClientService<
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );
+      this.userSubject.next(this.chatClient.user);
     });
     const channels = await this.chatClient.queryChannels(
       { invite: 'pending' } as any as ChannelFilters<T>, // TODO: find out why we need this typecast
@@ -146,6 +153,7 @@ export class ChatClientService<
   async disconnectUser() {
     this.pendingInvitesSubject.next([]);
     await this.chatClient.disconnectUser();
+    this.userSubject.next(undefined);
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
