@@ -70,8 +70,7 @@ jobs:
           fetch-depth: "0"
           repository: GetStream/stream-chat-css
           path: stream-chat-css
-          # ref: refs/tags/v${{ steps.stream-chat-css-version.outputs.prop }}
-          ref: theming2
+          ref: fix-sdk-specific
       - name: Copy docs from stream-chat-css
         env:
           DOCS_SOURCE: stream-chat-css/docs
