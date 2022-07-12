@@ -563,7 +563,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ attachments },
     };
-    component.message!.parent_id = 'parent-id';
+    component.message.parent_id = 'parent-id';
     fixture.detectChanges();
     const attachmentComponent = queryAttachmentComponent();
 

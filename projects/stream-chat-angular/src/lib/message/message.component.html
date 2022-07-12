@@ -384,15 +384,31 @@
       [user]="message?.quoted_message?.user || undefined"
     ></stream-avatar-placeholder>
     <div class="quoted-message-inner">
-      <stream-attachment-list
+      <ng-container
         *ngIf="
           message?.quoted_message?.attachments &&
           message?.quoted_message?.attachments?.length
         "
-        [attachments]="quotedMessageAttachments"
-        [messageId]="message?.quoted_message?.id"
-        [parentMessageId]="message?.quoted_message?.parent_id"
-      ></stream-attachment-list>
+      >
+        <ng-template
+          #defaultAttachments
+          let-messageId="messageId"
+          let-attachments="attachments"
+          let-parentMessageId="parentMessageId"
+        >
+          <stream-attachment-list
+            [messageId]="messageId"
+            [attachments]="attachments"
+            [parentMessageId]="parentMessageId"
+          ></stream-attachment-list>
+        </ng-template>
+        <ng-container
+          *ngTemplateOutlet="
+            attachmentListTemplate || defaultAttachments;
+            context: getQuotedMessageAttachmentListContext()
+          "
+        ></ng-container>
+      </ng-container>
       <div
         data-testid="quoted-message-text"
         [innerHTML]="
