@@ -209,6 +209,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     return {
       messageId: this.message?.id || '',
       attachments: this.message?.attachments || [],
+      parentMessageId: this.message?.parent_id,
     };
   }
 
