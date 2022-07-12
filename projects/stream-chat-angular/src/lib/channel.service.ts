@@ -695,8 +695,13 @@ export class ChannelService<
    * [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
    * @param messageId
    * @param formData
+   * @param parentMessageId
    */
-  async sendAction(messageId: string, formData: Record<string, string>) {
+  async sendAction(
+    messageId: string,
+    formData: Record<string, string>,
+    parentMessageId?: string
+  ) {
     const channel = this.activeChannelSubject.getValue()!;
     const response = await channel.sendAction(messageId, formData);
     if (response?.message) {
@@ -711,21 +716,16 @@ export class ChannelService<
           ])
         : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     } else {
-      channel.state.removeMessage({ id: messageId });
-      if (
-        this.activeChannelMessagesSubject
-          .getValue()
-          .find((m) => m.id === messageId)
-      ) {
-        this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      } else if (
-        this.activeThreadMessagesSubject
-          .getValue()
-          .find((m) => m.id === messageId)
-      ) {
+      channel.state.removeMessage({
+        id: messageId,
+        parent_id: parentMessageId,
+      });
+      if (parentMessageId) {
         this.activeThreadMessagesSubject.next(
           channel.state.threads[this.activeParentMessageIdSubject.getValue()!]
         );
+      } else {
+        this.activeChannelMessagesSubject.next([...channel.state.messages]);
       }
     }
   }

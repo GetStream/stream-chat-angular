@@ -983,7 +983,10 @@ describe('ChannelService', () => {
     spyOn(channel.state, 'removeMessage');
     await service.sendAction('1', { image_action: 'send' });
 
-    expect(channel.state.removeMessage).toHaveBeenCalledWith({ id: '1' });
+    expect(channel.state.removeMessage).toHaveBeenCalledWith({
+      id: '1',
+      parent_id: undefined,
+    });
   });
 
   it('should update message', () => {

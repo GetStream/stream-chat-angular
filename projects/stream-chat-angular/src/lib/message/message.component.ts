@@ -209,6 +209,15 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     return {
       messageId: this.message?.id || '',
       attachments: this.message?.attachments || [],
+      parentMessageId: this.message?.parent_id,
+    };
+  }
+
+  getQuotedMessageAttachmentListContext(): AttachmentListContext {
+    return {
+      messageId: this.message?.quoted_message?.id || '',
+      attachments: this.quotedMessageAttachments,
+      parentMessageId: this?.message?.quoted_message?.parent_id,
     };
   }
 

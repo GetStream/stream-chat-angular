@@ -563,6 +563,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ attachments },
     };
+    component.message.parent_id = 'parent-id';
     fixture.detectChanges();
     const attachmentComponent = queryAttachmentComponent();
 
@@ -579,6 +580,9 @@ describe('MessageComponent', () => {
     expect(attachmentComponent).not.toBeUndefined();
     expect(attachmentComponent.attachments).toBe(attachments);
     expect(attachmentComponent.messageId).toBe(component.message.id);
+    expect(attachmentComponent.parentMessageId).toBe(
+      component.message.parent_id
+    );
   });
 
   it('should display reactions icon, if user can react to message', () => {
