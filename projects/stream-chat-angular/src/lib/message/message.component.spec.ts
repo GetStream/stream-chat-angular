@@ -1047,5 +1047,15 @@ describe('MessageComponent', () => {
 
       expect(quotedMessageContainer?.classList).not.toContain('mine');
     });
+
+    it('should display reply if we reply with attachments without text', () => {
+      component.message!.attachments = [
+        { image_url: 'url/to/image', type: 'image' },
+      ];
+      component.message!.text = undefined;
+      fixture.detectChanges();
+
+      expect(queryAttachmentComponent()).toBeDefined();
+    });
   });
 });
