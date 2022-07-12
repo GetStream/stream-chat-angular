@@ -94,13 +94,8 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
         actionLabelOrTranslationKey: 'streamChat.Reply',
         actionHandler: (message: StreamMessage) =>
           this.channelService.selectMessageToQuote(message),
-        isVisible: (
-          enabledActions: string[],
-          isMine: boolean,
-          message: StreamMessage
-        ) =>
-          enabledActions.indexOf('quote-message') !== -1 &&
-          !message?.quoted_message,
+        isVisible: (enabledActions: string[]) =>
+          enabledActions.indexOf('quote-message') !== -1,
       },
       {
         actionName: 'pin',
