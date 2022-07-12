@@ -997,14 +997,21 @@ export class ChannelService<
   private messageUpdated(event: Event<T>) {
     this.ngZone.run(() => {
       const isThreadReply = event.message && event.message.parent_id;
-      const messages = isThreadReply
-        ? this.activeThreadMessagesSubject.getValue()
-        : this.activeChannelMessagesSubject.getValue();
+      const channel = this.activeChannelSubject.getValue();
+      if (!channel) {
+        return;
+      }
+      // Get messages from state as message order could change, and message could've been deleted
+      const messages: FormatMessageResponse<T>[] = isThreadReply
+        ? channel.state.threads[event?.message?.parent_id || '']
+        : channel.state.messages;
+      if (!messages) {
+        return;
+      }
       const messageIndex = messages.findIndex(
-        (m) => m.id === event.message?.id
+        (m) => m.id === event?.message?.id
       );
-      if (messageIndex !== -1 && event.message) {
-        messages[messageIndex] = event.message;
+      if (messageIndex !== -1) {
         isThreadReply
           ? this.activeThreadMessagesSubject.next([...messages])
           : this.activeChannelMessagesSubject.next([...messages]);
