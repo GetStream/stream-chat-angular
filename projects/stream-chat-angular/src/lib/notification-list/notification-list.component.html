@@ -1,7 +1,5 @@
 <div
-  class="str-chat str-chat__theme-{{
-    theme$ | async
-  }} str-chat__list-notifications"
+  class="str-chat__theme-{{ theme$ | async }} str-chat__list-notifications"
   [class.str-chat]="themeVersion === '2'"
   data-testid="notification-list"
 >
