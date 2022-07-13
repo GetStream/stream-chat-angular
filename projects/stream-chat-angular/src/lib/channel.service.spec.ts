@@ -436,9 +436,8 @@ describe('ChannelService', () => {
     spy.calls.reset();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
-    const message = {
-      ...activeChannel.state.messages[activeChannel.state.messages.length - 1],
-    };
+    const message =
+      activeChannel.state.messages[activeChannel.state.messages.length - 1];
     message.deleted_at = new Date().toISOString();
     (activeChannel as MockChannel).handleEvent('message.deleted', { message });
 
