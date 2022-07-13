@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { of } from 'rxjs';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -74,7 +75,10 @@ describe('MessageComponent', () => {
       providers: [
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user: currentUser } },
+          useValue: {
+            chatClient: { user: currentUser },
+            user$: of(currentUser),
+          },
         },
         {
           provide: ChannelService,

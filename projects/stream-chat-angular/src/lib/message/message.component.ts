@@ -82,11 +82,12 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef
-  ) {
-    this.user = this.chatClientService.chatClient.user;
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.subscriptions.push(
+      this.chatClientService.user$.subscribe((u) => (this.user = u))
+    );
     this.subscriptions.push(
       this.customTemplatesService.mentionTemplate$.subscribe(
         (template) => (this.mentionTemplate = template)
