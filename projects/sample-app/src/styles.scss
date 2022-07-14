@@ -26,6 +26,11 @@
   --str-chat__primary-surface-color-low-emphasis: var(--mint2);
 }
 
+.str-chat__theme-dark {
+  --str-chat__secondary-background-color: var(--sage2);
+  --str-chat__primary-color: var(--mint8);
+}
+
 html {
   height: 100%;
 }
