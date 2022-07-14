@@ -1,15 +1,19 @@
+@layer defaults {
+  @import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+}
 @import "variables";
-@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 @import "~@ctrl/ngx-emoji-mart/picker";
 @import "@radix-ui/colors/sage.css";
 @import "@radix-ui/colors/sageDark.css";
+@import "@radix-ui/colors/gray.css";
+@import "@radix-ui/colors/grayDark.css";
 @import "@radix-ui/colors/mint.css";
 @import "@radix-ui/colors/mintDark.css";
 
 .str-chat {
-  // Neutral colors for backgrounds, borders, texts
-  --str-chat__background-color: var(--sage1);
-  --str-chat__secondary-background-color: var(--sage1);
+  // Theme: Neutral colors for backgrounds, borders, texts
+  --str-chat__background-color: var(--gray1);
+  --str-chat__secondary-background-color: var(--sage2);
   --str-chat__surface-color: var(--sage5);
   --str-chat__secondary-surface-color: var(--sage4);
   --str-chat__tertiary-surface-color: var(--sage3);
@@ -18,19 +22,96 @@
   --str-chat__disabled-color: var(--sage8);
   --str-chat__on-primary-color: var(--sage12);
 
-  // Vibrant color to emphasise UI elements
+  // Theme: Vibrant color to emphasise UI elements
   --str-chat__primary-color: var(--mint7);
   --str-chat__primary-color-low-emphasis: var(--mint5);
   --str-chat__active-primary-color: var(--mint10);
   --str-chat__primary-surface-color: var(--mint4);
   --str-chat__primary-surface-color-low-emphasis: var(--mint2);
 
+  // Theme: Border radius
+  --str-chat__border-radius-md: 12px;
   --str-chat__border-radius-circle: 12px;
+
+  // Component variables
+  --str-chat__jump-to-latest-message-border-radius: 999px;
+
+  --str-chat__message-textarea-border-block-start: none;
+  --str-chat__message-textarea-border-block-end: none;
+  --str-chat__message-textarea-border-inline-start: none;
+  --str-chat__message-textarea-border-inline-end: none;
+  --str-chat__message-input-border-block-start: 1px solid var(--sage5);
+  --str-chat__message-input-background-color: var(--sage2);
+
+  --str-chat__message-bubble-background-color: transparent;
+  --str-chat__own-message-bubble-background-color: transparent;
+  --str-chat__message-active-bacground-color: var(--sage2);
+  --str-chat__message-reaction-background-color: var(--sage5);
+  --str-chat__own-message-reaction-background-color: var(--mint5);
+  --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
+  --str-chat__deleted-message-background-color: transparent;
 }
 
+// Override theme config for dark mode
 .str-chat__theme-dark {
-  --str-chat__secondary-background-color: var(--sage2);
-  --str-chat__primary-color: var(--mint8);
+  --str-chat__primary-color: var(--mint6);
+}
+
+@layer overrides {
+  // Custom message layout
+  .str-chat__message {
+    grid-template-areas:
+      "avatar message"
+      ". replies"
+      ". metadata";
+    width: 100%;
+    justify-items: start;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+
+    &.str-chat__message--system {
+      grid-template-columns: 1fr;
+    }
+
+    .str-chat__message-sender-avatar {
+      align-self: flex-start;
+      display: block;
+    }
+
+    .str-chat__message-inner {
+      grid-template-areas:
+        "message-bubble options"
+        "reactions reactions";
+
+      .str-chat__message-bubble {
+        align-self: center;
+        max-width: 100%;
+
+        .str-chat__message-attachment--card,
+        .str-chat__quoted-message-preview {
+          padding-inline-start: 0.5rem;
+        }
+      }
+    }
+
+    .str-chat__message-text,
+    .str-chat__quoted-message-bubble {
+      padding: 0;
+    }
+
+    .str-chat__quoted-message-preview {
+      --str-chat__message-border-inline-start: 3px solid var(--sage4);
+    }
+
+    .str-chat__message-reactions-container {
+      justify-content: flex-start;
+    }
+
+    .str-chat__message-reaction-selector {
+      inset-inline-end: unset;
+      inset-inline-start: 0;
+    }
+  }
 }
 
 html {
@@ -94,7 +175,7 @@ body {
 
       .channel-list.thread-close {
         width: 30%;
-        max-width: 420px;
+        max-width: 300px;
         position: initial;
         z-index: auto;
 
