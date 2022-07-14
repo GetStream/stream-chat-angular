@@ -337,17 +337,34 @@ export class ChannelService<
     );
     this.messageToQuote$ = this.messageToQuoteSubject.asObservable();
 
-    this.chatClientService.connectionState$
-      .pipe(filter((s) => s === 'online'))
-      .subscribe(() => {
-        void this.setAsActiveParentMessage(undefined);
-      });
-
     this.usersTypingInChannel$ =
       this.usersTypingInChannelSubject.asObservable();
     this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
     this.latestMessageDateByUserByChannels$ =
       this.latestMessageDateByUserByChannelsSubject.asObservable();
+
+    // Reset after active channel becomes undefined
+    this.activeChannel$.pipe(filter((c) => !c)).subscribe((c) => {
+      console.log(c);
+      this.activeChannelMessagesSubject.next([]);
+      this.selectMessageToQuote(undefined);
+      this.activeParentMessageIdSubject.next(undefined);
+    });
+
+    // Reset after active parent message becomes undefined
+    this.activeParentMessageId$.pipe(filter((id) => !id)).subscribe(() => {
+      void this.setAsActiveParentMessage(undefined);
+    });
+
+    // Deselect active channel is removed from channel list
+    combineLatest([this.channels$, this.activeChannel$])
+      .pipe(filter(([, activeChannel]) => !!activeChannel))
+      .subscribe(([channels, activeChannel]) => {
+        console.log(channels, activeChannel);
+        if (!channels?.find((c) => c.id === activeChannel!.id)) {
+          this.activeChannelSubject.next(undefined);
+        }
+      });
   }
 
   /**
@@ -397,12 +414,7 @@ export class ChannelService<
       return;
     }
     this.stopWatchForActiveChannelEvents(activeChannel);
-    this.activeChannelMessagesSubject.next([]);
     this.activeChannelSubject.next(undefined);
-    this.activeParentMessageIdSubject.next(undefined);
-    this.activeThreadMessagesSubject.next([]);
-    this.latestMessageDateByUserByChannelsSubject.next({});
-    this.selectMessageToQuote(undefined);
   }
 
   /**
@@ -505,6 +517,7 @@ export class ChannelService<
   reset() {
     this.deselectActiveChannel();
     this.channelsSubject.next(undefined);
+    this.latestMessageDateByUserByChannelsSubject.next({});
     this.clientEventsSubscription?.unsubscribe();
   }
 
@@ -803,14 +816,15 @@ export class ChannelService<
             return;
           }
           this.isStateRecoveryInProgress = true;
-          this.reset();
           try {
-            await this.init(
-              this.filters!,
-              this.sort,
-              this.options,
-              this.shouldSetActiveChannel
-            );
+            if (this.options) {
+              this.options.offset = 0;
+            }
+            console.log('itt');
+            await this.queryChannels(false, true);
+            console.log('channels loaded');
+            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+            void this.setAsActiveParentMessage(undefined);
             this.isStateRecoveryInProgress = false;
           } catch {
             this.isStateRecoveryInProgress = false;
@@ -897,13 +911,6 @@ export class ChannelService<
     const channels = this.channels.filter((c) => !cids.includes(c.cid || ''));
     if (channels.length < this.channels.length) {
       this.channelsSubject.next(channels);
-      if (cids.includes(this.activeChannelSubject.getValue()?.cid || '')) {
-        if (channels.length > 0) {
-          this.setAsActiveChannel(channels[0]);
-        } else {
-          this.activeChannelSubject.next(undefined);
-        }
-      }
     }
   }
 
@@ -1071,7 +1078,11 @@ export class ChannelService<
     this.activeChannelSubscriptions = [];
   }
 
-  private async queryChannels(shouldSetActiveChannel: boolean) {
+  private async queryChannels(
+    shouldSetActiveChannel: boolean,
+    recoverState = false
+  ) {
+    console.log('query channels');
     try {
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,
@@ -1079,7 +1090,9 @@ export class ChannelService<
         this.options
       );
       channels.forEach((c) => this.watchForChannelEvents(c));
-      const prevChannels = this.channelsSubject.getValue() || [];
+      const prevChannels = recoverState
+        ? []
+        : this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
       if (
         channels.length > 0 &&
