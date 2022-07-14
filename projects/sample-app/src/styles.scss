@@ -1,6 +1,30 @@
 @import "variables";
 @import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 @import "~@ctrl/ngx-emoji-mart/picker";
+@import "@radix-ui/colors/sage.css";
+@import "@radix-ui/colors/sageDark.css";
+@import "@radix-ui/colors/mint.css";
+@import "@radix-ui/colors/mintDark.css";
+
+.str-chat {
+  // Neutral colors for backgrounds, borders, texts
+  --str-chat__background-color: var(--sage1);
+  --str-chat__secondary-background-color: var(--sage1);
+  --str-chat__surface-color: var(--sage5);
+  --str-chat__secondary-surface-color: var(--sage4);
+  --str-chat__tertiary-surface-color: var(--sage3);
+  --str-chat__text-color: var(--sage12);
+  --str-chat__text-low-emphasis-color: var(--sage11);
+  --str-chat__disabled-color: var(--sage8);
+  --str-chat__on-primary-color: var(--sage12);
+
+  // Vibrant color to emphasise UI elements
+  --str-chat__primary-color: var(--mint7);
+  --str-chat__primary-color-low-emphasis: var(--mint5);
+  --str-chat__active-primary-color: var(--mint10);
+  --str-chat__primary-surface-color: var(--mint4);
+  --str-chat__primary-surface-color-low-emphasis: var(--mint2);
+}
 
 html {
   height: 100%;
