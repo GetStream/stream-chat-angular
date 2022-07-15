@@ -31,7 +31,7 @@
 
   // Theme: Border radius
   --str-chat__border-radius-md: 12px;
-  --str-chat__border-radius-circle: 12px;
+  --str-chat__border-radius-circle: 8px;
 
   // Component variables
   --str-chat__jump-to-latest-message-border-radius: 999px;
@@ -50,6 +50,7 @@
   --str-chat__own-message-reaction-background-color: var(--mint5);
   --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
   --str-chat__deleted-message-background-color: transparent;
+  --str-chat__channel-preview-border-block-end: 1px solid var(--sage5);
 }
 
 // Override theme config for dark mode
