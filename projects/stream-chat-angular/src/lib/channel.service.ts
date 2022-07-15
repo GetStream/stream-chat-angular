@@ -345,24 +345,20 @@ export class ChannelService<
 
     // Reset after active channel becomes undefined
     this.activeChannel$.pipe(filter((c) => !c)).subscribe((c) => {
-      console.log(c);
       this.activeChannelMessagesSubject.next([]);
       this.selectMessageToQuote(undefined);
       this.activeParentMessageIdSubject.next(undefined);
-    });
-
-    // Reset after active parent message becomes undefined
-    this.activeParentMessageId$.pipe(filter((id) => !id)).subscribe(() => {
       void this.setAsActiveParentMessage(undefined);
     });
 
     // Deselect active channel is removed from channel list
     combineLatest([this.channels$, this.activeChannel$])
-      .pipe(filter(([, activeChannel]) => !!activeChannel))
+      .pipe(
+        filter(([channels, activeChannel]) => !!activeChannel && !!channels)
+      )
       .subscribe(([channels, activeChannel]) => {
-        console.log(channels, activeChannel);
         if (!channels?.find((c) => c.id === activeChannel!.id)) {
-          this.activeChannelSubject.next(undefined);
+          this.deselectActiveChannel();
         }
       });
   }
@@ -415,6 +411,10 @@ export class ChannelService<
     }
     this.stopWatchForActiveChannelEvents(activeChannel);
     this.activeChannelSubject.next(undefined);
+    this.activeChannelMessagesSubject.next([]);
+    this.selectMessageToQuote(undefined);
+    this.activeParentMessageIdSubject.next(undefined);
+    void this.setAsActiveParentMessage(undefined);
   }
 
   /**
@@ -820,9 +820,7 @@ export class ChannelService<
             if (this.options) {
               this.options.offset = 0;
             }
-            console.log('itt');
             await this.queryChannels(false, true);
-            console.log('channels loaded');
             // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
             void this.setAsActiveParentMessage(undefined);
             this.isStateRecoveryInProgress = false;
@@ -1082,7 +1080,6 @@ export class ChannelService<
     shouldSetActiveChannel: boolean,
     recoverState = false
   ) {
-    console.log('query channels');
     try {
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,

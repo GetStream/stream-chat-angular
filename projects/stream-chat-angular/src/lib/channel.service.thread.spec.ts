@@ -1,4 +1,4 @@
-import { fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
 import {
@@ -20,7 +20,7 @@ import {
 } from './mocks';
 import { DefaultStreamChatGenerics, StreamMessage } from './types';
 
-fdescribe('ChannelService - threads', () => {
+describe('ChannelService - threads', () => {
   let service: ChannelService;
   let mockChatClient: {
     queryChannels: jasmine.Spy;
@@ -183,7 +183,7 @@ fdescribe('ChannelService - threads', () => {
     expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
   });
 
-  fit('should deselect thread after reconnect', fakeAsync(async () => {
+  it('should deselect thread after reconnect', fakeAsync(async () => {
     await init();
     let parentMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
