@@ -1,4 +1,4 @@
-<div id="root" [class.dark-theme]="(theme$ | async) === 'dark'">
+<div id="root">
   <stream-channel-list
     (click)="closeMenu()"
     class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
