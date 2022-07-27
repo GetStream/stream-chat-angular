@@ -18,7 +18,7 @@
   --str-chat__disabled-color: var(--sage8);
   --str-chat__on-primary-color: var(--sage12);
 
-  // Vibrant color to emphasize UI elements
+  // Vibrant colors to emphasize UI elements
   --str-chat__primary-color: var(--mint7);
   --str-chat__primary-color-low-emphasis: var(--mint5);
   --str-chat__active-primary-color: var(--mint10);
@@ -28,36 +28,22 @@
   --str-chat__border-radius-md: 12px;
   --str-chat__border-radius-circle: 8px;
 
-  // Component variables
-
-  // Jump to latest message
   --str-chat__jump-to-latest-message-border-radius: 999px;
 
-  // Channel preview
   --str-chat__channel-preview-border-block-end: 1px solid var(--sage5);
 
-  // Message input
   --str-chat__message-textarea-border-block-start: none;
   --str-chat__message-textarea-border-block-end: none;
   --str-chat__message-textarea-border-inline-start: none;
   --str-chat__message-textarea-border-inline-end: none;
   --str-chat__message-input-border-block-start: 1px solid var(--sage5);
   --str-chat__message-input-background-color: var(--sage2);
-
-  // Message
-  --str-chat__message-bubble-background-color: transparent;
-  --str-chat__own-message-bubble-background-color: transparent;
-  --str-chat__quoted-message-bubble-background-color: transparent;
-  --str-chat__deleted-message-background-color: transparent;
-  --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
-  --str-chat__message-reaction-background-color: var(--sage4);
-  --str-chat__own-message-reaction-background-color: var(--mint5);
 }
 
 @layer overrides {
   // Custom message layout
   .str-chat__message {
-    // Display avatar at the top of the message
+    // Display the avatar at the top of the message
     .str-chat__message-sender-avatar {
       align-self: flex-start;
     }
@@ -70,10 +56,10 @@
 
       // Make message bubble full width
       .str-chat__message-bubble {
-        align-self: center;
         max-width: 100%;
+        align-self: center;
 
-        // Padding added for the border displayed for quoted messages, links and GIFs
+        // Padding added for the border displayed for quoted messages, links, and GIFs
         .str-chat__message-attachment--card,
         .str-chat__quoted-message-preview {
           padding-inline-start: 0.5rem;
@@ -86,7 +72,9 @@
       padding: 0;
     }
   }
+}
 
+@layer overrides {
   .str-chat__message.str-chat__message--me {
     // Align message to left
     grid-template-areas:
@@ -97,7 +85,7 @@
     grid-template-columns: auto 1fr;
     column-gap: 0.5rem;
 
-    // Don't hide chat user's avatar
+    // Don't hide the chat user's avatar
     .str-chat__message-sender-avatar {
       display: block;
     }
@@ -118,6 +106,16 @@
       grid-template-columns: 1fr;
     }
   }
+}
+
+.str-chat {
+  --str-chat__message-bubble-background-color: transparent;
+  --str-chat__own-message-bubble-background-color: transparent;
+  --str-chat__quoted-message-bubble-background-color: transparent;
+  --str-chat__deleted-message-background-color: transparent;
+  --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
+  --str-chat__message-reaction-background-color: var(--sage4);
+  --str-chat__own-message-reaction-background-color: var(--mint5);
 }
 
 html {
