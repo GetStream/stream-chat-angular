@@ -45,35 +45,19 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      # Turned off until we have a (pre)release for theming-v2
-      # - name: E2e tests
-      #   env:
-      #     STREAM_API_KEY: ${{ secrets.API_KEY }}
-      #     STREAM_USER_ID: ${{ secrets.USER_ID }}
-      #     STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
-      #   run: |
-      #     npm run e2e:ci
+      - name: E2e tests
+        env:
+          STREAM_API_KEY: ${{ secrets.API_KEY }}
+          STREAM_USER_ID: ${{ secrets.USER_ID }}
+          STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
+        run: |
+          npm run e2e:ci
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Get stream-chat-css version
-        id: stream-chat-css-version
-        uses: notiz-dev/github-action-json-property@release
-        with:
-          path: "package.json"
-          prop_path: "dependencies.@stream-io/stream-chat-css"
-      - name: Pull stream-chat-css
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: "0"
-          repository: GetStream/stream-chat-css
-          path: stream-chat-css
-          ref: theming2
       - name: Copy docs from stream-chat-css
-        env:
-          DOCS_SOURCE: stream-chat-css/docs
         run: npm run copy-css-docs
       - name: Generate docs
         run: |

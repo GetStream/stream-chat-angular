@@ -51,7 +51,6 @@ export class AppComponent implements AfterViewInit {
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
     this.themeVersion = themeService.themeVersion;
     this.theme$ = themeService.theme$;
-    themeService.theme$.next('dark');
   }
 
   ngAfterViewInit(): void {
