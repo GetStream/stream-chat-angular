@@ -7,122 +7,143 @@
 @import "@radix-ui/colors/sage.css";
 @import "@radix-ui/colors/mint.css";
 
-.str-chat {
-  // Neutral colors for backgrounds, borders, texts
-  --str-chat__background-color: var(--sage1);
-  --str-chat__secondary-background-color: var(--sage2);
-  --str-chat__surface-color: var(--sage5);
-  --str-chat__secondary-surface-color: var(--sage4);
-  --str-chat__tertiary-surface-color: var(--sage3);
-  --str-chat__text-color: var(--sage12);
-  --str-chat__text-low-emphasis-color: var(--sage11);
-  --str-chat__disabled-color: var(--sage8);
-  --str-chat__on-primary-color: var(--sage12);
+.theme-variables {
+  .str-chat {
+    // Theme variables
+    // Neutral colors for backgrounds, borders, texts
+    --str-chat__background-color: var(--sage1);
+    --str-chat__secondary-background-color: var(--sage2);
+    --str-chat__surface-color: var(--sage5);
+    --str-chat__secondary-surface-color: var(--sage4);
+    --str-chat__tertiary-surface-color: var(--sage3);
+    --str-chat__text-color: var(--sage12);
+    --str-chat__text-low-emphasis-color: var(--sage11);
+    --str-chat__disabled-color: var(--sage8);
+    --str-chat__on-primary-color: var(--sage12);
 
-  // Vibrant colors to emphasize UI elements
-  --str-chat__primary-color: var(--mint7);
-  --str-chat__primary-color-low-emphasis: var(--mint5);
-  --str-chat__active-primary-color: var(--mint10);
-  --str-chat__primary-surface-color: var(--mint4);
-  --str-chat__primary-surface-color-low-emphasis: var(--mint2);
+    // Vibrant colors to emphasize UI elements
+    --str-chat__primary-color: var(--mint7);
+    --str-chat__primary-color-low-emphasis: var(--mint5);
+    --str-chat__active-primary-color: var(--mint10);
+    --str-chat__primary-surface-color: var(--mint4);
+    --str-chat__primary-surface-color-low-emphasis: var(--mint2);
 
-  --str-chat__border-radius-md: 12px;
-  --str-chat__border-radius-circle: 20%;
+    // Border radius
+    --str-chat__border-radius-md: 12px;
+    --str-chat__border-radius-circle: 20%;
 
-  --str-chat__font-family: "Roboto", sans-serif;
-
-  --str-chat__jump-to-latest-message-border-radius: 999px;
-
-  --str-chat__channel-preview-border-block-end: 1px solid var(--sage5);
-
-  --str-chat__message-textarea-border-block-start: none;
-  --str-chat__message-textarea-border-block-end: none;
-  --str-chat__message-textarea-border-inline-start: none;
-  --str-chat__message-textarea-border-inline-end: none;
-  --str-chat__message-input-border-block-start: 1px solid var(--sage5);
-  --str-chat__message-input-background-color: var(--sage2);
+    // Font
+    --str-chat__font-family: "Roboto", sans-serif;
+  }
 }
 
-@layer overrides {
-  // Custom message layout
-  .str-chat__message {
-    // Display the avatar at the top of the message
-    .str-chat__message-sender-avatar {
-      align-self: flex-start;
-    }
+.component-variables {
+  .str-chat {
+    // Component variables
+    // Jumpt-to-latest button
+    --str-chat__jump-to-latest-message-border-radius: 999px;
 
-    .str-chat__message-inner {
-      // Display reactions under the message
-      grid-template-areas:
-        "message-bubble options"
-        "reactions reactions";
+    // Channel preview
+    --str-chat__channel-preview-border-block-end: 1px solid var(--sage5);
 
-      // Make message bubble full width
-      .str-chat__message-bubble {
-        max-width: 100%;
-        align-self: center;
+    // Message input
+    --str-chat__message-textarea-border-block-start: none;
+    --str-chat__message-textarea-border-block-end: none;
+    --str-chat__message-textarea-border-inline-start: none;
+    --str-chat__message-textarea-border-inline-end: none;
+    --str-chat__message-input-border-block-start: 1px solid var(--sage5);
+    --str-chat__message-input-background-color: var(--sage2);
+  }
+}
 
-        // Padding added for the border displayed for quoted messages, links, and GIFs
-        .str-chat__message-attachment--card,
-        .str-chat__quoted-message-preview {
-          padding-inline-start: 0.5rem;
+.custom-css-code {
+  .str-chat {
+    // Message
+    --str-chat__message-bubble-background-color: transparent;
+    --str-chat__own-message-bubble-background-color: transparent;
+    --str-chat__quoted-message-bubble-background-color: transparent;
+    --str-chat__deleted-message-background-color: transparent;
+    --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
+    --str-chat__message-reaction-background-color: var(--sage4);
+    --str-chat__own-message-reaction-background-color: var(--mint5);
+  }
+
+  @layer overrides {
+    // Custom message layout: all messages
+    .str-chat__message {
+      // Display the avatar at the top of the message
+      .str-chat__message-sender-avatar {
+        align-self: flex-start;
+      }
+
+      .str-chat__message-inner {
+        // Display reactions under the message
+        grid-template-areas:
+          "message-bubble options"
+          "reactions reactions";
+
+        // Make message bubble full width
+        .str-chat__message-bubble {
+          max-width: 100%;
+          align-self: center;
+
+          // Padding added for the border displayed for quoted messages, links, and GIFs
+          .str-chat__message-attachment--card,
+          .str-chat__quoted-message-preview {
+            padding-inline-start: 0.5rem;
+          }
         }
       }
-    }
 
-    .str-chat__message-text,
-    .str-chat__quoted-message-bubble {
-      padding: 0;
-    }
-  }
-}
-
-@layer overrides {
-  .str-chat__message.str-chat__message--me {
-    // Align message to left
-    grid-template-areas:
-      "avatar message"
-      ". replies"
-      ". metadata";
-    justify-items: start;
-    grid-template-columns: auto 1fr;
-    column-gap: 0.5rem;
-
-    // Don't hide the chat user's avatar
-    .str-chat__message-sender-avatar {
-      display: block;
-    }
-
-    // Align reactions selector to left
-    .str-chat__message-reactions-container {
-      justify-content: flex-start;
-    }
-
-    // Align message reactions to left
-    .str-chat__message-reaction-selector {
-      inset-inline-end: unset;
-      inset-inline-start: 0;
-    }
-
-    // Align system messages center
-    &.str-chat__message--system {
-      grid-template-columns: 1fr;
+      .str-chat__message-text,
+      .str-chat__quoted-message-bubble {
+        padding: 0;
+      }
     }
   }
-}
 
-.str-chat {
-  --str-chat__message-bubble-background-color: transparent;
-  --str-chat__own-message-bubble-background-color: transparent;
-  --str-chat__quoted-message-bubble-background-color: transparent;
-  --str-chat__deleted-message-background-color: transparent;
-  --str-chat__card-attachment-border-inline-start: 3px solid var(--sage4);
-  --str-chat__message-reaction-background-color: var(--sage4);
-  --str-chat__own-message-reaction-background-color: var(--mint5);
+  @layer overrides {
+    // Custom message layout: own messages
+    .str-chat__message.str-chat__message--me {
+      // Align message to left
+      grid-template-areas:
+        "avatar message"
+        ". replies"
+        ". metadata";
+      justify-items: start;
+      grid-template-columns: auto 1fr;
+      column-gap: 0.5rem;
+
+      // Don't hide the chat user's avatar
+      .str-chat__message-sender-avatar {
+        display: block;
+      }
+
+      // Align reactions selector to left
+      .str-chat__message-reactions-container {
+        justify-content: flex-start;
+      }
+
+      // Align message reactions to left
+      .str-chat__message-reaction-selector {
+        inset-inline-end: unset;
+        inset-inline-start: 0;
+      }
+
+      // Align system messages center
+      &.str-chat__message--system {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
 }
 
 html {
   height: 100%;
+}
+
+* {
+  font-family: "Roboto", sans-serif;
 }
 
 body {
@@ -130,10 +151,34 @@ body {
   height: 100%;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.level-selector {
+  padding: 8px;
+  margin: auto;
+
+  button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+
+    &.selected {
+      font-weight: bold;
+      color: var(--mint11);
+    }
+  }
+}
+
 @if $stream-chat-theme-version == "2" {
-  #root {
+  #chat-root {
     display: flex;
     height: 100%;
+    min-height: 0;
 
     .menu-open {
       width: 100%;

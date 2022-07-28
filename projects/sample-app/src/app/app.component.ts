@@ -28,6 +28,13 @@ export class AppComponent implements AfterViewInit {
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   themeVersion: '1' | '2';
   theme$: Observable<string>;
+  levels = [
+    'No customization',
+    'Theme variables',
+    'Component variables',
+    'Custom CSS code',
+  ];
+  selectedLevelIndex = 0;
 
   constructor(
     private chatService: ChatClientService,
