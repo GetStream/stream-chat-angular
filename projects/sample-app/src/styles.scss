@@ -12,7 +12,7 @@
     // Theme variables
     // Neutral colors for backgrounds, borders, texts
     --str-chat__background-color: var(--sage1);
-    --str-chat__secondary-background-color: var(--sage2);
+    --str-chat__secondary-background-color: var(--sage3);
     --str-chat__surface-color: var(--sage5);
     --str-chat__secondary-surface-color: var(--sage4);
     --str-chat__tertiary-surface-color: var(--sage3);
@@ -28,10 +28,6 @@
     --str-chat__primary-surface-color: var(--mint4);
     --str-chat__primary-surface-color-low-emphasis: var(--mint2);
 
-    // Border radius
-    --str-chat__border-radius-md: 12px;
-    --str-chat__border-radius-circle: 20%;
-
     // Font
     --str-chat__font-family: "Roboto", sans-serif;
   }
@@ -40,8 +36,10 @@
 .component-variables {
   .str-chat {
     // Component variables
-    // Jumpt-to-latest button
-    --str-chat__jump-to-latest-message-border-radius: 999px;
+    // Avatar
+    --str-chat__avatar-border-radius: 20%;
+    --str-chat__avatar-background-color: var(--mint11);
+    --str-chat__avatar-color: var(--sage2);
 
     // Channel preview
     --str-chat__channel-preview-border-block-end: 1px solid var(--sage5);
