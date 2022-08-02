@@ -343,14 +343,6 @@ export class ChannelService<
     this.latestMessageDateByUserByChannels$ =
       this.latestMessageDateByUserByChannelsSubject.asObservable();
 
-    // Reset after active channel becomes undefined
-    this.activeChannel$.pipe(filter((c) => !c)).subscribe((c) => {
-      this.activeChannelMessagesSubject.next([]);
-      this.selectMessageToQuote(undefined);
-      this.activeParentMessageIdSubject.next(undefined);
-      void this.setAsActiveParentMessage(undefined);
-    });
-
     // Deselect active channel is removed from channel list
     combineLatest([this.channels$, this.activeChannel$])
       .pipe(
