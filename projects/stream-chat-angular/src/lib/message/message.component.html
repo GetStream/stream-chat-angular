@@ -246,7 +246,9 @@
                     ></span>
                     <ng-template #mention>
                       <ng-template #defaultMention let-content="content">
-                        <b>{{ content }}</b>
+                        <span class="str-chat__message-mention">{{
+                          content
+                        }}</span>
                       </ng-template>
                       <ng-container
                         *ngTemplateOutlet="
