@@ -162,14 +162,6 @@ describe('MessageListComponent', () => {
     expect(scrollContainer.scrollTop).toBe(0);
   });
 
-  it('should scroll to bottom, after an image has been loaded', () => {
-    const imageLoadService = TestBed.inject(ImageLoadService);
-    spyOn(component, 'scrollToBottom');
-    imageLoadService.imageLoad$.next();
-
-    expect(component.scrollToBottom).toHaveBeenCalledWith();
-  });
-
   it(`shouldn't scroll to bottom, after an image has been loaded if direction is top to bottom`, () => {
     component.direction = 'top-to-bottom';
     component.ngOnChanges({ direction: {} as SimpleChange });
@@ -342,17 +334,6 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(queryScrollToLatestButton()?.textContent).toContain('1');
-    });
-
-    it('should use a treshold when determining if user is scrolled up', () => {
-      const scrollContainer = queryScrollContainer()!;
-      scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight - scrollContainer.clientHeight - 150,
-      });
-      scrollContainer.dispatchEvent(new Event('scroll'));
-      fixture.detectChanges();
-
-      expect(queryScrollToLatestButton()).toBeNull();
     });
 
     it('should scroll down if user sends new message', () => {

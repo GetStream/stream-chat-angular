@@ -3,11 +3,11 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { ModalComponent } from '../modal/modal.component';
 import { ChannelService } from '../channel.service';
-import { ImageLoadService } from '../message-list/image-load.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
+import { AttachmentConfigurationService } from '../attachment-configuration.service';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -27,17 +27,6 @@ describe('AttachmentListComponent', () => {
   let queryVideos: () => HTMLVideoElement[];
   let sendAction: jasmine.Spy;
 
-  const waitForImgComplete = () => {
-    const img = queryImages()[0];
-    return new Promise((resolve, reject) => {
-      if (!img) {
-        return reject();
-      }
-      img.addEventListener('load', () => resolve(undefined));
-      img.addEventListener('error', () => resolve(undefined));
-    });
-  };
-
   beforeEach(async () => {
     sendAction = jasmine.createSpy();
     await TestBed.configureTestingModule({
@@ -45,6 +34,7 @@ describe('AttachmentListComponent', () => {
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
         StreamI18nService,
+        AttachmentConfigurationService,
       ],
       imports: [TranslateModule.forRoot()],
     }).compileComponents();
@@ -419,23 +409,6 @@ describe('AttachmentListComponent', () => {
 
       expect(queryImages()[0].alt).toContain(fallback);
     });
-
-    it('should emit image load event', async () => {
-      const imageLoadService = TestBed.inject(ImageLoadService);
-      const spy = jasmine.createSpy();
-      imageLoadService.imageLoad$.subscribe(spy);
-      component.attachments = [
-        {
-          type: 'image',
-          image_url: 'https://picsum.photos/200/300',
-        },
-      ];
-      component.ngOnChanges();
-      fixture.detectChanges();
-      await waitForImgComplete();
-
-      expect(spy).toHaveBeenCalledWith(undefined);
-    });
   });
 
   describe('should display file attachment', () => {
@@ -800,5 +773,107 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
 
     expect(queryVideos().length).toBe(0);
+  });
+
+  it('should set #height and #width property for all image attachments', () => {
+    const configurationService = TestBed.inject(AttachmentConfigurationService);
+    const testConfiguration = {
+      url: 'test-url',
+      width: '300px',
+      height: '300px',
+    };
+    spyOn(
+      configurationService,
+      'getImageAttachmentConfiguration'
+    ).and.returnValue(testConfiguration);
+    spyOn(
+      configurationService,
+      'getVideoAttachmentConfiguration'
+    ).and.returnValue(testConfiguration);
+    spyOn(
+      configurationService,
+      'getGiphyAttachmentConfiguration'
+    ).and.returnValue(testConfiguration);
+    spyOn(
+      configurationService,
+      'getScrapedImageAttachmentConfiguration'
+    ).and.returnValue(testConfiguration);
+
+    // Single image, link image, video, giphy
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      {
+        title: 'BBC - Homepage',
+        title_link: 'https://www.bbc.com/',
+        og_scrape_url: 'https://www.bbc.com/',
+        image_url: 'https://assets/images/favicons/favicon-194x194.png',
+      },
+      {
+        image_url: 'https://getstream.io/images/og/OG_Home.png',
+        og_scrape_url: 'https://getstream.io/',
+        text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
+        thumb_url: 'https://getstream.io/images/og/OG_Home.png',
+        title: 'The #1 Chat Messaging + Activity Feed Infrastructure',
+        title_link: '/',
+        type: 'image',
+      },
+      {
+        thumb_url:
+          'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
+        title: 'cats',
+        title_link: 'https://giphy.com/gifs/game-point-Eq5pb4dR4DJQc',
+        type: 'giphy',
+      },
+      {
+        type: 'video',
+        asset_url: 'url6',
+      },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+
+    [...queryImages(), ...queryCardImages(), ...queryVideos()].forEach(
+      (element) => {
+        expect(element.style.height).toBe(testConfiguration.height);
+        expect(element.style.width).toBe(testConfiguration.width);
+      }
+    );
+
+    // Gallery
+    component.attachments = [
+      { type: 'image', img_url: 'url1' },
+      { type: 'image', img_url: 'url2' },
+      { type: 'image', img_url: 'url3' },
+      { type: 'image', img_url: 'url4' },
+      { type: 'image', img_url: 'url5' },
+    ];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    const gallery = queryGallery()!;
+
+    [
+      ...Array.from(gallery.querySelectorAll('img')),
+      gallery.querySelector<HTMLButtonElement>(
+        '[data-testid="more-image-button"]'
+      )!,
+    ].forEach((element) => {
+      expect(element.style.height).toBe(testConfiguration.height);
+      expect(element.style.width).toBe(testConfiguration.width);
+    });
+
+    // Image carousel
+    const attachment = {
+      type: 'image',
+      image_url: 'url1',
+    };
+    component.attachments = [attachment];
+    component.ngOnChanges();
+    fixture.detectChanges();
+    queryImages()[0].click();
+    fixture.detectChanges();
+    const modalImage = queryImageModalImage()!;
+
+    expect(modalImage.style.height).toBe(testConfiguration.height);
+    expect(modalImage.style.width).toBe(testConfiguration.width);
   });
 });

@@ -22,7 +22,6 @@ import {
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
-import { ImageLoadService } from './image-load.service';
 import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 
@@ -66,7 +65,7 @@ export class MessageListComponent
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
-  private readonly isUserScrolledUpThreshold = 300;
+  private readonly isUserScrolledUpThreshold = 0;
   private subscriptions: Subscription[] = [];
   private prevScrollTop: number | undefined;
   private usersTypingInChannel$!: Observable<
@@ -79,7 +78,6 @@ export class MessageListComponent
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-    private imageLoadService: ImageLoadService,
     private customTemplatesService: CustomTemplatesService
   ) {
     this.subscriptions.push(
@@ -88,17 +86,6 @@ export class MessageListComponent
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
           this.enabledMessageActions = capabilites;
-        }
-      })
-    );
-    this.subscriptions.push(
-      this.imageLoadService.imageLoad$.subscribe(() => {
-        if (!this.isUserScrolled && this.direction === 'bottom-to-top') {
-          this.scrollToBottom();
-          // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
-          setTimeout(() => {
-            this.scrollToBottom();
-          }, 300);
         }
       })
     );
@@ -158,10 +145,6 @@ export class MessageListComponent
       if (this.hasNewMessages) {
         if (!this.isUserScrolled || this.isNewMessageSentByUser) {
           this.scrollToBottom();
-          // Hacky and unreliable workaround to scroll down after loaded images move the scrollbar
-          setTimeout(() => {
-            this.scrollToBottom();
-          }, 300);
         }
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;

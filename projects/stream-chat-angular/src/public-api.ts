@@ -6,6 +6,7 @@ export * from './lib/chat-client.service';
 export * from './lib/channel.service';
 export * from './lib/theme.service';
 export * from './lib/attachment.service';
+export * from './lib/attachment-configuration.service';
 export * from './lib/stream-i18n.service';
 export * from './lib/avatar/avatar.component';
 export * from './lib/avatar-placeholder/avatar-placeholder.component';

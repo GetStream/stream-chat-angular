@@ -6,12 +6,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Action, Attachment } from 'stream-chat';
-import { ImageLoadService } from '../message-list/image-load.service';
 import { ModalContext, DefaultStreamChatGenerics } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { AttachmentConfigurationService } from '../attachment-configuration.service';
 
 /**
  * The `AttachmentList` compontent displays the attachments of a message
@@ -42,8 +42,8 @@ export class AttachmentListComponent implements OnChanges {
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
-    private imageLoadService: ImageLoadService,
-    private channelService: ChannelService
+    private channelService: ChannelService,
+    private attachmentConfigurationService: AttachmentConfigurationService
   ) {}
 
   ngOnChanges(): void {
@@ -87,10 +87,6 @@ export class AttachmentListComponent implements OnChanges {
       (attachment.type === 'image' && !this.isImage(attachment)) ||
       attachment.type === 'giphy'
     );
-  }
-
-  imageLoaded() {
-    this.imageLoadService.imageLoad$.next();
   }
 
   hasFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {
@@ -147,6 +143,34 @@ export class AttachmentListComponent implements OnChanges {
 
   trackByImageUrl(_: number, item: Attachment) {
     return item.image_url || item.img_url || item.thumb_url;
+  }
+
+  getImageAttachmentConfiguration(
+    attachment: Attachment,
+    type: 'gallery' | 'single' | 'carousel'
+  ) {
+    return this.attachmentConfigurationService.getImageAttachmentConfiguration(
+      attachment,
+      type
+    );
+  }
+
+  getVideoAttachmentConfiguration(attachment: Attachment) {
+    return this.attachmentConfigurationService.getVideoAttachmentConfiguration(
+      attachment
+    );
+  }
+
+  getCardAttachmentConfiguration(attachment: Attachment) {
+    if (attachment.type === 'giphy') {
+      return this.attachmentConfigurationService.getGiphyAttachmentConfiguration(
+        attachment
+      );
+    } else {
+      return this.attachmentConfigurationService.getScrapedImageAttachmentConfiguration(
+        attachment
+      );
+    }
   }
 
   get isImageModalPrevButtonVisible() {

@@ -255,3 +255,9 @@ export type MessageReactionType =
   | 'love'
   | 'sad'
   | 'wow';
+
+export type AttachmentConfigration = {
+  url: string;
+  height: string;
+  width: string;
+};
