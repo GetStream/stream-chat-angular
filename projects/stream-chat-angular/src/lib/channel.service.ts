@@ -496,11 +496,15 @@ export class ChannelService<
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     this.shouldSetActiveChannel = shouldSetActiveChannel;
-    const result = await this.queryChannels(this.shouldSetActiveChannel);
-    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
-      (notification) => void this.handleNotification(notification)
-    );
-    return result;
+    try {
+      const result = await this.queryChannels(this.shouldSetActiveChannel);
+      this.clientEventsSubscription = this.chatClientService.events$.subscribe(
+        (notification) => void this.handleNotification(notification)
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
