@@ -53,12 +53,14 @@ describe('MessageComponent', () => {
   let queryReplyInThreadIcon: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
+  let jumpToMessageSpy: jasmine.Spy;
 
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
     setAsActiveParentMessageSpy = jasmine.createSpy(
       'setAsActiveParentMessageSpy'
     );
+    jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -85,6 +87,7 @@ describe('MessageComponent', () => {
           useValue: {
             resendMessage: resendMessageSpy,
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
+            jumpToMessage: jumpToMessageSpy,
           },
         },
       ],
@@ -990,12 +993,26 @@ describe('MessageComponent', () => {
     });
   });
 
+  it('should apply necessary CSS class, if highlighted', () => {
+    expect(
+      nativeElement.querySelector('.str-chat__message--highlighted')
+    ).toBeNull();
+
+    component.isHighlighted = true;
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('.str-chat__message--highlighted')
+    ).not.toBeNull();
+  });
+
   describe('quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
+    let quotedMessage: StreamMessage<DefaultStreamChatGenerics>;
 
     beforeEach(() => {
-      const quotedMessage = mockMessage();
+      quotedMessage = mockMessage();
       quotedMessage.id = 'quoted-message';
       quotedMessage.user = { id: 'sara', name: 'Sara', image: 'url/to/img' };
       quotedMessage.attachments = [{ id: '1' }, { id: '2' }];
@@ -1064,6 +1081,17 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(queryAttachmentComponent()).toBeDefined();
+    });
+
+    it('should jump to quoted message upon click', () => {
+      nativeElement
+        .querySelector<HTMLElement>(quotedMessageContainerSelector)!
+        .click();
+
+      expect(jumpToMessageSpy).toHaveBeenCalledWith(
+        quotedMessage.id,
+        quotedMessage.parent_id
+      );
     });
   });
 });

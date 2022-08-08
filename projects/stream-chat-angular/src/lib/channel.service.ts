@@ -24,6 +24,7 @@ import {
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
 import { createMessagePreview } from './message-preview';
+import { NotificationService } from './notification.service';
 import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
@@ -101,6 +102,10 @@ export class ChannelService<
    * Emits the currently selected message to quote
    */
   messageToQuote$: Observable<StreamMessage<T> | undefined>;
+  /**
+   * Emits the ID of the message the message list should jump to (can be a channel message or thread message)
+   */
+  jumpToMessage$: Observable<{ id?: string; parentId?: string }>;
   /**
    * Emits the list of users that are currently typing in the channel (current user is not included)
    */
@@ -242,6 +247,10 @@ export class ChannelService<
   private activeThreadMessagesSubject = new BehaviorSubject<
     (StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>)[]
   >([]);
+  private jumpToMessageSubject = new BehaviorSubject<{
+    id?: string;
+    parentId?: string;
+  }>({ id: undefined, parentId: undefined });
   private latestMessageDateByUserByChannelsSubject = new BehaviorSubject<{
     [key: string]: Date;
   }>({});
@@ -294,7 +303,8 @@ export class ChannelService<
 
   constructor(
     private chatClientService: ChatClientService<T>,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private notificationService: NotificationService
   ) {
     this.channels$ = this.channelsSubject.asObservable();
     this.activeChannel$ = this.activeChannelSubject.asObservable();
@@ -336,6 +346,7 @@ export class ChannelService<
       shareReplay()
     );
     this.messageToQuote$ = this.messageToQuoteSubject.asObservable();
+    this.jumpToMessage$ = this.jumpToMessageSubject.asObservable();
 
     this.chatClientService.connectionState$
       .pipe(filter((s) => s === 'online'))
@@ -403,13 +414,18 @@ export class ChannelService<
     this.activeThreadMessagesSubject.next([]);
     this.latestMessageDateByUserByChannelsSubject.next({});
     this.selectMessageToQuote(undefined);
+    this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
   }
 
   /**
    * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
    * @param message
+   * @param loadMessagesForm
    */
-  async setAsActiveParentMessage(message: StreamMessage<T> | undefined) {
+  async setAsActiveParentMessage(
+    message: StreamMessage<T> | undefined,
+    loadMessagesForm: 'request' | 'state' = 'request'
+  ) {
     const messageToQuote = this.messageToQuoteSubject.getValue();
     if (messageToQuote && !!messageToQuote.parent_id) {
       this.messageToQuoteSubject.next(undefined);
@@ -417,24 +433,47 @@ export class ChannelService<
     if (!message) {
       this.activeParentMessageIdSubject.next(undefined);
       this.activeThreadMessagesSubject.next([]);
+      const messageToJumpTo = this.jumpToMessageSubject.getValue();
+      if (messageToJumpTo && !!messageToJumpTo.parentId) {
+        this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
+      }
     } else {
       this.activeParentMessageIdSubject.next(message.id);
       const activeChannel = this.activeChannelSubject.getValue();
-      const result = await activeChannel?.getReplies(message.id, {
-        limit: this.options?.message_limit,
-      });
-      this.activeThreadMessagesSubject.next(result?.messages || []);
+      if (loadMessagesForm === 'request') {
+        const result = await activeChannel?.getReplies(message.id, {
+          limit: this.options?.message_limit,
+        });
+        this.activeThreadMessagesSubject.next(result?.messages || []);
+      } else {
+        this.activeThreadMessagesSubject.next(
+          activeChannel?.state.threads[message.id] || []
+        );
+      }
     }
   }
 
   /**
    * Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+   * @param direction
    */
-  async loadMoreMessages() {
+  async loadMoreMessages(direction: 'older' | 'newer' = 'older') {
     const activeChnannel = this.activeChannelSubject.getValue();
-    const lastMessageId = this.activeChannelMessagesSubject.getValue()[0]?.id;
+    const messages = this.activeChannelMessagesSubject.getValue();
+    const lastMessageId =
+      messages[direction === 'older' ? 0 : messages.length - 1]?.id;
+    if (
+      direction === 'newer' &&
+      activeChnannel?.state?.latestMessages === activeChnannel?.state?.messages
+    ) {
+      // If we are on latest message set, activeChannelMessages$ will be refreshed by WS events, no need for a request
+      return;
+    }
     await activeChnannel?.query({
-      messages: { limit: this.options?.message_limit, id_lt: lastMessageId },
+      messages: {
+        limit: this.options?.message_limit,
+        [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
+      },
       members: { limit: 0 },
       watchers: { limit: 0 },
     });
@@ -450,17 +489,24 @@ export class ChannelService<
 
   /**
    * Loads the next page of messages of the active thread. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
+   * @param direction
    */
-  async loadMoreThreadReplies() {
+  async loadMoreThreadReplies(direction: 'older' | 'newer' = 'older') {
+    if (direction === 'newer') {
+      // Thread replies aren't broke into different message sets, activeThreadMessages$ will be refreshed by WS events, no need for a request
+      return;
+    }
     const activeChnannel = this.activeChannelSubject.getValue();
     const parentMessageId = this.activeParentMessageIdSubject.getValue();
     if (!parentMessageId) {
       return;
     }
-    const lastMessageId = this.activeThreadMessagesSubject.getValue()[0]?.id;
+    const threadMessages = this.activeThreadMessagesSubject.getValue();
+    const lastMessageId =
+      threadMessages[direction === 'older' ? 0 : threadMessages.length - 1]?.id;
     await activeChnannel?.getReplies(parentMessageId, {
       limit: this.options?.message_limit,
-      id_lt: lastMessageId,
+      [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
     });
     this.activeThreadMessagesSubject.next(
       activeChnannel?.state.threads[parentMessageId] || []
@@ -792,6 +838,34 @@ export class ChannelService<
             ...channel.state.threads[preview.parent_id!],
           ])
         : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    }
+  }
+
+  /**
+   * Jumps to the selected message inside the message list, if the message is not yet loaded, it'll load the message (and it's surroundings) from the API.
+   * @param messageId The ID of the message to be loaded, 'latest' means jump to the latest messages
+   * @param parentMessageId The ID of the parent message if we want to load a thread message
+   */
+  async jumpToMessage(messageId: string, parentMessageId?: string) {
+    const activeChannel = this.activeChannelSubject.getValue();
+    try {
+      await activeChannel?.state.loadMessageIntoState(
+        messageId,
+        parentMessageId
+      );
+      const messages = activeChannel?.state.messages || [];
+      this.activeChannelMessagesSubject.next([...messages]);
+      if (parentMessageId) {
+        const parentMessage = messages.find((m) => m.id === parentMessageId);
+        void this.setAsActiveParentMessage(parentMessage, 'state');
+      }
+      this.jumpToMessageSubject.next({
+        id: messageId,
+        parentId: parentMessageId,
+      });
+    } catch (error) {
+      this.notificationService.addTemporaryNotification('Message not found');
+      throw error;
     }
   }
 

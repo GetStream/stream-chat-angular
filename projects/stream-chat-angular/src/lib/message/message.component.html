@@ -10,6 +10,7 @@
   [class.mobile-press]="isPressedOnMobile"
   [class.str-chat__message--has-attachment]="hasAttachment"
   [class.str-chat__message--with-reactions]="hasReactions"
+  [class.str-chat__message--highlighted]="isHighlighted"
   data-testid="message-container"
   (mouseleave)="isActionBoxOpen = false"
 >
@@ -373,6 +374,18 @@
     class="quoted-message"
     data-testid="quoted-message-container"
     [class.mine]="isSentByCurrentUser"
+    (click)="
+      jumpToMessage(
+        (message?.quoted_message)!.id,
+        message?.quoted_message?.parent_id
+      )
+    "
+    (keyup.enter)="
+      jumpToMessage(
+        (message?.quoted_message)!.id,
+        message?.quoted_message?.parent_id
+      )
+    "
   >
     <stream-avatar-placeholder
       data-testid="qouted-message-avatar"
