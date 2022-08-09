@@ -1,1 +1,1 @@
-export const version = '4.0.0-theming-v2.6';
+export const version = '4.0.0-theming-v2.7';
