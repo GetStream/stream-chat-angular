@@ -166,7 +166,10 @@
   </div>
 </div>
 
-<div *ngIf="themeVersion === '2'" class="str-chat__message-input">
+<div
+  *ngIf="themeVersion === '2'"
+  class="str-chat__message-input str-chat-angular__message-input"
+>
   <div *ngIf="quotedMessage" class="str-chat__quoted-message-preview-header">
     <div class="str-chat__quoted-message-reply-to-message">
       {{ "streamChat.Reply to Message" | translate }}
@@ -183,7 +186,12 @@
     </button>
   </div>
   <ng-container *ngIf="canSendMessages; else notAllowed">
-    <div class="str-chat__message-input-inner">
+    <div
+      class="
+        str-chat__message-input-inner
+        str-chat-angular__message-input-inner
+      "
+    >
       <div
         *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
         class="str-chat__file-input-container"
