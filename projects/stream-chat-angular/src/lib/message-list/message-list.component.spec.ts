@@ -7,6 +7,7 @@ import {
 } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
 import { Channel } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -53,7 +54,10 @@ describe('MessageListComponent', () => {
         { provide: ChannelService, useValue: channelServiceMock },
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user: mockCurrentUser() } },
+          useValue: {
+            chatClient: { user: mockCurrentUser() },
+            user$: of(mockCurrentUser()),
+          },
         },
       ],
     });

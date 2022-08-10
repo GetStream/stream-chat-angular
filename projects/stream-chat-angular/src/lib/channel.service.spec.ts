@@ -455,9 +455,8 @@ describe('ChannelService', () => {
     spy.calls.reset();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
-    const message = {
-      ...activeChannel.state.messages[activeChannel.state.messages.length - 1],
-    };
+    const message =
+      activeChannel.state.messages[activeChannel.state.messages.length - 1];
     message.deleted_at = new Date().toISOString();
     (activeChannel as MockChannel).handleEvent('message.deleted', { message });
 
@@ -1002,7 +1001,10 @@ describe('ChannelService', () => {
     spyOn(channel.state, 'removeMessage');
     await service.sendAction('1', { image_action: 'send' });
 
-    expect(channel.state.removeMessage).toHaveBeenCalledWith({ id: '1' });
+    expect(channel.state.removeMessage).toHaveBeenCalledWith({
+      id: '1',
+      parent_id: undefined,
+    });
   });
 
   it('should update message', () => {

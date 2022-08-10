@@ -156,6 +156,7 @@ export type ChannelActionsContext<
 export type AttachmentListContext = {
   messageId: string;
   attachments: Attachment<DefaultStreamChatGenerics>[];
+  parentMessageId?: string;
 };
 
 export type AvatarType = 'channel' | 'user';

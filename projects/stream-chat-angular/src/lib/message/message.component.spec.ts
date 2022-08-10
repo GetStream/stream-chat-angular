@@ -21,6 +21,7 @@ import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ThemeService } from '../theme.service';
+import { of } from 'rxjs';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -75,7 +76,10 @@ describe('MessageComponent', () => {
       providers: [
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user: currentUser } },
+          useValue: {
+            chatClient: { user: currentUser },
+            user$: of(currentUser),
+          },
         },
         {
           provide: ChannelService,
@@ -555,6 +559,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ attachments },
     };
+    component.message.parent_id = 'parent-id';
     fixture.detectChanges();
     const attachmentComponent = queryAttachmentComponent();
 
@@ -571,6 +576,9 @@ describe('MessageComponent', () => {
     expect(attachmentComponent).not.toBeUndefined();
     expect(attachmentComponent.attachments).toBe(attachments);
     expect(attachmentComponent.messageId).toBe(component.message.id);
+    expect(attachmentComponent.parentMessageId).toBe(
+      component.message.parent_id
+    );
   });
 
   it('should display reactions icon, if user can react to message', () => {
@@ -1038,6 +1046,16 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(quotedMessageContainer?.classList).not.toContain('mine');
+    });
+
+    it('should display reply if we reply with attachments without text', () => {
+      component.message!.attachments = [
+        { image_url: 'url/to/image', type: 'image' },
+      ];
+      component.message!.text = undefined;
+      fixture.detectChanges();
+
+      expect(queryAttachmentComponent()).toBeDefined();
     });
   });
 });

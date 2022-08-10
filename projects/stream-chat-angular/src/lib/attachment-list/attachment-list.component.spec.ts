@@ -327,15 +327,20 @@ describe('AttachmentListComponent', () => {
     } as any as Attachment<DefaultStreamChatGenerics>;
     component.messageId = 'message-id';
     component.attachments = [attachment];
+    component.parentMessageId = 'parent-id';
     component.ngOnChanges();
     fixture.detectChanges();
 
     const actions = queryActions();
     actions[1].click();
 
-    expect(sendAction).toHaveBeenCalledWith('message-id', {
-      image_action: 'shuffle',
-    });
+    expect(sendAction).toHaveBeenCalledWith(
+      'message-id',
+      {
+        image_action: 'shuffle',
+      },
+      'parent-id'
+    );
   });
 
   describe('should display image attachment', () => {

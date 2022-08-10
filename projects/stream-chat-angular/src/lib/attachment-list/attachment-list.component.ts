@@ -29,6 +29,10 @@ export class AttachmentListComponent implements OnChanges {
    */
   @Input() messageId: string | undefined;
   /**
+   * The parent id of the message the attachments belong to
+   */
+  @Input() parentMessageId: string | undefined;
+  /**
    * The attachments to display
    */
   @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
@@ -132,9 +136,13 @@ export class AttachmentListComponent implements OnChanges {
   }
 
   sendAction(action: Action) {
-    void this.channelService.sendAction(this.messageId!, {
-      [action.name!]: action.value!,
-    });
+    void this.channelService.sendAction(
+      this.messageId!,
+      {
+        [action.name!]: action.value!,
+      },
+      this.parentMessageId
+    );
   }
 
   trackByActionValue(_: number, item: Action) {

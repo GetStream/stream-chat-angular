@@ -297,6 +297,7 @@ describe('AttachmentService', () => {
   it('should create attachmentUploads from attachments', () => {
     const imageFile = { name: 'flower.png' };
     const dataFile = { name: 'note.txt', size: 3272969 };
+    const videoFile = { name: 'cute.mov', size: 45367543 };
     const result = [
       {
         file: imageFile,
@@ -310,6 +311,12 @@ describe('AttachmentService', () => {
         url: 'url/to/data',
         type: 'file',
       },
+      {
+        file: videoFile,
+        state: 'success',
+        url: 'url/to/video',
+        type: 'video',
+      },
     ];
     const attachments = [
       { fallback: 'flower.png', image_url: 'url/to/img', type: 'image' },
@@ -318,6 +325,12 @@ describe('AttachmentService', () => {
         file_size: 3272969,
         asset_url: 'url/to/data',
         type: 'file',
+      },
+      {
+        title: 'cute.mov',
+        file_size: 45367543,
+        asset_url: 'url/to/video',
+        type: 'video',
       },
     ];
     const spy = jasmine.createSpy();

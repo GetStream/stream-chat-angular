@@ -529,12 +529,17 @@ describe('ChannelService - threads', () => {
       {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>
     );
     spyOn(channel.state, 'removeMessage');
-    await service.sendAction(replies[replies.length - 1].id, {
-      image_action: 'send',
-    });
+    await service.sendAction(
+      replies[replies.length - 1].id,
+      {
+        image_action: 'send',
+      },
+      parentMessage.id
+    );
 
     expect(channel.state.removeMessage).toHaveBeenCalledWith({
       id: replies[replies.length - 1].id,
+      parent_id: parentMessage.id,
     });
   });
 

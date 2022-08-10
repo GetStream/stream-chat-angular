@@ -705,8 +705,13 @@ export class ChannelService<
    * [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
    * @param messageId
    * @param formData
+   * @param parentMessageId
    */
-  async sendAction(messageId: string, formData: Record<string, string>) {
+  async sendAction(
+    messageId: string,
+    formData: Record<string, string>,
+    parentMessageId?: string
+  ) {
     const channel = this.activeChannelSubject.getValue()!;
     const response = await channel.sendAction(messageId, formData);
     if (response?.message) {
@@ -721,21 +726,16 @@ export class ChannelService<
           ])
         : this.activeChannelMessagesSubject.next([...channel.state.messages]);
     } else {
-      channel.state.removeMessage({ id: messageId });
-      if (
-        this.activeChannelMessagesSubject
-          .getValue()
-          .find((m) => m.id === messageId)
-      ) {
-        this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      } else if (
-        this.activeThreadMessagesSubject
-          .getValue()
-          .find((m) => m.id === messageId)
-      ) {
+      channel.state.removeMessage({
+        id: messageId,
+        parent_id: parentMessageId,
+      });
+      if (parentMessageId) {
         this.activeThreadMessagesSubject.next(
           channel.state.threads[this.activeParentMessageIdSubject.getValue()!]
         );
+      } else {
+        this.activeChannelMessagesSubject.next([...channel.state.messages]);
       }
     }
   }
@@ -1007,14 +1007,21 @@ export class ChannelService<
   private messageUpdated(event: Event<T>) {
     this.ngZone.run(() => {
       const isThreadReply = event.message && event.message.parent_id;
-      const messages = isThreadReply
-        ? this.activeThreadMessagesSubject.getValue()
-        : this.activeChannelMessagesSubject.getValue();
+      const channel = this.activeChannelSubject.getValue();
+      if (!channel) {
+        return;
+      }
+      // Get messages from state as message order could change, and message could've been deleted
+      const messages: FormatMessageResponse<T>[] = isThreadReply
+        ? channel.state.threads[event?.message?.parent_id || '']
+        : channel.state.messages;
+      if (!messages) {
+        return;
+      }
       const messageIndex = messages.findIndex(
-        (m) => m.id === event.message?.id
+        (m) => m.id === event?.message?.id
       );
-      if (messageIndex !== -1 && event.message) {
-        messages[messageIndex] = event.message;
+      if (messageIndex !== -1) {
         isThreadReply
           ? this.activeThreadMessagesSubject.next([...messages])
           : this.activeChannelMessagesSubject.next([...messages]);

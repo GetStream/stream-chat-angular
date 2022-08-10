@@ -94,6 +94,9 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions.push(
+      this.chatClientService.user$.subscribe((u) => (this.user = u))
+    );
+    this.subscriptions.push(
       this.customTemplatesService.mentionTemplate$.subscribe(
         (template) => (this.mentionTemplate = template)
       )
@@ -223,6 +226,15 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     return {
       messageId: this.message?.id || '',
       attachments: this.message?.attachments || [],
+      parentMessageId: this.message?.parent_id,
+    };
+  }
+
+  getQuotedMessageAttachmentListContext(): AttachmentListContext {
+    return {
+      messageId: this.message?.quoted_message?.id || '',
+      attachments: this.quotedMessageAttachments,
+      parentMessageId: this?.message?.quoted_message?.parent_id,
     };
   }
 

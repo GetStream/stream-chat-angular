@@ -83,12 +83,12 @@ export class ChatClientService<
    * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
    * @param apiKey
    * @param userOrId
-   * @param userTokenOrProvider
+   * @param userTokenOrProvider You can provide a token, or the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users)
    */
   async init(
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T>,
-    userTokenOrProvider: TokenOrProvider
+    userTokenOrProvider: TokenOrProvider | 'guest'
   ): ConnectAPIResponse<T> {
     this.chatClient = StreamChat.getInstance<T>(apiKey);
     this.chatClient.devToken;
@@ -96,7 +96,10 @@ export class ChatClientService<
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
       try {
-        result = await this.chatClient.connectUser(user, userTokenOrProvider);
+        result =
+          userTokenOrProvider === 'guest'
+            ? await this.chatClient.setGuestUser(user)
+            : await this.chatClient.connectUser(user, userTokenOrProvider);
       } catch (error) {
         this.notificationService.addPermanentNotification(
           'streamChat.Error connecting to chat, refresh the page to try again.',
@@ -104,6 +107,7 @@ export class ChatClientService<
         );
         throw error;
       }
+      this.userSubject.next(this.chatClient.user);
       this.chatClient.setUserAgent(
         `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
       );

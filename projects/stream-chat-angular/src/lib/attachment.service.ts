@@ -177,7 +177,7 @@ export class AttachmentService {
             name: attachment.fallback,
           } as File,
         });
-      } else if (attachment.type === 'file') {
+      } else if (attachment.type === 'file' || attachment.type === 'video') {
         attachmentUploads.push({
           url: attachment.asset_url,
           state: 'success',
@@ -185,7 +185,7 @@ export class AttachmentService {
             name: attachment.title,
             size: attachment.file_size,
           } as File,
-          type: 'file',
+          type: attachment.type,
         });
       }
     });

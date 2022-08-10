@@ -176,7 +176,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(spy).toHaveBeenCalledWith(component.message);
   });
 
-  it('should disable quote action, if message already has a quoted message', () => {
+  it(`shouldn't disable quote action, if message already has a quoted message`, () => {
     component.message = {
       ...component.message!,
       quoted_message: mockMessage() as any as MessageResponseBase,
@@ -188,7 +188,7 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(queryQuoteAction()).toBeNull();
+    expect(queryQuoteAction()).not.toBeNull();
   });
 
   // eslint-disable-next-line jasmine/no-disabled-tests
