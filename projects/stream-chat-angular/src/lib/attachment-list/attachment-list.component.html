@@ -83,13 +83,14 @@
           </button>
         </ng-container>
       </div>
-      <video
-        class="str-chat__video-angular"
-        *ngIf="isVideo(attachment)"
-        controls
-        data-testclass="video-attachment"
-        [src]="attachment.asset_url"
-      ></video>
+      <div class="str-chat__player-wrapper" *ngIf="isVideo(attachment)">
+        <video
+          class="str-chat__video-angular"
+          controls
+          data-testclass="video-attachment"
+          [src]="attachment.asset_url"
+        ></video>
+      </div>
       <div
         *ngIf="isFile(attachment)"
         class="
