@@ -78,6 +78,11 @@ export class AttachmentListComponent implements OnChanges {
     return isImageAttachment(attachment);
   }
 
+  isSvg(attachment: Attachment) {
+    const filename = attachment.fallback || '';
+    return !!filename.toLowerCase().endsWith('.svg');
+  }
+
   isFile(attachment: Attachment) {
     return attachment.type === 'file';
   }

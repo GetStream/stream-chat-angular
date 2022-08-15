@@ -407,6 +407,28 @@ describe('AttachmentListComponent', () => {
 
       expect(spy).toHaveBeenCalledWith(undefined);
     });
+
+    it('should display add necessary CSS class for SVG images', () => {
+      component.attachments = [
+        { type: 'image', img_url: 'image/url', fallback: 'image.svg' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+      ).not.toBeNull();
+
+      component.attachments = [
+        { type: 'image', img_url: 'image/url', fallback: 'image.jpg' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+      ).toBeNull();
+    });
   });
 
   describe('should display file attachment', () => {
