@@ -273,11 +273,8 @@ export class ChannelService<
     const deletedChannels = currentChannels.filter(
       (c) => !channels?.find((channel) => channel.cid === c.cid)
     );
-    this.addChannelsFromNotification(newChannels as ChannelResponse<T>[]);
+    void this.addChannelsFromNotification(newChannels as ChannelResponse<T>[]);
     this.removeChannelsFromChannelList(deletedChannels.map((c) => c.cid));
-    if (!newChannels.length && !deletedChannels.length) {
-      this.channelsSubject.next(channels as Channel<T>[]);
-    }
   };
 
   private messageListSetter = (messages: StreamMessage<T>[]) => {
@@ -866,13 +863,13 @@ export class ChannelService<
 
   private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
-      this.addChannelsFromNotification([clientEvent.event.channel]);
+      void this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 
   private handleAddedToChannelNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
-      this.addChannelsFromNotification([clientEvent.event.channel]);
+      void this.addChannelsFromNotification([clientEvent.event.channel]);
     }
   }
 

@@ -766,7 +766,7 @@ describe('ChannelService', () => {
     expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
   }));
 
-  it(`shouldn't add channels duplicated if two notification event is received for the same channel`, fakeAsync(async () => {
+  it(`shouldn't add channels twice if two notification events were received for the same channel`, fakeAsync(async () => {
     await init();
     const channel = generateMockChannels()[0];
     channel.cid = 'channel';
