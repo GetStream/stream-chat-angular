@@ -876,21 +876,28 @@ export class ChannelService<
     }
   }
 
-  private addChannelsFromNotification(channelResponses: ChannelResponse<T>[]) {
-    const newChannels: Channel<T>[] = [];
+  private async addChannelsFromNotification(
+    channelResponses: ChannelResponse<T>[]
+  ) {
+    let newChannels: Channel<T>[] = [];
+    const watchRequests: Promise<any>[] = [];
     channelResponses.forEach((channelResponse) => {
       const channel = this.chatClientService.chatClient.channel(
         channelResponse.type,
         channelResponse.id
       );
-      void channel.watch();
-      this.watchForChannelEvents(channel);
+      watchRequests.push(channel.watch());
       newChannels.push(channel);
     });
-    this.channelsSubject.next([
-      ...newChannels,
-      ...(this.channelsSubject.getValue() || []),
-    ]);
+    await Promise.all(watchRequests);
+    const currentChannels = this.channelsSubject.getValue() || [];
+    newChannels = newChannels.filter(
+      (newChannel) => !currentChannels.find((c) => c.cid === newChannel.cid)
+    );
+    if (newChannels.length > 0) {
+      newChannels.forEach((c) => this.watchForChannelEvents(c));
+      this.channelsSubject.next([...newChannels, ...currentChannels]);
+    }
   }
 
   private removeChannelsFromChannelList(cids: string[]) {

@@ -766,6 +766,33 @@ describe('ChannelService', () => {
     expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
   }));
 
+  it(`shouldn't add channels duplicated if two notification event is received for the same channel`, fakeAsync(async () => {
+    await init();
+    const channel = generateMockChannels()[0];
+    channel.cid = 'channel';
+    channel.id = 'channel';
+    channel.type = 'messaging';
+    mockChatClient.channel.and.returnValue(channel);
+    spyOn(channel, 'watch').and.callThrough();
+    spyOn(channel, 'on').and.callThrough();
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    events$.next({
+      eventType: 'notification.added_to_channel',
+      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
+    });
+    events$.next({
+      eventType: 'notification.message_new',
+      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
+    });
+    tick();
+
+    const channels = spy.calls.mostRecent().args[0] as Channel[];
+
+    expect(channels.filter((c) => c.cid === channel.cid).length).toBe(1);
+    expect(channel.on).toHaveBeenCalledOnceWith(jasmine.any(Function));
+  }));
+
   it('should remove channel form the list if user is removed from channel', async () => {
     await init();
     let channel!: Channel<DefaultStreamChatGenerics>;
