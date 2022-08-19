@@ -100,9 +100,12 @@ export class ChatClientService<
           ? await this.chatClient.setGuestUser(user)
           : await this.chatClient.connectUser(user, userTokenOrProvider);
       this.userSubject.next(this.chatClient.user);
-      this.chatClient.setUserAgent(
-        `stream-chat-angular-${version}-${this.chatClient.getUserAgent()}`
-      );
+      const sdkPrefix = 'stream-chat-angular';
+      if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
+        this.chatClient.setUserAgent(
+          `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
+        );
+      }
     });
     const channels = await this.chatClient.queryChannels(
       { invite: 'pending' } as any as ChannelFilters<T>, // TODO: find out why we need this typecast
