@@ -24,6 +24,10 @@ imports: [TranslateModule.forRoot(), StreamChatModule];
 export class AppModule {}
 ```
 
+:::important
+You should import the `TranslateModule.forRoot()` in a non-lazy loaded module (even if the chat application is displayed from a lazy loaded module).
+:::
+
 ### Set up the translations
 
 Typically you will be doing it in your `AppComponent`:
