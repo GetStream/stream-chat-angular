@@ -61,13 +61,14 @@ export class MessageListComponent
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
   private parentMessageElement!: ElementRef<HTMLElement>;
-  private latestMessage: StreamMessage | undefined;
+  private latestMessage: { id: string; created_at: Date } | undefined;
   private hasNewMessages: boolean | undefined;
   private containerHeight: number | undefined;
   private oldestMessageDate: Date | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
   private subscriptions: Subscription[] = [];
+  private newMessageSubscription: { unsubscribe: () => void } | undefined;
   private prevScrollTop: number | undefined;
   private usersTypingInChannel$!: Observable<
     UserResponse<DefaultStreamChatGenerics>[]
@@ -88,6 +89,24 @@ export class MessageListComponent
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
           this.enabledMessageActions = capabilites;
+        }
+        this.newMessageSubscription?.unsubscribe();
+        if (channel) {
+          this.newMessageSubscription = channel.on('message.new', (event) => {
+            // If we display main channel messages and we're switched to an older message set -> use message.new event to update unread count and detect new messages sent by current user
+            if (
+              !event.message ||
+              channel.state.messages === channel.state.latestMessages ||
+              this.mode === 'thread'
+            ) {
+              return;
+            }
+            this.newMessageReceived({
+              id: event.message.id,
+              user: event.message.user,
+              created_at: new Date(event.message.created_at || ''),
+            });
+          });
         }
       })
     );
@@ -167,14 +186,18 @@ export class MessageListComponent
         this.hasNewMessages &&
         (this.isNewMessageSentByUser || !this.isUserScrolled)
       ) {
-        this.scrollToTop();
+        this.isLatestMessageInList
+          ? this.scrollToTop()
+          : this.jumpToLatestMessage();
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       }
     } else {
       if (this.hasNewMessages) {
         if (!this.isUserScrolled || this.isNewMessageSentByUser) {
-          this.scrollToBottom();
+          this.isLatestMessageInList
+            ? this.scrollToBottom()
+            : this.jumpToLatestMessage();
         }
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
@@ -188,7 +211,9 @@ export class MessageListComponent
           this.scrollContainer.nativeElement.scrollHeight &&
         !this.isUserScrolled
       ) {
-        this.scrollToBottom();
+        this.isLatestMessageInList
+          ? this.scrollToBottom()
+          : this.jumpToLatestMessage();
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       }
     }
@@ -196,6 +221,7 @@ export class MessageListComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.newMessageSubscription?.unsubscribe();
   }
 
   trackByMessageId(index: number, item: StreamMessage) {
@@ -307,20 +333,7 @@ export class MessageListComponent
           return;
         }
         const currentLatestMessage = messages[messages.length - 1];
-        if (
-          !this.latestMessage ||
-          this.latestMessage.created_at?.getTime() <
-            currentLatestMessage.created_at.getTime()
-        ) {
-          this.latestMessage = currentLatestMessage;
-          this.hasNewMessages = true;
-          this.isNewMessageSentByUser =
-            messages[messages.length - 1].user?.id ===
-            this.chatClientService.chatClient?.user?.id;
-          if (this.isUserScrolled) {
-            this.unreadMessageCount++;
-          }
-        }
+        this.newMessageReceived(currentLatestMessage);
         const currentOldestMessageDate = messages[0].created_at;
         if (!this.oldestMessageDate) {
           this.oldestMessageDate = currentOldestMessageDate;
@@ -400,6 +413,25 @@ export class MessageListComponent
     } else if (withRetry) {
       // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
       setTimeout(() => this.scrollToLatestMessage(false), 0);
+    }
+  }
+
+  private newMessageReceived(message: {
+    id: string;
+    created_at: Date;
+    user?: { id: string } | null;
+  }) {
+    if (
+      !this.latestMessage ||
+      this.latestMessage.created_at?.getTime() < message.created_at.getTime()
+    ) {
+      this.latestMessage = message;
+      this.hasNewMessages = true;
+      this.isNewMessageSentByUser =
+        message.user?.id === this.chatClientService.chatClient?.user?.id;
+      if (this.isUserScrolled) {
+        this.unreadMessageCount++;
+      }
     }
   }
 }

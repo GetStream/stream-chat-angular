@@ -16,6 +16,7 @@ import { ChatClientService } from '../chat-client.service';
 import { MessageComponent } from '../message/message.component';
 import {
   generateMockMessages,
+  MockChannel,
   MockChannelService,
   mockChannelService,
   mockCurrentUser,
@@ -312,7 +313,8 @@ describe('MessageListComponent', () => {
     component.isUserScrolled = true;
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
-    } as Channel<DefaultStreamChatGenerics>);
+      on: () => {},
+    } as any as Channel<DefaultStreamChatGenerics>);
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 
@@ -436,6 +438,44 @@ describe('MessageListComponent', () => {
     expect((component as any).shouldLoadMoreMessages('bottom')).toBeFalse();
 
     /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  });
+
+  it('should get unread message information from "message.new" event if an older message list is displayed', () => {
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    channelServiceMock.activeChannel$.subscribe((c) => (channel = c!));
+    // Simulate message set change
+    channel.state.latestMessages = [];
+    channelServiceMock.activeChannelMessages$.next(
+      generateMockMessages(25, true)
+    );
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({
+      top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
+    });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    const newMessageFromOtherUser = mockMessage();
+    newMessageFromOtherUser.user!.id += 'not';
+    (channel as MockChannel).handleEvent('message.new', {
+      message: newMessageFromOtherUser,
+    });
+
+    expect(component.unreadMessageCount).toBe(1);
+
+    spyOn(channelServiceMock, 'jumpToMessage').and.callThrough();
+    const newMessageFromCurrentUser = mockMessage();
+    newMessageFromCurrentUser.created_at = new Date();
+    (channel as MockChannel).handleEvent('message.new', {
+      message: newMessageFromCurrentUser,
+    });
+    fixture.detectChanges();
+
+    expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+      'latest',
+      undefined
+    );
   });
 
   describe('if user scrolled up', () => {
