@@ -59,6 +59,10 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'thread' | 'main' = 'main';
+  /**
+   * Highlighting is used to add visual emphasize to a message when jumping to the message
+   */
+  @Input() isHighlighted = false;
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isEditing: boolean | undefined;
@@ -283,6 +287,10 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         this.isActionBoxOpen = !this.isEditing;
       },
     };
+  }
+
+  jumpToMessage(messageId: string, parentMessageId?: string) {
+    void this.channelService.jumpToMessage(messageId, parentMessageId);
   }
 
   private createMessageParts() {

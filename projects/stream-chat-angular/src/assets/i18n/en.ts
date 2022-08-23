@@ -95,5 +95,6 @@ export const en = {
     "You can't send thread replies in this channel":
       "You can't send thread replies in this channel",
     'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
+    'Message not found': 'Message not found',
   },
 };

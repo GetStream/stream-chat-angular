@@ -107,8 +107,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       }
       if (
         !event.message ||
-        this.channel?.state.messages[this.channel?.state.messages.length - 1]
-          .id !== event.message.id
+        this.channel?.state.latestMessages[
+          this.channel?.state.latestMessages.length - 1
+        ].id !== event.message.id
       ) {
         return;
       }

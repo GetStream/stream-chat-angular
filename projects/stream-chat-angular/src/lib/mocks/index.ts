@@ -4,7 +4,6 @@ import {
   AppSettings,
   Channel,
   ChannelMemberResponse,
-  ChannelState,
   Event,
   EventTypes,
   MessageResponse,
@@ -102,6 +101,11 @@ export const generateMockChannels = (length = 25) => {
         messages: generateMockMessages(),
         threads: {},
         read: {},
+        members: {
+          jack: { user: { id: 'jack', name: 'Jack' } },
+          sara: { user: { id: 'sara', name: 'Sara' } },
+          eddie: { user: { id: 'eddie' } },
+        },
         addMessageSorted: function (response: MessageResponse) {
           if (response.parent_id) {
             if (
@@ -122,6 +126,28 @@ export const generateMockChannels = (length = 25) => {
           }
         },
         removeMessage: () => {},
+        loadMessageIntoState: function (
+          messageId: string,
+          parentMessageId: string
+        ) {
+          const surroundingMessages = generateMockMessages();
+          const loadedMessage =
+            surroundingMessages[Math.round(surroundingMessages.length / 2)];
+          loadedMessage.id = parentMessageId || messageId;
+          this.messages = surroundingMessages;
+          if (parentMessageId) {
+            const surroundingThreadMessages = generateMockMessages();
+            const loadedThreadMessage =
+              surroundingThreadMessages[
+                Math.round(surroundingThreadMessages.length / 2)
+              ];
+            loadedThreadMessage.id = messageId;
+            (this.threads as { [key: string]: StreamMessage[] })[
+              parentMessageId
+            ] = surroundingThreadMessages;
+          }
+          return Promise.resolve();
+        },
       },
       query: () => {
         return {
@@ -150,6 +176,8 @@ export const generateMockChannels = (length = 25) => {
         ],
       }),
     } as any as MockChannel;
+    channel.state.latestMessages = channel.state.messages;
+
     return channel;
   });
   return channels;
@@ -165,12 +193,14 @@ export type MockChannelService = {
   activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
   usersTypingInChannel$: BehaviorSubject<UserResponse[]>;
   usersTypingInThread$: BehaviorSubject<UserResponse[]>;
-  loadMoreMessages: () => void;
+  jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
+  loadMoreMessages: (d: 'older' | 'newer') => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
   setAsActiveParentMessage: (m: StreamMessage | undefined) => void;
-  loadMoreThreadReplies: () => void;
+  loadMoreThreadReplies: (d: 'older' | 'newer') => void;
   autocompleteMembers: (s: string) => ChannelMemberResponse[];
+  jumpToMessage: (id: string, parentId?: string) => void;
 };
 
 export const mockChannelService = (): MockChannelService => {
@@ -185,42 +215,18 @@ export const mockChannelService = (): MockChannelService => {
   );
   const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
+  const activeChannel = generateMockChannels(1)[0];
   const activeChannel$ = new BehaviorSubject<
     Channel<DefaultStreamChatGenerics>
-  >({
-    id: 'channelid',
-    data: {
-      own_capabilities: [
-        'upload-file',
-        'flag-message',
-        'send-reaction',
-        'update-any-message',
-        'delete-any-message',
-        'typing-events',
-      ],
-    },
-    state: {
-      members: {
-        jack: { user: { id: 'jack', name: 'Jack' } },
-        sara: { user: { id: 'sara', name: 'Sara' } },
-        eddie: { user: { id: 'eddie' } },
-      },
-    } as any as ChannelState,
-    getConfig: () => ({
-      commands: [
-        {
-          args: '[text]',
-          description: 'Post a random gif to the channel',
-          name: 'giphy',
-          set: 'fun_set',
-        },
-      ],
-    }),
-  } as any as Channel<DefaultStreamChatGenerics>);
+  >(activeChannel);
   const channels$ = new BehaviorSubject<
     Channel<DefaultStreamChatGenerics>[] | undefined
   >(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);
+  const jumpToMessage$ = new BehaviorSubject<{
+    id?: string;
+    parentId?: string;
+  }>({ id: undefined, parentId: undefined });
 
   const autocompleteMembers = () => [
     { user: { id: 'jack', name: 'Jack' } },
@@ -252,6 +258,8 @@ export const mockChannelService = (): MockChannelService => {
     channel;
   };
 
+  const jumpToMessage = () => {};
+
   return {
     activeChannelMessages$,
     activeChannel$,
@@ -268,6 +276,8 @@ export const mockChannelService = (): MockChannelService => {
     setAsActiveParentMessage,
     usersTypingInChannel$,
     usersTypingInThread$,
+    jumpToMessage$,
+    jumpToMessage,
   };
 };
 

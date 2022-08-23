@@ -19,6 +19,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from './mocks';
+import { NotificationService } from './notification.service';
 import {
   AttachmentUpload,
   DefaultStreamChatGenerics,
@@ -69,6 +70,7 @@ describe('ChannelService', () => {
             connectionState$,
           },
         },
+        NotificationService,
       ],
     });
     service = TestBed.inject(ChannelService);
@@ -173,11 +175,14 @@ describe('ChannelService', () => {
     service.messageToQuote$.subscribe(messageToQuoteSpy);
     const latestMessagesSpy = jasmine.createSpy();
     service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
+    const jumpToMessageSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     channelsSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
     latestMessagesSpy.calls.reset();
+    jumpToMessageSpy.calls.reset();
     service.reset();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -211,16 +216,23 @@ describe('ChannelService', () => {
     service.messageToQuote$.subscribe(messageToQuoteSpy);
     const latestMessagesSpy = jasmine.createSpy();
     service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
+    const jumpToMessageSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
     latestMessagesSpy.calls.reset();
+    jumpToMessageSpy.calls.reset();
     service.deselectActiveChannel();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
+    expect(jumpToMessageSpy).toHaveBeenCalledWith({
+      id: undefined,
+      parentId: undefined,
+    });
 
     messagesSpy.calls.reset();
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
@@ -306,7 +318,7 @@ describe('ChannelService', () => {
     /* eslint-enable jasmine/new-line-before-expect */
   });
 
-  it('should load more messages', async () => {
+  it('should load more older messages', async () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe(
@@ -319,9 +331,45 @@ describe('ChannelService', () => {
 
     const arg = (activeChannel.query as jasmine.Spy).calls.mostRecent()
       .args[0] as { messages: { id_lt: string } };
-    const latestMessage = activeChannel.state.messages[0];
+    const oldestMessage = activeChannel.state.messages[0];
 
-    expect(arg.messages.id_lt).toEqual(latestMessage.id);
+    expect(arg.messages.id_lt).toEqual(oldestMessage.id);
+  });
+
+  it('should load more newer messages', async () => {
+    await init();
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe(
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+    );
+    activeChannel.state.latestMessages = [];
+    spyOn(activeChannel, 'query').and.callThrough();
+    await service.loadMoreMessages('newer');
+
+    expect(activeChannel.query).toHaveBeenCalledWith(jasmine.any(Object));
+
+    const arg = (activeChannel.query as jasmine.Spy).calls.mostRecent()
+      .args[0] as { messages: { id_gt: string } };
+    const lastMessage =
+      activeChannel.state.messages[activeChannel.state.messages.length - 1];
+
+    expect(arg.messages.id_gt).toEqual(lastMessage.id);
+  });
+
+  it(`shouldn't load more newer messages if already at the latest messages`, async () => {
+    await init();
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe(
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+    );
+    spyOn(activeChannel, 'query').and.callThrough();
+    await service.loadMoreMessages('newer');
+
+    expect(activeChannel.query).not.toHaveBeenCalled();
+
+    await service.loadMoreMessages('older');
+
+    expect(activeChannel.query).toHaveBeenCalledWith(jasmine.any(Object));
   });
 
   it('should add reaction', async () => {
@@ -1562,5 +1610,50 @@ describe('ChannelService', () => {
     );
 
     expect(service.reset).toHaveBeenCalledOnceWith();
+  });
+
+  it('should load message into state', async () => {
+    await init();
+    const jumpToMessageIdSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageIdSpy);
+    jumpToMessageIdSpy.calls.reset();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    const messageId = '1232121123';
+    await service.jumpToMessage(messageId);
+
+    expect(jumpToMessageIdSpy).toHaveBeenCalledWith({
+      id: messageId,
+      parentId: undefined,
+    });
+
+    expect(messagesSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
+    );
+  });
+
+  it(`should display error notification if message couldn't be loaded`, async () => {
+    await init();
+    const jumpToMessageIdSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageIdSpy);
+    jumpToMessageIdSpy.calls.reset();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    let activeChannel: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const error = new Error();
+    spyOn(activeChannel!.state, 'loadMessageIntoState').and.rejectWith(error);
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    const messageId = '1232121123';
+    await expectAsync(service.jumpToMessage(messageId)).toBeRejectedWith(error);
+
+    expect(jumpToMessageIdSpy).not.toHaveBeenCalled();
+    expect(messagesSpy).not.toHaveBeenCalled();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Message not found'
+    );
   });
 });

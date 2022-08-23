@@ -147,6 +147,7 @@ export type MessageContext = {
   enabledMessageActions: string[];
   isLastSentMessage: boolean | undefined;
   mode: 'thread' | 'main';
+  isHighlighted: boolean;
 };
 
 export type ChannelActionsContext<
