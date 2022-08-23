@@ -364,7 +364,7 @@ describe('MessageListComponent', () => {
 
     expect(component.highlightedMessageId).toBe(message.id);
 
-    tick(500);
+    tick(1000);
     fixture.detectChanges();
 
     expect(component.highlightedMessageId).toBeUndefined();
