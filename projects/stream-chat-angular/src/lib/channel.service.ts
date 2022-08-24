@@ -87,6 +87,10 @@ export class ChannelService<
    */
   activeChannelMessages$: Observable<StreamMessage<T>[]>;
   /**
+   * Emits the list of pinned messages of the active channel.
+   */
+  activeChannelPinnedMessages$: Observable<StreamMessage<T>[]>;
+  /**
    * Emits the id of the currently selected parent message. If no message is selected, it emits undefined.
    */
   activeParentMessageId$: Observable<string | undefined>;
@@ -239,6 +243,9 @@ export class ChannelService<
   private activeChannelMessagesSubject = new BehaviorSubject<
     (StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>)[]
   >([]);
+  private activeChannelPinnedMessagesSubject = new BehaviorSubject<
+    StreamMessage[]
+  >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
   private activeParentMessageIdSubject = new BehaviorSubject<
@@ -356,6 +363,8 @@ export class ChannelService<
     this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
     this.latestMessageDateByUserByChannels$ =
       this.latestMessageDateByUserByChannelsSubject.asObservable();
+    this.activeChannelPinnedMessages$ =
+      this.activeChannelPinnedMessagesSubject.asObservable();
   }
 
   /**
@@ -391,6 +400,9 @@ export class ChannelService<
       void channel.markRead();
     }
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    this.activeChannelPinnedMessagesSubject.next([
+      ...channel.state.pinnedMessages,
+    ]);
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
     this.messageToQuoteSubject.next(undefined);
@@ -412,6 +424,7 @@ export class ChannelService<
     this.latestMessageDateByUserByChannelsSubject.next({});
     this.selectMessageToQuote(undefined);
     this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
+    this.activeChannelPinnedMessagesSubject.next([]);
   }
 
   /**
@@ -866,6 +879,44 @@ export class ChannelService<
     }
   }
 
+  /**
+   * Pins the given message in the channel
+   * @param message
+   */
+  async pinMessage(message: StreamMessage<DefaultStreamChatGenerics>) {
+    try {
+      await this.chatClientService.chatClient?.pinMessage(message);
+      this.notificationService.addTemporaryNotification(
+        'Message pinned',
+        'success'
+      );
+    } catch (error) {
+      this.notificationService.addTemporaryNotification(
+        'Error pinning message'
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Removes the given message from pinned messages
+   * @param message
+   */
+  async unpinMessage(message: StreamMessage<DefaultStreamChatGenerics>) {
+    try {
+      await this.chatClientService.chatClient?.unpinMessage(message);
+      this.notificationService.addTemporaryNotification(
+        'Message unpinned',
+        'success'
+      );
+    } catch (error) {
+      this.notificationService.addTemporaryNotification(
+        'Error removing message pin'
+      );
+      throw error;
+    }
+  }
+
   private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
@@ -1093,6 +1144,9 @@ export class ChannelService<
         isThreadReply
           ? this.activeThreadMessagesSubject.next([...messages])
           : this.activeChannelMessagesSubject.next([...messages]);
+        this.activeChannelPinnedMessagesSubject.next([
+          ...channel.state.pinnedMessages,
+        ]);
       }
     });
   }

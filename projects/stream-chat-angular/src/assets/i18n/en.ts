@@ -37,6 +37,7 @@ export const en = {
     'Message has been successfully flagged':
       'Message has been successfully flagged',
     'Message pinned': 'Message pinned',
+    'Message unpinned': 'Message unpinned',
     Mute: 'Mute',
     New: 'New',
     'New Messages!': 'New Messages!',

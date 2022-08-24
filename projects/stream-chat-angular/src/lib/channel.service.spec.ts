@@ -15,6 +15,7 @@ import { ChannelService } from './channel.service';
 import { ChatClientService, ClientEvent } from './chat-client.service';
 import {
   generateMockChannels,
+  generateMockMessages,
   MockChannel,
   mockCurrentUser,
   mockMessage,
@@ -34,6 +35,8 @@ describe('ChannelService', () => {
     updateMessage: jasmine.Spy;
     deleteMessage: jasmine.Spy;
     userID: string;
+    pinMessage: jasmine.Spy;
+    unpinMessage: jasmine.Spy;
   };
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
@@ -58,6 +61,8 @@ describe('ChannelService', () => {
       updateMessage: jasmine.createSpy(),
       deleteMessage: jasmine.createSpy(),
       userID: user.id,
+      pinMessage: jasmine.createSpy(),
+      unpinMessage: jasmine.createSpy(),
     };
     events$ = new Subject();
     TestBed.configureTestingModule({
@@ -177,12 +182,15 @@ describe('ChannelService', () => {
     service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
     const jumpToMessageSpy = jasmine.createSpy();
     service.jumpToMessage$.subscribe(jumpToMessageSpy);
+    const pinnedMessagesSpy = jasmine.createSpy();
+    service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     channelsSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
     latestMessagesSpy.calls.reset();
     jumpToMessageSpy.calls.reset();
+    pinnedMessagesSpy.calls.reset();
     service.reset();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -190,6 +198,7 @@ describe('ChannelService', () => {
     expect(activeChannelSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
+    expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
 
     channelsSpy.calls.reset();
     events$.next({
@@ -218,11 +227,14 @@ describe('ChannelService', () => {
     service.latestMessageDateByUserByChannels$.subscribe(latestMessagesSpy);
     const jumpToMessageSpy = jasmine.createSpy();
     service.jumpToMessage$.subscribe(jumpToMessageSpy);
+    const pinnedMessagesSpy = jasmine.createSpy();
+    service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
     latestMessagesSpy.calls.reset();
     jumpToMessageSpy.calls.reset();
+    pinnedMessagesSpy.calls.reset();
     service.deselectActiveChannel();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -233,6 +245,7 @@ describe('ChannelService', () => {
       id: undefined,
       parentId: undefined,
     });
+    expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
 
     messagesSpy.calls.reset();
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
@@ -274,6 +287,9 @@ describe('ChannelService', () => {
     await init();
     const spy = jasmine.createSpy();
     service.activeChannel$.subscribe(spy);
+    const pinnedMessagesSpy = jasmine.createSpy();
+    service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
+    pinnedMessagesSpy.calls.reset();
     const mockChannels = generateMockChannels();
 
     let result = spy.calls.mostRecent().args[0] as Channel;
@@ -288,6 +304,8 @@ describe('ChannelService', () => {
     messageToQuoteSpy.calls.reset();
     const newActiveChannel = mockChannels[1];
     spyOn(newActiveChannel, 'markRead');
+    const pinnedMessages = generateMockMessages();
+    newActiveChannel.state.pinnedMessages = pinnedMessages;
     service.setAsActiveChannel(newActiveChannel);
     result = spy.calls.mostRecent().args[0] as Channel;
 
@@ -295,6 +313,7 @@ describe('ChannelService', () => {
     expect(messagesSpy).toHaveBeenCalledWith(jasmine.any(Object));
     expect(newActiveChannel.markRead).toHaveBeenCalledWith();
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+    expect(pinnedMessagesSpy).toHaveBeenCalledWith(pinnedMessages);
   });
 
   it('should emit #activeChannelMessages$', async () => {
@@ -464,8 +483,13 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
     spy.calls.reset();
+    const pinnedMessagesSpy = jasmine.createSpy();
+    service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
+    pinnedMessagesSpy.calls.reset();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const pinnedMessages = generateMockMessages();
+    activeChannel.state.pinnedMessages = pinnedMessages;
     const message =
       activeChannel.state.messages[activeChannel.state.messages.length - 1];
     message.text = 'updated';
@@ -473,8 +497,11 @@ describe('ChannelService', () => {
 
     const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
     const updatedMessage = messages[messages.length - 1];
+    console.log(messages, updatedMessage);
 
     expect(updatedMessage.text).toBe('updated');
+
+    expect(pinnedMessagesSpy).toHaveBeenCalledWith(pinnedMessages);
   });
 
   it('should watch for message deleted events', async () => {
@@ -1681,6 +1708,52 @@ describe('ChannelService', () => {
     expect(messagesSpy).not.toHaveBeenCalled();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'Message not found'
+    );
+  });
+
+  it('should pin message', async () => {
+    await init();
+    const message = mockMessage();
+    service.pinMessage(message);
+
+    expect(mockChatClient.pinMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('should display error notification if pinning was unsuccesful', async () => {
+    await init();
+    const message = mockMessage();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification').and.callThrough();
+    const error = new Error('error');
+    mockChatClient.pinMessage.and.rejectWith(error);
+
+    await expectAsync(service.pinMessage(message)).toBeRejectedWith(error);
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Error pinning message'
+    );
+  });
+
+  it('should unpin message', async () => {
+    await init();
+    const message = mockMessage();
+    service.unpinMessage(message);
+
+    expect(mockChatClient.unpinMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('should display error notification if unpinning was unsuccesful', async () => {
+    await init();
+    const message = mockMessage();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification').and.callThrough();
+    const error = new Error('error');
+    mockChatClient.unpinMessage.and.rejectWith(error);
+
+    await expectAsync(service.unpinMessage(message)).toBeRejectedWith(error);
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'Error removing message pin'
     );
   });
 });

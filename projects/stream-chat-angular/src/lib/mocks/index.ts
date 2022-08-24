@@ -99,6 +99,7 @@ export const generateMockChannels = (length = 25) => {
       },
       state: {
         messages: generateMockMessages(),
+        pinnedMessages: [],
         threads: {},
         read: {},
         members: {
