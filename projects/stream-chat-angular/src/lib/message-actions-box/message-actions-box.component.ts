@@ -101,8 +101,12 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
         actionName: 'pin',
         actionLabelOrTranslationKey: () =>
           this.message?.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-        actionHandler: () => alert('Feature not yet implemented'),
-        isVisible: () => false,
+        actionHandler: (message: StreamMessage) =>
+          message.pinned
+            ? this.channelService.unpinMessage(message)
+            : this.channelService.pinMessage(message),
+        isVisible: (enabledActions: string[]) =>
+          enabledActions.indexOf('pin-message') !== -1,
       },
       {
         actionName: 'flag',
