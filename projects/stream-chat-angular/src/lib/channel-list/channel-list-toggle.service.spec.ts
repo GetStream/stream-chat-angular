@@ -50,17 +50,6 @@ describe('ChannelListToggleService', () => {
     expect(spy).toHaveBeenCalledOnceWith(false);
   });
 
-  it(`shouldn't set state to closed, if active channel changed, but no on mobile`, () => {
-    spyOnProperty(window, 'innerWidth').and.returnValue(1000);
-    service.open();
-    const spy = jasmine.createSpy();
-    service.isOpen$.subscribe(spy);
-    spy.calls.reset();
-    service.channelSelected();
-
-    expect(spy).not.toHaveBeenCalled();
-  });
-
   it(`shouldn't emit the same state twice`, () => {
     const spy = jasmine.createSpy();
     service.isOpen$.subscribe(spy);
@@ -72,7 +61,7 @@ describe('ChannelListToggleService', () => {
     expect(spy).toHaveBeenCalledOnceWith(true);
   });
 
-  it('should watch for outside clicks, if menu is opened on mobile', () => {
+  it('should watch for outside clicks, if menu is opened', () => {
     spyOnProperty(window, 'innerWidth').and.returnValue(300);
     service.setMenuElement({} as HTMLElement);
     service.open();
@@ -98,13 +87,5 @@ describe('ChannelListToggleService', () => {
       'click',
       jasmine.any(Function)
     );
-  });
-
-  it(`shouldn't watch for outside clicks, if menu is opened, but not on mobile`, () => {
-    spyOnProperty(window, 'innerWidth').and.returnValue(1000);
-    service.setMenuElement({} as HTMLElement);
-    service.open();
-
-    expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 });

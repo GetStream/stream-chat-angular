@@ -3,7 +3,7 @@ id: customization
 title: Customization
 ---
 
-Apart from customizing the [themeing and CSS](./themeing-and-css.mdx) of UI components it's also possible to provide your own template to completely override parts of the UI to further improve the flexibility of our SDK. This guide shows you the different custom templates you can provide.
+Apart from customizing the [theming and CSS](../theming/introduction.mdx) of UI components it's also possible to provide your own template to completely override parts of the UI to further improve the flexibility of our SDK. This guide shows you the different custom templates you can provide.
 
 For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
 
@@ -17,22 +17,16 @@ This is how our initial chat UI looks like:
   <!-- Main messages in the channel -->
   <stream-channel-header></stream-channel-header>
   <stream-message-list></stream-message-list>
-  <stream-notification-list></stream-notification-list>
   <stream-message-input></stream-message-input>
   <!-- Main messages in the channel -->
   <!-- Thread messages in the channel -->
   <stream-thread name="thread">
-    <stream-message-list
-      name="thread-message-list"
-      mode="thread"
-    ></stream-message-list>
-    <stream-message-input
-      mode="thread"
-      name="thread-message-input"
-    ></stream-message-input>
+    <stream-message-list mode="thread"></stream-message-list>
+    <stream-message-input mode="thread"></stream-message-input>
   </stream-thread>
   <!-- Thread messages in the channel -->
 </stream-channel>
+<stream-notification-list></stream-notification-list>
 ```
 
 This template lives in your application so you can freely replace any component with your own custom component, for example if you want to use your own channel header you can just replace `stream-channel-header` with your own component.

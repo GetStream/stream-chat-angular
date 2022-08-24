@@ -32,7 +32,10 @@ describe('LoadingIndicatorPlaceholderComponent', () => {
       By.directive(LoadingIndicatorComponent)
     ).componentInstance as LoadingIndicatorComponent;
 
-    expect(loadingIndicatorComponent.color).toBe('#006CFF');
+    expect(loadingIndicatorComponent.color).toBe(
+      `var(--str-chat__loading-indicator-color, var(--str-chat__primary-color, '#006CFF'))`
+    );
+
     expect(loadingIndicatorComponent.size).toBe(15);
 
     component.color = 'red';

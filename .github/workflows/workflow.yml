@@ -4,12 +4,14 @@ on:
     branches:
       - master
       - beta
+      - theming-v2
   pull_request:
     branches:
       - master
       - beta
+      - theming-v2
 jobs:
-  test:
+  workflow:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -55,6 +57,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
+      - name: Copy docs from stream-chat-css
+        run: npm run copy-css-docs
       - name: Generate docs
         run: |
           npm run generate-docs

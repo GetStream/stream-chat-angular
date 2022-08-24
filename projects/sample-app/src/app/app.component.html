@@ -1,19 +1,38 @@
 <div id="root">
-  <stream-channel-list></stream-channel-list>
-  <stream-channel>
-    <stream-channel-header></stream-channel-header>
+  <stream-channel-list
+    (click)="closeMenu()"
+    class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
+      isThreadOpen ? 'open' : 'close'
+    }}"
+  ></stream-channel-list>
+  <stream-channel class="channel" (click)="closeMenu()">
+    <stream-channel-header>
+      <button
+        class="menu-button"
+        (click)="isMenuOpen = !isMenuOpen; $event.stopPropagation()"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M3 8V6H21V8H3ZM3 13H21V11H3V13ZM3 18H21V16H3V18Z"
+            [attr.fill]="(theme$ | async) === 'light' ? 'black' : 'white'"
+          />
+        </svg>
+      </button>
+    </stream-channel-header>
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
-    <stream-thread name="thread">
-      <stream-message-list
-        name="thread-message-list"
-        mode="thread"
-      ></stream-message-list>
-      <stream-message-input
-        mode="thread"
-        name="thread-message-input"
-      ></stream-message-input>
+    <stream-thread class="thread" name="thread">
+      <stream-message-list mode="thread"></stream-message-list>
+      <stream-message-input mode="thread"></stream-message-input>
     </stream-thread>
   </stream-channel>
 </div>

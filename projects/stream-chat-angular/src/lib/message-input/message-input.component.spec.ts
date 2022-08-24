@@ -29,6 +29,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
+import { ThemeService } from '../theme.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -139,6 +140,10 @@ describe('MessageInputComponent', () => {
           provide: ChatClientService,
           useValue: { chatClient: { user }, appSettings$, getAppSettings },
         },
+        {
+          provide: ThemeService,
+          useValue: { themeVersion: '2' },
+        },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
@@ -146,7 +151,6 @@ describe('MessageInputComponent', () => {
     component = fixture.componentInstance;
     spyOn(component, 'messageSent').and.callThrough();
     nativeElement = fixture.nativeElement as HTMLElement;
-    fixture.detectChanges();
     queryTextarea = () =>
       fixture.debugElement.query(By.directive(AutocompleteTextareaComponent))
         ?.componentInstance as AutocompleteTextareaComponent;
@@ -161,6 +165,7 @@ describe('MessageInputComponent', () => {
     queryAttachmentPreviewList = () =>
       fixture.debugElement.query(By.directive(AttachmentPreviewListComponent))
         .componentInstance as AttachmentPreviewListComponent;
+    fixture.detectChanges();
   });
 
   it('should display textarea', () => {
@@ -218,6 +223,14 @@ describe('MessageInputComponent', () => {
     expect(spy).not.toHaveBeenCalledWith();
   });
 
+  it(`shouldn't display send button in edit mode`, () => {
+    component.message = mockMessage();
+    component.ngOnChanges({ message: {} as any as SimpleChange });
+    fixture.detectChanges();
+
+    expect(querySendButton()).toBeNull();
+  });
+
   it('should emit #messageUpdate event if message update was successful', async () => {
     component.message = mockMessage();
     component.ngOnChanges({ message: {} as any as SimpleChange });
@@ -232,7 +245,8 @@ describe('MessageInputComponent', () => {
   it('should send message if button is clicked', () => {
     const textarea = queryTextarea();
     const message = 'This is my message';
-    textarea!.value = message;
+    textarea?.valueChange.emit(message);
+    fixture.detectChanges();
     querySendButton()?.click();
     fixture.detectChanges();
 
@@ -469,17 +483,6 @@ describe('MessageInputComponent', () => {
       undefined,
       undefined
     );
-  });
-
-  it('should apply CSS class if attachments are present', () => {
-    const cssClass = 'str-chat__input-flat-has-attachments';
-
-    expect(nativeElement.querySelector(`.${cssClass}`)).toBeNull();
-
-    attachmentService.attachmentUploads$.next([{} as any as AttachmentUpload]);
-    fixture.detectChanges();
-
-    expect(nativeElement.querySelector(`.${cssClass}`)).not.toBeNull();
   });
 
   it('should set #canSendLinks', async () => {
@@ -741,19 +744,6 @@ describe('MessageInputComponent', () => {
     ).toBeNull();
   });
 
-  it('should apply necessary CSS class when quoting a message', () => {
-    expect(
-      nativeElement.querySelector('.str-chat__input-flat-quoted')
-    ).toBeNull();
-
-    mockMessageToQuote$.next(mockMessage());
-    fixture.detectChanges();
-
-    expect(
-      nativeElement.querySelector('.str-chat__input-flat-quoted')
-    ).not.toBeNull();
-  });
-
   it('should deselect message to quote when close button clicked', () => {
     mockMessageToQuote$.next(mockMessage());
     fixture.detectChanges();
@@ -858,7 +848,7 @@ describe('MessageInputComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should disable text input during cooldown period', fakeAsync(() => {
+  it(`shouldn't send message during cooldown`, fakeAsync(() => {
     const channel = generateMockChannels(1)[0];
     channel.data!.own_capabilities = ['slow-mode', 'send-message'];
     channel.data!.cooldown = 30;
@@ -868,12 +858,13 @@ describe('MessageInputComponent', () => {
     });
     fixture.detectChanges();
 
-    const textarea = nativeElement.querySelector(
-      '[data-testid="disabled-textarea"]'
-    ) as HTMLTextAreaElement;
+    const textareaComponent = queryTextarea();
 
-    expect(textarea?.disabled).toBeTrue();
-    expect(textarea?.value).toContain('streamChat.Slow Mode ON');
+    const message = 'This is my message';
+    textareaComponent?.valueChange.emit(message);
+
+    expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect(textareaComponent?.placeholder).toBe('streamChat.Slow Mode ON');
 
     discardPeriodicTasks();
   }));

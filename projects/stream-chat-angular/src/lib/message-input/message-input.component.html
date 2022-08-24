@@ -1,4 +1,5 @@
 <div
+  *ngIf="themeVersion !== '2'"
   class="{{
     mode === 'main' ? 'str-chat__input-flat' : 'str-chat__small-message-input'
   }}"
@@ -7,11 +8,7 @@
   "
   [class.str-chat__input-flat-quoted]="!!quotedMessage"
 >
-  <div
-    data-testid="quoted-message-container"
-    class="quoted-message-preview"
-    *ngIf="quotedMessage"
-  >
+  <div class="quoted-message-preview" *ngIf="quotedMessage">
     <div class="quoted-message-preview-header">
       <div>{{ "streamChat.Reply to Message" | translate }}</div>
       <button
@@ -22,7 +19,7 @@
       >
         <stream-icon-placeholder
           icon="close-no-outline"
-          style="font-size: 10px; line-height: 10px"
+          style="font-size: 15px; line-height: 15px; width: 15px; height: 15px"
         ></stream-icon-placeholder>
       </button>
     </div>
@@ -80,10 +77,7 @@
         "
       ></ng-container>
       <div class="rta str-chat__textarea str-chat-angular__textarea">
-        <ng-container
-          *ngIf="emojiPickerTemplate && !isCooldownInProgress"
-          data-testid="emoji-picker"
-        >
+        <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
           <div
             class="
               str-chat__input-flat-emojiselect
@@ -98,25 +92,20 @@
             ></ng-container>
           </div>
         </ng-container>
-        <div
-          class="str-chat__input-flat-cooldown str-chat-angular__cooldown"
-          *ngIf="isCooldownInProgress"
-          data-testid="cooldown-timer"
-        >
-          {{ cooldown$ | async }}
-        </div>
-        <ng-template
-          *ngIf="canSendMessages && !isCooldownInProgress; else notAllowed"
-          streamTextarea
-          [(value)]="textareaValue"
-          (valueChange)="typingStart$.next()"
-          (send)="messageSent()"
-          [componentRef]="textareaRef"
-          (userMentions)="mentionedUsers = $event"
-          [areMentionsEnabled]="areMentionsEnabled"
-          [mentionScope]="mentionScope"
-        ></ng-template>
-        <ng-template #notAllowed>
+        <ng-container *ngIf="canSendMessages; else disabledTextarea">
+          <ng-container
+            streamTextarea
+            [(value)]="textareaValue"
+            (valueChange)="typingStart$.next()"
+            (send)="messageSent()"
+            [componentRef]="textareaRef"
+            (userMentions)="mentionedUsers = $event"
+            [areMentionsEnabled]="areMentionsEnabled"
+            [mentionScope]="mentionScope"
+            [placeholder]="textareaPlaceholder"
+          ></ng-container>
+        </ng-container>
+        <ng-template #disabledTextarea>
           <textarea
             disabled
             rows="1"
@@ -127,12 +116,7 @@
         </ng-template>
       </div>
       <div
-        *ngIf="
-          isFileUploadEnabled &&
-          isFileUploadAuthorized &&
-          canSendMessages &&
-          !isCooldownInProgress
-        "
+        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
         class="str-chat__fileupload-wrapper"
         data-testid="file-upload-button"
       >
@@ -159,13 +143,186 @@
       </div>
     </div>
     <button
-      *ngIf="canSendMessages"
+      *ngIf="canSendMessages && !isCooldownInProgress"
       data-testid="send-button"
       class="str-chat__send-button"
       (click)="messageSent()"
       (keyup.enter)="messageSent()"
     >
-      <stream-icon-placeholder icon="send"></stream-icon-placeholder>
+      <stream-icon-placeholder
+        class="str-chat__send-button-angular"
+        icon="send"
+      ></stream-icon-placeholder>
+    </button>
+    <div
+      class="str-chat__input-flat-cooldown"
+      *ngIf="isCooldownInProgress"
+      data-testid="cooldown-timer"
+    >
+      <div class="str-chat__message-input-cooldown-text">
+        {{ cooldown$ | async }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="themeVersion === '2'"
+  class="str-chat__message-input str-chat-angular__message-input"
+>
+  <div *ngIf="quotedMessage" class="str-chat__quoted-message-preview-header">
+    <div class="str-chat__quoted-message-reply-to-message">
+      {{ "streamChat.Reply to Message" | translate }}
+    </div>
+    <button
+      class="str-chat__quoted-message-remove"
+      data-testid="remove-quote"
+      (click)="deselectMessageToQuote()"
+      (keyup.enter)="deselectMessageToQuote()"
+    >
+      <stream-icon-placeholder
+        icon="close-no-outline"
+      ></stream-icon-placeholder>
     </button>
   </div>
+  <ng-container *ngIf="canSendMessages; else notAllowed">
+    <div
+      class="
+        str-chat__message-input-inner
+        str-chat-angular__message-input-inner
+      "
+    >
+      <div
+        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
+        class="str-chat__file-input-container"
+        data-testid="file-upload-button"
+      >
+        <input
+          #fileInput
+          type="file"
+          class="str-chat__file-input"
+          data-testid="file-input"
+          [multiple]="isMultipleFileUploadEnabled"
+          (change)="filesSelected(fileInput.files)"
+          id="{{ fileInputId }}"
+        />
+        <label class="str-chat__file-input-label" for="{{ fileInputId }}">
+          <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
+        </label>
+      </div>
+      <div class="str-chat__message-textarea-container">
+        <div
+          data-testid="quoted-message-container"
+          class="str-chat__quoted-message-preview"
+          *ngIf="quotedMessage"
+        >
+          <stream-avatar-placeholder
+            data-testid="qouted-message-avatar"
+            class="
+              str-chat-angular__avatar-host
+              str-chat__message-sender-avatar
+            "
+            [imageUrl]="quotedMessage?.user?.image"
+            [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
+            [size]="20"
+            type="user"
+            location="quoted-message-sender"
+            [user]="quotedMessage?.user || undefined"
+          ></stream-avatar-placeholder>
+          <div
+            class="
+              quoted-message-preview-content-inner
+              str-chat__quoted-message-bubble
+            "
+          >
+            <stream-attachment-list
+              *ngIf="
+                quotedMessage?.attachments && quotedMessage?.attachments?.length
+              "
+              [attachments]="quotedMessageAttachments"
+              [messageId]="quotedMessage?.id"
+            ></stream-attachment-list>
+            <div
+              class="str-chat__quoted-message-text"
+              data-testid="quoted-message-text"
+              [innerHTML]="quotedMessage?.html || quotedMessage?.text"
+            ></div>
+          </div>
+        </div>
+        <ng-template
+          #defaultAttachmentsPreview
+          let-attachmentUploads$="attachmentUploads$"
+          let-retryUploadHandler="retryUploadHandler"
+          let-deleteUploadHandler="deleteUploadHandler"
+        >
+          <stream-attachment-preview-list
+            [attachmentUploads$]="attachmentUploads$"
+            (retryAttachmentUpload)="retryUploadHandler($event)"
+            (deleteAttachment)="deleteUploadHandler($event)"
+            class="str-chat__attachment-preview-list-angular-host"
+          ></stream-attachment-preview-list>
+        </ng-template>
+        <ng-container
+          *ngTemplateOutlet="
+            attachmentPreviewListTemplate || defaultAttachmentsPreview;
+            context: getAttachmentPreviewListContext()
+          "
+        ></ng-container>
+        <div class="str-chat__message-textarea-with-emoji-picker">
+          <ng-container
+            streamTextarea
+            [(value)]="textareaValue"
+            (valueChange)="typingStart$.next()"
+            (send)="messageSent()"
+            [componentRef]="textareaRef"
+            (userMentions)="mentionedUsers = $event"
+            [areMentionsEnabled]="areMentionsEnabled"
+            [mentionScope]="mentionScope"
+            [placeholder]="textareaPlaceholder"
+          ></ng-container>
+          <div class="str-chat__message-textarea-emoji-picker">
+            <ng-container
+              *ngIf="emojiPickerTemplate"
+              data-testid="emoji-picker"
+            >
+              <ng-container
+                *ngTemplateOutlet="
+                  emojiPickerTemplate;
+                  context: getEmojiPickerContext()
+                "
+              ></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+      <button
+        *ngIf="canSendMessages && !isCooldownInProgress && !message"
+        [disabled]="
+          (attachmentUploadInProgressCounter$ | async)! > 0 ||
+          (!textareaValue && (attachmentUploads$ | async)!.length === 0)
+        "
+        data-testid="send-button"
+        class="str-chat__send-button"
+        (click)="messageSent()"
+        (keyup.enter)="messageSent()"
+      >
+        <stream-icon-placeholder icon="send"></stream-icon-placeholder>
+      </button>
+      <div
+        class="str-chat__message-input-cooldown"
+        *ngIf="isCooldownInProgress"
+        data-testid="cooldown-timer"
+      >
+        {{ cooldown$ | async }}
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #notAllowed>
+    <div
+      class="str-chat__message-input-not-allowed"
+      data-testid="disabled-textarea"
+    >
+      {{ disabledTextareaText | translate }}
+    </div>
+  </ng-template>
 </div>

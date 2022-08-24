@@ -1,4 +1,8 @@
-<div class="str-chat__list-notifications">
+<div
+  class="str-chat__theme-{{ theme$ | async }} str-chat__list-notifications"
+  [class.str-chat]="themeVersion === '2'"
+  data-testid="notification-list"
+>
   <ng-container
     *ngFor="let notification of notifications$ | async; trackBy: trackById"
   >

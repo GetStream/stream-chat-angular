@@ -13,7 +13,6 @@ import {
 import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
-import { getDeviceWidth } from '../device-width';
 import {
   AttachmentListContext,
   MentionTemplateContext,
@@ -27,6 +26,8 @@ import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
+import { ThemeService } from '../theme.service';
+import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 
 type MessagePart = {
   content: string;
@@ -59,18 +60,21 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
    * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
    */
   @Input() mode: 'thread' | 'main' = 'main';
+  readonly themeVersion: '1' | '2';
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
-  isPressedOnMobile = false;
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
   mentionTemplate: TemplateRef<MentionTemplateContext> | undefined;
   attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
   messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
   messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
+  popperTriggerClick = NgxPopperjsTriggers.click;
+  popperTriggerHover = NgxPopperjsTriggers.hover;
+  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
@@ -81,8 +85,12 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     private chatClientService: ChatClientService,
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
-    private cdRef: ChangeDetectorRef
-  ) {}
+    private cdRef: ChangeDetectorRef,
+    themeService: ThemeService
+  ) {
+    this.themeVersion = themeService.themeVersion;
+    this.user = this.chatClientService.chatClient.user;
+  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -124,6 +132,14 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  get shouldDisplayThreadLink() {
+    return (
+      !!this.message?.reply_count &&
+      this.mode !== 'thread' &&
+      this.enabledMessageActions.indexOf('send-reply') !== -1
+    );
   }
 
   get isSentByCurrentUser() {
@@ -236,24 +252,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
-  }
-
-  textClicked() {
-    if (getDeviceWidth().device !== 'mobile') {
-      this.isPressedOnMobile = false;
-      return;
-    }
-    if (this.isPressedOnMobile) {
-      return;
-    }
-    this.isPressedOnMobile = true;
-    const eventHandler = (event: Event) => {
-      if (!this.container?.nativeElement.contains(event.target as Node)) {
-        this.isPressedOnMobile = false;
-        window.removeEventListener('click', eventHandler);
-      }
-    };
-    window.addEventListener('click', eventHandler);
   }
 
   setAsActiveParentMessage() {

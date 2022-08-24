@@ -1,4 +1,4 @@
-<div class="str-chat__header-livestream">
+<div class="str-chat__header-livestream str-chat__channel-header">
   <div
     class="str-chat__header-hamburger"
     (click)="toggleMenu($event)"
@@ -6,18 +6,30 @@
   >
     <stream-icon-placeholder icon="menu"></stream-icon-placeholder>
   </div>
+  <ng-content></ng-content>
   <stream-avatar-placeholder
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ avatarName }}"
     type="channel"
     location="channel-header"
     [channel]="activeChannel"
+    [size]="40"
   ></stream-avatar-placeholder>
-  <div class="str-chat__header-livestream-left">
-    <p data-testid="name" class="str-chat__header-livestream-left--title">
+  <div class="str-chat__header-livestream-left str-chat__channel-header-end">
+    <p
+      data-testid="name"
+      class="
+        str-chat__header-livestream-left--title str-chat__channel-header-title
+      "
+    >
       {{ displayText }}
     </p>
-    <p data-testid="info" class="str-chat__header-livestream-left--members">
+    <p
+      data-testid="info"
+      class="
+        str-chat__header-livestream-left--members str-chat__channel-header-info
+      "
+    >
       {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}
       {{canReceiveConnectEvents ? ('streamChat.{{ watcherCount }} online' |
       translate:watcherCountParam) : ''}}

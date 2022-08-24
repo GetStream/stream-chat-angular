@@ -21,6 +21,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from '../mocks';
+import { StreamI18nService } from '../stream-i18n.service';
 import { DefaultStreamChatGenerics } from '../types';
 import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
@@ -35,8 +36,9 @@ describe('MessageListComponent', () => {
   let queryMessages: () => HTMLElement[];
   let queryScrollToLatestButton: () => HTMLElement | null;
   let queryParentMessage: () => MessageComponent | undefined;
+  let queryParentMessageReplyCount: () => HTMLElement | null;
   let queryTypingIndicator: () => HTMLElement | null;
-  let queryTypingUserAvatars: () => AvatarComponent[];
+  let queryTypingUsers: () => HTMLElement | null;
 
   beforeEach(fakeAsync(() => {
     channelServiceMock = mockChannelService();
@@ -83,11 +85,11 @@ describe('MessageListComponent', () => {
         .componentInstance as MessageComponent;
     queryTypingIndicator = () =>
       nativeElement.querySelector('[data-testid="typing-indicator"]');
-    queryTypingUserAvatars = () =>
-      fixture.debugElement
-        .query(By.css('[data-testid="typing-indicator"]'))
-        ?.queryAll(By.directive(AvatarComponent))
-        .map((e) => e.componentInstance as AvatarComponent);
+    queryTypingUsers = () =>
+      nativeElement.querySelector('[data-testid="typing-users"]');
+    queryParentMessageReplyCount = () =>
+      nativeElement.querySelector('[data-testid="reply-count"]');
+    TestBed.inject(StreamI18nService).setTranslation('en');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.style.maxHeight = '300px';
@@ -483,14 +485,8 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryTypingIndicator()).not.toBeNull();
-    const avatars = queryTypingUserAvatars();
 
-    expect(avatars.length).toBe(2);
-    expect(avatars[0].name).toBe('jack');
-    expect(avatars[1].name).toBe('John');
-    expect(avatars[1].imageUrl).toBe('url/to/img');
-    expect(avatars[1].type).toBe('user');
-    expect(avatars[1].location).toBe('typing-indicator');
+    expect(queryTypingUsers()?.textContent).toContain('jack, John');
   });
 
   describe('thread mode', () => {
@@ -558,6 +554,19 @@ describe('MessageListComponent', () => {
       expect(queryParentMessage()).toBeUndefined();
     });
 
+    it('should show reply count in thread', () => {
+      component.parentMessage!.reply_count = 1;
+      fixture.detectChanges();
+      const replyCount = queryParentMessageReplyCount();
+
+      expect(replyCount?.innerHTML).toContain('1 reply');
+
+      component.parentMessage!.reply_count = 3;
+      fixture.detectChanges();
+
+      expect(replyCount?.innerHTML).toContain('3 replies');
+    });
+
     it('should reset scroll state after parent message changed', () => {
       const parentMessage = mockMessage();
       parentMessage.id = 'parentMessage2';
@@ -598,11 +607,8 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(queryTypingIndicator()).not.toBeNull();
-      const avatars = queryTypingUserAvatars();
 
-      expect(avatars.length).toBe(2);
-      expect(avatars[0].name).toBe('jack');
-      expect(avatars[1].name).toBe('John');
+      expect(queryTypingUsers()?.textContent).toContain('jack, John');
     });
   });
 });

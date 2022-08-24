@@ -10,7 +10,7 @@
     "prestart:customizations-example": "npm run config:dev",
     "start:customizations-example": "ng serve customizations-example",
     "prestart:dev": "npm run config:dev",
-    "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve sample-app)",
+    "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve sample-app --host 0.0.0.0)",
     "prestart:dev:customizations-example": "npm run config:dev",
     "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example)",
     "build": "ng build",
@@ -30,11 +30,12 @@
     "build:sample-app": "ng build --stats-json --project sample-app",
     "preanalyze:sample-app": "npm run build:sample-app",
     "analyze:sample-app": "webpack-bundle-analyzer dist/sample-app/stats.json",
-    "generate-docs": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs",
+    "generate-docs": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs && npm run copy-css-docs",
     "typedoc:services": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-service-docs --exclude '!**/*service.ts' --excludeNotDocumented --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "typedoc:components": "typedoc --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "copy-docs": "ts-node copy-generated-service-docs.ts & (ts-node remove-generated-component-docs-content && ts-node copy-generated-component-docs.ts)",
-    "copy-css": "copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles"
+    "copy-css": "rm -rf projects/stream-chat-angular/src/assets/styles && copyfiles --up 4 \"node_modules/@stream-io/stream-chat-css/dist/**/*\" projects/stream-chat-angular/src/assets/styles",
+    "copy-css-docs": "./copy-css-docs.sh node_modules/@stream-io/stream-chat-css/docs"
   },
   "lint-staged": {
     "**/*": [
@@ -48,6 +49,10 @@
       "master",
       {
         "name": "beta",
+        "prerelease": true
+      },
+      {
+        "name": "theming-v2",
         "prerelease": true
       }
     ],
@@ -111,12 +116,14 @@
     "@ctrl/ngx-emoji-mart": "^6.2.0",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@stream-io/stream-chat-css": "2.9.0",
+    "@popperjs/core": "^2.11.5",
+    "@stream-io/stream-chat-css": "3.0.0-theming2.6",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "^1.4.0",
     "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",
     "emoji-regex": "^10.0.0",
+    "ngx-popperjs": "^12.2.1",
     "pretty-bytes": "^5.6.0",
     "rxjs": "~6.6.0",
     "stream-chat": "^6.4.0",

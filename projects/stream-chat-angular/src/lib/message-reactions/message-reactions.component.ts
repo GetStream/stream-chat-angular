@@ -13,6 +13,7 @@ import {
 import { ReactionResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
+import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 
 const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
   like: '👍',
@@ -66,6 +67,8 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     | ElementRef<HTMLElement>
     | undefined;
   currentTooltipTarget: HTMLElement | undefined;
+  popperTriggerHover = NgxPopperjsTriggers.hover;
+  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -140,6 +143,10 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     this.ownReactions.find((r) => r.type === type)
       ? void this.channelService.removeReaction(this.messageId!, type)
       : void this.channelService.addReaction(this.messageId!, type);
+  }
+
+  isOwnReaction(reactionType: MessageReactionType) {
+    return !!this.ownReactions.find((r) => r.type === reactionType);
   }
 
   private eventHandler = (event: Event) => {

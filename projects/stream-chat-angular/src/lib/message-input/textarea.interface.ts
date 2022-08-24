@@ -8,4 +8,5 @@ export interface TextareaInterface extends OnChanges {
   userMentions?: EventEmitter<UserResponse[]>;
   areMentionsEnabled?: boolean;
   mentionScope?: 'channel' | 'application';
+  placeholder?: string;
 }

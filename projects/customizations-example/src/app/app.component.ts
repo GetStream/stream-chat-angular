@@ -140,7 +140,7 @@ export class AppComponent implements AfterViewInit {
       this.messageActionItemTemplate
     );
     this.customTemplatesService.messageReactionsTemplate$.next(
-      this.messageReactonsTemplate
+      this.messageReactionsTemplate
     );
     this.customTemplatesService.modalTemplate$.next(this.modalTemplate);
     this.customTemplatesService.notificationTemplate$.next(

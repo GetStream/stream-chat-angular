@@ -32,6 +32,7 @@ import {
 export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
   /**
    * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
+   * @deprecated No need for this since [theme-v2](../theming/introduction.mdx)
    */
   @Input() isOpen = false;
   /**

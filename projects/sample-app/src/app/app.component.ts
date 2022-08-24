@@ -1,8 +1,18 @@
-import { Component } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   ChatClientService,
   ChannelService,
   StreamI18nService,
+  EmojiPickerContext,
+  CustomTemplatesService,
+  ThemeService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -11,11 +21,20 @@ import { environment } from '../environments/environment';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
+  isMenuOpen = false;
+  isThreadOpen = false;
+  @ViewChild('emojiPickerTemplate')
+  emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
+  themeVersion: '1' | '2';
+  theme$: Observable<string>;
+
   constructor(
     private chatService: ChatClientService,
     private channelService: ChannelService,
-    private streamI18nService: StreamI18nService
+    private streamI18nService: StreamI18nService,
+    private customTemplateService: CustomTemplatesService,
+    themeService: ThemeService
   ) {
     void this.chatService.init(
       environment.apiKey,
@@ -27,5 +46,20 @@ export class AppComponent {
       members: { $in: [environment.userId] },
     });
     this.streamI18nService.setTranslation();
+    this.channelService.activeParentMessage$
+      .pipe(map((m) => !!m))
+      .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
+    this.themeVersion = themeService.themeVersion;
+    this.theme$ = themeService.theme$;
+  }
+
+  ngAfterViewInit(): void {
+    this.customTemplateService.emojiPickerTemplate$.next(
+      this.emojiPickerTemplate
+    );
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
   }
 }

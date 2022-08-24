@@ -4,11 +4,11 @@
   }}"
   title="{{ name }}"
   [style]="{
-    flexBasis: size + 'px',
-    fontSize: size / 2 + 'px',
-    height: size + 'px',
-    lineHeight: size + 'px',
-    width: size + 'px'
+    flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
+    fontSize: 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 2 + ')',
+    height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
+    lineHeight: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
+    width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
   }"
 >
   <img
@@ -22,10 +22,10 @@
     (load)="isLoaded = true"
     (error)="isError = true"
     [style]="{
-      flexBasis: size + 'px',
-      height: size + 'px',
+      flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
+      height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
       objectFit: 'cover',
-      width: size + 'px'
+      width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
     }"
   />
   <ng-template #fallback>
