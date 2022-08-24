@@ -281,7 +281,7 @@ export type MockStreamChatClient = {
   flagMessage: jasmine.Spy;
   setUserAgent: jasmine.Spy;
   queryUsers: jasmine.Spy;
-  getUserAgent: () => string;
+  getUserAgent: jasmine.Spy;
   getAppSettings: jasmine.Spy;
   disconnectUser: jasmine.Spy;
   queryChannels: jasmine.Spy;
@@ -313,6 +313,9 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     },
   });
   const disconnectUser = jasmine.createSpy();
+  const getUserAgent = jasmine
+    .createSpy()
+    .and.returnValue('stream-chat-javascript-client-browser-2.2.2');
   /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes | Function, handler: () => {}) => {
@@ -333,7 +336,6 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
       eventHandlers['all']({ ...event, type: name });
     }
   };
-  const getUserAgent = () => 'stream-chat-javascript-client-browser-2.2.2';
   const appSettings$ = new Subject<AppSettings>();
 
   return {
