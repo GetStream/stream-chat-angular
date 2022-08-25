@@ -95,7 +95,7 @@ describe('AttachmentConfigurationService', () => {
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
       url: 'url/to/video',
-      height: '400px',
+      height: '100%',
       width: '100%',
     });
   });
