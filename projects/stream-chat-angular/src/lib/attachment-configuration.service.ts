@@ -82,8 +82,8 @@ export class AttachmentConfigurationService<
 
     return {
       url: attachment.asset_url || '',
-      width: '100%',
-      height: '400px',
+      width: '100%', // Set from CSS
+      height: '100%',
     };
   }
 
