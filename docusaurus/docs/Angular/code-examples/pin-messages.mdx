@@ -54,11 +54,11 @@ The `message` variable has [`StreamMessage`](../types/stream-message.mdx) type, 
 
 ## Jump to a pinned message
 
-Let's add a click event handler to the pinned message, and jump to the message:
+Let's add a click event handler to the pinned message, and jump to the message (works for channel and thread messages as well):
 
 ```typescript
 jumpToMessage(message: StreamMessage) {
-  this.channelService.jumpToMessage(message.id);
+  this.channelService.jumpToMessage(message.id, message.parent_id);
 }
 ```
 
