@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -7,9 +8,11 @@ import {
   OnChanges,
   OnDestroy,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { ThemeService } from '../../theme.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { TextareaInterface } from '../textarea.interface';
 
@@ -22,13 +25,18 @@ import { TextareaInterface } from '../textarea.interface';
   styles: [],
 })
 export class TextareaComponent
-  implements TextareaInterface, OnChanges, OnDestroy
+  implements TextareaInterface, OnChanges, OnDestroy, AfterViewInit
 {
-  @HostBinding() class = 'str-chat__textarea';
+  @HostBinding() class =
+    'str-chat__textarea str-chat__message-textarea-angular-host';
   /**
    * The value of the input HTML element.
    */
   @Input() value = '';
+  /**
+   * Placeholder of the textarea
+   */
+  @Input() placeholder = '';
   /**
    * Emits the current value of the input element when a user types.
    */
@@ -40,7 +48,10 @@ export class TextareaComponent
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
 
-  constructor(private emojiInputService: EmojiInputService) {
+  constructor(
+    private emojiInputService: EmojiInputService,
+    private themeService: ThemeService
+  ) {
     this.subscriptions.push(
       this.emojiInputService.emojiInput$.subscribe((emoji) => {
         this.messageInput.nativeElement.focus();
@@ -55,8 +66,17 @@ export class TextareaComponent
     );
   }
 
-  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
-  ngOnChanges(): void {}
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.value && !this.value && this.messageInput) {
+      this.messageInput.nativeElement.style.height = 'auto';
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.messageInput.nativeElement.scrollHeight > 0) {
+      this.adjustTextareaHeight();
+    }
+  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
@@ -64,10 +84,18 @@ export class TextareaComponent
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);
+    this.adjustTextareaHeight();
   }
 
   sent(event: Event) {
     event.preventDefault();
     this.send.next();
+  }
+
+  private adjustTextareaHeight() {
+    if (this.themeService.themeVersion === '2') {
+      this.messageInput.nativeElement.style.height = '';
+      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+    }
   }
 }

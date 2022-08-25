@@ -17,7 +17,12 @@ export type Icon =
   | 'arrow-right'
   | 'menu'
   | 'arrow-up'
-  | 'arrow-down';
+  | 'arrow-down'
+  | 'chat-bubble'
+  | 'attach'
+  | 'unspecified-filetype'
+  | 'download'
+  | 'error';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).

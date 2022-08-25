@@ -1,28 +1,121 @@
-@import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+@import "variables";
+@import "../../stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 @import "~@ctrl/ngx-emoji-mart/picker";
+
+html {
+  height: 100%;
+}
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
 }
 
-.str-chat__thread {
-  min-width: 100%;
-  max-width: 100%;
-}
+@if $stream-chat-theme-version == "2" {
+  #root {
+    display: flex;
+    height: 100%;
 
-@media only screen and (min-device-width: 768px) {
-  .str-chat__thread {
-    min-width: 35%;
-    max-width: 35%;
+    .menu-open {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      z-index: 1;
+    }
+
+    .menu-close {
+      width: 0;
+    }
+
+    .menu-button {
+      display: block;
+    }
+
+    .channel {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .thread {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      z-index: 2;
+    }
+
+    @media screen and (min-width: 768px) {
+      .channel-list.thread-open {
+        &.menu-open {
+          width: 30%;
+          height: 100%;
+          position: fixed;
+          z-index: 1;
+        }
+
+        &.menu-close {
+          width: 0;
+        }
+
+        & + .channel .menu-button {
+          display: block;
+        }
+      }
+
+      .channel-list.thread-close {
+        width: 30%;
+        max-width: 420px;
+        position: initial;
+        z-index: auto;
+
+        & + .channel .menu-button {
+          display: none;
+        }
+      }
+
+      .thread {
+        width: 55%;
+        position: initial;
+        z-index: auto;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .menu-button {
+        display: none;
+      }
+
+      .channel-list {
+        width: 30%;
+        max-width: 420px;
+        position: initial;
+        z-index: auto;
+      }
+
+      .thread {
+        width: 45%;
+        position: initial;
+        z-index: auto;
+      }
+    }
   }
-}
+} @else {
+  .menu-button {
+    display: none;
+  }
+  .str-chat-channel-list {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
 
-.str-chat-channel-list {
-  max-height: 100vh;
-  overflow-y: auto;
+  .str-chat__thread {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  @media only screen and (min-device-width: 768px) {
+    .str-chat__thread {
+      min-width: 35%;
+      max-width: 35%;
+    }
+  }
 }

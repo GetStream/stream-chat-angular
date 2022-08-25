@@ -11,6 +11,7 @@ import { catchError, map, startWith } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { ThemeService } from '../theme.service';
 import { ChannelPreviewContext, DefaultStreamChatGenerics } from '../types';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 
@@ -30,14 +31,17 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
   isOpen$: Observable<boolean>;
   hasMoreChannels$: Observable<boolean>;
   customChannelPreviewTemplate: TemplateRef<ChannelPreviewContext> | undefined;
+  theme$: Observable<string>;
   subscriptions: Subscription[] = [];
   @ViewChild('container') private container!: ElementRef<HTMLElement>;
 
   constructor(
     private channelService: ChannelService,
     private channelListToggleService: ChannelListToggleService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private themeService: ThemeService
   ) {
+    this.theme$ = this.themeService.theme$;
     this.isOpen$ = this.channelListToggleService.isOpen$;
     this.channels$ = this.channelService.channels$;
     this.hasMoreChannels$ = this.channelService.hasMoreChannels$;

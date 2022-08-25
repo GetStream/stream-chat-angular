@@ -25,6 +25,7 @@ import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { listUsers } from '../list-users';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -50,7 +51,7 @@ export class MessageListComponent
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
-    'str-chat-angular__main-panel-inner str-chat-angular__message-list-host';
+    'str-chat-angular__main-panel-inner str-chat-angular__message-list-host str-chat__main-panel-inner';
   unreadMessageCount = 0;
   isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];
@@ -289,6 +290,16 @@ export class MessageListComponent
       mode: this.mode,
       isHighlighted: message?.id === this.highlightedMessageId,
     };
+  }
+
+  getTypingIndicatorText(users: UserResponse[]) {
+    const text = listUsers(users);
+
+    return text;
+  }
+
+  get replyCountParam() {
+    return { replyCount: this.parentMessage?.reply_count };
   }
 
   private preserveScrollbarPosition() {

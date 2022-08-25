@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -26,6 +27,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
+import { ThemeService } from '../../theme.service';
 
 /**
  * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
@@ -36,13 +38,18 @@ import { CustomTemplatesService } from '../../custom-templates.service';
   styles: [],
 })
 export class AutocompleteTextareaComponent
-  implements TextareaInterface, OnChanges
+  implements TextareaInterface, OnChanges, AfterViewInit
 {
-  @HostBinding() class = 'str-chat__textarea';
+  @HostBinding() class =
+    'str-chat__textarea str-chat__message-textarea-angular-host';
   /**
    * The value of the input HTML element.
    */
   @Input() value = '';
+  /**
+   * Placeholder of the textarea
+   */
+  @Input() placeholder = '';
   /**
    * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
    */
@@ -69,6 +76,7 @@ export class AutocompleteTextareaComponent
   commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
+  themeVersion: '1' | '2';
   private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
   private readonly commandTriggerChar = '/';
@@ -109,7 +117,8 @@ export class AutocompleteTextareaComponent
     private chatClientService: ChatClientService,
     private transliterationService: TransliterationService,
     private emojiInputService: EmojiInputService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private themeService: ThemeService
   ) {
     this.searchTerm$
       .pipe(debounceTime(300), distinctUntilChanged())
@@ -157,6 +166,7 @@ export class AutocompleteTextareaComponent
       this.userMentionConfig,
       this.slashCommandConfig,
     ];
+    this.themeVersion = this.themeService.themeVersion;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -174,6 +184,15 @@ export class AutocompleteTextareaComponent
     }
     if (changes.mentionScope) {
       void this.updateMentionOptions(this.searchTerm$.getValue());
+    }
+    if (changes.value && !this.value && this.messageInput) {
+      this.messageInput.nativeElement.style.height = 'auto';
+    }
+  }
+
+  ngAfterViewInit(): void {
+    if (this.messageInput.nativeElement.scrollHeight > 0) {
+      this.adjustTextareaHeight();
     }
   }
 
@@ -210,6 +229,7 @@ export class AutocompleteTextareaComponent
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);
+    this.adjustTextareaHeight();
   }
 
   inputLeft() {
@@ -220,6 +240,13 @@ export class AutocompleteTextareaComponent
     event.preventDefault();
     this.updateMentionedUsersFromText();
     this.send.next();
+  }
+
+  private adjustTextareaHeight() {
+    if (this.themeVersion === '2') {
+      this.messageInput.nativeElement.style.height = '';
+      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+    }
   }
 
   private transliterate(s: string) {

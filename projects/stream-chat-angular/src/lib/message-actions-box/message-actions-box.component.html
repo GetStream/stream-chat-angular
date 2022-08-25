@@ -1,8 +1,8 @@
 <div
+  #actionBox
   data-testid="action-box"
-  class="str-chat__message-actions-box"
-  [class.str-chat__message-actions-box--open]="isOpen"
-  [class.str-chat__message-actions-box--mine]="isMine"
+  class="str-chat__message-actions-box str-chat__message-actions-box-angular"
+  [class.str-chat__message-actions-box--open]="true"
 >
   <ul class="str-chat__message-actions-list">
     <ng-container
@@ -24,7 +24,11 @@
   let-actionHandler="actionHandler"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
 >
-  <button [attr.data-testid]="actionName + '-action'" (click)="actionHandler()">
+  <button
+    class="str-chat__message-actions-list-item-button"
+    [attr.data-testid]="actionName + '-action'"
+    (click)="actionHandler()"
+  >
     <li class="str-chat__message-actions-list-item">
       {{ getActionLabel(actionLabelOrTranslationKey) | translate }}
     </li>
@@ -82,12 +86,18 @@
       "
     >
       <div class="str-chat__edit-message-form-options">
-        <button translate data-testid="cancel-button" (click)="modalClosed()">
+        <button
+          class="str-chat__edit-message-cancel"
+          translate
+          data-testid="cancel-button"
+          (click)="modalClosed()"
+        >
           streamChat.Cancel
         </button>
         <button
           type="submit"
           translate
+          class="str-chat__edit-message-send"
           data-testid="send-button"
           (click)="sendClicked()"
           (keyup.enter)="sendClicked()"

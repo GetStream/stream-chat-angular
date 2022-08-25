@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
+import { ThemeService } from '../theme.service';
 import { of } from 'rxjs';
 
 describe('MessageComponent', () => {
@@ -89,6 +90,10 @@ describe('MessageComponent', () => {
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
             jumpToMessage: jumpToMessageSpy,
           },
+        },
+        {
+          provide: ThemeService,
+          useValue: { themeVersion: '2' },
         },
       ],
     });
@@ -177,17 +182,26 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message--me')).toBeTrue();
     expect(classList?.contains('str-chat__message-simple--me')).toBeTrue();
     expect(classList?.contains('str-chat__message--with-reactions')).toBeTrue();
+    expect(
+      classList?.contains('str-chat__message-with-thread-link')
+    ).toBeFalse();
 
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
     component.message.reaction_counts = {};
+    component.message.reply_count = 3;
     fixture.detectChanges();
     classList = container?.classList;
 
     expect(classList?.contains('str-chat__message--me')).toBeFalse();
     expect(classList?.contains('str-chat__message-simple--me')).toBeFalse();
+    expect(classList?.contains('str-chat__message--other')).toBeTrue();
     expect(
       classList?.contains('str-chat__message--with-reactions')
     ).toBeFalse();
+
+    expect(
+      classList?.contains('str-chat__message-with-thread-link')
+    ).toBeTrue();
   });
 
   describe('should display the correct message status', () => {
@@ -367,6 +381,9 @@ describe('MessageComponent', () => {
 
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toContain('Unauthorized');
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).toBeNull();
     });
 
     it('if error occured during send', () => {
@@ -385,6 +402,9 @@ describe('MessageComponent', () => {
       expect(queryReadIndicator()).toBeNull();
       expect(errorMessage!.textContent).toContain('Message Failed');
       expect(errorMessage!.textContent).not.toContain('Unauthorized');
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).not.toBeNull();
     });
 
     it('if message was not sent due to client error', () => {
@@ -522,34 +542,6 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(messageActionsBoxComponent.message).toBe(message);
-  });
-
-  it('should add CSS class if text is clicked on mobile', () => {
-    expect(component.isPressedOnMobile).toBeFalse();
-    spyOnProperty(window, 'innerWidth').and.returnValue(300);
-    const text = queryText();
-    text?.click();
-    fixture.detectChanges();
-
-    expect(component.isPressedOnMobile).toBeTrue();
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeTrue();
-  });
-
-  it('should remove CSS class after message is deselected', () => {
-    component.isPressedOnMobile = false;
-    fixture.detectChanges();
-
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
-  });
-
-  it(`shouldn't add CSS class if text was clicked on desktop`, () => {
-    spyOnProperty(window, 'innerWidth').and.returnValue(1200);
-    const text = queryText();
-    text?.click();
-    fixture.detectChanges();
-
-    expect(component.isPressedOnMobile).toBeFalse();
-    expect(queryContainer()?.classList.contains('mobile-press')).toBeFalse();
   });
 
   it('should display attachment if message has attachment', () => {

@@ -9,8 +9,10 @@
     "angular-mentions",
     "dayjs",
     "@stream-io/transliterate",
+    "@popperjs/core",
     "uuidv4",
     "pretty-bytes",
-    "emoji-regex"
+    "emoji-regex",
+    "ngx-popperjs"
   ]
 }

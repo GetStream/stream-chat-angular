@@ -2,23 +2,12 @@ The `Thread` component represents a [message thread](https://getstream.io/chat/d
 
 ## Usage
 
-The `Thread` component have empty slots for message list and message input components where you can inject content with the following names:
-
-- `thread-message-list` for the message list
-- `thread-message-input` for the message input
-
-The names determine the location of the template within the thread layout.
+The `Thread` component displays the thread header (built inside the thread), the message list and message input components:
 
 ```html
 <stream-thread name="thread">
-  <stream-message-list
-    name="thread-message-list"
-    mode="thread"
-  ></stream-message-list>
-  <stream-message-input
-    mode="thread"
-    name="thread-message-input"
-  ></stream-message-input>
+  <stream-message-list mode="thread"></stream-message-list>
+  <stream-message-input mode="thread"></stream-message-input>
 </stream-thread>
 ```
 

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
@@ -17,6 +18,7 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$ = new BehaviorSubject<AttachmentUpload[]>([]);
     await TestBed.configureTestingModule({
       declarations: [AttachmentPreviewListComponent],
+      providers: [{ provide: ThemeService, useValue: { themeVersion: '2' } }],
     }).compileComponents();
   });
 
@@ -70,13 +72,7 @@ describe('AttachmentPreviewListComponent', () => {
     const previews = queryImagePreviews();
 
     expect(previews.length).toBe(2);
-    expect(queryLoadingIndicators().length).toBe(2);
-    previews.forEach((p) =>
-      // eslint-disable-next-line jasmine/new-line-before-expect
-      expect(
-        p.classList.contains('rfu-image-previewer__image--loaded')
-      ).toBeFalse()
-    );
+    expect(queryLoadingIndicators().length).toBe(3);
   });
 
   it('should display image preview - success', () => {
@@ -89,12 +85,6 @@ describe('AttachmentPreviewListComponent', () => {
 
     expect(previews.length).toBe(1);
     expect(queryLoadingIndicators().length).toBe(0);
-    previews.forEach((p) =>
-      // eslint-disable-next-line jasmine/new-line-before-expect
-      expect(
-        p.classList.contains('rfu-image-previewer__image--loaded')
-      ).toBeTrue()
-    );
   });
 
   it('should display image preview - error', () => {
@@ -108,15 +98,11 @@ describe('AttachmentPreviewListComponent', () => {
     const previews = queryImagePreviews();
 
     expect(
-      previews[0].classList.contains('rfu-image-previewer__image--loaded')
-    ).toBeTrue();
-
-    expect(
-      previews[0].querySelector('[data-testclass="upload-error"]')
+      previews[0].querySelector('[data-testclass="upload-retry"]')
     ).toBeNull();
 
     expect(
-      previews[1].querySelector('[data-testclass="upload-error"]')
+      previews[1].querySelector('[data-testclass="upload-retry"]')
     ).not.toBeNull();
   });
 
@@ -134,12 +120,6 @@ describe('AttachmentPreviewListComponent', () => {
 
     expect(queryImagePreviews().length).toBe(1);
     expect(filePreviews.length).toBe(1);
-    filePreviews.forEach((p) =>
-      // eslint-disable-next-line jasmine/new-line-before-expect
-      expect(
-        p.querySelector('.rfu-file-previewer__file--uploading')
-      ).not.toBeNull()
-    );
   });
 
   it('should display file preview - success', () => {
@@ -185,11 +165,11 @@ describe('AttachmentPreviewListComponent', () => {
     const filePreviews = queryPreviewFiles();
 
     expect(
-      filePreviews[0].querySelector('.rfu-file-previewer__file--failed')
+      filePreviews[0].querySelector('[data-testclass="upload-retry"]')
     ).toBeNull();
 
     expect(
-      filePreviews[1].querySelector('.rfu-file-previewer__file--failed')
+      filePreviews[1].querySelector('[data-testclass="upload-retry"]')
     ).not.toBeNull();
   });
 
@@ -223,7 +203,7 @@ describe('AttachmentPreviewListComponent', () => {
     component.retryAttachmentUpload.subscribe(spy);
     const filePreviews = queryPreviewFiles();
     const retryButton = filePreviews[0].querySelector(
-      '[data-testclass="file-upload-retry"]'
+      '[data-testclass="upload-retry"]'
     ) as HTMLButtonElement;
     retryButton.click();
     fixture.detectChanges();
@@ -257,7 +237,7 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$.next([{ file, state: 'error', type: 'image' }]);
     fixture.detectChanges();
     const retryButton = queryImagePreviews()[0].querySelector(
-      '[data-testclass="upload-error"]'
+      '[data-testclass="upload-retry"]'
     ) as HTMLButtonElement;
     retryButton.click();
     attachmentUploads$.next([
@@ -266,7 +246,7 @@ describe('AttachmentPreviewListComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryImagePreviews()[0].querySelector('[data-testclass="upload-error"]')
+      queryImagePreviews()[0].querySelector('[data-testclass="upload-retry"]')
     ).toBeNull();
   });
 
@@ -302,12 +282,8 @@ describe('AttachmentPreviewListComponent', () => {
     const link = queryPreviewFiles()[0].querySelector(
       '[data-testclass="file-download-link"]'
     ) as HTMLAnchorElement;
-    const event = new KeyboardEvent('click');
-    spyOn(event, 'preventDefault');
-    link.dispatchEvent(event);
-    fixture.detectChanges();
 
-    expect(event.preventDefault).toHaveBeenCalledWith();
+    expect(link).toBeNull();
   });
 
   it('should display video files as file attachments', () => {

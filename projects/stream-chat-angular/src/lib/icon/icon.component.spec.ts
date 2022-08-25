@@ -138,6 +138,41 @@ describe('IconComponent', () => {
     expect(queryIcon('arrow-down')).not.toBeNull();
   });
 
+  it('should display chat-bubble icon', () => {
+    component.icon = 'chat-bubble';
+    fixture.detectChanges();
+
+    expect(queryIcon('chat-bubble')).not.toBeNull();
+  });
+
+  it('should display attach icon', () => {
+    component.icon = 'attach';
+    fixture.detectChanges();
+
+    expect(queryIcon('attach')).not.toBeNull();
+  });
+
+  it('should display unspecified-filetype icon', () => {
+    component.icon = 'unspecified-filetype';
+    fixture.detectChanges();
+
+    expect(queryIcon('unspecified-filetype')).not.toBeNull();
+  });
+
+  it('should display download icon', () => {
+    component.icon = 'download';
+    fixture.detectChanges();
+
+    expect(queryIcon('download')).not.toBeNull();
+  });
+
+  it('should display error icon', () => {
+    component.icon = 'error';
+    fixture.detectChanges();
+
+    expect(queryIcon('error')).not.toBeNull();
+  });
+
   it('should not display anything if #icon is not provided', () => {
     expect(nativeElement.innerHTML).not.toContain('svg');
   });

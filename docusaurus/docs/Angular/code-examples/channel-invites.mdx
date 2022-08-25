@@ -50,7 +50,7 @@ We create a simplistic UI with an "Invite users" button that opens a [modal](../
 
 ### Styling
 
-We are using stream-chat theme variables to match the default chat theme. You can read more about theme variables in our [themeing guide](../concepts/themeing-and-css.mdx).
+We are using stream-chat theme variables to match the default chat theme. You can read more about theme variables in our [theming guide](../theming/introduction.mdx).
 
 ```scss
 .modal-content {
@@ -71,8 +71,13 @@ We are using stream-chat theme variables to match the default chat theme. You ca
     width: 200px;
     padding: 10px;
     border: none;
-    border-radius: var(--border-radius-md);
-    background-color: var(--grey-whisper);
+    background-color: var(--str-chat__message-textarea-background-color);
+    color: var(--str-chat__message-textarea-color);
+    border-radius: var(--str-chat__message-textarea-border-radius);
+    border-block-start: var(--str-chat__message-textarea-border-block-start);
+    border-block-end: var(--str-chat__message-textarea-border-block-end);
+    border-inline-start: var(--str-chat__message-textarea-border-inline-start);
+    border-inline-end: var(--str-chat__message-textarea-border-inline-end);
   }
 
   .invited-users {
@@ -89,10 +94,10 @@ We are using stream-chat theme variables to match the default chat theme. You ca
 }
 
 button {
-  background-color: var(--primary-color);
+  background-color: var(--str-chat__cta-button-background-color);
   border: none;
-  border-radius: var(--border-radius-md);
-  color: white;
+  border-radius: var(--str-chat__cta-button-border-radius);
+  color: var(--str-chat__cta-button-color);
   padding: 10px;
   cursor: pointer;
 }
@@ -391,13 +396,12 @@ Add this to your `app.component.html` file:
 Add a reference to the template in your `app.component.ts`:
 
 ```typescript
-@ViewChild('inviteTemplate') private inviteTemplate!: TemplateRef<{
-    channel: Channel<DefaultStreamChatGenerics> | ChannelResponse<DefaultStreamChatGenerics>;
+@ViewChild('inviteTemplate') private inviteTemplate!: TemplateRef<{channel: Channel<DefaultStreamChatGenerics> | ChannelResponse<DefaultStreamChatGenerics>}>;
 ```
 
 #### Displaying the invitations
 
-The `pendingInvites$` Observable on the [`ChatClientService`](../services/ChatClientService.mdx) can notify us about the pending invitations of the current user. Let's subscribe to this Observable and display the invites in the `ngOnInit` method of the `app.component.ts`
+The `pendingInvites$` Observable on the [`ChatClientService`](../services/ChatClientService.mdx) can notify us about the pending invitations of the current user. Let's subscribe to this Observable and [display the invites](../services/NotificationService.mdx) in the `ngOnInit` method of the `app.component.ts`
 
 ```typescript
 ngOnInit(): void {

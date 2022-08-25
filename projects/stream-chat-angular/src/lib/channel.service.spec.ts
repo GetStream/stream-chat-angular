@@ -143,13 +143,22 @@ describe('ChannelService', () => {
   });
 
   it('should return the result of the init', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    const notificationSpy = jasmine.createSpy();
+    notificationService.notifications$.subscribe(notificationSpy);
+    notificationSpy.calls.reset();
     const expectedResult = generateMockChannels();
     const result = await init(expectedResult);
 
     expect(result as any as MockChannel[]).toEqual(expectedResult);
+    expect(notificationSpy).not.toHaveBeenCalled();
   });
 
   it('should return the result of the init - error', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    const notificationSpy = jasmine.createSpy();
+    notificationService.notifications$.subscribe(notificationSpy);
+    notificationSpy.calls.reset();
     const error = 'there was an error';
 
     await expectAsync(
@@ -157,6 +166,15 @@ describe('ChannelService', () => {
         mockChatClient.queryChannels.and.rejectWith(error)
       )
     ).toBeRejectedWith(error);
+
+    expect(notificationSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([
+        jasmine.objectContaining({
+          type: 'error',
+          text: 'streamChat.Error loading channels',
+        }),
+      ])
+    );
   });
 
   it('should not set active channel if #shouldSetActiveChannel is false', async () => {

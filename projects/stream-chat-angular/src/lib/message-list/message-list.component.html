@@ -4,12 +4,13 @@
   class="str-chat__list"
   (scroll)="scrolled()"
 >
-  <div class="str-chat__reverse-infinite-scroll">
+  <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
     <ul class="str-chat__ul">
       <li
         #parentMessageElement
         *ngIf="mode === 'thread'"
         data-testid="parent-message"
+        class="str-chat__parent-message-li"
       >
         <ng-container
           *ngTemplateOutlet="
@@ -17,8 +18,9 @@
             context: { message: parentMessage }
           "
         ></ng-container>
-        <div class="str-chat__thread-start" translate>
-          streamChat.Start of a new thread
+        <div data-testid="reply-count" class="str-chat__thread-start">
+          {{parentMessage?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+          replies' | translate:replyCountParam)}}
         </div>
       </li>
       <li
@@ -40,25 +42,32 @@
       </li>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
-      <div
-        *ngIf="$any(usersTyping$ | async)?.length"
-        data-testid="typing-indicator"
-        class="str-chat__typing-indicator str-chat__typing-indicator--typing"
-      >
-        <stream-avatar-placeholder
-          *ngFor="let user of usersTyping$ | async; trackBy: trackByUserId"
-          [name]="user.name || user.id"
-          [imageUrl]="user.image"
-          type="user"
-          location="typing-indicator"
-          [user]="user"
-        ></stream-avatar-placeholder>
-        <div class="str-chat__typing-indicator__dots">
-          <span class="str-chat__typing-indicator__dot"></span>
-          <span class="str-chat__typing-indicator__dot"></span>
-          <span class="str-chat__typing-indicator__dot"></span>
+      <!-- eslint-disable-next-line @angular-eslint/template/no-any -->
+      <ng-container *ngIf="$any(usersTyping$ | async) as users">
+        <div
+          *ngIf="users.length > 0"
+          data-testid="typing-indicator"
+          class="str-chat__typing-indicator str-chat__typing-indicator--typing"
+        >
+          <div class="str-chat__typing-indicator__dots">
+            <span class="str-chat__typing-indicator__dot"></span>
+            <span class="str-chat__typing-indicator__dot"></span>
+            <span class="str-chat__typing-indicator__dot"></span>
+          </div>
+          <div
+            data-testid="typing-users"
+            class="str-chat__typing-indicator__users"
+          >
+            {{
+              users.length === 1
+                ? ("streamChat.user is typing"
+                  | translate: { user: getTypingIndicatorText(users) })
+                : ("streamChat.users are typing"
+                  | translate: { users: getTypingIndicatorText(users) })
+            }}
+          </div>
         </div>
-      </div>
+      </ng-container>
     </ng-template>
     <ng-container
       *ngTemplateOutlet="
@@ -68,20 +77,20 @@
     ></ng-container>
   </div>
 </div>
-<div class="str-chat__list-notifications">
+<div class="str-chat__jump-to-latest-message">
   <button
     data-testid="scroll-to-latest"
     *ngIf="isUserScrolled"
     class="
-      str-chat__message-notification
-      str-chat__message-notification-right
       str-chat__message-notification-scroll-to-latest
+      str-chat__message-notification-scroll-to-latest-right
+      str-chat__circle-fab
     "
     (keyup.enter)="jumpToLatestMessage()"
     (click)="jumpToLatestMessage()"
   >
     <stream-icon
-      style="display: inline-block; height: 24px"
+      class="str-chat__jump-to-latest-icon str-chat__circle-fab-icon"
       [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
     ></stream-icon>
     <div
@@ -89,6 +98,7 @@
       class="
         str-chat__message-notification
         str-chat__message-notification-scroll-to-latest-unread-count
+        str-chat__jump-to-latest-unread-count
       "
     >
       {{ unreadMessageCount }}

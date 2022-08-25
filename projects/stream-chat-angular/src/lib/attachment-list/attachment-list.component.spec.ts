@@ -8,6 +8,7 @@ import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
+import { ThemeService } from '../theme.service';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -16,6 +17,7 @@ describe('AttachmentListComponent', () => {
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
   let queryFileLinks: () => HTMLAnchorElement[];
+  let queryFileNames: () => HTMLElement[];
   let queryUrlLinks: () => HTMLAnchorElement[];
   let queryCardImages: () => HTMLImageElement[];
   let queryActions: () => HTMLElement[];
@@ -33,6 +35,7 @@ describe('AttachmentListComponent', () => {
       declarations: [AttachmentListComponent, ModalComponent],
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
+        { provide: ThemeService, useValue: { themeVersion: '2' } },
         StreamI18nService,
         AttachmentConfigurationService,
       ],
@@ -56,6 +59,10 @@ describe('AttachmentListComponent', () => {
     queryFileLinks = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="file-link"]')
+      );
+    queryFileNames = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="file-title"]')
       );
     queryUrlLinks = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="url-link"]'));
@@ -98,29 +105,7 @@ describe('AttachmentListComponent', () => {
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
-      {
-        title: 'BBC - Homepage',
-        title_link: 'https://www.bbc.com/',
-        og_scrape_url: 'https://www.bbc.com/',
-        image_url: 'https://assets/images/favicons/favicon-194x194.png',
-      },
       { type: 'file', asset_url: 'url3' },
-      {
-        image_url: 'https://getstream.io/images/og/OG_Home.png',
-        og_scrape_url: 'https://getstream.io/',
-        text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
-        thumb_url: 'https://getstream.io/images/og/OG_Home.png',
-        title: 'The #1 Chat Messaging + Activity Feed Infrastructure',
-        title_link: '/',
-        type: 'image',
-      },
-      {
-        thumb_url:
-          'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
-        title: 'cats',
-        title_link: 'https://giphy.com/gifs/game-point-Eq5pb4dR4DJQc',
-        type: 'giphy',
-      },
       {
         type: 'video',
         asset_url: 'url6',
@@ -130,7 +115,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(6);
+    expect(attachments.length).toBe(3);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
@@ -147,43 +132,20 @@ describe('AttachmentListComponent', () => {
       attachments[2].classList.contains('str-chat__message-attachment--image')
     ).toBeFalse();
 
-    expect(
-      attachments[3].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[3].classList.contains('str-chat__message-attachment--image')
-    ).toBeFalse();
-
-    expect(
-      attachments[4].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[5].classList.contains('str-chat__message-attachment--card')
-    ).toBeTrue();
-
-    expect(
-      attachments[5].classList.contains('str-chat__message-attachment--giphy')
-    ).toBeTrue();
-
     expect(queryImages().length).toBe(1);
     expect(queryFileLinks().length).toBe(1);
-    expect(queryUrlLinks().length).toBe(3);
-    expect(queryCardImages().length).toBe(3);
+    expect(queryCardImages().length).toBe(0);
     expect(queryActions().length).toBe(0);
+    expect(
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+    ).toBeNull();
+
     expect(queryVideos().length).toBe(1);
   });
 
   it('should create gallery', () => {
     component.attachments = [
       { type: 'image', img_url: 'url1' },
-      {
-        title: 'BBC - Homepage',
-        title_link: 'https://www.bbc.com/',
-        og_scrape_url: 'https://www.bbc.com/',
-        image_url: 'https://assets/images/favicons/favicon-194x194.png',
-      },
       { type: 'file', asset_url: 'url3' },
       { type: 'image', img_url: 'url2' },
     ];
@@ -191,7 +153,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const orderedAttachments = component.orderedAttachments;
 
-    expect(orderedAttachments.length).toBe(3);
+    expect(orderedAttachments.length).toBe(2);
     expect(orderedAttachments[0].type).toBe('gallery');
     expect(orderedAttachments[0].images![0].img_url).toBe('url1');
     expect(orderedAttachments[0].images![1].img_url).toBe('url2');
@@ -210,6 +172,9 @@ describe('AttachmentListComponent', () => {
     expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(2);
     expect(imageElemnts[0].src).toContain('url1');
     expect(imageElemnts[1].src).toContain('url2');
+    expect(
+      nativeElement.querySelector('.str-chat__gallery-two-rows')
+    ).toBeNull();
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
@@ -227,6 +192,9 @@ describe('AttachmentListComponent', () => {
     expect(imageElemnts[1].src).toContain('url2');
     expect(imageElemnts[2].src).toContain('url3');
     expect(imageElemnts[3].src).toContain('url4');
+    expect(
+      nativeElement.querySelector('.str-chat__gallery-two-rows')
+    ).not.toBeNull();
 
     component.attachments = [
       { type: 'image', img_url: 'url1' },
@@ -252,7 +220,7 @@ describe('AttachmentListComponent', () => {
     expect(lastImage.innerHTML).toContain('1 more');
   });
 
-  it('should display attachment actions', () => {
+  it('should display attachment actions and apply CSS class', () => {
     const attachment = {
       type: 'giphy',
       title: 'cats',
@@ -302,6 +270,9 @@ describe('AttachmentListComponent', () => {
     expect(actions[0].innerHTML).toContain('Send');
     expect(actions[1].innerHTML).toContain('Shuffle');
     expect(actions[2].innerHTML).toContain('Cancel');
+    expect(
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+    ).not.toBeNull();
   });
 
   it('should send attachment action, if clicked', () => {
@@ -409,6 +380,28 @@ describe('AttachmentListComponent', () => {
 
       expect(queryImages()[0].alt).toContain(fallback);
     });
+
+    it('should display add necessary CSS class for SVG images', () => {
+      component.attachments = [
+        { type: 'image', img_url: 'image/url', fallback: 'image.svg' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+      ).not.toBeNull();
+
+      component.attachments = [
+        { type: 'image', img_url: 'image/url', fallback: 'image.jpg' },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+      ).toBeNull();
+    });
   });
 
   describe('should display file attachment', () => {
@@ -419,10 +412,11 @@ describe('AttachmentListComponent', () => {
       component.ngOnChanges();
       fixture.detectChanges();
       const link = queryFileLinks()[0];
+      const titleElement = queryFileNames()[0];
 
       expect(link.hasAttribute('download')).toBeTrue();
       expect(link.href).toContain(asset_url);
-      expect(link.textContent).toContain(title);
+      expect(titleElement.textContent).toContain(title);
     });
 
     it('should add CSS class for files', () => {
@@ -525,6 +519,27 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(thumbUrl);
+    });
+
+    it(`shouldn't display url preview if there are other attachments`, () => {
+      component.attachments = [
+        {
+          author_name: 'GetStream',
+          image_url: 'https://getstream.io/images/og/OG_Home.png',
+          og_scrape_url: 'https://getstream.io',
+          title: 'Stream',
+          title_link: '/',
+          type: 'image',
+        },
+        {
+          type: 'image',
+          image_url: 'url/to/flower.png',
+        },
+      ];
+      component.ngOnChanges();
+      fixture.detectChanges();
+
+      expect(component.orderedAttachments.length).toBe(1);
     });
 
     it('should display attachment #title, if exists', () => {
@@ -742,7 +757,9 @@ describe('AttachmentListComponent', () => {
       expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
     });
 
-    it('should deselect images if modal is closed', () => {
+    // Will be part of modal implementation
+    // eslint-disable-next-line jasmine/no-disabled-tests
+    xit('should deselect images if modal is closed', () => {
       const attachment = {
         type: 'image',
         image_url: 'url1',

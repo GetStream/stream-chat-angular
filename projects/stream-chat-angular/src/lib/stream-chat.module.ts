@@ -22,6 +22,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
 import { ThreadComponent } from './thread/thread.component';
 import { IconPlaceholderComponent } from './icon-placeholder/icon-placeholder.component';
 import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeholder/loading-indicator-placeholder.component';
+import { NgxPopperjsModule } from 'ngx-popperjs';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,12 @@ import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeh
     IconPlaceholderComponent,
     LoadingIndicatorPlaceholderComponent,
   ],
-  imports: [CommonModule, TranslateModule, StreamAvatarModule],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    StreamAvatarModule,
+    NgxPopperjsModule,
+  ],
   exports: [
     ChannelComponent,
     ChannelHeaderComponent,

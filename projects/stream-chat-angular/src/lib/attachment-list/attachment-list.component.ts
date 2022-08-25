@@ -1,5 +1,6 @@
 import {
   Component,
+  HostBinding,
   Input,
   OnChanges,
   TemplateRef,
@@ -12,6 +13,7 @@ import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
+import { ThemeService } from '../theme.service';
 
 /**
  * The `AttachmentList` compontent displays the attachments of a message
@@ -34,17 +36,22 @@ export class AttachmentListComponent implements OnChanges {
    * The attachments to display
    */
   @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  @HostBinding() class = 'str-chat__attachment-list-angular-host';
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
+  themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
-    private attachmentConfigurationService: AttachmentConfigurationService
-  ) {}
+    private attachmentConfigurationService: AttachmentConfigurationService,
+    themeService: ThemeService
+  ) {
+    this.themeVersion = themeService.themeVersion;
+  }
 
   ngOnChanges(): void {
     const images = this.attachments.filter(this.isImage);
@@ -53,8 +60,14 @@ export class AttachmentListComponent implements OnChanges {
       ...(containsGallery ? this.createGallery(images) : images),
       ...this.attachments.filter((a) => this.isVideo(a)),
       ...this.attachments.filter((a) => this.isFile(a)),
-      ...this.attachments.filter((a) => this.isCard(a)),
     ];
+    // Display link attachments only if there are no other attachments
+    // Giphy-s always sent without other attachments
+    if (this.orderedAttachments.length === 0) {
+      this.orderedAttachments.push(
+        ...this.attachments.filter((a) => this.isCard(a))
+      );
+    }
   }
 
   trackById(index: number) {
@@ -63,6 +76,11 @@ export class AttachmentListComponent implements OnChanges {
 
   isImage(attachment: Attachment) {
     return isImageAttachment(attachment);
+  }
+
+  isSvg(attachment: Attachment) {
+    const filename = attachment.fallback || '';
+    return !!filename.toLowerCase().endsWith('.svg');
   }
 
   isFile(attachment: Attachment) {
