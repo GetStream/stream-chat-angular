@@ -263,6 +263,7 @@ describe('ChannelService', () => {
       id: undefined,
       parentId: undefined,
     });
+
     expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
 
     messagesSpy.calls.reset();
@@ -515,7 +516,6 @@ describe('ChannelService', () => {
 
     const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
     const updatedMessage = messages[messages.length - 1];
-    console.log(messages, updatedMessage);
 
     expect(updatedMessage.text).toBe('updated');
 
@@ -1732,7 +1732,7 @@ describe('ChannelService', () => {
   it('should pin message', async () => {
     await init();
     const message = mockMessage();
-    service.pinMessage(message);
+    void service.pinMessage(message);
 
     expect(mockChatClient.pinMessage).toHaveBeenCalledWith(message);
   });
@@ -1755,7 +1755,7 @@ describe('ChannelService', () => {
   it('should unpin message', async () => {
     await init();
     const message = mockMessage();
-    service.unpinMessage(message);
+    void service.unpinMessage(message);
 
     expect(mockChatClient.unpinMessage).toHaveBeenCalledWith(message);
   });

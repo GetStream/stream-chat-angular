@@ -86,6 +86,7 @@ describe('ChannelPreviewComponent', () => {
   it('should apply unread class and display unread badge, if channel has unread messages', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
+    channel.id = 'notactive';
     component.channel = channel;
     const countUnreadSpy = spyOn(channel, 'countUnread');
     countUnreadSpy.and.returnValue(0);
@@ -98,7 +99,7 @@ describe('ChannelPreviewComponent', () => {
 
     countUnreadSpy.and.returnValue(1);
     const newMessage = mockMessage();
-    channel.state.messages.push(newMessage);
+    channel.state.latestMessages.push(newMessage);
     channel.handleEvent('message.new', { message: newMessage });
     fixture.detectChanges();
 
@@ -126,6 +127,7 @@ describe('ChannelPreviewComponent', () => {
   it('should remove unread class and badge, if user marked channel as read', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
+    channel.id = 'notactive';
     component.channel = channel;
     let undreadCount = 3;
     spyOn(channel, 'countUnread').and.callFake(() => undreadCount);
@@ -202,7 +204,7 @@ describe('ChannelPreviewComponent', () => {
   describe('should display latest message of channel', () => {
     it('if channel has no messages', () => {
       const channel = generateMockChannels()[0];
-      channel.state.messages = [];
+      channel.state.latestMessages = [];
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
@@ -217,17 +219,19 @@ describe('ChannelPreviewComponent', () => {
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(
-        channel.state.messages[channel.state.messages.length - 1].text
+        channel.state.latestMessages[channel.state.latestMessages.length - 1]
+          .text
       );
     });
 
     it('if last message has attachments', () => {
       const channel = generateMockChannels()[0];
-      channel.state.messages[channel.state.messages.length - 1].text =
-        undefined;
-      channel.state.messages[channel.state.messages.length - 1].attachments = [
-        {},
-      ];
+      channel.state.latestMessages[
+        channel.state.latestMessages.length - 1
+      ].text = undefined;
+      channel.state.latestMessages[
+        channel.state.latestMessages.length - 1
+      ].attachments = [{}];
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
@@ -242,7 +246,7 @@ describe('ChannelPreviewComponent', () => {
       fixture.detectChanges();
       const newMessage = mockMessage();
       newMessage.text = 'this is the text of  new message';
-      channel.state.messages.push(newMessage);
+      channel.state.latestMessages.push(newMessage);
       channel.handleEvent('message.new', { message: newMessage });
       fixture.detectChanges();
 
@@ -256,7 +260,7 @@ describe('ChannelPreviewComponent', () => {
       fixture.detectChanges();
       const updatedMessage = mockMessage();
       updatedMessage.text = 'this is the text of  new message';
-      channel.state.messages[channel.state.messages.length - 1] =
+      channel.state.latestMessages[channel.state.latestMessages.length - 1] =
         updatedMessage;
       channel.handleEvent('message.updated', { message: updatedMessage });
       fixture.detectChanges();
@@ -271,7 +275,7 @@ describe('ChannelPreviewComponent', () => {
       fixture.detectChanges();
       const deletedMessage = mockMessage();
       deletedMessage.deleted_at = new Date().toISOString();
-      channel.state.messages[channel.state.messages.length - 1] =
+      channel.state.latestMessages[channel.state.latestMessages.length - 1] =
         deletedMessage;
       channel.handleEvent('message.updated', { message: deletedMessage });
       fixture.detectChanges();
@@ -287,7 +291,7 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
     const updatedMessage = mockMessage();
     updatedMessage.text = 'this is the text of  new message';
-    channel.state.messages[0] = updatedMessage;
+    channel.state.latestMessages[0] = updatedMessage;
     channel.handleEvent('message.updated', updatedMessage);
     fixture.detectChanges();
 
@@ -301,7 +305,7 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock.activeChannel$.next(channel);
     component.channel = channel;
     fixture.detectChanges();
-    channel.state.messages = [];
+    channel.state.latestMessages = [];
     channel.handleEvent('channel.truncated', { type: 'channel.truncated' });
     fixture.detectChanges();
 
