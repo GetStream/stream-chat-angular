@@ -18,6 +18,7 @@ import {
   mockCurrentUser,
   mockMessage,
 } from './mocks';
+import { NotificationService } from './notification.service';
 import { DefaultStreamChatGenerics, StreamMessage } from './types';
 
 describe('ChannelService - threads', () => {
@@ -62,6 +63,7 @@ describe('ChannelService - threads', () => {
             connectionState$,
           },
         },
+        NotificationService,
       ],
     });
     service = TestBed.inject(ChannelService);
@@ -126,27 +128,51 @@ describe('ChannelService - threads', () => {
 
   it('should remove active parent message and reset thread messages', async () => {
     await init();
-    const messageToQuote = mockMessage();
-    messageToQuote.parent_id = 'parentId';
-    service.selectMessageToQuote(messageToQuote);
+    let parentMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
+    const message = mockMessage();
+    message.parent_id = parentMessage.id;
+    await service.setAsActiveParentMessage(parentMessage);
+    await service.jumpToMessage(message.id, message.parent_id);
+    service.selectMessageToQuote(message);
     const messagesSpy = jasmine.createSpy();
     const activeParentMessageIdSpy = jasmine.createSpy();
     const activeParentMessageSpy = jasmine.createSpy();
     const messageToQuoteSpy = jasmine.createSpy();
+    const jumpToMessageSpy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(messagesSpy);
     service.activeParentMessageId$.subscribe(activeParentMessageIdSpy);
     service.activeParentMessage$.subscribe(activeParentMessageSpy);
     service.messageToQuote$.subscribe(messageToQuoteSpy);
+    service.jumpToMessage$.subscribe(jumpToMessageSpy);
     messagesSpy.calls.reset();
     activeParentMessageIdSpy.calls.reset();
     activeParentMessageSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
+    jumpToMessageSpy.calls.reset();
     await service.setAsActiveParentMessage(undefined);
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(activeParentMessageIdSpy).toHaveBeenCalledWith(undefined);
     expect(activeParentMessageSpy).toHaveBeenCalledWith(undefined);
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
+    expect(jumpToMessageSpy).toHaveBeenCalledWith({
+      id: undefined,
+      parentId: undefined,
+    });
+  });
+
+  it('should handle if selected parent message is removed from message list', async () => {
+    await init();
+    let parentMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
+    parentMessage.id = 'parentMessage';
+    service.activeParentMessage$.subscribe();
+    await service.setAsActiveParentMessage(parentMessage);
+    spyOn(service, 'setAsActiveParentMessage').and.callThrough();
+    await service.jumpToMessage('message-very-far-away');
+
+    expect(service.setAsActiveParentMessage).toHaveBeenCalledWith(undefined);
   });
 
   it(`shouldn't deselect message to quote, if not a thread reply`, async () => {
@@ -163,6 +189,22 @@ describe('ChannelService - threads', () => {
     await service.setAsActiveParentMessage(undefined);
 
     expect(messageToQuoteSpy).not.toHaveBeenCalled();
+  });
+
+  it(`shouldn't deselect jump-to-message, if not a thread reply`, async () => {
+    await init();
+    const jumpToMessageSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageSpy);
+    const parentMessage = mockMessage();
+    parentMessage.id = 'parentMessage';
+    const messageToJump = mockMessage();
+    messageToJump.parent_id = undefined;
+    await service.setAsActiveParentMessage(parentMessage);
+    await service.jumpToMessage(messageToJump.id, messageToJump.parent_id);
+    jumpToMessageSpy.calls.reset();
+    await service.setAsActiveParentMessage(undefined);
+
+    expect(jumpToMessageSpy).not.toHaveBeenCalled();
   });
 
   it('should reset', async () => {
@@ -216,7 +258,7 @@ describe('ChannelService - threads', () => {
     threadMessages.forEach((m) => expect(m.readBy).toBeDefined());
   });
 
-  it('should load more messages', async () => {
+  it('should load more older messages', async () => {
     await init();
     const messagesSpy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(messagesSpy);
@@ -244,6 +286,29 @@ describe('ChannelService - threads', () => {
     });
 
     expect(threadMessages.length).toBe(5);
+  });
+
+  it('should do nothing if we want to load newer messages', async () => {
+    await init();
+    const messagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    const parentMessage = mockMessage();
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe((c) => (channel = c!));
+    const replies = [mockMessage(), mockMessage(), mockMessage()];
+    spyOn(channel, 'getReplies').and.resolveTo({
+      messages: replies,
+    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    replies[0].id = 'firstreply';
+    await service.setAsActiveParentMessage(parentMessage);
+    (channel.getReplies as jasmine.Spy).calls.reset();
+    channel.state.threads = {
+      [parentMessage.id]: [mockMessage(), mockMessage(), ...replies],
+    };
+    await service.loadMoreThreadReplies('newer');
+
+    expect(channel.getReplies).not.toHaveBeenCalled();
   });
 
   it('should watch for new message events', async () => {
@@ -707,5 +772,41 @@ describe('ChannelService - threads', () => {
 
     expect(usersTypingInThreadSpy).not.toHaveBeenCalled();
     expect(usersTypingInChannelSpy).not.toHaveBeenCalled();
+  });
+
+  it('should load thread message into state', async () => {
+    await init();
+    const jumpToMessageIdSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageIdSpy);
+    jumpToMessageIdSpy.calls.reset();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
+    const activeParentMessageSpy = jasmine.createSpy();
+    service.activeParentMessageId$.subscribe(activeParentMessageSpy);
+    activeParentMessageSpy.calls.reset();
+    const threadMessagesSpy = jasmine.createSpy();
+    service.activeThreadMessages$.subscribe(threadMessagesSpy);
+    threadMessagesSpy.calls.reset();
+    const messageId = '1232121123';
+    const parentMessageId = '2222';
+    await service.jumpToMessage(messageId, parentMessageId);
+
+    expect(jumpToMessageIdSpy).toHaveBeenCalledWith({
+      id: messageId,
+      parentId: parentMessageId,
+    });
+
+    expect(messagesSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([
+        jasmine.objectContaining({ id: parentMessageId }),
+      ])
+    );
+
+    expect(activeParentMessageSpy).toHaveBeenCalledWith(parentMessageId);
+
+    expect(threadMessagesSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
+    );
   });
 });

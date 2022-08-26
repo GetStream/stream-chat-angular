@@ -37,6 +37,7 @@ export const en = {
     'Message has been successfully flagged':
       'Message has been successfully flagged',
     'Message pinned': 'Message pinned',
+    'Message unpinned': 'Message unpinned',
     Mute: 'Mute',
     New: 'New',
     'New Messages!': 'New Messages!',
@@ -95,6 +96,7 @@ export const en = {
     "You can't send thread replies in this channel":
       "You can't send thread replies in this channel",
     'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
+    'Message not found': 'Message not found',
     'No chats here yet…': 'No chats here yet…',
     'user is typing': '{{ user }} is typing',
     'users are typing': '{{ users }} are typing',

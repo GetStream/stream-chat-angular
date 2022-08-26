@@ -48,6 +48,8 @@ describe('MessageActionsBoxComponent', () => {
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
     messageToQuote$: Observable<StreamMessage | undefined>;
+    pinMessage: jasmine.Spy;
+    unpinMessage: jasmine.Spy;
   };
 
   beforeEach(async () => {
@@ -58,6 +60,8 @@ describe('MessageActionsBoxComponent', () => {
       deleteMessage: jasmine.createSpy(),
       selectMessageToQuote: jasmine.createSpy(),
       messageToQuote$: new Observable(),
+      pinMessage: jasmine.createSpy(),
+      unpinMessage: jasmine.createSpy(),
     };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -130,7 +134,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(queryDeleteAction()).not.toBeNull();
     expect(queryEditAction()).not.toBeNull();
-    expect(queryPinAction()).toBeNull();
+    expect(queryPinAction()).not.toBeNull();
     expect(queryMuteAction()).toBeNull();
     expect(queryFlagAction()).toBeNull();
     expect(queryQuoteAction()).toBeNull();
@@ -191,8 +195,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(queryQuoteAction()).not.toBeNull();
   });
 
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should display the pin action label correctly', () => {
+  it('should display the pin action label correctly', () => {
     component.message = { ...message, ...{ pinned: false } };
     component.enabledActions = ['pin-message'];
     component.ngOnChanges({
@@ -211,17 +214,21 @@ describe('MessageActionsBoxComponent', () => {
     expect(pinAction?.textContent).toContain('Unpin');
   });
 
-  // eslint-disable-next-line jasmine/no-disabled-tests
-  xit('should handle pin action', () => {
+  it('should handle pin action', () => {
     component.enabledActions = ['pin-message'];
     component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
-    spyOn(window, 'alert').and.callThrough();
     const action = queryPinAction();
     action?.click();
     fixture.detectChanges();
 
-    expect(window.alert).toHaveBeenCalledWith(jasmine.anything());
+    expect(channelService.pinMessage).toHaveBeenCalledWith(component.message);
+
+    component.message!.pinned = true;
+    action?.click();
+    fixture.detectChanges();
+
+    expect(channelService.unpinMessage).toHaveBeenCalledWith(component.message);
   });
 
   it('should handle flag action', async () => {
@@ -276,7 +283,7 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith(2);
+    expect(spy).toHaveBeenCalledWith(3);
 
     spy.calls.reset();
     component.enabledActions = [
@@ -293,7 +300,7 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith(3);
+    expect(spy).toHaveBeenCalledWith(4);
   });
 
   describe('should display edit action', () => {

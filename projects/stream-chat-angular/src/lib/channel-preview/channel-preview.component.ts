@@ -44,7 +44,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           (this.isActive = activeChannel?.id === this.channel?.id)
       )
     );
-    const messages = this.channel?.state?.messages;
+    const messages = this.channel?.state?.latestMessages;
     if (messages && messages.length > 0) {
       this.setLatestMessage(messages[messages.length - 1]);
     }
@@ -101,14 +101,15 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
 
   private handleMessageEvent(event: Event) {
     this.ngZone.run(() => {
-      if (this.channel?.state.messages.length === 0) {
+      if (this.channel?.state.latestMessages.length === 0) {
         this.latestMessage = 'streamChat.Nothing yet...';
         return;
       }
       if (
         !event.message ||
-        this.channel?.state.messages[this.channel?.state.messages.length - 1]
-          .id !== event.message.id
+        this.channel?.state.latestMessages[
+          this.channel?.state.latestMessages.length - 1
+        ].id !== event.message.id
       ) {
         return;
       }

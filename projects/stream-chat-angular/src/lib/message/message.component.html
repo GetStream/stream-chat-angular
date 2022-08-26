@@ -10,6 +10,7 @@
   [class.str-chat__message-simple--me]="isSentByCurrentUser"
   [class.str-chat__message--has-attachment]="hasAttachment"
   [class.str-chat__message--with-reactions]="hasReactions"
+  [class.str-chat__message--highlighted]="isHighlighted"
   [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
   [class.str-chat__message-send-can-be-retried]="
     message?.status === 'failed' && message?.errorStatusCode !== 403
@@ -327,6 +328,18 @@
     class="quoted-message str-chat__quoted-message-preview"
     data-testid="quoted-message-container"
     [class.mine]="isSentByCurrentUser"
+    (click)="
+      jumpToMessage(
+        (message?.quoted_message)!.id,
+        message?.quoted_message?.parent_id
+      )
+    "
+    (keyup.enter)="
+      jumpToMessage(
+        (message?.quoted_message)!.id,
+        message?.quoted_message?.parent_id
+      )
+    "
   >
     <stream-avatar-placeholder
       data-testid="qouted-message-avatar"

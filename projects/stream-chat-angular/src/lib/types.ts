@@ -147,6 +147,7 @@ export type MessageContext = {
   enabledMessageActions: string[];
   isLastSentMessage: boolean | undefined;
   mode: 'thread' | 'main';
+  isHighlighted: boolean;
 };
 
 export type ChannelActionsContext<
@@ -255,3 +256,9 @@ export type MessageReactionType =
   | 'love'
   | 'sad'
   | 'wow';
+
+export type AttachmentConfigration = {
+  url: string;
+  height: string;
+  width: string;
+};

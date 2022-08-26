@@ -16,6 +16,7 @@ import { ChatClientService } from '../chat-client.service';
 import { MessageComponent } from '../message/message.component';
 import {
   generateMockMessages,
+  MockChannel,
   MockChannelService,
   mockChannelService,
   mockCurrentUser,
@@ -40,7 +41,7 @@ describe('MessageListComponent', () => {
   let queryTypingIndicator: () => HTMLElement | null;
   let queryTypingUsers: () => HTMLElement | null;
 
-  beforeEach(fakeAsync(() => {
+  beforeEach(() => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -94,16 +95,17 @@ describe('MessageListComponent', () => {
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.style.maxHeight = '300px';
     scrollContainer.style.overflowY = 'auto';
-    tick(300);
     fixture.detectChanges();
-  }));
+  });
 
   it('should display messages', () => {
     const messages = channelServiceMock.activeChannelMessages$.getValue();
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    component.highlightedMessageId = messages[0].id;
     channelServiceMock.activeChannelMessages$.next([...messages]);
     fixture.detectChanges();
     const messagesComponents = queryMessageComponents();
+    const messageElements = queryMessages();
 
     expect(messagesComponents.length).toBe(messages.length);
     messagesComponents.forEach((m, i) => {
@@ -115,6 +117,12 @@ describe('MessageListComponent', () => {
       expect(m.enabledMessageActions).toEqual(component.enabledMessageActions);
 
       expect(m.mode).toBe(component.mode);
+
+      expect(m.isHighlighted).toBe(
+        messages[i].id === component.highlightedMessageId
+      );
+
+      expect(messageElements[i].id).toBe(messages[i].id);
     });
   });
 
@@ -148,28 +156,23 @@ describe('MessageListComponent', () => {
 
   it('should scroll to bottom, after loading the messages', () => {
     const scrollContainer = queryScrollContainer()!;
+    const scrollTop = Math.round(scrollContainer.scrollTop);
 
-    expect(scrollContainer.scrollTop).not.toBe(0);
-    expect(scrollContainer.scrollTop).toBe(
+    expect(scrollTop).not.toBe(0);
+    expect(scrollTop).toBe(
       scrollContainer.scrollHeight - scrollContainer.clientHeight
     );
   });
 
-  it(`shouldn't scroll to bottom, after loading the messages if direction is top to bottom`, () => {
+  it('should scroll to the latest message, after loading the messages if direction is top to bottom', () => {
+    spyOn(channelServiceMock, 'jumpToMessage');
     component.direction = 'top-to-bottom';
     component.ngOnChanges({ direction: {} as SimpleChange });
-    fixture.detectChanges();
-    const scrollContainer = queryScrollContainer()!;
 
-    expect(scrollContainer.scrollTop).toBe(0);
-  });
-
-  it('should scroll to bottom, after an image has been loaded', () => {
-    const imageLoadService = TestBed.inject(ImageLoadService);
-    spyOn(component, 'scrollToBottom');
-    imageLoadService.imageLoad$.next();
-
-    expect(component.scrollToBottom).toHaveBeenCalledWith();
+    expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+      'latest',
+      undefined
+    );
   });
 
   it(`shouldn't scroll to bottom, after an image has been loaded if direction is top to bottom`, () => {
@@ -228,9 +231,10 @@ describe('MessageListComponent', () => {
     );
 
     const scrollContainer = queryScrollContainer()!;
+    const scrollTop = Math.round(scrollContainer.scrollTop);
 
-    expect(scrollContainer.scrollTop).not.toBe(0);
-    expect(scrollContainer.scrollTop).toBe(
+    expect(scrollTop).not.toBe(0);
+    expect(scrollTop).toBe(
       scrollContainer.scrollHeight - scrollContainer.clientHeight
     );
   });
@@ -256,7 +260,7 @@ describe('MessageListComponent', () => {
     expect(scrollContainer.scrollTop).toBe(0);
   });
 
-  it('should load more messages, if user scrolls up', () => {
+  it('should load older messages, if user scrolls up', () => {
     spyOn(channelServiceMock, 'loadMoreMessages');
 
     const scrollContainer = queryScrollContainer()!;
@@ -264,10 +268,10 @@ describe('MessageListComponent', () => {
     scrollContainer.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
 
-    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith();
+    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith('older');
   });
 
-  it('should load more messages, if user scrolls down and direction is top-to-bottom', () => {
+  it('should load older messages, if user scrolls down and direction is top-to-bottom', () => {
     component.direction = 'top-to-bottom';
     component.ngOnChanges({ direction: {} as SimpleChange });
     fixture.detectChanges();
@@ -278,7 +282,32 @@ describe('MessageListComponent', () => {
     scrollContainer.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
 
-    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith();
+    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith('older');
+  });
+
+  it('should load newer messages, if user scrolls down', () => {
+    spyOn(channelServiceMock, 'loadMoreMessages');
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: scrollContainer.scrollHeight });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith('newer');
+  });
+
+  it('should load newer messages, if user scrolls up and direction is top-to-bottom', () => {
+    component.direction = 'top-to-bottom';
+    component.ngOnChanges({ direction: {} as SimpleChange });
+    fixture.detectChanges();
+    spyOn(channelServiceMock, 'loadMoreMessages');
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: 0 });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(channelServiceMock.loadMoreMessages).toHaveBeenCalledWith('newer');
   });
 
   it('should handle channel change', () => {
@@ -286,7 +315,8 @@ describe('MessageListComponent', () => {
     component.isUserScrolled = true;
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
-    } as Channel<DefaultStreamChatGenerics>);
+      on: () => {},
+    } as any as Channel<DefaultStreamChatGenerics>);
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 
@@ -302,6 +332,175 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(scrollContainer.scrollTop).not.toBe(0);
+  });
+
+  it('should scroll message into view and highlight it', () => {
+    const messageElements = queryMessages();
+    const message = messageElements[messageElements.length - 1];
+    spyOn(message, 'scrollIntoView');
+    channelServiceMock.jumpToMessage$.next({ id: message.id });
+
+    expect(message.scrollIntoView).toHaveBeenCalledWith(jasmine.anything());
+    expect(component.highlightedMessageId).toBe(message.id);
+  });
+
+  it('should scroll message into view and highlight it - parent message', () => {
+    const messageElements = queryMessages();
+    const message = messageElements[messageElements.length - 1];
+    spyOn(message, 'scrollIntoView');
+    channelServiceMock.jumpToMessage$.next({
+      id: 'thread-message',
+      parentId: message.id,
+    });
+
+    expect(message.scrollIntoView).toHaveBeenCalledWith(jasmine.anything());
+    expect(component.highlightedMessageId).toBe(message.id);
+  });
+
+  it('should remove the highlight after scroll', fakeAsync(() => {
+    expect(component.highlightedMessageId).toBeUndefined();
+
+    const messageElements = queryMessages();
+    const message = messageElements[messageElements.length - 1];
+    channelServiceMock.jumpToMessage$.next({ id: message.id });
+
+    expect(component.highlightedMessageId).toBe(message.id);
+
+    tick(1000);
+    fixture.detectChanges();
+
+    expect(component.highlightedMessageId).toBeUndefined();
+  }));
+
+  it('should wait with scrolling until message has been rendered', () => {
+    const newMessages = generateMockMessages();
+    const message = newMessages[Math.round(newMessages.length / 2)];
+    message.id = 'new-message-id';
+    // Simulates the scenario when jumping requires a new message set to be loaded
+    channelServiceMock.activeChannelMessages$.next(newMessages);
+    channelServiceMock.jumpToMessage$.next({
+      id: message.id,
+      parentId: undefined,
+    });
+
+    expect(nativeElement.querySelector(`#${message.id}`)).toBeNull();
+
+    fixture.detectChanges();
+
+    expect(nativeElement.querySelector(`#${message.id}`)).not.toBeNull();
+  });
+
+  it('should set #isUserScrolled to true when not the latest message set is displayed', () => {
+    const newMessages = generateMockMessages(25, true);
+    // Replace the current messages with a compelitely new set
+    channelServiceMock.activeChannelMessages$.next(newMessages);
+    fixture.detectChanges();
+    component.scrollToBottom();
+    fixture.detectChanges();
+
+    expect(component.isUserScrolled).toBeTrue();
+  });
+
+  it('jump to "latest" message - direction "top-to-bottom"', () => {
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({
+      top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
+    });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    channelServiceMock.jumpToMessage$.next({ id: 'latest' });
+    fixture.detectChanges();
+
+    expect(Math.round(scrollContainer.scrollTop)).toBe(
+      scrollContainer.scrollHeight - scrollContainer.clientHeight
+    );
+  });
+
+  it('should turn of programatic scroll adjustment and message load while jumping to message', () => {
+    // This test uses private memebers to set up test cases, this is not nice, but this is because creating these cases otherwise would require a lot of complex logic
+    component.highlightedMessageId = 'messageId';
+    component['hasNewMessages'] = true;
+    spyOn(component, 'scrollToBottom');
+    component.ngAfterViewChecked();
+
+    expect(component['hasNewMessages']).toBeFalse();
+    expect(component.scrollToBottom).not.toHaveBeenCalled();
+
+    component['olderMassagesLoaded'] = true;
+    spyOn<any>(component, 'preserveScrollbarPosition');
+    component.ngAfterViewChecked();
+
+    expect(component['olderMassagesLoaded']).toBeFalse();
+
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
+    expect((component as any).preserveScrollbarPosition).not.toHaveBeenCalled();
+
+    expect((component as any).shouldLoadMoreMessages('bottom')).toBeFalse();
+
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+  });
+
+  it(`should deselect oldest message if it's removed from the list`, () => {
+    const olderMessages = generateMockMessages(50, true);
+    channelServiceMock.activeChannelMessages$.next(olderMessages);
+    fixture.detectChanges();
+
+    const newerMessages = generateMockMessages();
+    channelServiceMock.activeChannelMessages$.next(newerMessages);
+    fixture.detectChanges();
+    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() =>
+      channelServiceMock.activeChannelMessages$.next([
+        ...generateMockMessages(25, true),
+        ...newerMessages,
+      ])
+    );
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: 0 });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(Math.floor(scrollContainer.scrollTop)).not.toBe(0);
+  });
+
+  it('should get unread message information from "message.new" event if an older message list is displayed', () => {
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    channelServiceMock.activeChannel$.subscribe((c) => (channel = c!));
+    // Simulate message set change
+    channel.state.latestMessages = [];
+    channelServiceMock.activeChannelMessages$.next(
+      generateMockMessages(25, true)
+    );
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({
+      top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
+    });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    const newMessageFromOtherUser = mockMessage();
+    newMessageFromOtherUser.user!.id += 'not';
+    (channel as MockChannel).handleEvent('message.new', {
+      message: newMessageFromOtherUser,
+    });
+
+    expect(component.unreadMessageCount).toBe(1);
+
+    spyOn(channelServiceMock, 'jumpToMessage').and.callThrough();
+    const newMessageFromCurrentUser = mockMessage();
+    newMessageFromCurrentUser.created_at = new Date();
+    (channel as MockChannel).handleEvent('message.new', {
+      message: newMessageFromCurrentUser,
+    });
+    fixture.detectChanges();
+
+    expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+      'latest',
+      undefined
+    );
   });
 
   describe('if user scrolled up', () => {
@@ -346,17 +545,6 @@ describe('MessageListComponent', () => {
       expect(queryScrollToLatestButton()?.textContent).toContain('1');
     });
 
-    it('should use a treshold when determining if user is scrolled up', () => {
-      const scrollContainer = queryScrollContainer()!;
-      scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight - scrollContainer.clientHeight - 150,
-      });
-      scrollContainer.dispatchEvent(new Event('scroll'));
-      fixture.detectChanges();
-
-      expect(queryScrollToLatestButton()).toBeNull();
-    });
-
     it('should scroll down if user sends new message', () => {
       const scrollContainer = queryScrollContainer()!;
       scrollContainer.scrollTo({
@@ -372,12 +560,13 @@ describe('MessageListComponent', () => {
       ]);
       fixture.detectChanges();
 
-      expect(scrollContainer.scrollTop + scrollContainer.clientHeight).toBe(
-        scrollContainer.scrollHeight
-      );
+      expect(
+        Math.round(scrollContainer.scrollTop) + scrollContainer.clientHeight
+      ).toBe(scrollContainer.scrollHeight);
     });
 
-    it('should display scroll to bottom button and scroll to bottom if clicked', fakeAsync(() => {
+    it('should display scroll to latest message button and jump to latest messsage if clicked', fakeAsync(() => {
+      spyOn(channelServiceMock, 'jumpToMessage');
       const scrollContainer = queryScrollContainer()!;
       scrollContainer.scrollTo({
         top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
@@ -387,8 +576,9 @@ describe('MessageListComponent', () => {
       queryScrollToLatestButton()?.click();
       fixture.detectChanges();
 
-      expect(scrollContainer.scrollTop + scrollContainer.clientHeight).toBe(
-        scrollContainer.scrollHeight
+      expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+        'latest',
+        undefined
       );
     }));
   });
@@ -404,6 +594,14 @@ describe('MessageListComponent', () => {
       });
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
+    });
+
+    it('jump to "latest" message', () => {
+      const scrollContainer = queryScrollContainer()!;
+      channelServiceMock.jumpToMessage$.next({ id: 'latest' });
+      fixture.detectChanges();
+
+      expect(Math.round(scrollContainer.scrollTop)).toBe(0);
     });
 
     it(`shouldn't scroll up for new messages`, () => {
@@ -457,11 +655,14 @@ describe('MessageListComponent', () => {
     });
 
     it('should display scroll to latest button and scroll to top if clicked', fakeAsync(() => {
-      const scrollContainer = queryScrollContainer()!;
+      spyOn(channelServiceMock, 'jumpToMessage');
       queryScrollToLatestButton()?.click();
       fixture.detectChanges();
 
-      expect(scrollContainer.scrollTop).toBe(0);
+      expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+        'latest',
+        undefined
+      );
     }));
   });
 
@@ -508,7 +709,7 @@ describe('MessageListComponent', () => {
       expect(messagesComponents.length).toBe(messages.length);
     });
 
-    it('should load more replies, if user scrolls up', () => {
+    it('should load older replies, if user scrolls up', () => {
       spyOn(channelServiceMock, 'loadMoreThreadReplies');
 
       const scrollContainer = queryScrollContainer()!;
@@ -519,10 +720,12 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
 
-      expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith();
+      expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith(
+        'older'
+      );
     });
 
-    it(`should load more replies, if user scrolls up - shouldn't send unnecessary requests`, () => {
+    it(`should older replies, if user scrolls up - shouldn't send unnecessary requests`, () => {
       spyOn(channelServiceMock, 'loadMoreThreadReplies');
 
       const scrollContainer = queryScrollContainer()!;
@@ -536,9 +739,22 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
 
-      expect(
-        channelServiceMock.loadMoreThreadReplies
-      ).toHaveBeenCalledOnceWith();
+      expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledOnceWith(
+        'older'
+      );
+    });
+
+    it('should load newer replies, if user scrolls down', () => {
+      spyOn(channelServiceMock, 'loadMoreThreadReplies');
+
+      const scrollContainer = queryScrollContainer()!;
+      scrollContainer.scrollTo({ top: scrollContainer.scrollHeight });
+      scrollContainer.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+
+      expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith(
+        'newer'
+      );
     });
 
     it('should show parent message of thread', () => {
@@ -609,6 +825,37 @@ describe('MessageListComponent', () => {
       expect(queryTypingIndicator()).not.toBeNull();
 
       expect(queryTypingUsers()?.textContent).toContain('jack, John');
+    });
+
+    it('should scroll thread message into view and highlight it', () => {
+      const messageElements = queryMessages();
+      const message = messageElements[messageElements.length - 1];
+      spyOn(message, 'scrollIntoView');
+      channelServiceMock.jumpToMessage$.next({
+        id: message.id,
+        parentId: undefined,
+      });
+
+      expect(message.scrollIntoView).not.toHaveBeenCalled();
+      expect(component.highlightedMessageId).toBe(undefined);
+
+      channelServiceMock.jumpToMessage$.next({
+        id: message.id,
+        parentId: 'parent-id',
+      });
+
+      expect(message.scrollIntoView).toHaveBeenCalledWith(jasmine.anything());
+      expect(component.highlightedMessageId).toBe(message.id);
+    });
+
+    it('should jump to latest message', () => {
+      spyOn(channelServiceMock, 'jumpToMessage');
+      component.jumpToLatestMessage();
+
+      expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
+        'latest',
+        component.parentMessage!.id
+      );
     });
   });
 });

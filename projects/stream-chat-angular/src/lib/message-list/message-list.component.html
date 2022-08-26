@@ -31,6 +31,7 @@
           trackBy: trackByMessageId
         "
         class="str-chat__li str-chat__li--{{ groupStyles[i] }}"
+        id="{{ message.id }}"
       >
         <ng-container
           *ngTemplateOutlet="
@@ -85,8 +86,8 @@
       str-chat__message-notification-scroll-to-latest-right
       str-chat__circle-fab
     "
-    (keyup.enter)="scrollToLatestMessage()"
-    (click)="scrollToLatestMessage()"
+    (keyup.enter)="jumpToLatestMessage()"
+    (click)="jumpToLatestMessage()"
   >
     <stream-icon
       class="str-chat__jump-to-latest-icon str-chat__circle-fab-icon"
@@ -112,12 +113,14 @@
     let-isLastSentMessage="isLastSentMessage"
     let-enabledMessageActions="enabledMessageActions"
     let-mode="mode"
+    let-isHighlighted="isHighlighted"
   >
     <stream-message
       [message]="messageInput"
       [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
+      [isHighlighted]="isHighlighted"
     ></stream-message>
   </ng-template>
   <ng-container
