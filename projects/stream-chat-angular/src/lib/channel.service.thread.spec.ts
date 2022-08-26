@@ -162,6 +162,19 @@ describe('ChannelService - threads', () => {
     });
   });
 
+  it('should handle if selected parent message is removed from message list', async () => {
+    await init();
+    let parentMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
+    parentMessage.id = 'parentMessage';
+    service.activeParentMessage$.subscribe();
+    await service.setAsActiveParentMessage(parentMessage);
+    spyOn(service, 'setAsActiveParentMessage').and.callThrough();
+    await service.jumpToMessage('message-very-far-away');
+
+    expect(service.setAsActiveParentMessage).toHaveBeenCalledWith(undefined);
+  });
+
   it(`shouldn't deselect message to quote, if not a thread reply`, async () => {
     await init();
     const messageToQuoteSpy = jasmine.createSpy();

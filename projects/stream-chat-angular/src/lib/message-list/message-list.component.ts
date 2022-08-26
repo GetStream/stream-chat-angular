@@ -368,6 +368,7 @@ export class MessageListComponent
       tap((messages) => {
         this.isLatestMessageInList =
           !this.latestMessage ||
+          messages.length === 0 ||
           messages[messages.length - 1].id === this.latestMessage.id;
         if (!this.isLatestMessageInList) {
           this.isUserScrolled = true;
