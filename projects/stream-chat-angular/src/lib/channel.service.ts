@@ -6,7 +6,7 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { filter, first, map, shareReplay, tap } from 'rxjs/operators';
+import { filter, first, map, shareReplay } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -345,7 +345,7 @@ export class ChannelService<
           } else {
             const message = messages.find((m) => m.id === parentMessageId);
             if (!message) {
-              this.setAsActiveParentMessage(undefined);
+              void this.setAsActiveParentMessage(undefined);
               return undefined;
             } else {
               return message;
