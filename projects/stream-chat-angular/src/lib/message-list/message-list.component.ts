@@ -65,7 +65,7 @@ export class MessageListComponent
   private latestMessage: { id: string; created_at: Date } | undefined;
   private hasNewMessages: boolean | undefined;
   private containerHeight: number | undefined;
-  private oldestMessageDate: Date | undefined;
+  private oldestMessage: { id: string; created_at: Date } | undefined;
   private olderMassagesLoaded: boolean | undefined;
   private isNewMessageSentByUser: boolean | undefined;
   private subscriptions: Subscription[] = [];
@@ -345,13 +345,17 @@ export class MessageListComponent
         }
         const currentLatestMessage = messages[messages.length - 1];
         this.newMessageReceived(currentLatestMessage);
-        const currentOldestMessageDate = messages[0].created_at;
-        if (!this.oldestMessageDate) {
-          this.oldestMessageDate = currentOldestMessageDate;
-        } else if (
-          this.oldestMessageDate?.getTime() > currentOldestMessageDate.getTime()
+        const currentOldestMessage = messages[0];
+        if (
+          !this.oldestMessage ||
+          !messages.find((m) => m.id === this.oldestMessage!.id)
         ) {
-          this.oldestMessageDate = currentOldestMessageDate;
+          this.oldestMessage = currentOldestMessage;
+        } else if (
+          this.oldestMessage.created_at.getTime() >
+          currentOldestMessage.created_at.getTime()
+        ) {
+          this.oldestMessage = currentOldestMessage;
           this.olderMassagesLoaded = true;
         }
       }),
@@ -391,7 +395,7 @@ export class MessageListComponent
     this.isUserScrolled = false;
     this.containerHeight = undefined;
     this.olderMassagesLoaded = false;
-    this.oldestMessageDate = undefined;
+    this.oldestMessage = undefined;
     this.unreadMessageCount = 0;
     this.prevScrollTop = undefined;
     this.isNewMessageSentByUser = undefined;

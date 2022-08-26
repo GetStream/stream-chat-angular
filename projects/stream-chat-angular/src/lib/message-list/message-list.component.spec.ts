@@ -442,6 +442,29 @@ describe('MessageListComponent', () => {
     /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
   });
 
+  it(`should deselect oldest message if it's removed from the list`, () => {
+    const olderMessages = generateMockMessages(50, true);
+    channelServiceMock.activeChannelMessages$.next(olderMessages);
+    fixture.detectChanges();
+
+    const newerMessages = generateMockMessages();
+    channelServiceMock.activeChannelMessages$.next(newerMessages);
+    fixture.detectChanges();
+    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() =>
+      channelServiceMock.activeChannelMessages$.next([
+        ...generateMockMessages(25, true),
+        ...newerMessages,
+      ])
+    );
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: 0 });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(Math.floor(scrollContainer.scrollTop)).not.toBe(0);
+  });
+
   it('should get unread message information from "message.new" event if an older message list is displayed', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     channelServiceMock.activeChannel$.subscribe((c) => (channel = c!));
