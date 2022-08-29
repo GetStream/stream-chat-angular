@@ -893,4 +893,21 @@ describe('AttachmentListComponent', () => {
     expect(modalImage.style.height).toBe(testConfiguration.height);
     expect(modalImage.style.width).toBe(testConfiguration.width);
   });
+
+  it('should display video attachment with thumb url', () => {
+    const attachments = [
+      {
+        type: 'video',
+        asset_url: 'url/to/video',
+        thumb_url: 'url/to/thumb',
+      },
+    ];
+    component.attachments = attachments;
+    component.ngOnChanges();
+    fixture.detectChanges();
+    const videoElements = queryVideos();
+
+    expect(videoElements[0].src).toContain(attachments[0].asset_url);
+    expect(videoElements[0].poster).toContain(attachments[0].thumb_url);
+  });
 });

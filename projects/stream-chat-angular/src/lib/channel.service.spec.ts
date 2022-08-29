@@ -1273,40 +1273,58 @@ describe('ChannelService', () => {
           return Promise.resolve({ file: 'url/to/image', duration: '200ms' });
       }
     });
-    spyOn(channel, 'sendFile').and.callFake((file: File) => {
-      switch (file.name) {
-        case 'file_error.pdf':
-          return Promise.reject(new Error());
-        default:
-          return Promise.resolve({ file: 'url/to/pdf', duration: '200ms' });
+    spyOn(channel, 'sendFile').and.callFake(
+      (file: File, _: string, type: string) => {
+        switch (file.name) {
+          case 'file_error.pdf':
+            return Promise.reject(new Error());
+          default:
+            return Promise.resolve({
+              file: 'url/to/file',
+              duration: '200ms',
+              thumb_url:
+                type && type.startsWith('video') ? 'url/to/poster' : undefined,
+            });
+        }
       }
-    });
+    );
     const file1 = { name: 'food.png' } as File;
     const file2 = { name: 'file_error.jpg' } as File;
     const file3 = { name: 'menu.pdf' } as File;
     const file4 = { name: 'file_error.pdf' } as File;
+    const file5 = { name: 'video.mp4', type: 'video/mp4' } as File;
     const attachments = [
       { file: file1, type: 'image', state: 'uploading' },
       { file: file2, type: 'image', state: 'uploading' },
       { file: file3, type: 'file', state: 'uploading' },
       { file: file4, type: 'file', state: 'uploading' },
+      { file: file5, type: 'video', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
-    const expectedResult = [
+    const expectedResult: AttachmentUpload[] = [
       {
         file: file1,
         state: 'success',
         url: 'url/to/image',
         type: 'image',
+        thumb_url: undefined,
       },
       { file: file2, state: 'error', type: 'image' },
       {
         file: file3,
         state: 'success',
-        url: 'url/to/pdf',
+        url: 'url/to/file',
         type: 'file',
+        thumb_url: undefined,
       },
       { file: file4, state: 'error', type: 'file' },
+      {
+        file: file5,
+        state: 'success',
+        type: 'video',
+        url: 'url/to/file',
+        thumb_url: 'url/to/poster',
+      },
     ];
 
     expectedResult.forEach((r, i) => {
@@ -1570,7 +1588,10 @@ describe('ChannelService', () => {
           case 'file_error.pdf':
             return Promise.reject(new Error());
           default:
-            return Promise.resolve({ file: 'url/to/pdf' });
+            return Promise.resolve({
+              file: 'url/to/pdf',
+              thumb_url: undefined,
+            });
         }
       });
     service.customImageUploadRequest = customImageUploadRequest;
@@ -1588,12 +1609,13 @@ describe('ChannelService', () => {
       { file: file4, type: 'file', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
-    const expectedResult = [
+    const expectedResult: AttachmentUpload[] = [
       {
         file: file1,
         state: 'success',
         url: 'url/to/image',
         type: 'image',
+        thumb_url: undefined,
       },
       { file: file2, state: 'error', type: 'image' },
       {
@@ -1601,6 +1623,7 @@ describe('ChannelService', () => {
         state: 'success',
         url: 'url/to/pdf',
         type: 'file',
+        thumb_url: undefined,
       },
       { file: file4, state: 'error', type: 'file' },
     ];

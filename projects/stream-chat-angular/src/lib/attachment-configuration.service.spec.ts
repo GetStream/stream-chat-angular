@@ -91,12 +91,14 @@ describe('AttachmentConfigurationService', () => {
   it('should provide the correct configuration for video attachments', () => {
     const attachment: Attachment = {
       asset_url: 'url/to/video',
+      thumb_url: 'url/to/poster',
     };
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
       url: 'url/to/video',
       height: '100%',
       width: '100%',
+      thumbUrl: 'url/to/poster',
     });
   });
 
