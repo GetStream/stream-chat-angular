@@ -236,4 +236,17 @@ describe('AttachmentConfigurationService', () => {
 
     expect(result.url).toContain('h=750&w=600');
   });
+
+  it('should turn off thumbnail generation for video files', () => {
+    service.shouldGenerateVideoThumbnail = false;
+
+    const attachment: Attachment = {
+      asset_url: 'http://url/to/video',
+      thumb_url: 'http://url/to/poster',
+    };
+
+    expect(
+      service.getVideoAttachmentConfiguration(attachment).thumbUrl
+    ).toBeUndefined();
+  });
 });
