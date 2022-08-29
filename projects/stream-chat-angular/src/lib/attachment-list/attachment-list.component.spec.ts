@@ -104,11 +104,11 @@ describe('AttachmentListComponent', () => {
     expect(queryAttachments().length).toBe(0);
 
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'file', asset_url: 'url3' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'file', asset_url: 'http://url3' },
       {
         type: 'video',
-        asset_url: 'url6',
+        asset_url: 'http://url6',
       },
     ];
     component.ngOnChanges();
@@ -145,9 +145,9 @@ describe('AttachmentListComponent', () => {
 
   it('should create gallery', () => {
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'file', asset_url: 'url3' },
-      { type: 'image', img_url: 'url2' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'file', asset_url: 'http://url3' },
+      { type: 'image', img_url: 'http://url2' },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -155,14 +155,14 @@ describe('AttachmentListComponent', () => {
 
     expect(orderedAttachments.length).toBe(2);
     expect(orderedAttachments[0].type).toBe('gallery');
-    expect(orderedAttachments[0].images![0].img_url).toBe('url1');
-    expect(orderedAttachments[0].images![1].img_url).toBe('url2');
+    expect(orderedAttachments[0].images![0].img_url).toBe('http://url1');
+    expect(orderedAttachments[0].images![1].img_url).toBe('http://url2');
   });
 
   it('should display gallery', () => {
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'image', img_url: 'url2' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', img_url: 'http://url2' },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -170,17 +170,17 @@ describe('AttachmentListComponent', () => {
     let imageElemnts = gallery.querySelectorAll('img');
 
     expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(2);
-    expect(imageElemnts[0].src).toContain('url1');
-    expect(imageElemnts[1].src).toContain('url2');
+    expect(imageElemnts[0].src).toContain('http://url1');
+    expect(imageElemnts[1].src).toContain('http://url2');
     expect(
       nativeElement.querySelector('.str-chat__gallery-two-rows')
     ).toBeNull();
 
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'image', img_url: 'url2' },
-      { type: 'image', thumb_url: 'url3' },
-      { type: 'image', image_url: 'url4' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', thumb_url: 'http://url3' },
+      { type: 'image', image_url: 'http://url4' },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -188,20 +188,20 @@ describe('AttachmentListComponent', () => {
     imageElemnts = gallery.querySelectorAll('img');
 
     expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(4);
-    expect(imageElemnts[0].src).toContain('url1');
-    expect(imageElemnts[1].src).toContain('url2');
-    expect(imageElemnts[2].src).toContain('url3');
-    expect(imageElemnts[3].src).toContain('url4');
+    expect(imageElemnts[0].src).toContain('http://url1');
+    expect(imageElemnts[1].src).toContain('http://url2');
+    expect(imageElemnts[2].src).toContain('http://url3');
+    expect(imageElemnts[3].src).toContain('http://url4');
     expect(
       nativeElement.querySelector('.str-chat__gallery-two-rows')
     ).not.toBeNull();
 
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'image', img_url: 'url2' },
-      { type: 'image', thumb_url: 'url3' },
-      { type: 'image', image_url: 'url4' },
-      { type: 'image', image_url: 'url5' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', thumb_url: 'http://url3' },
+      { type: 'image', image_url: 'http://url4' },
+      { type: 'image', image_url: 'http://url5' },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -216,7 +216,7 @@ describe('AttachmentListComponent', () => {
       gallery.querySelectorAll('.str-chat__gallery-placeholder').length
     ).toBe(1);
 
-    expect(lastImage.style.backgroundImage).toContain('url4');
+    expect(lastImage.style.backgroundImage).toContain('http://url4');
     expect(lastImage.innerHTML).toContain('1 more');
   });
 
@@ -335,7 +335,7 @@ describe('AttachmentListComponent', () => {
 
   describe('should display image attachment', () => {
     it('should display image by img_url', () => {
-      const imageUrl = 'image/url';
+      const imageUrl = 'http://image/url';
       component.attachments = [
         { type: 'image', img_url: imageUrl, thumb_url: 'thumb/url' },
       ];
@@ -346,7 +346,7 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should display image by thumb_url', () => {
-      const thumbUrl = 'thumb/url';
+      const thumbUrl = 'http://thumb/url';
       component.attachments = [
         { type: 'image', img_url: undefined, thumb_url: thumbUrl },
       ];
@@ -357,7 +357,7 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should display image by image_url', () => {
-      const imageUrl = 'image/url';
+      const imageUrl = 'http://image/url';
       component.attachments = [
         {
           type: 'image',
@@ -374,7 +374,9 @@ describe('AttachmentListComponent', () => {
 
     it('should set alt text for image', () => {
       const fallback = 'Fallback is image can not be displayed';
-      component.attachments = [{ type: 'image', img_url: 'url1', fallback }];
+      component.attachments = [
+        { type: 'image', img_url: 'http://url1', fallback },
+      ];
       component.ngOnChanges();
       fixture.detectChanges();
 
@@ -383,7 +385,7 @@ describe('AttachmentListComponent', () => {
 
     it('should display add necessary CSS class for SVG images', () => {
       component.attachments = [
-        { type: 'image', img_url: 'image/url', fallback: 'image.svg' },
+        { type: 'image', img_url: 'http://image/url', fallback: 'image.svg' },
       ];
       component.ngOnChanges();
       fixture.detectChanges();
@@ -393,7 +395,7 @@ describe('AttachmentListComponent', () => {
       ).not.toBeNull();
 
       component.attachments = [
-        { type: 'image', img_url: 'image/url', fallback: 'image.jpg' },
+        { type: 'image', img_url: 'http://image/url', fallback: 'image.jpg' },
       ];
       component.ngOnChanges();
       fixture.detectChanges();
@@ -407,7 +409,7 @@ describe('AttachmentListComponent', () => {
   describe('should display file attachment', () => {
     it('should display file link', () => {
       const title = 'contract.pdf';
-      const asset_url = 'url/to/contract';
+      const asset_url = 'http://url/to/contract';
       component.attachments = [{ type: 'file', title, asset_url }];
       component.ngOnChanges();
       fixture.detectChanges();
@@ -421,8 +423,16 @@ describe('AttachmentListComponent', () => {
 
     it('should add CSS class for files', () => {
       component.attachments = [
-        { type: 'file', title: 'contract.pdf', asset_url: 'url/to/contract' },
-        { type: 'file', title: 'contract2.pdf', asset_url: 'url/to/contract2' },
+        {
+          type: 'file',
+          title: 'contract.pdf',
+          asset_url: 'http://url/to/contract',
+        },
+        {
+          type: 'file',
+          title: 'contract2.pdf',
+          asset_url: 'http://url/to/contract2',
+        },
       ];
       component.ngOnChanges();
       fixture.detectChanges();
@@ -455,7 +465,7 @@ describe('AttachmentListComponent', () => {
 
     it('should display file size, if provided', () => {
       const title = 'contract.pdf';
-      const asset_url = 'url/to/contract';
+      const asset_url = 'http://url/to/contract';
       component.attachments = [
         { type: 'file', title, asset_url, file_size: 3272969 },
       ];
@@ -533,7 +543,7 @@ describe('AttachmentListComponent', () => {
         },
         {
           type: 'image',
-          image_url: 'url/to/flower.png',
+          image_url: 'http://url/to/flower.png',
         },
       ];
       component.ngOnChanges();
@@ -631,7 +641,7 @@ describe('AttachmentListComponent', () => {
     it('should open image viewer modal - single image', () => {
       const attachment = {
         type: 'image',
-        image_url: 'url1',
+        image_url: 'http://url1',
       };
       component.attachments = [attachment];
       component.ngOnChanges();
@@ -653,11 +663,11 @@ describe('AttachmentListComponent', () => {
       const attachments = [
         {
           type: 'image',
-          image_url: 'url1',
+          image_url: 'http://url1',
         },
         {
           type: 'image',
-          img_url: 'url2',
+          img_url: 'http://url2',
         },
       ];
       component.attachments = attachments;
@@ -682,11 +692,11 @@ describe('AttachmentListComponent', () => {
       const attachments = [
         {
           type: 'image',
-          image_url: 'url1',
+          image_url: 'http://url1',
         },
         {
           type: 'image',
-          img_url: 'url2',
+          img_url: 'http://url2',
         },
       ];
       component.attachments = attachments;
@@ -711,15 +721,15 @@ describe('AttachmentListComponent', () => {
       const attachments = [
         {
           type: 'image',
-          image_url: 'url1',
+          image_url: 'http://url1',
         },
         {
           type: 'image',
-          img_url: 'url2',
+          img_url: 'http://url2',
         },
         {
           type: 'image',
-          thumb_url: 'url3',
+          thumb_url: 'http://url3',
         },
       ];
       component.attachments = attachments;
@@ -762,7 +772,7 @@ describe('AttachmentListComponent', () => {
     xit('should deselect images if modal is closed', () => {
       const attachment = {
         type: 'image',
-        image_url: 'url1',
+        image_url: 'http://url1',
       };
       component.imagesToView = [attachment];
       fixture.detectChanges();
@@ -818,7 +828,7 @@ describe('AttachmentListComponent', () => {
 
     // Single image, link image, video, giphy
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
+      { type: 'image', img_url: 'http://url1' },
       {
         title: 'BBC - Homepage',
         title_link: 'https://www.bbc.com/',
@@ -843,7 +853,7 @@ describe('AttachmentListComponent', () => {
       },
       {
         type: 'video',
-        asset_url: 'url6',
+        asset_url: 'http://url6',
       },
     ];
     component.ngOnChanges();
@@ -858,11 +868,11 @@ describe('AttachmentListComponent', () => {
 
     // Gallery
     component.attachments = [
-      { type: 'image', img_url: 'url1' },
-      { type: 'image', img_url: 'url2' },
-      { type: 'image', img_url: 'url3' },
-      { type: 'image', img_url: 'url4' },
-      { type: 'image', img_url: 'url5' },
+      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', img_url: 'http://url3' },
+      { type: 'image', img_url: 'http://url4' },
+      { type: 'image', img_url: 'http://url5' },
     ];
     component.ngOnChanges();
     fixture.detectChanges();
@@ -881,7 +891,7 @@ describe('AttachmentListComponent', () => {
     // Image carousel
     const attachment = {
       type: 'image',
-      image_url: 'url1',
+      image_url: 'http://url1',
     };
     component.attachments = [attachment];
     component.ngOnChanges();
@@ -898,8 +908,8 @@ describe('AttachmentListComponent', () => {
     const attachments = [
       {
         type: 'video',
-        asset_url: 'url/to/video',
-        thumb_url: 'url/to/thumb',
+        asset_url: 'http://url/to/video',
+        thumb_url: 'http://url/to/thumb',
       },
     ];
     component.attachments = attachments;

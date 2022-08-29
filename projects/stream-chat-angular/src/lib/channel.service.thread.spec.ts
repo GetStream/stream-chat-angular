@@ -497,7 +497,7 @@ describe('ChannelService - threads', () => {
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
     const text = 'Hi';
-    const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
+    const attachments = [{ fallback: 'image.png', url: 'http://url/to/image' }];
     const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
     const customData = {
       isVote: true,

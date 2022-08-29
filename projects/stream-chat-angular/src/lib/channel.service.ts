@@ -711,7 +711,7 @@ export class ChannelService<
           type,
           state: 'success',
           url: uploadResult.value.file,
-          /* eslint-disable-next-line Unsafe assignment of an `any` value */
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
           thumb_url: (uploadResult.value as any).thumb_url,
         });
       } else {

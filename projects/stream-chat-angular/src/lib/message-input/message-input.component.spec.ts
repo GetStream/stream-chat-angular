@@ -334,7 +334,7 @@ describe('MessageInputComponent', () => {
   it('should reset files, after message is sent', async () => {
     const file = { name: 'my_image.png', type: 'image/png' };
     attachmentService.filesSelected.and.resolveTo([
-      { file, state: 'success', url: 'url/to/image' },
+      { file, state: 'success', url: 'http://url/to/image' },
     ]);
     const files = [file];
     await component.filesSelected(files as any as FileList);
@@ -376,14 +376,23 @@ describe('MessageInputComponent', () => {
       size: 3272969,
     };
     attachmentService.filesSelected.and.resolveTo([
-      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
-      { file: file2, state: 'success', url: 'url/to/pdf', type: 'file' },
+      {
+        file: file1,
+        state: 'success',
+        url: 'http://url/to/image',
+        type: 'image',
+      },
+      { file: file2, state: 'success', url: 'http://url/to/pdf', type: 'file' },
     ]);
     const attachments = [
-      { fallback: 'my_image.png', image_url: 'url/to/image', type: 'image' },
+      {
+        fallback: 'my_image.png',
+        image_url: 'http://url/to/image',
+        type: 'image',
+      },
       {
         title: 'homework.pdf',
-        asset_url: 'url/to/pdf',
+        asset_url: 'http://url/to/pdf',
         type: 'file',
         file_size: 3272969,
       },
@@ -429,11 +438,11 @@ describe('MessageInputComponent', () => {
 
   it('should display attachments of #message', () => {
     const attachments = [
-      { fallback: 'flower.png', image_url: 'url/to/img', type: 'image' },
+      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
       {
         title: 'note.txt',
         file_size: 3272969,
-        asset_url: 'url/to/data',
+        asset_url: 'http://url/to/data',
         type: 'file',
       },
     ];

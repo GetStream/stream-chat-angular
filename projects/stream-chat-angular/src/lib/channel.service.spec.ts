@@ -1020,7 +1020,7 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
     const text = 'Hi';
-    const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
+    const attachments = [{ fallback: 'image.png', url: 'http://url/to/image' }];
     const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
     const quotedMessageId = 'quotedMessage';
     const customData = {
@@ -1270,7 +1270,10 @@ describe('ChannelService', () => {
         case 'file_error.jpg':
           return Promise.reject(new Error());
         default:
-          return Promise.resolve({ file: 'url/to/image', duration: '200ms' });
+          return Promise.resolve({
+            file: 'http://url/to/image',
+            duration: '200ms',
+          });
       }
     });
     spyOn(channel, 'sendFile').and.callFake(
@@ -1280,10 +1283,12 @@ describe('ChannelService', () => {
             return Promise.reject(new Error());
           default:
             return Promise.resolve({
-              file: 'url/to/file',
+              file: 'http://url/to/file',
               duration: '200ms',
               thumb_url:
-                type && type.startsWith('video') ? 'url/to/poster' : undefined,
+                type && type.startsWith('video')
+                  ? 'http://url/to/poster'
+                  : undefined,
             });
         }
       }
@@ -1305,7 +1310,7 @@ describe('ChannelService', () => {
       {
         file: file1,
         state: 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image',
         thumb_url: undefined,
       },
@@ -1313,7 +1318,7 @@ describe('ChannelService', () => {
       {
         file: file3,
         state: 'success',
-        url: 'url/to/file',
+        url: 'http://url/to/file',
         type: 'file',
         thumb_url: undefined,
       },
@@ -1322,8 +1327,8 @@ describe('ChannelService', () => {
         file: file5,
         state: 'success',
         type: 'video',
-        url: 'url/to/file',
-        thumb_url: 'url/to/poster',
+        url: 'http://url/to/file',
+        thumb_url: 'http://url/to/poster',
       },
     ];
 
@@ -1337,7 +1342,7 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteImage');
-    const url = 'url/to/image';
+    const url = 'http://url/to/image';
     await service.deleteAttachment({
       url,
       type: 'image',
@@ -1353,7 +1358,7 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteFile');
-    const url = 'url/to/file';
+    const url = 'http://url/to/file';
     await service.deleteAttachment({
       url,
       type: 'file',
@@ -1578,7 +1583,7 @@ describe('ChannelService', () => {
           case 'file_error.jpg':
             return Promise.reject(new Error());
           default:
-            return Promise.resolve({ file: 'url/to/image' });
+            return Promise.resolve({ file: 'http://url/to/image' });
         }
       });
     const customFileUploadRequest = jasmine
@@ -1589,7 +1594,7 @@ describe('ChannelService', () => {
             return Promise.reject(new Error());
           default:
             return Promise.resolve({
-              file: 'url/to/pdf',
+              file: 'http://url/to/pdf',
               thumb_url: undefined,
             });
         }
@@ -1613,7 +1618,7 @@ describe('ChannelService', () => {
       {
         file: file1,
         state: 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image',
         thumb_url: undefined,
       },
@@ -1621,7 +1626,7 @@ describe('ChannelService', () => {
       {
         file: file3,
         state: 'success',
-        url: 'url/to/pdf',
+        url: 'http://url/to/pdf',
         type: 'file',
         thumb_url: undefined,
       },
@@ -1643,7 +1648,7 @@ describe('ChannelService', () => {
     const customImageDeleteRequest = jasmine.createSpy();
     service.customImageDeleteRequest = customImageDeleteRequest;
     spyOn(channel, 'deleteImage');
-    const url = 'url/to/image';
+    const url = 'http://url/to/image';
     await service.deleteAttachment({
       url,
       type: 'image',
@@ -1662,7 +1667,7 @@ describe('ChannelService', () => {
     const customFileDeleteRequest = jasmine.createSpy();
     service.customFileDeleteRequest = customFileDeleteRequest;
     spyOn(channel, 'deleteFile');
-    const url = 'url/to/file';
+    const url = 'http://url/to/file';
     await service.deleteAttachment({
       url,
       type: 'file',

@@ -1006,7 +1006,11 @@ describe('MessageComponent', () => {
     beforeEach(() => {
       quotedMessage = mockMessage();
       quotedMessage.id = 'quoted-message';
-      quotedMessage.user = { id: 'sara', name: 'Sara', image: 'url/to/img' };
+      quotedMessage.user = {
+        id: 'sara',
+        name: 'Sara',
+        image: 'http://url/to/img',
+      };
       quotedMessage.attachments = [{ id: '1' }, { id: '2' }];
       quotedMessage.text = 'This message was quoted';
       component.message = {
@@ -1067,7 +1071,7 @@ describe('MessageComponent', () => {
 
     it('should display reply if we reply with attachments without text', () => {
       component.message!.attachments = [
-        { image_url: 'url/to/image', type: 'image' },
+        { image_url: 'http://url/to/image', type: 'image' },
       ];
       component.message!.text = undefined;
       fixture.detectChanges();
