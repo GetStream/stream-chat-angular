@@ -153,6 +153,7 @@ export class AttachmentService {
           attachment.asset_url = r.url;
           attachment.title = r.file?.name;
           attachment.file_size = r.file?.size;
+          attachment.thumb_url = r.thumb_url;
         }
 
         return attachment;
@@ -186,6 +187,7 @@ export class AttachmentService {
             size: attachment.file_size,
           } as File,
           type: attachment.type,
+          thumb_url: attachment.thumb_url,
         });
       }
     });
@@ -228,6 +230,7 @@ export class AttachmentService {
       }
       upload.state = r.state;
       upload.url = r.url;
+      upload.thumb_url = r.thumb_url;
       if (upload.state === 'error') {
         this.notificationService.addTemporaryNotification(
           upload.type === 'image'

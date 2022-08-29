@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Attachment } from 'stream-chat';
-import { AttachmentConfigration, DefaultStreamChatGenerics } from './types';
+import {
+  AttachmentConfigration,
+  DefaultStreamChatGenerics,
+  VideoAttachmentConfiguration,
+} from './types';
 
 /**
  * The `AttachmentConfigurationService` provides customization for certain attributes of attachments displayed inside the message component. If you're using your own CDN, you can integrate resizing features of it by providing your own handlers.
@@ -23,7 +27,7 @@ export class AttachmentConfigurationService<
    */
   customVideoAttachmentConfigurationHandler?: (
     a: Attachment<T>
-  ) => AttachmentConfigration;
+  ) => VideoAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
@@ -98,7 +102,7 @@ export class AttachmentConfigurationService<
    */
   getVideoAttachmentConfiguration(
     attachment: Attachment<T>
-  ): AttachmentConfigration {
+  ): VideoAttachmentConfiguration {
     if (this.customVideoAttachmentConfigurationHandler) {
       return this.customVideoAttachmentConfigurationHandler(attachment);
     }
@@ -107,6 +111,7 @@ export class AttachmentConfigurationService<
       url: attachment.asset_url || '',
       width: '100%', // Set from CSS
       height: '100%',
+      thumbUrl: attachment.thumb_url,
     };
   }
 
