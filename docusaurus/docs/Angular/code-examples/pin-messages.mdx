@@ -73,3 +73,31 @@ jumpToMessage(message: StreamMessage) {
   {{ message.text }}
 </div>
 ```
+
+## Unpin message
+
+Let's extend our example and add an Unpin button to remove the pin from a message.
+
+```typescript
+unpinMessage(message: StreamMessage<DefaultStreamChatGenerics>) {
+  this.channelService.unpinMessage(message);
+}
+```
+
+```html
+<div
+  style="padding: 8px; background: #e1f5fe"
+  *ngFor="
+        let message of channelService.activeChannelPinnedMessages$ | async
+      "
+  (click)="jumpToMessage(message)"
+>
+  {{ message.text }}
+  <button
+    style="border: none; background: none; padding: 0; margin: 0"
+    (click)="$event.stopPropagation(); unpinMessage(message)"
+  >
+    Unpin
+  </button>
+</div>
+```
