@@ -78,7 +78,7 @@ describe('AttachmentPreviewListComponent', () => {
   it('should display image preview - success', () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
     attachmentUploads$.next([
-      { file, state: 'success', url: 'url/to/image', type: 'image' },
+      { file, state: 'success', url: 'http://url/to/image', type: 'image' },
     ]);
     fixture.detectChanges();
     const previews = queryImagePreviews();
@@ -91,7 +91,12 @@ describe('AttachmentPreviewListComponent', () => {
     const file1 = { name: 'my_image.png', type: 'image/png' } as File;
     const file2 = { name: 'my_image2.png', type: 'image/png' } as File;
     attachmentUploads$.next([
-      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
+      {
+        file: file1,
+        state: 'success',
+        url: 'http://url/to/image',
+        type: 'image',
+      },
       { file: file2, state: 'error', type: 'image' },
     ]);
     fixture.detectChanges();
@@ -124,7 +129,7 @@ describe('AttachmentPreviewListComponent', () => {
 
   it('should display file preview - success', () => {
     const fileName = 'note.txt';
-    const url = 'url/to/download';
+    const url = 'http://url/to/download';
     attachmentUploads$.next([
       {
         file: { name: fileName, type: 'plain/text' } as File,
@@ -184,7 +189,7 @@ describe('AttachmentPreviewListComponent', () => {
 
     expect(previewImage.src).toContain(previewUri);
 
-    const url = 'url/to/img';
+    const url = 'http://url/to/img';
     attachmentUploads$.next([{ file, state: 'success', url, type: 'image' }]);
     fixture.detectChanges();
 
@@ -254,7 +259,7 @@ describe('AttachmentPreviewListComponent', () => {
     const upload = {
       file: { name: 'contract.pdf', type: 'application/pdf' } as File,
       state: 'success',
-      url: 'url/to/file',
+      url: 'http://url/to/file',
       type: 'file',
     } as AttachmentUpload;
     attachmentUploads$.next([upload]);

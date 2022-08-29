@@ -100,7 +100,7 @@ describe('ChannelHeaderComponent', () => {
       id: 'running-club',
       data: {
         name: 'Running club',
-        image: 'url/to/img',
+        image: 'http://url/to/img',
       },
     } as any as Channel;
     channelServiceMock.activeChannel$.next(channel);
@@ -108,7 +108,7 @@ describe('ChannelHeaderComponent', () => {
     fixture.detectChanges();
 
     expect(avatar.name).toBe('Running club');
-    expect(avatar.imageUrl).toBe('url/to/img');
+    expect(avatar.imageUrl).toBe('http://url/to/img');
     expect(avatar.type).toBe('channel');
     expect(avatar.location).toBe('channel-header');
     expect(avatar.channel).toBe(

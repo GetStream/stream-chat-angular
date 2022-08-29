@@ -14,8 +14,8 @@ describe('createMessagePreview', () => {
     const user = mockCurrentUser();
     const text = 'When to go to the cinema?';
     const attachments = [
-      { fallback: 'image.png', image_url: 'url/to/image' },
-      { fallback: 'christmas.jpg', image_url: 'url/to/image' },
+      { fallback: 'image.png', image_url: 'http://url/to/image' },
+      { fallback: 'christmas.jpg', image_url: 'http://url/to/image' },
     ];
     const users = [{ id: 'jack', name: 'Jack' }];
     const parentId = 'parentId';

@@ -11,38 +11,38 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for image attachments', () => {
     let attachment: Attachment = {
-      img_url: 'url/to/img',
+      img_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img&h=600&w=600',
+      url: 'http://url/to/img?h=600&w=600',
       height: '300px',
       width: '',
     });
 
     attachment = {
-      thumb_url: 'url/to/img',
+      thumb_url: 'http://url/to/img',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img&h=600&w=600',
+      url: 'http://url/to/img?h=600&w=600',
       height: '300px',
       width: '',
     });
 
     attachment = {
-      image_url: 'url/to/img',
+      image_url: 'http://url/to/img',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img&h=600&w=600',
+      url: 'http://url/to/img?h=600&w=600',
       height: '300px',
       width: '',
     });
@@ -52,7 +52,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customImageAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
-      img_url: 'url/to/img',
+      img_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
     service.getImageAttachmentConfiguration(attachment, 'carousel');
@@ -62,13 +62,13 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for gallery image attachments', () => {
     const attachment: Attachment = {
-      img_url: 'url/to/img',
+      img_url: 'http://url/to/img',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'gallery')
     ).toEqual({
-      url: 'url/to/img&h=300&w=300',
+      url: 'http://url/to/img?h=300&w=300',
       height: '150px',
       width: '',
     });
@@ -76,29 +76,52 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for image attachments inside the carousel', () => {
     const attachment: Attachment = {
-      img_url: 'url/to/img',
+      img_url: 'http://url/to/img',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'carousel')
     ).toEqual({
-      url: 'url/to/img',
+      url: 'http://url/to/img',
       height: '',
       width: '',
     });
   });
 
   it('should provide the correct configuration for video attachments', () => {
-    const attachment: Attachment = {
-      asset_url: 'url/to/video',
-      thumb_url: 'url/to/poster',
+    let attachment: Attachment = {
+      asset_url: 'http://url/to/video',
+      thumb_url: 'http://url/to/poster',
     };
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
-      url: 'url/to/video',
+      url: 'http://url/to/video',
       height: '100%',
       width: '100%',
-      thumbUrl: 'url/to/poster',
+      thumbUrl: 'http://url/to/poster?h=600&w=600',
+    });
+
+    attachment = {
+      asset_url: 'http://url/to/video',
+      thumb_url: 'http://url/to/poster?oh=1080&ow=1920',
+    };
+
+    expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
+      url: 'http://url/to/video',
+      height: '100%',
+      width: '100%',
+      thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=600&w=1067',
+    });
+
+    attachment = {
+      asset_url: 'http://url/to/video',
+    };
+
+    expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
+      url: 'http://url/to/video',
+      height: '100%',
+      width: '100%',
+      thumbUrl: undefined,
     });
   });
 
@@ -106,7 +129,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customVideoAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
-      img_url: 'url/to/video',
+      img_url: 'http://url/to/video',
       thumb_url: 'different/url',
     };
     service.getVideoAttachmentConfiguration(attachment);
@@ -169,12 +192,12 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide correct configuration for scraped images', () => {
     let attachment: Attachment = {
-      image_url: 'url/to/img',
+      image_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
 
     expect(service.getScrapedImageAttachmentConfiguration(attachment)).toEqual({
-      url: 'url/to/img',
+      url: 'http://url/to/img',
       width: '',
       height: '',
     });
@@ -203,9 +226,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide integer values for image resize and make sure that each dimension is at least the size restriction', () => {
     const attachment = {
-      img_url: 'url/to/img',
-      original_width: 3534,
-      original_height: 4417,
+      img_url: 'http://url/to/img?ow=3534&oh=4417',
     };
 
     const result = service.getImageAttachmentConfiguration(
@@ -213,6 +234,6 @@ describe('AttachmentConfigurationService', () => {
       'single'
     );
 
-    expect(result.url).toContain('&h=750&w=600');
+    expect(result.url).toContain('h=750&w=600');
   });
 });
