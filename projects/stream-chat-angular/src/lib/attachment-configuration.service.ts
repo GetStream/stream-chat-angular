@@ -3,7 +3,7 @@ import { Attachment } from 'stream-chat';
 import { AttachmentConfigration, DefaultStreamChatGenerics } from './types';
 
 /**
- * The `AttachmentConfigurationService` provides customization for certain attributes of attachments displayed inside the message component.
+ * The `AttachmentConfigurationService` provides customization for certain attributes of attachments displayed inside the message component. If you're using your own CDN, you can integrate resizing features of it by providing your own handlers.
  */
 @Injectable({
   providedIn: 'root',
@@ -53,17 +53,40 @@ export class AttachmentConfigurationService<
       );
     }
 
-    const height = {
-      gallery: '', // Set from CSS,
-      single: '300px',
-      carousel: '', // Set from CSS
+    // x2 values for retina displays
+    const sizeResctriction = {
+      gallery: { height: 300, width: 300 },
+      single: { height: 600, width: 600 },
+      carousel: { height: undefined, windt: undefined },
     }[location];
 
+    const height = sizeResctriction.height
+      ? `${sizeResctriction.height / 2}px`
+      : '';
+
+    const oh = attachment.original_height || 1;
+    const ow = attachment.original_width || 1;
+    const resizeParameters =
+      sizeResctriction.height || sizeResctriction.width
+        ? `&h=${Math.round(
+            Math.max(
+              sizeResctriction.height,
+              ((sizeResctriction.width || 1) / ow) * oh
+            )
+          )}&w=${Math.round(
+            Math.max(
+              sizeResctriction.width,
+              ((sizeResctriction.height || 1) / oh) * ow
+            )
+          )}`
+        : '';
+
     return {
-      url: (attachment.img_url ||
-        attachment.thumb_url ||
-        attachment.image_url ||
-        '') as string,
+      url:
+        ((attachment.img_url ||
+          attachment.thumb_url ||
+          attachment.image_url ||
+          '') as string) + resizeParameters,
       width: '',
       height,
     };
