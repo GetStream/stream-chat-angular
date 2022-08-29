@@ -40,6 +40,10 @@ export class AttachmentConfigurationService<
   customScrapedImageAttachmentConfigurationHandler?: (
     a: Attachment<T>
   ) => AttachmentConfigration;
+  /**
+   * You can turn on/off thumbnail generation for video attachments
+   */
+  shouldGenerateVideoThumbnail = true;
 
   /**
    * Handles the configuration for image attachments, it's possible to provide your own function to override the default logic
@@ -95,7 +99,7 @@ export class AttachmentConfigurationService<
     }
 
     let thumbUrl = undefined;
-    if (attachment.thumb_url) {
+    if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
       const url = new URL(attachment.thumb_url);
       this.addResiziParamsToUrl({ width: 600, height: 600 }, url);
       thumbUrl = url.href;
