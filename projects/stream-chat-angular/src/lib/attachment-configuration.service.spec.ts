@@ -18,7 +18,7 @@ describe('AttachmentConfigurationService', () => {
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img',
+      url: 'url/to/img&h=600&w=600',
       height: '300px',
       width: '',
     });
@@ -30,7 +30,7 @@ describe('AttachmentConfigurationService', () => {
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img',
+      url: 'url/to/img&h=600&w=600',
       height: '300px',
       width: '',
     });
@@ -42,7 +42,7 @@ describe('AttachmentConfigurationService', () => {
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single')
     ).toEqual({
-      url: 'url/to/img',
+      url: 'url/to/img&h=600&w=600',
       height: '300px',
       width: '',
     });
@@ -68,8 +68,8 @@ describe('AttachmentConfigurationService', () => {
     expect(
       service.getImageAttachmentConfiguration(attachment, 'gallery')
     ).toEqual({
-      url: 'url/to/img',
-      height: '',
+      url: 'url/to/img&h=300&w=300',
+      height: '150px',
       width: '',
     });
   });
@@ -197,5 +197,20 @@ describe('AttachmentConfigurationService', () => {
     service.getScrapedImageAttachmentConfiguration(attachment);
 
     expect(spy).toHaveBeenCalledWith(attachment);
+  });
+
+  it('should provide integer values for image resize and make sure that each dimension is at least the size restriction', () => {
+    const attachment = {
+      img_url: 'url/to/img',
+      original_width: 3534,
+      original_height: 4417,
+    };
+
+    const result = service.getImageAttachmentConfiguration(
+      attachment,
+      'single'
+    );
+
+    expect(result.url).toContain('&h=750&w=600');
   });
 });
