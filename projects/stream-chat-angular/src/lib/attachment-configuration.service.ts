@@ -61,24 +61,49 @@ export class AttachmentConfigurationService<
       );
     }
 
-    // x2 values for retina displays
-    const sizeResctriction = {
-      gallery: { height: 300, width: 300 },
-      single: { height: 600, width: 600 },
-      carousel: { height: undefined, width: undefined },
-    }[location];
-
-    const height = sizeResctriction.height
-      ? `${sizeResctriction.height / 2}px`
-      : '';
-
     const url = new URL(
       (attachment.img_url ||
         attachment.thumb_url ||
         attachment.image_url ||
         '') as string
     );
-    this.addResiziParamsToUrl(sizeResctriction, url);
+    const urlParams = url.searchParams;
+    const originalHeight = Number(urlParams.get('oh')) || 1;
+    const originalWidth = Number(urlParams.get('ow')) || 1;
+    let sizeRestriction: { width: number; height: number } | undefined;
+    let height: string;
+    switch (location) {
+      case 'carousel': {
+        sizeRestriction = undefined;
+        height = ''; // Set from CSS
+        break;
+      }
+      case 'gallery': {
+        sizeRestriction = this.getSizeRestrictionForFixedAspectRatio(
+          originalHeight,
+          originalWidth,
+          150
+        );
+        height = ''; // Set from CSS:
+        break;
+      }
+      case 'single': {
+        sizeRestriction = this.getSizeRestrictionForFixedWidth(
+          originalHeight,
+          originalWidth,
+          300,
+          300
+        );
+        height = `${sizeRestriction.height}px`;
+      }
+    }
+
+    if (sizeRestriction) {
+      // Apply 2x for retina displays
+      sizeRestriction.height *= 2;
+      sizeRestriction.width *= 2;
+      this.addResiziParamsToUrl(sizeRestriction, url);
+    }
 
     return {
       url: url.href,
@@ -98,16 +123,29 @@ export class AttachmentConfigurationService<
       return this.customVideoAttachmentConfigurationHandler(attachment);
     }
 
+    let height = '300px';
     let thumbUrl = undefined;
     if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
       const url = new URL(attachment.thumb_url);
-      this.addResiziParamsToUrl({ width: 600, height: 600 }, url);
+      const urlParams = url.searchParams;
+      const originalHeight = Number(urlParams.get('oh')) || 1;
+      const originalWidth = Number(urlParams.get('ow')) || 1;
+      const sizeRestriction = this.getSizeRestrictionForFixedWidth(
+        originalHeight,
+        originalWidth,
+        300,
+        300
+      );
+      height = `${sizeRestriction.height}px`;
+      sizeRestriction.height *= 2;
+      sizeRestriction.width *= 2;
+      this.addResiziParamsToUrl(sizeRestriction, url);
       thumbUrl = url.href;
     }
     return {
       url: attachment.asset_url || '',
       width: '100%', // Set from CSS
-      height: '100%',
+      height,
       thumbUrl: thumbUrl,
     };
   }
@@ -151,35 +189,47 @@ export class AttachmentConfigurationService<
   }
 
   private addResiziParamsToUrl(
-    sizeResctriction: { width: number | undefined; height: number | undefined },
+    sizeRestriction: { width: number; height: number },
     url: URL
   ) {
-    const urlParams = url.searchParams;
-    const originalHeight = Number(urlParams.get('oh')) || 1;
-    const originalWidth = Number(urlParams.get('ow')) || 1;
+    url.searchParams.append('h', sizeRestriction.height.toString());
+    url.searchParams.append('w', sizeRestriction.width.toString());
+  }
 
-    const h = sizeResctriction.height
-      ? Math.round(
-          Math.max(
-            sizeResctriction.height,
-            ((sizeResctriction.width || 1) / originalWidth) * originalHeight
-          )
-        ).toString()
-      : undefined;
-    const w = sizeResctriction.width
-      ? Math.round(
-          Math.max(
-            sizeResctriction.width,
-            ((sizeResctriction.height || 1) / originalHeight) * originalWidth
-          )
-        ).toString()
-      : undefined;
+  private getSizeRestrictionForFixedWidth(
+    originalHeight: number,
+    originalWidth: number,
+    maxHeight: number,
+    width: number
+  ) {
+    if (originalHeight && originalWidth) {
+      return {
+        width,
+        height: Math.round(
+          Math.min(maxHeight, (width / originalWidth) * originalHeight)
+        ),
+      };
+    } else {
+      return this.getSizeRestrictionForFixedAspectRatio(
+        1,
+        1,
+        Math.max(maxHeight, width)
+      );
+    }
+  }
 
-    if (h) {
-      url.searchParams.append('h', h);
-    }
-    if (w) {
-      url.searchParams.append('w', w);
-    }
+  private getSizeRestrictionForFixedAspectRatio(
+    originalHeight: number,
+    originalWidth: number,
+    maxSize: number
+  ) {
+    return {
+      height: Math.round(
+        Math.max(maxSize, (maxSize / originalWidth) * originalHeight)
+      ),
+      width: Math.round(
+        Math.max(maxSize, (maxSize / originalHeight) * originalWidth)
+      ),
+    };
   }
 }

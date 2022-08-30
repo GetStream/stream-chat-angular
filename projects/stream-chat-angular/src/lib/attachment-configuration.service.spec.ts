@@ -69,7 +69,7 @@ describe('AttachmentConfigurationService', () => {
       service.getImageAttachmentConfiguration(attachment, 'gallery')
     ).toEqual({
       url: 'http://url/to/img?h=300&w=300',
-      height: '150px',
+      height: '',
       width: '',
     });
   });
@@ -96,7 +96,7 @@ describe('AttachmentConfigurationService', () => {
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
       url: 'http://url/to/video',
-      height: '100%',
+      height: '300px',
       width: '100%',
       thumbUrl: 'http://url/to/poster?h=600&w=600',
     });
@@ -108,9 +108,9 @@ describe('AttachmentConfigurationService', () => {
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
       url: 'http://url/to/video',
-      height: '100%',
+      height: '169px',
       width: '100%',
-      thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=600&w=1067',
+      thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=338&w=600',
     });
 
     attachment = {
@@ -119,7 +119,7 @@ describe('AttachmentConfigurationService', () => {
 
     expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
       url: 'http://url/to/video',
-      height: '100%',
+      height: '300px',
       width: '100%',
       thumbUrl: undefined,
     });
@@ -231,10 +231,10 @@ describe('AttachmentConfigurationService', () => {
 
     const result = service.getImageAttachmentConfiguration(
       attachment,
-      'single'
+      'gallery'
     );
 
-    expect(result.url).toContain('h=750&w=600');
+    expect(result.url).toContain('h=374&w=300');
   });
 
   it('should turn off thumbnail generation for video files', () => {
