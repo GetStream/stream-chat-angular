@@ -319,7 +319,7 @@ export class MessageListComponent
     ) {
       position = 'top';
     } else if (
-      Math.round(this.scrollContainer.nativeElement.scrollTop) +
+      Math.ceil(this.scrollContainer.nativeElement.scrollTop) +
         this.scrollContainer.nativeElement.clientHeight >=
       this.scrollContainer.nativeElement.scrollHeight
     ) {
