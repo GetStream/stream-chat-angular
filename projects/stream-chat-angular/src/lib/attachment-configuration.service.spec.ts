@@ -6,6 +6,13 @@ describe('AttachmentConfigurationService', () => {
   let service: AttachmentConfigurationService;
 
   beforeEach(() => {
+    spyOn(window, 'getComputedStyle').and.callFake(
+      (htmlElement: Element) =>
+        ({
+          getPropertyValue: (property) =>
+            htmlElement[property as keyof Element] || '',
+        } as CSSStyleDeclaration)
+    );
     service = TestBed.inject(AttachmentConfigurationService);
   });
 
@@ -14,9 +21,14 @@ describe('AttachmentConfigurationService', () => {
       img_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+      height: '',
+    } as any as HTMLElement;
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single')
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
       height: '300px',
@@ -28,7 +40,7 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single')
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
       height: '300px',
@@ -40,7 +52,7 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single')
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
       height: '300px',
@@ -55,20 +67,36 @@ describe('AttachmentConfigurationService', () => {
       img_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
-    service.getImageAttachmentConfiguration(attachment, 'carousel');
+    const htmlElement = {
+      'max-width': 'none',
+      'max-height': 'none',
+    } as any as HTMLElement;
+    service.getImageAttachmentConfiguration(
+      attachment,
+      'carousel',
+      htmlElement
+    );
 
-    expect(spy).toHaveBeenCalledWith(attachment, 'carousel');
+    expect(spy).toHaveBeenCalledWith(attachment, 'carousel', htmlElement);
   });
 
   it('should provide the correct configuration for gallery image attachments', () => {
     const attachment: Attachment = {
       img_url: 'http://url/to/img',
     };
+    const htmlElement = {
+      'max-width': '300px',
+      height: '300px',
+    } as any as HTMLElement;
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'gallery')
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'gallery',
+        htmlElement
+      )
     ).toEqual({
-      url: 'http://url/to/img?h=300&w=300',
+      url: 'http://url/to/img?h=600&w=600',
       height: '',
       width: '',
     });
@@ -78,9 +106,17 @@ describe('AttachmentConfigurationService', () => {
     const attachment: Attachment = {
       img_url: 'http://url/to/img',
     };
+    const htmlElement = {
+      'max-width': 'none',
+      'max-height': 'none',
+    } as any as HTMLElement;
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'carousel')
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'carousel',
+        htmlElement
+      )
     ).toEqual({
       url: 'http://url/to/img',
       height: '',
@@ -93,11 +129,17 @@ describe('AttachmentConfigurationService', () => {
       asset_url: 'http://url/to/video',
       thumb_url: 'http://url/to/poster',
     };
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+    } as any as HTMLElement;
 
-    expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
+    expect(
+      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+    ).toEqual({
       url: 'http://url/to/video',
       height: '300px',
-      width: '100%',
+      width: '',
       thumbUrl: 'http://url/to/poster?h=600&w=600',
     });
 
@@ -106,21 +148,25 @@ describe('AttachmentConfigurationService', () => {
       thumb_url: 'http://url/to/poster?oh=1080&ow=1920',
     };
 
-    expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
+    expect(
+      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+    ).toEqual({
       url: 'http://url/to/video',
       height: '169px',
-      width: '100%',
-      thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=338&w=600',
+      width: '',
+      thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=600&w=1066',
     });
 
     attachment = {
       asset_url: 'http://url/to/video',
     };
 
-    expect(service.getVideoAttachmentConfiguration(attachment)).toEqual({
+    expect(
+      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+    ).toEqual({
       url: 'http://url/to/video',
       height: '300px',
-      width: '100%',
+      width: '',
       thumbUrl: undefined,
     });
   });
@@ -132,9 +178,13 @@ describe('AttachmentConfigurationService', () => {
       img_url: 'http://url/to/video',
       thumb_url: 'different/url',
     };
-    service.getVideoAttachmentConfiguration(attachment);
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+    } as any as HTMLElement;
+    service.getVideoAttachmentConfiguration(attachment, htmlElement);
 
-    expect(spy).toHaveBeenCalledWith(attachment);
+    expect(spy).toHaveBeenCalledWith(attachment, htmlElement);
   });
 
   it('should provide the correct configuration for GIFs', () => {
@@ -228,17 +278,26 @@ describe('AttachmentConfigurationService', () => {
     const attachment = {
       img_url: 'http://url/to/img?ow=3534&oh=4417',
     };
+    const htmlElement = {
+      'max-width': '300px',
+      height: '300px',
+    } as any as HTMLElement;
 
     const result = service.getImageAttachmentConfiguration(
       attachment,
-      'gallery'
+      'gallery',
+      htmlElement
     );
 
-    expect(result.url).toContain('h=374&w=300');
+    expect(result.url).toContain('h=750&w=600');
   });
 
   it('should turn off thumbnail generation for video files', () => {
     service.shouldGenerateVideoThumbnail = false;
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+    } as any as HTMLElement;
 
     const attachment: Attachment = {
       asset_url: 'http://url/to/video',
@@ -246,7 +305,50 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getVideoAttachmentConfiguration(attachment).thumbUrl
+      service.getVideoAttachmentConfiguration(attachment, htmlElement).thumbUrl
     ).toBeUndefined();
+  });
+
+  it('should use original dimensions if image is smaller than max-width and max-height', () => {
+    const attachment: Attachment = {
+      image_url: 'http://url/to/img?ow=200&oh=100',
+    };
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+    } as any as HTMLElement;
+
+    expect(
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+        .height
+    ).toBe('100px');
+
+    attachment.image_url = attachment.image_url!.replace('ow=200', 'ow=400');
+
+    expect(
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+        .height
+    ).toBe('75px');
+  });
+
+  it('should override existing "h" and "w" URL params', () => {
+    const attachment: Attachment = {
+      image_url: 'http://url/to/img?crop=*&h=*&oh=0&ow=0&resize=*&ro=0&w=*',
+    };
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+    } as any as HTMLElement;
+
+    const url = service.getImageAttachmentConfiguration(
+      attachment,
+      'single',
+      htmlElement
+    ).url;
+
+    expect(url).not.toContain('h=*');
+    expect(url).not.toContain('w=*');
+    expect(url).toContain('h=600');
+    expect(url).toContain('w=600');
   });
 });

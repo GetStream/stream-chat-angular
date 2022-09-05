@@ -1017,8 +1017,8 @@ describe('MessageComponent', () => {
         ...component.message!,
         quoted_message: quotedMessage as any as MessageResponseBase,
       };
-      fixture.detectChanges();
       component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
     });
 
     it('should display quoted message', () => {
@@ -1049,6 +1049,7 @@ describe('MessageComponent', () => {
       ).toContain('This message was quoted');
 
       component.message = { ...component.message!, quoted_message: undefined };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(

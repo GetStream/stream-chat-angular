@@ -10,7 +10,7 @@ import {
   OnInit,
   ChangeDetectorRef,
 } from '@angular/core';
-import { UserResponse } from 'stream-chat';
+import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import {
@@ -79,6 +79,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
+  private quotedMessageAttachments: Attachment[] | undefined;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
@@ -125,6 +126,11 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
       this.createMessageParts();
+      const originalAttachments = this.message?.quoted_message?.attachments;
+      this.quotedMessageAttachments =
+        originalAttachments && originalAttachments.length
+          ? [originalAttachments[0]]
+          : [];
     }
     if (changes.enabledMessageActions) {
       this.canReactToMessage =
@@ -219,13 +225,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  get quotedMessageAttachments() {
-    const originalAttachments = this.message?.quoted_message?.attachments;
-    return originalAttachments && originalAttachments.length
-      ? [originalAttachments[0]]
-      : [];
-  }
-
   getAttachmentListContext(): AttachmentListContext {
     return {
       messageId: this.message?.id || '',
@@ -237,7 +236,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   getQuotedMessageAttachmentListContext(): AttachmentListContext {
     return {
       messageId: this.message?.quoted_message?.id || '',
-      attachments: this.quotedMessageAttachments,
+      attachments: this.quotedMessageAttachments!,
       parentMessageId: this?.message?.quoted_message?.parent_id,
     };
   }

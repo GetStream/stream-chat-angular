@@ -9,6 +9,7 @@ import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { ThemeService } from '../theme.service';
+import { SimpleChange } from '@angular/core';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -98,7 +99,7 @@ describe('AttachmentListComponent', () => {
 
   it('should display received #attachments ordered', () => {
     component.attachments = [];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryAttachments().length).toBe(0);
@@ -111,7 +112,7 @@ describe('AttachmentListComponent', () => {
         asset_url: 'http://url6',
       },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     const attachments = queryAttachments();
 
@@ -149,7 +150,7 @@ describe('AttachmentListComponent', () => {
       { type: 'file', asset_url: 'http://url3' },
       { type: 'image', img_url: 'http://url2' },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     const orderedAttachments = component.orderedAttachments;
 
@@ -164,7 +165,7 @@ describe('AttachmentListComponent', () => {
       { type: 'image', img_url: 'http://url1' },
       { type: 'image', img_url: 'http://url2' },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     let gallery = queryAttachments()[0];
     let imageElemnts = gallery.querySelectorAll('img');
@@ -182,7 +183,7 @@ describe('AttachmentListComponent', () => {
       { type: 'image', thumb_url: 'http://url3' },
       { type: 'image', image_url: 'http://url4' },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     gallery = queryAttachments()[0];
     imageElemnts = gallery.querySelectorAll('img');
@@ -203,7 +204,7 @@ describe('AttachmentListComponent', () => {
       { type: 'image', image_url: 'http://url4' },
       { type: 'image', image_url: 'http://url5' },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     gallery = queryAttachments()[0];
     imageElemnts = gallery.querySelectorAll('img');
@@ -261,7 +262,7 @@ describe('AttachmentListComponent', () => {
       },
     } as any as Attachment<DefaultStreamChatGenerics>;
     component.attachments = [attachment];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
     const actions = queryActions();
@@ -318,7 +319,7 @@ describe('AttachmentListComponent', () => {
     component.messageId = 'message-id';
     component.attachments = [attachment];
     component.parentMessageId = 'parent-id';
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
     const actions = queryActions();
@@ -339,7 +340,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: imageUrl, thumb_url: 'thumb/url' },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(imageUrl);
@@ -350,7 +351,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: undefined, thumb_url: thumbUrl },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(thumbUrl);
@@ -366,7 +367,7 @@ describe('AttachmentListComponent', () => {
           image_url: imageUrl,
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImages()[0].src).toContain(imageUrl);
@@ -377,7 +378,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: 'http://url1', fallback },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImages()[0].alt).toContain(fallback);
@@ -387,7 +388,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: 'http://image/url', fallback: 'image.svg' },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(
@@ -397,7 +398,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'image', img_url: 'http://image/url', fallback: 'image.jpg' },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(
@@ -411,7 +412,7 @@ describe('AttachmentListComponent', () => {
       const title = 'contract.pdf';
       const asset_url = 'http://url/to/contract';
       component.attachments = [{ type: 'file', title, asset_url }];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
       const link = queryFileLinks()[0];
       const titleElement = queryFileNames()[0];
@@ -434,7 +435,7 @@ describe('AttachmentListComponent', () => {
           asset_url: 'http://url/to/contract2',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(
@@ -455,7 +456,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'file', title: 'contract.pdf', asset_url },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
       const link = queryFileLinks()[0];
 
@@ -469,7 +470,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'file', title, asset_url, file_size: 3272969 },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
       let preview = queryAttachments()[0];
       let fileSize = preview.querySelector('[data-testclass="size"]');
@@ -479,7 +480,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         { type: 'file', title, asset_url, file_size: '3272969' },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
       preview = queryAttachments()[0];
       fileSize = preview.querySelector('[data-testclass="size"]');
@@ -507,7 +508,7 @@ describe('AttachmentListComponent', () => {
           type: 'image',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(imageUrl);
@@ -525,7 +526,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryCardImages()[0].src).toBe(thumbUrl);
@@ -546,7 +547,7 @@ describe('AttachmentListComponent', () => {
           image_url: 'http://url/to/flower.png',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(component.orderedAttachments.length).toBe(1);
@@ -564,7 +565,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(
@@ -587,7 +588,7 @@ describe('AttachmentListComponent', () => {
           title_link: '/',
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(
@@ -609,7 +610,7 @@ describe('AttachmentListComponent', () => {
           title_link: titleLink,
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryUrlLinks()[0].href).toContain(titleLink);
@@ -629,7 +630,7 @@ describe('AttachmentListComponent', () => {
           title_link: undefined,
         },
       ];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryUrlLinks()[0].href).toContain(scrapeUrl);
@@ -644,7 +645,7 @@ describe('AttachmentListComponent', () => {
         image_url: 'http://url1',
       };
       component.attachments = [attachment];
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImageModal()).toBeUndefined();
@@ -671,7 +672,7 @@ describe('AttachmentListComponent', () => {
         },
       ];
       component.attachments = attachments;
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImageModal()).toBeUndefined();
@@ -700,7 +701,7 @@ describe('AttachmentListComponent', () => {
         },
       ];
       component.attachments = attachments;
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryImageModal()).toBeUndefined();
@@ -733,7 +734,7 @@ describe('AttachmentListComponent', () => {
         },
       ];
       component.attachments = attachments;
-      component.ngOnChanges();
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
 
       queryGallery()
@@ -796,7 +797,7 @@ describe('AttachmentListComponent', () => {
       type: 'video',
     };
     component.attachments = [attachment];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryVideos().length).toBe(0);
@@ -856,7 +857,7 @@ describe('AttachmentListComponent', () => {
         asset_url: 'http://url6',
       },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
     [...queryImages(), ...queryCardImages(), ...queryVideos()].forEach(
@@ -874,7 +875,7 @@ describe('AttachmentListComponent', () => {
       { type: 'image', img_url: 'http://url4' },
       { type: 'image', img_url: 'http://url5' },
     ];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     const gallery = queryGallery()!;
 
@@ -894,7 +895,7 @@ describe('AttachmentListComponent', () => {
       image_url: 'http://url1',
     };
     component.attachments = [attachment];
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     queryImages()[0].click();
     fixture.detectChanges();
@@ -913,7 +914,7 @@ describe('AttachmentListComponent', () => {
       },
     ];
     component.attachments = attachments;
-    component.ngOnChanges();
+    component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     const videoElements = queryVideos();
 
