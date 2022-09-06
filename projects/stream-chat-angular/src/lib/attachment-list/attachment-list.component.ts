@@ -83,8 +83,13 @@ export class AttachmentListComponent implements OnChanges {
     }
   }
 
-  trackByReference(_: number, attachment: Attachment) {
-    return attachment;
+  trackByUrl(_: number, attachment: Attachment) {
+    return (
+      attachment.image_url ||
+      attachment.img_url ||
+      attachment.asset_url ||
+      attachment.thumb_url
+    );
   }
 
   isImage(attachment: Attachment) {

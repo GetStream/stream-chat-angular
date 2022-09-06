@@ -1,6 +1,6 @@
 <div *ngIf="orderedAttachments.length > 0" class="str-chat__attachment-list">
   <ng-container
-    *ngFor="let attachment of orderedAttachments; trackBy: trackByReference"
+    *ngFor="let attachment of orderedAttachments; trackBy: trackByUrl"
   >
     <div
       data-testclass="attachment-container"
