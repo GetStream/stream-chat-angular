@@ -1020,7 +1020,7 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
     const text = 'Hi';
-    const attachments = [{ fallback: 'image.png', url: 'url/to/image' }];
+    const attachments = [{ fallback: 'image.png', url: 'http://url/to/image' }];
     const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
     const quotedMessageId = 'quotedMessage';
     const customData = {
@@ -1270,43 +1270,66 @@ describe('ChannelService', () => {
         case 'file_error.jpg':
           return Promise.reject(new Error());
         default:
-          return Promise.resolve({ file: 'url/to/image', duration: '200ms' });
+          return Promise.resolve({
+            file: 'http://url/to/image',
+            duration: '200ms',
+          });
       }
     });
-    spyOn(channel, 'sendFile').and.callFake((file: File) => {
-      switch (file.name) {
-        case 'file_error.pdf':
-          return Promise.reject(new Error());
-        default:
-          return Promise.resolve({ file: 'url/to/pdf', duration: '200ms' });
+    spyOn(channel, 'sendFile').and.callFake(
+      (file: File, _: string, type: string) => {
+        switch (file.name) {
+          case 'file_error.pdf':
+            return Promise.reject(new Error());
+          default:
+            return Promise.resolve({
+              file: 'http://url/to/file',
+              duration: '200ms',
+              thumb_url:
+                type && type.startsWith('video')
+                  ? 'http://url/to/poster'
+                  : undefined,
+            });
+        }
       }
-    });
+    );
     const file1 = { name: 'food.png' } as File;
     const file2 = { name: 'file_error.jpg' } as File;
     const file3 = { name: 'menu.pdf' } as File;
     const file4 = { name: 'file_error.pdf' } as File;
+    const file5 = { name: 'video.mp4', type: 'video/mp4' } as File;
     const attachments = [
       { file: file1, type: 'image', state: 'uploading' },
       { file: file2, type: 'image', state: 'uploading' },
       { file: file3, type: 'file', state: 'uploading' },
       { file: file4, type: 'file', state: 'uploading' },
+      { file: file5, type: 'video', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
-    const expectedResult = [
+    const expectedResult: AttachmentUpload[] = [
       {
         file: file1,
         state: 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image',
+        thumb_url: undefined,
       },
       { file: file2, state: 'error', type: 'image' },
       {
         file: file3,
         state: 'success',
-        url: 'url/to/pdf',
+        url: 'http://url/to/file',
         type: 'file',
+        thumb_url: undefined,
       },
       { file: file4, state: 'error', type: 'file' },
+      {
+        file: file5,
+        state: 'success',
+        type: 'video',
+        url: 'http://url/to/file',
+        thumb_url: 'http://url/to/poster',
+      },
     ];
 
     expectedResult.forEach((r, i) => {
@@ -1319,7 +1342,7 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteImage');
-    const url = 'url/to/image';
+    const url = 'http://url/to/image';
     await service.deleteAttachment({
       url,
       type: 'image',
@@ -1335,7 +1358,7 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'deleteFile');
-    const url = 'url/to/file';
+    const url = 'http://url/to/file';
     await service.deleteAttachment({
       url,
       type: 'file',
@@ -1560,7 +1583,7 @@ describe('ChannelService', () => {
           case 'file_error.jpg':
             return Promise.reject(new Error());
           default:
-            return Promise.resolve({ file: 'url/to/image' });
+            return Promise.resolve({ file: 'http://url/to/image' });
         }
       });
     const customFileUploadRequest = jasmine
@@ -1570,7 +1593,10 @@ describe('ChannelService', () => {
           case 'file_error.pdf':
             return Promise.reject(new Error());
           default:
-            return Promise.resolve({ file: 'url/to/pdf' });
+            return Promise.resolve({
+              file: 'http://url/to/pdf',
+              thumb_url: undefined,
+            });
         }
       });
     service.customImageUploadRequest = customImageUploadRequest;
@@ -1588,19 +1614,21 @@ describe('ChannelService', () => {
       { file: file4, type: 'file', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
-    const expectedResult = [
+    const expectedResult: AttachmentUpload[] = [
       {
         file: file1,
         state: 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image',
+        thumb_url: undefined,
       },
       { file: file2, state: 'error', type: 'image' },
       {
         file: file3,
         state: 'success',
-        url: 'url/to/pdf',
+        url: 'http://url/to/pdf',
         type: 'file',
+        thumb_url: undefined,
       },
       { file: file4, state: 'error', type: 'file' },
     ];
@@ -1620,7 +1648,7 @@ describe('ChannelService', () => {
     const customImageDeleteRequest = jasmine.createSpy();
     service.customImageDeleteRequest = customImageDeleteRequest;
     spyOn(channel, 'deleteImage');
-    const url = 'url/to/image';
+    const url = 'http://url/to/image';
     await service.deleteAttachment({
       url,
       type: 'image',
@@ -1639,7 +1667,7 @@ describe('ChannelService', () => {
     const customFileDeleteRequest = jasmine.createSpy();
     service.customFileDeleteRequest = customFileDeleteRequest;
     spyOn(channel, 'deleteFile');
-    const url = 'url/to/file';
+    const url = 'http://url/to/file';
     await service.deleteAttachment({
       url,
       type: 'file',

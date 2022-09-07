@@ -696,10 +696,10 @@ export class ChannelService<
         upload.type === 'image'
           ? this.customImageUploadRequest
             ? this.customImageUploadRequest(upload.file, channel)
-            : channel.sendImage(upload.file)
+            : channel.sendImage(upload.file, upload.file.name, upload.file.type)
           : this.customFileUploadRequest
           ? this.customFileUploadRequest(upload.file, channel)
-          : channel.sendFile(upload.file)
+          : channel.sendFile(upload.file, upload.file.name, upload.file.type)
       )
     );
     uploadResults.forEach((uploadResult, i) => {
@@ -711,6 +711,8 @@ export class ChannelService<
           type,
           state: 'success',
           url: uploadResult.value.file,
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+          thumb_url: (uploadResult.value as any).thumb_url,
         });
       } else {
         result.push({ file, type, state: 'error' });

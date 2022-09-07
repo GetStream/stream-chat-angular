@@ -3,11 +3,17 @@ import {
   HostBinding,
   Input,
   OnChanges,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { Action, Attachment } from 'stream-chat';
-import { ModalContext, DefaultStreamChatGenerics } from '../types';
+import {
+  ModalContext,
+  DefaultStreamChatGenerics,
+  AttachmentConfigration,
+  VideoAttachmentConfiguration,
+} from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
@@ -43,6 +49,10 @@ export class AttachmentListComponent implements OnChanges {
   themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
+  private attachmentConfigurations: Map<
+    Attachment,
+    AttachmentConfigration | VideoAttachmentConfiguration
+  > = new Map();
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
@@ -53,25 +63,33 @@ export class AttachmentListComponent implements OnChanges {
     this.themeVersion = themeService.themeVersion;
   }
 
-  ngOnChanges(): void {
-    const images = this.attachments.filter(this.isImage);
-    const containsGallery = images.length >= 2;
-    this.orderedAttachments = [
-      ...(containsGallery ? this.createGallery(images) : images),
-      ...this.attachments.filter((a) => this.isVideo(a)),
-      ...this.attachments.filter((a) => this.isFile(a)),
-    ];
-    // Display link attachments only if there are no other attachments
-    // Giphy-s always sent without other attachments
-    if (this.orderedAttachments.length === 0) {
-      this.orderedAttachments.push(
-        ...this.attachments.filter((a) => this.isCard(a))
-      );
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.attachments) {
+      const images = this.attachments.filter(this.isImage);
+      const containsGallery = images.length >= 2;
+      this.orderedAttachments = [
+        ...(containsGallery ? this.createGallery(images) : images),
+        ...this.attachments.filter((a) => this.isVideo(a)),
+        ...this.attachments.filter((a) => this.isFile(a)),
+      ];
+      this.attachmentConfigurations = new Map();
+      // Display link attachments only if there are no other attachments
+      // Giphy-s always sent without other attachments
+      if (this.orderedAttachments.length === 0) {
+        this.orderedAttachments.push(
+          ...this.attachments.filter((a) => this.isCard(a))
+        );
+      }
     }
   }
 
-  trackById(index: number) {
-    return index;
+  trackByUrl(_: number, attachment: Attachment) {
+    return (
+      attachment.image_url ||
+      attachment.img_url ||
+      attachment.asset_url ||
+      attachment.thumb_url
+    );
   }
 
   isImage(attachment: Attachment) {
@@ -165,29 +183,67 @@ export class AttachmentListComponent implements OnChanges {
 
   getImageAttachmentConfiguration(
     attachment: Attachment,
-    type: 'gallery' | 'single' | 'carousel'
+    type: 'gallery' | 'single',
+    element: HTMLElement
+  ) {
+    const existingConfiguration = this.attachmentConfigurations.get(attachment);
+    if (existingConfiguration) {
+      return existingConfiguration;
+    }
+    const configuration =
+      this.attachmentConfigurationService.getImageAttachmentConfiguration(
+        attachment,
+        type,
+        element
+      );
+    this.attachmentConfigurations.set(attachment, configuration);
+    return configuration;
+  }
+
+  getCarouselImageAttachmentConfiguration(
+    attachment: Attachment,
+    element: HTMLElement
   ) {
     return this.attachmentConfigurationService.getImageAttachmentConfiguration(
       attachment,
-      type
+      'carousel',
+      element
     );
   }
 
-  getVideoAttachmentConfiguration(attachment: Attachment) {
-    return this.attachmentConfigurationService.getVideoAttachmentConfiguration(
-      attachment
-    );
+  getVideoAttachmentConfiguration(
+    attachment: Attachment,
+    element: HTMLElement
+  ) {
+    const existingConfiguration = this.attachmentConfigurations.get(attachment);
+    if (existingConfiguration) {
+      return existingConfiguration as VideoAttachmentConfiguration;
+    }
+    const configuration =
+      this.attachmentConfigurationService.getVideoAttachmentConfiguration(
+        attachment,
+        element
+      );
+    this.attachmentConfigurations.set(attachment, configuration);
+    return configuration;
   }
 
   getCardAttachmentConfiguration(attachment: Attachment) {
+    const existingConfiguration = this.attachmentConfigurations.get(attachment);
+    if (existingConfiguration) {
+      return existingConfiguration;
+    }
     if (attachment.type === 'giphy') {
       return this.attachmentConfigurationService.getGiphyAttachmentConfiguration(
         attachment
       );
     } else {
-      return this.attachmentConfigurationService.getScrapedImageAttachmentConfiguration(
-        attachment
-      );
+      const configuration =
+        this.attachmentConfigurationService.getScrapedImageAttachmentConfiguration(
+          attachment
+        );
+      this.attachmentConfigurations.set(attachment, configuration);
+      return configuration;
     }
   }
 

@@ -38,7 +38,7 @@ describe('AttachmentService', () => {
     const fileUpload = {
       file,
       state: 'success' as 'success',
-      url: 'url/to/image',
+      url: 'http://url/to/image',
       type: 'image' as 'image',
     };
     uploadAttachmentsSpy.and.resolveTo([fileUpload]);
@@ -54,7 +54,7 @@ describe('AttachmentService', () => {
       {
         file,
         state: 'success' as 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image' as 'image',
       },
     ]);
@@ -78,7 +78,7 @@ describe('AttachmentService', () => {
       {
         file,
         state: 'success' as 'success',
-        url: 'url/to/image',
+        url: 'http://url/to/image',
         type: 'image' as 'image',
       },
     ]);
@@ -98,7 +98,7 @@ describe('AttachmentService', () => {
 
   it('should remove deleted attachments after upload', fakeAsync(() => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
-    const url = 'url/to/image';
+    const url = 'http://url/to/image';
     const fileUpload = {
       file,
       state: 'success' as 'success',
@@ -152,14 +152,25 @@ describe('AttachmentService', () => {
     service.attachmentUploads$.subscribe(attachmentUploadsSpy);
 
     expect(attachmentUploadsSpy).toHaveBeenCalledWith([
-      { file, state: 'success', url: 'image/url', type: 'image' },
+      {
+        file,
+        state: 'success',
+        url: 'image/url',
+        type: 'image',
+        thumb_url: undefined,
+      },
     ]);
   });
 
   it('should be able to upload files in multiple steps', async () => {
     const file1 = { name: 'my_image.png', type: 'image/png' } as File;
     uploadAttachmentsSpy.and.resolveTo([
-      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
+      {
+        file: file1,
+        state: 'success',
+        url: 'http://url/to/image',
+        type: 'image',
+      },
     ]);
     await service.filesSelected([file1] as any as FileList);
 
@@ -167,18 +178,36 @@ describe('AttachmentService', () => {
     service.attachmentUploads$.subscribe(attachmentUploadsSpy);
 
     expect(attachmentUploadsSpy).toHaveBeenCalledWith([
-      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
+      {
+        file: file1,
+        state: 'success',
+        url: 'http://url/to/image',
+        type: 'image',
+        thumb_url: undefined,
+      },
     ]);
 
     const file2 = { name: 'my_image2.png', type: 'image/png' } as File;
     uploadAttachmentsSpy.and.resolveTo([
-      { file: file2, state: 'success', url: 'url/to/image2' },
+      { file: file2, state: 'success', url: 'http://url/to/image2' },
     ]);
     await service.filesSelected([file2] as any as FileList);
 
     expect(attachmentUploadsSpy).toHaveBeenCalledWith([
-      { file: file1, state: 'success', url: 'url/to/image', type: 'image' },
-      { file: file2, state: 'success', url: 'url/to/image2', type: 'image' },
+      {
+        file: file1,
+        state: 'success',
+        url: 'http://url/to/image',
+        type: 'image',
+        thumb_url: undefined,
+      },
+      {
+        file: file2,
+        state: 'success',
+        url: 'http://url/to/image2',
+        type: 'image',
+        thumb_url: undefined,
+      },
     ]);
   });
 
@@ -261,35 +290,53 @@ describe('AttachmentService', () => {
     const imageFile = { name: 'flower.png', type: 'image/png' };
     const dataFile = { name: 'note.txt', type: 'plain/text', size: 3272969 };
     const dataFile2 = { name: 'contract.pdf', type: 'application/pdf' };
+    const videoFile = { name: 'test.mp4', type: 'video/mp4', size: 22233332 };
     uploadAttachmentsSpy.and.resolveTo([
       {
         file: imageFile,
         state: 'success',
-        url: 'url/to/img',
+        url: 'http://url/to/img',
+        thumb_url: undefined,
       },
       {
         file: dataFile,
         state: 'success',
-        url: 'url/to/data',
+        url: 'http://url/to/data',
+        thumb_url: undefined,
       },
       {
         file: dataFile2,
         state: 'error',
+      },
+      {
+        file: videoFile,
+        state: 'success',
+        url: 'http://url/to/file',
+        thumb_url: 'http://url/to/thumb',
       },
     ]);
     await service.filesSelected([
       imageFile,
       dataFile,
       dataFile2,
+      videoFile,
     ] as any as FileList);
 
     expect(service.mapToAttachments()).toEqual([
-      { fallback: 'flower.png', image_url: 'url/to/img', type: 'image' },
+      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
+      {
+        type: 'video',
+        title: 'test.mp4',
+        file_size: 22233332,
+        asset_url: 'http://url/to/file',
+        thumb_url: 'http://url/to/thumb',
+      },
       {
         title: 'note.txt',
         file_size: 3272969,
-        asset_url: 'url/to/data',
+        asset_url: 'http://url/to/data',
         type: 'file',
+        thumb_url: undefined,
       },
     ]);
   });
@@ -302,35 +349,38 @@ describe('AttachmentService', () => {
       {
         file: imageFile,
         state: 'success',
-        url: 'url/to/img',
+        url: 'http://url/to/img',
         type: 'image',
       },
       {
         file: dataFile,
         state: 'success',
-        url: 'url/to/data',
+        url: 'http://url/to/data',
         type: 'file',
+        thumb_url: undefined,
       },
       {
         file: videoFile,
         state: 'success',
-        url: 'url/to/video',
+        url: 'http://url/to/video',
         type: 'video',
+        thumb_url: 'http://url/to/poster',
       },
     ];
     const attachments = [
-      { fallback: 'flower.png', image_url: 'url/to/img', type: 'image' },
+      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
       {
         title: 'note.txt',
         file_size: 3272969,
-        asset_url: 'url/to/data',
+        asset_url: 'http://url/to/data',
         type: 'file',
       },
       {
         title: 'cute.mov',
         file_size: 45367543,
-        asset_url: 'url/to/video',
+        asset_url: 'http://url/to/video',
         type: 'video',
+        thumb_url: 'http://url/to/poster',
       },
     ];
     const spy = jasmine.createSpy();

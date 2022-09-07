@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Attachment } from 'stream-chat';
-import { AttachmentConfigration, DefaultStreamChatGenerics } from './types';
+import {
+  AttachmentConfigration,
+  DefaultStreamChatGenerics,
+  VideoAttachmentConfiguration,
+} from './types';
 
 /**
- * The `AttachmentConfigurationService` provides customization for certain attributes of attachments displayed inside the message component.
+ * The `AttachmentConfigurationService` provides customization for certain attributes of attachments displayed inside the message component. If you're using your own CDN, you can integrate resizing features of it by providing your own handlers.
  */
 @Injectable({
   providedIn: 'root',
@@ -16,14 +20,16 @@ export class AttachmentConfigurationService<
    */
   customImageAttachmentConfigurationHandler?: (
     a: Attachment<T>,
-    type: 'gallery' | 'single' | 'carousel'
+    type: 'gallery' | 'single' | 'carousel',
+    containerElement: HTMLElement
   ) => AttachmentConfigration;
   /**
    * A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customVideoAttachmentConfigurationHandler?: (
-    a: Attachment<T>
-  ) => AttachmentConfigration;
+    a: Attachment<T>,
+    containerElement: HTMLElement
+  ) => VideoAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
@@ -36,35 +42,51 @@ export class AttachmentConfigurationService<
   customScrapedImageAttachmentConfigurationHandler?: (
     a: Attachment<T>
   ) => AttachmentConfigration;
+  /**
+   * You can turn on/off thumbnail generation for video attachments
+   */
+  shouldGenerateVideoThumbnail = true;
 
   /**
    * Handles the configuration for image attachments, it's possible to provide your own function to override the default logic
    * @param attachment The attachment to configure
    * @param location Specifies where the image is being displayed
+   * @param element The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN.
    */
   getImageAttachmentConfiguration(
     attachment: Attachment<T>,
-    location: 'gallery' | 'single' | 'carousel'
+    location: 'gallery' | 'single' | 'carousel',
+    element: HTMLElement
   ): AttachmentConfigration {
     if (this.customImageAttachmentConfigurationHandler) {
       return this.customImageAttachmentConfigurationHandler(
         attachment,
-        location
+        location,
+        element
       );
     }
 
-    const height = {
-      gallery: '', // Set from CSS,
-      single: '300px',
-      carousel: '', // Set from CSS
-    }[location];
-
-    return {
-      url: (attachment.img_url ||
+    const url = new URL(
+      (attachment.img_url ||
         attachment.thumb_url ||
         attachment.image_url ||
-        '') as string,
-      width: '',
+        '') as string
+    );
+    const { sizeRestriction, height } = this.getSizingRestrictions(
+      url,
+      element
+    );
+
+    if (sizeRestriction) {
+      // Apply 2x for retina displays
+      sizeRestriction.height *= 2;
+      sizeRestriction.width *= 2;
+      this.addResizingParamsToUrl(sizeRestriction, url);
+    }
+
+    return {
+      url: url.href,
+      width: '', // Not set to respect responsive width
       height,
     };
   }
@@ -72,18 +94,46 @@ export class AttachmentConfigurationService<
   /**
    * Handles the configuration for video attachments, it's possible to provide your own function to override the default logic
    * @param attachment The attachment to configure
+   * @param element The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN.
    */
   getVideoAttachmentConfiguration(
-    attachment: Attachment<T>
-  ): AttachmentConfigration {
+    attachment: Attachment<T>,
+    element: HTMLElement
+  ): VideoAttachmentConfiguration {
     if (this.customVideoAttachmentConfigurationHandler) {
-      return this.customVideoAttachmentConfigurationHandler(attachment);
+      return this.customVideoAttachmentConfigurationHandler(
+        attachment,
+        element
+      );
     }
 
+    let attachmentHeight = ``;
+    let thumbUrl = undefined;
+    if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
+      const url = new URL(attachment.thumb_url);
+      const { sizeRestriction, height } = this.getSizingRestrictions(
+        url,
+        element
+      );
+
+      if (sizeRestriction) {
+        sizeRestriction.height *= 2;
+        sizeRestriction.width *= 2;
+        this.addResizingParamsToUrl(sizeRestriction, url);
+      }
+      thumbUrl = url.href;
+      attachmentHeight = height;
+    } else {
+      const cssSizeRestriction = this.getCSSSizeRestriction(element);
+      attachmentHeight = `${
+        cssSizeRestriction.maxHeight || cssSizeRestriction.height || ''
+      }px`;
+    }
     return {
       url: attachment.asset_url || '',
-      width: '100%', // Set from CSS
-      height: '100%',
+      width: '', // Not set to respect responsive width
+      height: attachmentHeight,
+      thumbUrl: thumbUrl,
     };
   }
 
@@ -123,5 +173,89 @@ export class AttachmentConfigurationService<
       width: '',
       height: '', // Set from CSS
     };
+  }
+
+  private addResizingParamsToUrl(
+    sizeRestriction: { width: number; height: number },
+    url: URL
+  ) {
+    url.searchParams.set('h', sizeRestriction.height.toString());
+    url.searchParams.set('w', sizeRestriction.width.toString());
+  }
+
+  private getSizingRestrictions(url: URL, htmlElement: HTMLElement) {
+    const urlParams = url.searchParams;
+    const originalHeight = Number(urlParams.get('oh')) || 1;
+    const originalWidth = Number(urlParams.get('ow')) || 1;
+    const cssSizeRestriction = this.getCSSSizeRestriction(htmlElement);
+    let sizeRestriction: { width: number; height: number } | undefined;
+    let height = '';
+
+    if (
+      (cssSizeRestriction.maxHeight || cssSizeRestriction.height) &&
+      cssSizeRestriction.maxWidth
+    ) {
+      sizeRestriction = this.getSizeRestrictions(
+        originalHeight,
+        originalWidth,
+        (cssSizeRestriction.maxHeight || cssSizeRestriction.height)!,
+        cssSizeRestriction.maxWidth
+      );
+      if (cssSizeRestriction.maxHeight) {
+        const heightNum =
+          originalHeight > 1 && originalWidth > 1
+            ? originalHeight <= cssSizeRestriction.maxHeight &&
+              originalWidth <= cssSizeRestriction.maxWidth
+              ? originalHeight
+              : Math.round(
+                  Math.min(
+                    cssSizeRestriction.maxHeight,
+                    (cssSizeRestriction.maxWidth / originalWidth) *
+                      originalHeight
+                  )
+                )
+            : cssSizeRestriction.maxHeight;
+        height = `${heightNum}px`;
+      }
+    } else {
+      sizeRestriction = undefined;
+    }
+
+    return { sizeRestriction, height };
+  }
+
+  private getSizeRestrictions(
+    originalHeight: number,
+    originalWidth: number,
+    maxHeight: number,
+    maxWidth: number
+  ) {
+    return {
+      height: Math.round(
+        Math.max(maxHeight, (maxWidth / originalWidth) * originalHeight)
+      ),
+      width: Math.round(
+        Math.max(maxHeight, (maxWidth / originalHeight) * originalWidth)
+      ),
+    };
+  }
+
+  private getCSSSizeRestriction(htmlElement: HTMLElement) {
+    const computedStylesheet = getComputedStyle(htmlElement);
+    const height = this.getValueRepresentationOfCSSProperty(
+      computedStylesheet.getPropertyValue('height')
+    );
+    const maxHeight = this.getValueRepresentationOfCSSProperty(
+      computedStylesheet.getPropertyValue('max-height')
+    );
+    const maxWidth = this.getValueRepresentationOfCSSProperty(
+      computedStylesheet.getPropertyValue('max-width')
+    );
+
+    return { height, maxHeight, maxWidth };
+  }
+
+  private getValueRepresentationOfCSSProperty(property: string) {
+    return Number(property.replace('px', '')) || undefined;
   }
 }

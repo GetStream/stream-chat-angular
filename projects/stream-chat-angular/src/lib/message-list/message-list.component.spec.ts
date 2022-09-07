@@ -681,7 +681,7 @@ describe('MessageListComponent', () => {
 
     channelServiceMock.usersTypingInChannel$.next([
       { id: 'jack' },
-      { id: 'john', name: 'John', image: 'url/to/img' },
+      { id: 'john', name: 'John', image: 'http://url/to/img' },
     ]);
     fixture.detectChanges();
 

@@ -79,6 +79,7 @@ export type AttachmentUpload = {
   url?: string;
   type: 'image' | 'file' | 'video';
   previewUri?: string | ArrayBuffer;
+  thumb_url?: string;
 };
 
 export type MentionAutcompleteListItemContext = {
@@ -261,4 +262,8 @@ export type AttachmentConfigration = {
   url: string;
   height: string;
   width: string;
+};
+
+export type VideoAttachmentConfiguration = AttachmentConfigration & {
+  thumbUrl?: string;
 };
