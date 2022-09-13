@@ -306,28 +306,15 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         !this.message!.mentioned_users ||
         this.message!.mentioned_users.length === 0
       ) {
-        // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
-        const regex = new RegExp(emojiRegex(), 'g');
-        // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const isChrome =
-          !!(window as any).chrome &&
-          typeof (window as any).opr === 'undefined';
-        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
-        content = content.replace(
-          regex,
-          (match) =>
-            `<span ${
-              isChrome ? 'class="str-chat__emoji-display-fix"' : ''
-            }>${match}</span>`
-        );
+        content = this.fixEmojiDisplay(content);
         this.messageTextParts = [{ content, type: 'text' }];
       } else {
         this.messageTextParts = [];
         let text = content;
         this.message!.mentioned_users.forEach((user) => {
           const mention = `@${user.name || user.id}`;
-          const precedingText = text.substring(0, text.indexOf(mention));
+          let precedingText = text.substring(0, text.indexOf(mention));
+          precedingText = this.fixEmojiDisplay(precedingText);
           this.messageTextParts.push({
             content: precedingText,
             type: 'text',
@@ -340,9 +327,29 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
           text = text.replace(precedingText + mention, '');
         });
         if (text) {
+          text = this.fixEmojiDisplay(text);
           this.messageTextParts.push({ content: text, type: 'text' });
         }
       }
     }
+  }
+
+  private fixEmojiDisplay(content: string) {
+    // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
+    const regex = new RegExp(emojiRegex(), 'g');
+    // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    const isChrome =
+      !!(window as any).chrome && typeof (window as any).opr === 'undefined';
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    content = content.replace(
+      regex,
+      (match) =>
+        `<span ${
+          isChrome ? 'class="str-chat__emoji-display-fix"' : ''
+        }>${match}</span>`
+    );
+
+    return content;
   }
 }

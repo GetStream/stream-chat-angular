@@ -864,6 +864,41 @@ describe('MessageComponent', () => {
     expect(content).toContain('👨‍👩‍👧');
   });
 
+  it('should add class to emojis in Chrome', () => {
+    component.message = {
+      html: 'This message contains an emoji 🥑',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    component.message = {
+      html: '@sara what do you think about 🥑s? ',
+      mentioned_users: [{ id: 'sara' }],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[2].content).toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    // Simulate a browser that isn't Google Chrome
+    const chrome = (window as typeof window & { chrome: Object }).chrome;
+    (window as typeof window & { chrome: Object | undefined }).chrome =
+      undefined;
+
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).not.toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    // Revert changes to the window object
+    (window as typeof window & { chrome: Object }).chrome = chrome;
+  });
+
   it('should display reply count for parent messages', () => {
     expect(queryReplyCountButton()).toBeNull();
 
