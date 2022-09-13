@@ -169,4 +169,43 @@ describe('AvatarComponent', () => {
 
     expect(component.initials).toBe('#');
   });
+
+  it(`should display other user's image in 1:1 chats`, () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    component.imageUrl = undefined;
+    component.channel = channel;
+    component.type = 'channel';
+    fixture.detectChanges();
+
+    expect(queryImg()?.src).toContain('url/to/img');
+
+    component.imageUrl = 'channel/img';
+    fixture.detectChanges();
+
+    expect(queryImg()?.src).toContain('channel/img');
+
+    channel.state.members.otheruser.user!.image = undefined;
+    component.imageUrl = undefined;
+    fixture.detectChanges();
+
+    expect(queryImg()).toBeNull();
+
+    channel.state.members['thirduser'] = {
+      user_id: 'thirduser',
+      user: { id: 'thirduser', image: 'profile/img' },
+    };
+    fixture.detectChanges();
+
+    expect(queryImg()).toBeNull();
+  });
 });

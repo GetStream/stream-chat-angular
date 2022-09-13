@@ -12,11 +12,11 @@
   }"
 >
   <img
-    *ngIf="imageUrl && !isError; else fallback"
+    *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
     class="str-chat__avatar-image str-chat__avatar-image{{
       isLoaded ? ' str-chat__avatar-image--loaded' : ''
     }}"
-    src="{{ imageUrl }}"
+    src="{{ imageUrl || fallbackChannelImage }}"
     alt="{{ initials }}"
     data-testid="avatar-img"
     (load)="isLoaded = true"
