@@ -57,13 +57,9 @@ export class AvatarComponent {
       if (this.channel?.data?.name) {
         result = this.channel?.data?.name;
       } else {
-        const otherMembers = Object.values(
-          this.channel?.state?.members || {}
-        ).filter(
-          (m) => m.user_id !== this.chatClientService.chatClient.user?.id
-        );
-        if (otherMembers.length === 1) {
-          result = otherMembers[0].user?.name || otherMembers[0].user?.id || '';
+        const otherMember = this.getOtherMemberIfOneToOneChannel();
+        if (otherMember) {
+          result = otherMember.name || otherMember.id || '';
         } else {
           result = '#';
         }
@@ -71,5 +67,29 @@ export class AvatarComponent {
     }
 
     return result.charAt(0) || '';
+  }
+
+  get fallbackChannelImage() {
+    if (this.type !== 'channel') {
+      return undefined;
+    } else {
+      const otherMember = this.getOtherMemberIfOneToOneChannel();
+      if (otherMember) {
+        return otherMember.image;
+      } else {
+        return undefined;
+      }
+    }
+  }
+
+  private getOtherMemberIfOneToOneChannel() {
+    const otherMembers = Object.values(
+      this.channel?.state?.members || {}
+    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user?.id);
+    if (otherMembers.length === 1) {
+      return otherMembers[0].user;
+    } else {
+      return undefined;
+    }
   }
 }
