@@ -72,9 +72,11 @@ export class AttachmentConfigurationService<
         attachment.image_url ||
         '') as string
     );
+    const displayWarning = location === 'gallery' || location === 'single';
     const { sizeRestriction, height } = this.getSizingRestrictions(
       url,
-      element
+      element,
+      displayWarning
     );
 
     if (sizeRestriction) {
@@ -111,9 +113,11 @@ export class AttachmentConfigurationService<
     let thumbUrl = undefined;
     if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
       const url = new URL(attachment.thumb_url);
+      const displayWarning = true;
       const { sizeRestriction, height } = this.getSizingRestrictions(
         url,
-        element
+        element,
+        displayWarning
       );
 
       if (sizeRestriction) {
@@ -183,7 +187,11 @@ export class AttachmentConfigurationService<
     url.searchParams.set('w', sizeRestriction.width.toString());
   }
 
-  private getSizingRestrictions(url: URL, htmlElement: HTMLElement) {
+  private getSizingRestrictions(
+    url: URL,
+    htmlElement: HTMLElement,
+    displayWarning = false
+  ) {
     const urlParams = url.searchParams;
     const originalHeight = Number(urlParams.get('oh')) || 1;
     const originalWidth = Number(urlParams.get('ow')) || 1;
@@ -219,6 +227,11 @@ export class AttachmentConfigurationService<
       }
     } else {
       sizeRestriction = undefined;
+      if (displayWarning) {
+        console.warn(
+          `Invalid value set for height/max-height and/or max-width for HTML element, this can cause scrolling issues inside the message list, more info https://getstream.io/chat/docs/sdk/angular/components/AttachmentListComponent/#image-and-video-sizing`
+        );
+      }
     }
 
     return { sizeRestriction, height };
