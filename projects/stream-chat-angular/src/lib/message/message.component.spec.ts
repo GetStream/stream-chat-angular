@@ -652,7 +652,10 @@ describe('MessageComponent', () => {
   it('should display HTML content', () => {
     const htmlContent =
       '<a href="https://getstream.io/">https://getstream.io/</a>';
-    component.message = { ...component.message!, ...{ html: htmlContent } };
+    component.message = {
+      ...component.message!,
+      ...{ html: `<p>${htmlContent}</p>\n` },
+    };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -897,6 +900,25 @@ describe('MessageComponent', () => {
 
     // Revert changes to the window object
     (window as typeof window & { chrome: Object }).chrome = chrome;
+  });
+
+  it('should replace URL links inside text content', () => {
+    component.message = {
+      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
+      text: 'This is a message with a link https://getstream.io/',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      ' <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+    );
+
+    component.message.html = undefined;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+    );
   });
 
   it('should display reply count for parent messages', () => {

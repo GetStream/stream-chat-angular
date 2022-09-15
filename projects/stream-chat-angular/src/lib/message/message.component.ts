@@ -295,18 +295,24 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     if (!content) {
       this.messageTextParts = [];
     } else {
+      let isHTML = false;
       // Backend will wrap HTML content with <p></p>\n
       if (content.startsWith('<p>')) {
         content = content.replace('<p>', '');
+        isHTML = true;
       }
       if (content.endsWith('</p>\n')) {
         content = content.replace('</p>\n', '');
+        isHTML = true;
       }
       if (
         !this.message!.mentioned_users ||
         this.message!.mentioned_users.length === 0
       ) {
         content = this.fixEmojiDisplay(content);
+        if (!isHTML) {
+          content = this.wrapLinskWithAnchorTag(content);
+        }
         this.messageTextParts = [{ content, type: 'text' }];
       } else {
         this.messageTextParts = [];
@@ -315,6 +321,9 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
           const mention = `@${user.name || user.id}`;
           let precedingText = text.substring(0, text.indexOf(mention));
           precedingText = this.fixEmojiDisplay(precedingText);
+          if (!isHTML) {
+            precedingText = this.wrapLinskWithAnchorTag(precedingText);
+          }
           this.messageTextParts.push({
             content: precedingText,
             type: 'text',
@@ -328,6 +337,9 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         });
         if (text) {
           text = this.fixEmojiDisplay(text);
+          if (!isHTML) {
+            text = this.wrapLinskWithAnchorTag(text);
+          }
           this.messageTextParts.push({ content: text, type: 'text' });
         }
       }
@@ -348,6 +360,17 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         `<span ${
           isChrome ? 'class="str-chat__emoji-display-fix"' : ''
         }>${match}</span>`
+    );
+
+    return content;
+  }
+
+  private wrapLinskWithAnchorTag(content: string) {
+    const urlRegexp =
+      /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
+    content = content.replace(
+      urlRegexp,
+      (match) => `<a href="${match}" rel="nofollow">${match}</a>`
     );
 
     return content;
