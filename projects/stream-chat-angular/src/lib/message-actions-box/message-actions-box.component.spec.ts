@@ -183,7 +183,8 @@ describe('MessageActionsBoxComponent', () => {
   it(`shouldn't disable quote action, if message already has a quoted message`, () => {
     component.message = {
       ...component.message!,
-      quoted_message: mockMessage() as any as MessageResponseBase,
+      quoted_message:
+        mockMessage() as any as MessageResponseBase<DefaultStreamChatGenerics>,
     };
     component.enabledActions = ['quote-message'];
     component.ngOnChanges({

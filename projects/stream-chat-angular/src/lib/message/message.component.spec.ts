@@ -52,6 +52,9 @@ describe('MessageComponent', () => {
   let queryMessageActionsContainer: () => HTMLElement | null;
   let queryReplyCountButton: () => HTMLButtonElement | null;
   let queryReplyInThreadIcon: () => HTMLElement | null;
+  let queryTranslationNotice: () => HTMLElement | null;
+  let querySeeOriginalButton: () => HTMLButtonElement | null;
+  let querySeeTranslationButton: () => HTMLButtonElement | null;
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
@@ -153,6 +156,12 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="message-deleted-component"]');
     querySystemMessageContainer = () =>
       nativeElement.querySelector('[data-testid="system-message"]');
+    queryTranslationNotice = () =>
+      nativeElement.querySelector('[data-testid="translation-notice"]');
+    querySeeOriginalButton = () =>
+      nativeElement.querySelector('[data-testid="see-original"]');
+    querySeeTranslationButton = () =>
+      nativeElement.querySelector('[data-testid="see-translation"]');
     component.enabledMessageActions = [
       'read-events',
       'send-reaction',
@@ -652,7 +661,10 @@ describe('MessageComponent', () => {
   it('should display HTML content', () => {
     const htmlContent =
       '<a href="https://getstream.io/">https://getstream.io/</a>';
-    component.message = { ...component.message!, ...{ html: htmlContent } };
+    component.message = {
+      ...component.message!,
+      ...{ html: `<p>${htmlContent}</p>\n` },
+    };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -864,6 +876,62 @@ describe('MessageComponent', () => {
     expect(content).toContain('👨‍👩‍👧');
   });
 
+  it('should add class to emojis in Chrome', () => {
+    const chrome = (window as typeof window & { chrome: Object }).chrome;
+    (window as typeof window & { chrome: Object }).chrome =
+      'the component now will think that this is a chrome browser';
+    component.message = {
+      html: 'This message contains an emoji 🥑',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    component.message = {
+      html: '@sara what do you think about 🥑s? ',
+      mentioned_users: [{ id: 'sara' }],
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[2].content).toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    // Simulate a browser that isn't Google Chrome
+    (window as typeof window & { chrome: Object | undefined }).chrome =
+      undefined;
+
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).not.toContain(
+      'class="str-chat__emoji-display-fix"'
+    );
+
+    // Revert changes to the window object
+    (window as typeof window & { chrome: Object }).chrome = chrome;
+  });
+
+  it('should replace URL links inside text content', () => {
+    component.message = {
+      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
+      text: 'This is a message with a link https://getstream.io/',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      ' <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+    );
+
+    component.message.html = undefined;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts[0].content).toContain(
+      '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+    );
+  });
+
   it('should display reply count for parent messages', () => {
     expect(queryReplyCountButton()).toBeNull();
 
@@ -1015,7 +1083,8 @@ describe('MessageComponent', () => {
       quotedMessage.text = 'This message was quoted';
       component.message = {
         ...component.message!,
-        quoted_message: quotedMessage as any as MessageResponseBase,
+        quoted_message:
+          quotedMessage as any as MessageResponseBase<DefaultStreamChatGenerics>,
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
@@ -1089,6 +1158,49 @@ describe('MessageComponent', () => {
         quotedMessage.id,
         quotedMessage.parent_id
       );
+    });
+
+    it(`should display message translation if exists`, () => {
+      component.message!.user!.id += 'not';
+      component.message!.html = '<p>How are you?</p>';
+      component.message!.translation = 'Hogy vagy?';
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(queryText()?.innerHTML).toContain('Hogy vagy?');
+    });
+
+    it('should display translation notifce and user should be able to change between translation and original', () => {
+      component.message!.user!.id = component.message!.user!.id + 'not';
+      component.message!.html = '<p>How are you?</p>';
+      component.message!.translation = 'Hogy vagy?';
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(queryTranslationNotice()).not.toBeNull();
+      expect(querySeeTranslationButton()).toBeNull();
+
+      querySeeOriginalButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryText()?.innerHTML).toContain('How are you?');
+
+      expect(querySeeOriginalButton()).toBeNull();
+
+      querySeeTranslationButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryText()?.innerHTML).toContain('Hogy vagy?');
+    });
+
+    it(`shouldn't display translation notice if message isn't translated`, () => {
+      component.message!.html = '<p>How are you?</p>';
+      component.message!.user = currentUser;
+      component.message!.translation = undefined;
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(queryTranslationNotice()).toBeNull();
     });
   });
 });

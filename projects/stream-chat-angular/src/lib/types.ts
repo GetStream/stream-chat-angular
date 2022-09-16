@@ -9,6 +9,7 @@ import type {
   ExtendableGenerics,
   FormatMessageResponse,
   LiteralStringForUnion,
+  MessageResponseBase,
   Mute,
   ReactionResponse,
   User,
@@ -57,6 +58,8 @@ export type DefaultMessageType = UnknownType & {
   event?: Event<DefaultStreamChatGenerics>;
   unread?: boolean;
   readBy: UserResponse<DefaultStreamChatGenerics>[];
+  translation?: string;
+  quoted_message?: MessageResponseBase<DefaultStreamChatGenerics>;
 };
 
 export type DefaultUserTypeInternal = {

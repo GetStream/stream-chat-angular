@@ -117,7 +117,7 @@
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
     "@popperjs/core": "^2.11.5",
-    "@stream-io/stream-chat-css": "3.0.0-theming2.11",
+    "@stream-io/stream-chat-css": "3.3.0",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "^1.4.0",
     "dayjs": "^1.10.7",

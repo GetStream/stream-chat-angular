@@ -382,7 +382,9 @@
       <div
         data-testid="quoted-message-text"
         [innerHTML]="
-          message?.quoted_message?.html || message?.quoted_message?.text
+          message?.quoted_message?.translation ||
+          message?.quoted_message?.html ||
+          message?.quoted_message?.text
         "
       ></div>
     </div>
@@ -392,32 +394,59 @@
 <!-- We need these markups in slightly different positions in theme-v1 and theme-v2, this soultion makes that possible without duplicating the code -->
 <ng-template #messageDateAndSender let-position="position">
   <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
-  <div
-    class="
-      str-chat__message-data
-      str-chat__message-simple-data
-      str-chat__message-metadata
-    "
+  <ng-container
     *ngIf="
       (position === 'inside-message-bubble' && themeVersion === '1') ||
       (position === 'outside-message-bubble' && themeVersion === '2')
     "
   >
-    <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
-    <ng-container *ngIf="themeVersion === '2'">
-      <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
-    </ng-container>
-    <span
-      data-testid="sender"
-      *ngIf="!isSentByCurrentUser"
-      class="str-chat__message-simple-name str-chat__message-sender-name"
+    <div
+      class="str-chat__translation-notice"
+      *ngIf="shouldDisplayTranslationNotice"
+      data-testid="translation-notice"
     >
-      {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
-    </span>
-    <span data-testid="date" class="str-chat__message-simple-timestamp">
-      {{ parsedDate }}
-    </span>
-  </div>
+      <button
+        data-testid="see-original"
+        *ngIf="displayedMessageTextContent === 'translation'"
+        (click)="displayOriginalMessage()"
+        (keyup.enter)="displayOriginalMessage()"
+        translate
+      >
+        streamChat.See original (automatically translated)
+      </button>
+      <button
+        data-testid="see-translation"
+        *ngIf="displayedMessageTextContent === 'original'"
+        (click)="displayTranslatedMessage()"
+        (keyup.enter)="displayTranslatedMessage()"
+        translate
+      >
+        streamChat.See translation
+      </button>
+    </div>
+    <div
+      class="
+        str-chat__message-data
+        str-chat__message-simple-data
+        str-chat__message-metadata
+      "
+    >
+      <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
+      <ng-container *ngIf="themeVersion === '2'">
+        <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
+      </ng-container>
+      <span
+        data-testid="sender"
+        *ngIf="!isSentByCurrentUser"
+        class="str-chat__message-simple-name str-chat__message-sender-name"
+      >
+        {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
+      </span>
+      <span data-testid="date" class="str-chat__message-simple-timestamp">
+        {{ parsedDate }}
+      </span>
+    </div>
+  </ng-container>
 </ng-template>
 
 <ng-template #messageStatus>

@@ -10,6 +10,7 @@ import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { DefaultStreamChatGenerics } from '../types';
 import { ChatClientService } from '../chat-client.service';
+import { getMessageTranslation } from '../get-message-translation';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -122,7 +123,12 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     if (message?.deleted_at) {
       this.latestMessage = 'streamChat.Message deleted';
     } else if (message?.text) {
-      this.latestMessage = message.text;
+      this.latestMessage =
+        getMessageTranslation(
+          message,
+          this.channel,
+          this.chatClientService.chatClient.user
+        ) || message.text;
     } else if (message?.attachments && message.attachments.length) {
       this.latestMessage = 'streamChat.🏙 Attachment...';
     }

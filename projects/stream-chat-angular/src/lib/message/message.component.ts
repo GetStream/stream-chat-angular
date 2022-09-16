@@ -79,6 +79,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
+  shouldDisplayTranslationNotice = false;
+  displayedMessageTextContent: 'original' | 'translation' = 'original';
   private quotedMessageAttachments: Attachment[] | undefined;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
@@ -94,12 +96,13 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
-    this.user = this.chatClientService.chatClient.user;
   }
 
   ngOnInit(): void {
     this.subscriptions.push(
-      this.chatClientService.user$.subscribe((u) => (this.user = u))
+      this.chatClientService.user$.subscribe((u) => {
+        this.user = u;
+      })
     );
     this.subscriptions.push(
       this.customTemplatesService.mentionTemplate$.subscribe(
@@ -125,6 +128,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
+      this.shouldDisplayTranslationNotice = false;
+      this.displayedMessageTextContent = 'original';
       this.createMessageParts();
       const originalAttachments = this.message?.quoted_message?.attachments;
       this.quotedMessageAttachments =
@@ -290,44 +295,48 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     void this.channelService.jumpToMessage(messageId, parentMessageId);
   }
 
-  private createMessageParts() {
-    let content = this.message?.html || this.message?.text;
+  displayTranslatedMessage() {
+    this.createMessageParts(true);
+  }
+
+  displayOriginalMessage() {
+    this.createMessageParts(false);
+  }
+
+  private createMessageParts(shouldTranslate = true) {
+    let content = this.getMessageContent(shouldTranslate);
     if (!content) {
       this.messageTextParts = [];
     } else {
+      let isHTML = false;
       // Backend will wrap HTML content with <p></p>\n
       if (content.startsWith('<p>')) {
         content = content.replace('<p>', '');
+        isHTML = true;
       }
       if (content.endsWith('</p>\n')) {
         content = content.replace('</p>\n', '');
+        isHTML = true;
       }
       if (
         !this.message!.mentioned_users ||
         this.message!.mentioned_users.length === 0
       ) {
-        // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
-        const regex = new RegExp(emojiRegex(), 'g');
-        // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const isChrome =
-          !!(window as any).chrome &&
-          typeof (window as any).opr === 'undefined';
-        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
-        content = content.replace(
-          regex,
-          (match) =>
-            `<span ${
-              isChrome ? 'class="str-chat__emoji-display-fix"' : ''
-            }>${match}</span>`
-        );
+        content = this.fixEmojiDisplay(content);
+        if (!isHTML) {
+          content = this.wrapLinskWithAnchorTag(content);
+        }
         this.messageTextParts = [{ content, type: 'text' }];
       } else {
         this.messageTextParts = [];
         let text = content;
         this.message!.mentioned_users.forEach((user) => {
           const mention = `@${user.name || user.id}`;
-          const precedingText = text.substring(0, text.indexOf(mention));
+          let precedingText = text.substring(0, text.indexOf(mention));
+          precedingText = this.fixEmojiDisplay(precedingText);
+          if (!isHTML) {
+            precedingText = this.wrapLinskWithAnchorTag(precedingText);
+          }
           this.messageTextParts.push({
             content: precedingText,
             type: 'text',
@@ -340,9 +349,58 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
           text = text.replace(precedingText + mention, '');
         });
         if (text) {
+          text = this.fixEmojiDisplay(text);
+          if (!isHTML) {
+            text = this.wrapLinskWithAnchorTag(text);
+          }
           this.messageTextParts.push({ content: text, type: 'text' });
         }
       }
     }
+  }
+
+  private getMessageContent(shouldTranslate: boolean) {
+    const originalContent = this.message?.html || this.message?.text;
+    if (shouldTranslate) {
+      const translation = this.message?.translation;
+      if (translation) {
+        this.shouldDisplayTranslationNotice = true;
+        this.displayedMessageTextContent = 'translation';
+      }
+      return translation || originalContent;
+    } else {
+      this.displayedMessageTextContent = 'original';
+      return originalContent;
+    }
+  }
+
+  private fixEmojiDisplay(content: string) {
+    // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
+    const regex = new RegExp(emojiRegex(), 'g');
+    // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    const isChrome =
+      !!(window as any).chrome && typeof (window as any).opr === 'undefined';
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    content = content.replace(
+      regex,
+      (match) =>
+        `<span ${
+          isChrome ? 'class="str-chat__emoji-display-fix"' : ''
+        }>${match}</span>`
+    );
+
+    return content;
+  }
+
+  private wrapLinskWithAnchorTag(content: string) {
+    const urlRegexp =
+      /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
+    content = content.replace(
+      urlRegexp,
+      (match) => `<a href="${match}" rel="nofollow">${match}</a>`
+    );
+
+    return content;
   }
 }

@@ -1115,6 +1115,16 @@ describe('ChannelService', () => {
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
   });
 
+  it('should remove translation object before updating message', () => {
+    const message = mockMessage();
+    void service.updateMessage({
+      ...message,
+      i18n: { en_text: 'Translation', language: 'en' },
+    });
+
+    expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
+  });
+
   it('should delete message', () => {
     const message = mockMessage();
     void service.deleteMessage(message);
