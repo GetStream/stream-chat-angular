@@ -311,4 +311,21 @@ describe('ChannelPreviewComponent', () => {
 
     expect(queryLatestMessage()?.textContent).toContain('Nothing yet...');
   });
+
+  it('should display translated message', () => {
+    const channel = generateMockChannels()[0];
+    const latestMessage =
+      channel.state.latestMessages[channel.state.latestMessages.length - 1];
+    latestMessage.i18n = {
+      hu_text: 'Hogy vagy?',
+      language: 'en',
+    };
+    latestMessage.user!.id += 'not';
+    channel.data!.auto_translation_language = 'hu';
+    channelServiceMock.activeChannel$.next(channel);
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(queryLatestMessage()?.textContent).toContain('Hogy vagy?');
+  });
 });

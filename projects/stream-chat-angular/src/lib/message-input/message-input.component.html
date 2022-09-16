@@ -44,7 +44,11 @@
         ></stream-attachment-list>
         <div
           data-testid="quoted-message-text"
-          [innerHTML]="quotedMessage?.html || quotedMessage?.text"
+          [innerHTML]="
+            message?.quoted_message?.translation ||
+            quotedMessage?.html ||
+            quotedMessage?.text
+          "
         ></div>
       </div>
     </div>
@@ -245,7 +249,11 @@
             <div
               class="str-chat__quoted-message-text"
               data-testid="quoted-message-text"
-              [innerHTML]="quotedMessage?.html || quotedMessage?.text"
+              [innerHTML]="
+                quotedMessage?.translation ||
+                quotedMessage?.html ||
+                quotedMessage?.text
+              "
             ></div>
           </div>
         </div>

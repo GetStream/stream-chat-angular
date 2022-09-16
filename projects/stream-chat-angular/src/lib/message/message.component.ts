@@ -79,6 +79,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
+  shouldDisplayTranslationNotice = false;
+  displayedMessageTextContent: 'original' | 'translation' = 'original';
   private quotedMessageAttachments: Attachment[] | undefined;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
@@ -94,12 +96,13 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
-    this.user = this.chatClientService.chatClient.user;
   }
 
   ngOnInit(): void {
     this.subscriptions.push(
-      this.chatClientService.user$.subscribe((u) => (this.user = u))
+      this.chatClientService.user$.subscribe((u) => {
+        this.user = u;
+      })
     );
     this.subscriptions.push(
       this.customTemplatesService.mentionTemplate$.subscribe(
@@ -125,6 +128,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
+      this.shouldDisplayTranslationNotice = false;
+      this.displayedMessageTextContent = 'original';
       this.createMessageParts();
       const originalAttachments = this.message?.quoted_message?.attachments;
       this.quotedMessageAttachments =
@@ -290,8 +295,16 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     void this.channelService.jumpToMessage(messageId, parentMessageId);
   }
 
-  private createMessageParts() {
-    let content = this.message?.html || this.message?.text;
+  displayTranslatedMessage() {
+    this.createMessageParts(true);
+  }
+
+  displayOriginalMessage() {
+    this.createMessageParts(false);
+  }
+
+  private createMessageParts(shouldTranslate = true) {
+    let content = this.getMessageContent(shouldTranslate);
     if (!content) {
       this.messageTextParts = [];
     } else {
@@ -343,6 +356,21 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
           this.messageTextParts.push({ content: text, type: 'text' });
         }
       }
+    }
+  }
+
+  private getMessageContent(shouldTranslate: boolean) {
+    const originalContent = this.message?.html || this.message?.text;
+    if (shouldTranslate) {
+      const translation = this.message?.translation;
+      if (translation) {
+        this.shouldDisplayTranslationNotice = true;
+        this.displayedMessageTextContent = 'translation';
+      }
+      return translation || originalContent;
+    } else {
+      this.displayedMessageTextContent = 'original';
+      return originalContent;
     }
   }
 
