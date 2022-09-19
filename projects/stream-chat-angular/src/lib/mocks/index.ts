@@ -79,6 +79,7 @@ export const generateMockChannels = (length = 25) => {
         };
       },
       watch: () => {},
+      stopWatching: () => {},
       sendMessage: () => {},
       sendImage: () => {},
       sendFile: () => {},
