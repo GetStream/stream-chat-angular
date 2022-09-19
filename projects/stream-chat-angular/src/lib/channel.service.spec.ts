@@ -37,6 +37,7 @@ describe('ChannelService', () => {
     userID: string;
     pinMessage: jasmine.Spy;
     unpinMessage: jasmine.Spy;
+    activeChannels: { [key: string]: Channel<DefaultStreamChatGenerics> };
   };
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
@@ -63,6 +64,7 @@ describe('ChannelService', () => {
       userID: user.id,
       pinMessage: jasmine.createSpy(),
       unpinMessage: jasmine.createSpy(),
+      activeChannels: {},
     };
     events$ = new Subject();
     TestBed.configureTestingModule({
@@ -586,6 +588,8 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
+    mockChatClient.activeChannels[channel.cid] = channel;
+    spyOn(channel, 'stopWatching');
     (channel as MockChannel).handleEvent('channel.hidden', {
       type: 'channel.hidden',
       channel,
@@ -594,6 +598,7 @@ describe('ChannelService', () => {
     let channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
+    expect(channel.stopWatching).toHaveBeenCalledWith();
 
     (channel as MockChannel).handleEvent('channel.hidden', {
       type: 'channel.visible',
@@ -650,6 +655,8 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
+    mockChatClient.activeChannels[channel.cid] = channel;
+    spyOn(channel, 'stopWatching');
     (channel as MockChannel).handleEvent('channel.deleted', {
       type: 'channel.deleted',
       channel,
@@ -658,6 +665,7 @@ describe('ChannelService', () => {
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
+    expect(channel.stopWatching).toHaveBeenCalledWith();
   });
 
   it('should call #customChannelDeletedHandler, if channel is deleted and handler is provided', async () => {
@@ -894,6 +902,8 @@ describe('ChannelService', () => {
       .subscribe((channels) => (channel = channels![1]));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
+    mockChatClient.activeChannels[channel.cid] = channel;
+    spyOn(channel, 'stopWatching');
     spyOn(service, 'setAsActiveChannel');
     events$.next({
       eventType: 'notification.removed_from_channel',
@@ -904,6 +914,7 @@ describe('ChannelService', () => {
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
     expect(service.setAsActiveChannel).not.toHaveBeenCalled();
+    expect(channel.stopWatching).toHaveBeenCalledWith();
   });
 
   it('should remove channel form the list if user is removed from channel, and emit new active channel', async () => {

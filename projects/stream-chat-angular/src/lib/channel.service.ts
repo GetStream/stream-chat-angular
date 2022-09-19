@@ -1055,6 +1055,12 @@ export class ChannelService<
 
   private removeChannelsFromChannelList(cids: string[]) {
     const channels = this.channels.filter((c) => !cids.includes(c.cid || ''));
+    cids.forEach(
+      (cid) =>
+        void this.chatClientService.chatClient.activeChannels[
+          cid
+        ]?.stopWatching()
+    );
     if (channels.length < this.channels.length) {
       this.channelsSubject.next(channels);
       if (cids.includes(this.activeChannelSubject.getValue()?.cid || '')) {
