@@ -690,6 +690,18 @@ describe('MessageListComponent', () => {
     expect(queryTypingUsers()?.textContent).toContain('jack, John');
   });
 
+  it(`shouldn't display scroll to latest button if there is no scrollbar`, () => {
+    const scrollContainer = queryScrollContainer();
+
+    scrollContainer!.style.maxHeight = `${scrollContainer!.scrollHeight}px`;
+    fixture.detectChanges();
+
+    component.scrolled();
+    fixture.detectChanges();
+
+    expect(queryScrollToLatestButton()).toBeNull();
+  });
+
   describe('thread mode', () => {
     beforeEach(() => {
       component.mode = 'thread';

@@ -250,6 +250,12 @@ export class MessageListComponent
   }
 
   scrolled() {
+    if (
+      this.scrollContainer.nativeElement.scrollHeight ===
+      this.scrollContainer.nativeElement.clientHeight
+    ) {
+      return;
+    }
     const scrollPosition = this.getScrollPosition();
 
     this.isUserScrolled =
