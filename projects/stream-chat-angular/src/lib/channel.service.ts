@@ -6,7 +6,7 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { filter, first, map, shareReplay } from 'rxjs/operators';
+import { first, map, shareReplay } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -358,12 +358,6 @@ export class ChannelService<
     );
     this.messageToQuote$ = this.messageToQuoteSubject.asObservable();
     this.jumpToMessage$ = this.jumpToMessageSubject.asObservable();
-
-    this.chatClientService.connectionState$
-      .pipe(filter((s) => s === 'online'))
-      .subscribe(() => {
-        void this.setAsActiveParentMessage(undefined);
-      });
 
     this.usersTypingInChannel$ =
       this.usersTypingInChannelSubject.asObservable();
@@ -956,14 +950,13 @@ export class ChannelService<
             return;
           }
           this.isStateRecoveryInProgress = true;
-          this.reset();
           try {
-            await this.init(
-              this.filters!,
-              this.sort,
-              this.options,
-              this.shouldSetActiveChannel
-            );
+            if (this.options) {
+              this.options.offset = 0;
+            }
+            await this.queryChannels(false, true);
+            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+            void this.setAsActiveParentMessage(undefined);
             this.isStateRecoveryInProgress = false;
           } catch {
             this.isStateRecoveryInProgress = false;
@@ -1247,22 +1240,34 @@ export class ChannelService<
     this.activeChannelSubscriptions = [];
   }
 
-  private async queryChannels(shouldSetActiveChannel: boolean) {
+  private async queryChannels(
+    shouldSetActiveChannel: boolean,
+    recoverState = false
+  ) {
     try {
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,
-        this.sort,
+        this.sort || {},
         this.options
       );
       channels.forEach((c) => this.watchForChannelEvents(c));
-      const prevChannels = this.channelsSubject.getValue() || [];
+      const prevChannels = recoverState
+        ? []
+        : this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
+      const currentActiveChannel = this.activeChannelSubject.getValue();
       if (
         channels.length > 0 &&
-        !this.activeChannelSubject.getValue() &&
+        !currentActiveChannel &&
         shouldSetActiveChannel
       ) {
         this.setAsActiveChannel(channels[0]);
+      }
+      if (
+        recoverState &&
+        !channels.find((c) => c.cid === currentActiveChannel?.cid)
+      ) {
+        this.deselectActiveChannel();
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
       return channels;
