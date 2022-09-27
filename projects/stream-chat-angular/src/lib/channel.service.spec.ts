@@ -1702,35 +1702,35 @@ describe('ChannelService', () => {
 
   it('should reset state after connection recovered', async () => {
     await init();
-    spyOn(service, 'init');
-    spyOn(service, 'reset');
+    mockChatClient.queryChannels.calls.reset();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
 
-    expect(service.init).toHaveBeenCalledWith(
-      service['filters']!,
-      service['sort'],
-      service['options'],
-      service['shouldSetActiveChannel']
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      jasmine.any(Object),
+      jasmine.any(Object)
     );
-
-    expect(service.reset).toHaveBeenCalledWith();
   });
 
   it(`shouldn't do duplicate state reset after connection recovered`, async () => {
     await init();
-    spyOn(service, 'init');
-    spyOn(service, 'reset');
+    mockChatClient.queryChannels.calls.reset();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
 
-    expect(service.init).toHaveBeenCalledOnceWith(
-      service['filters']!,
-      service['sort'],
-      service['options'],
-      service['shouldSetActiveChannel']
+    expect(mockChatClient.queryChannels).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reset pagination options after reconnect', async () => {
+    await init(undefined, undefined, { offset: 20 });
+    mockChatClient.queryChannels.calls.reset();
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      jasmine.any(Object),
+      jasmine.objectContaining({ offset: 0 })
     );
-
-    expect(service.reset).toHaveBeenCalledOnceWith();
   });
 
   it('should load message into state', async () => {
@@ -1823,4 +1823,39 @@ describe('ChannelService', () => {
       'Error removing message pin'
     );
   });
+
+  it('should deselect active channel if active channel is not present after state reconnect', fakeAsync(async () => {
+    await init();
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    let channels!: Channel<DefaultStreamChatGenerics>[];
+    service.channels$.subscribe((c) => (channels = c!));
+    channels = channels.filter((c) => c.id !== activeChannel.id);
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
+    spy.calls.reset();
+    mockChatClient.queryChannels.and.resolveTo(channels);
+    spyOn(service, 'deselectActiveChannel').and.callThrough();
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+    tick();
+
+    expect(spy).toHaveBeenCalledWith(undefined);
+    expect(service.deselectActiveChannel).toHaveBeenCalledWith();
+  }));
+
+  it(`shouldn't deselect active channel if active channel is present after state reconnect`, fakeAsync(async () => {
+    await init();
+    let channels!: Channel<DefaultStreamChatGenerics>[];
+    service.channels$.subscribe((c) => (channels = c!));
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
+    spy.calls.reset();
+    mockChatClient.queryChannels.and.resolveTo(channels);
+    spyOn(service, 'deselectActiveChannel').and.callThrough();
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+    tick();
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(service.deselectActiveChannel).not.toHaveBeenCalled();
+  }));
 });
