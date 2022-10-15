@@ -31,31 +31,37 @@ describe('AttachmentConfigurationService', () => {
       service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
-      height: '300px',
+      height: '',
       width: '',
+      originalHeight: 1000000,
+      originalWidth: 1000000,
     });
 
     attachment = {
-      thumb_url: 'http://url/to/img',
+      thumb_url: 'http://url/to/img?oh=1200&ow=800',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
-      url: 'http://url/to/img?h=600&w=600',
-      height: '300px',
+      url: 'http://url/to/img?oh=1200&ow=800&h=900&w=600',
+      height: '',
       width: '',
+      originalHeight: 1200,
+      originalWidth: 800,
     });
 
     attachment = {
-      image_url: 'http://url/to/img',
+      image_url: 'http://url/to/img?oh=1&ow=1',
     };
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
     ).toEqual({
-      url: 'http://url/to/img?h=600&w=600',
-      height: '300px',
+      url: 'http://url/to/img?oh=1&ow=1&h=600&w=600',
+      originalHeight: 1000000,
+      originalWidth: 1000000,
+      height: '',
       width: '',
     });
   });
@@ -99,6 +105,8 @@ describe('AttachmentConfigurationService', () => {
       url: 'http://url/to/img?h=600&w=600',
       height: '',
       width: '',
+      originalHeight: 1000000,
+      originalWidth: 1000000,
     });
   });
 
@@ -121,6 +129,8 @@ describe('AttachmentConfigurationService', () => {
       url: 'http://url/to/img',
       height: '',
       width: '',
+      originalHeight: 1000000,
+      originalWidth: 1000000,
     });
   });
 
@@ -138,9 +148,11 @@ describe('AttachmentConfigurationService', () => {
       service.getVideoAttachmentConfiguration(attachment, htmlElement)
     ).toEqual({
       url: 'http://url/to/video',
-      height: '300px',
+      height: '',
       width: '',
       thumbUrl: 'http://url/to/poster?h=600&w=600',
+      originalHeight: 1000000,
+      originalWidth: 1000000,
     });
 
     attachment = {
@@ -152,9 +164,11 @@ describe('AttachmentConfigurationService', () => {
       service.getVideoAttachmentConfiguration(attachment, htmlElement)
     ).toEqual({
       url: 'http://url/to/video',
-      height: '169px',
+      height: '',
       width: '',
       thumbUrl: 'http://url/to/poster?oh=1080&ow=1920&h=600&w=1066',
+      originalHeight: 1080,
+      originalWidth: 1920,
     });
 
     attachment = {
@@ -165,9 +179,11 @@ describe('AttachmentConfigurationService', () => {
       service.getVideoAttachmentConfiguration(attachment, htmlElement)
     ).toEqual({
       url: 'http://url/to/video',
-      height: '300px',
+      height: '',
       width: '',
       thumbUrl: undefined,
+      originalHeight: 1000000,
+      originalWidth: 1000000,
     });
   });
 
@@ -307,28 +323,6 @@ describe('AttachmentConfigurationService', () => {
     expect(
       service.getVideoAttachmentConfiguration(attachment, htmlElement).thumbUrl
     ).toBeUndefined();
-  });
-
-  it('should use original dimensions if image is smaller than max-width and max-height', () => {
-    const attachment: Attachment = {
-      image_url: 'http://url/to/img?ow=200&oh=100',
-    };
-    const htmlElement = {
-      'max-width': '300px',
-      'max-height': '300px',
-    } as any as HTMLElement;
-
-    expect(
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
-        .height
-    ).toBe('100px');
-
-    attachment.image_url = attachment.image_url!.replace('ow=200', 'ow=400');
-
-    expect(
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
-        .height
-    ).toBe('75px');
   });
 
   it('should override existing "h" and "w" URL params', () => {

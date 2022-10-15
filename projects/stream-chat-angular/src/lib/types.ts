@@ -267,6 +267,11 @@ export type AttachmentConfigration = {
   width: string;
 };
 
-export type VideoAttachmentConfiguration = AttachmentConfigration & {
+export type ImageAttachmentConfiguration = AttachmentConfigration & {
+  originalHeight: number;
+  originalWidth: number;
+};
+
+export type VideoAttachmentConfiguration = ImageAttachmentConfiguration & {
   thumbUrl?: string;
 };

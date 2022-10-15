@@ -27,6 +27,14 @@
         [alt]="attachment?.fallback"
         (click)="openImageModal([attachment])"
         (keyup.enter)="openImageModal([attachment])"
+        [style.--original-height]="
+          getImageAttachmentConfiguration(attachment, 'single', imgElement)
+            .originalHeight
+        "
+        [style.--original-width]="
+          getImageAttachmentConfiguration(attachment, 'single', imgElement)
+            .originalWidth
+        "
         [ngStyle]="{
           height: getImageAttachmentConfiguration(
             attachment,
@@ -75,6 +83,20 @@
                 ).url
               "
               [alt]="galleryImage.fallback"
+              [style.--original-height]="
+                getImageAttachmentConfiguration(
+                  galleryImage,
+                  'gallery',
+                  imgElement
+                ).originalHeight
+              "
+              [style.--original-width]="
+                getImageAttachmentConfiguration(
+                  galleryImage,
+                  'gallery',
+                  imgElement
+                ).originalWidth
+              "
               [ngStyle]="{
                 height: getImageAttachmentConfiguration(
                   galleryImage,
@@ -99,6 +121,14 @@
             (keyup.enter)="openImageModal(attachment.images!, index)"
             [class.str-chat__message-attachment--svg-image]="
               isSvg(galleryImage)
+            "
+            [style.--original-height]="
+              getImageAttachmentConfiguration(galleryImage, 'gallery', element)
+                .originalHeight
+            "
+            [style.--original-width]="
+              getImageAttachmentConfiguration(galleryImage, 'gallery', element)
+                .originalWidth
             "
             [ngStyle]="{
               'background-image':
@@ -130,19 +160,30 @@
           </button>
         </ng-container>
       </div>
-      <div class="str-chat__player-wrapper" *ngIf="isVideo(attachment)">
+      <div
+        class="str-chat__player-wrapper"
+        *ngIf="isVideo(attachment)"
+        data-testclass="video-attachment-parent"
+        [style.--original-height]="
+          getVideoAttachmentConfiguration(attachment, videoElement)
+            .originalHeight
+        "
+        [style.--original-width]="
+          getVideoAttachmentConfiguration(attachment, videoElement)
+            .originalWidth
+        "
+        [ngStyle]="{
+          height: getVideoAttachmentConfiguration(attachment, videoElement)
+            .height,
+          width: getVideoAttachmentConfiguration(attachment, videoElement).width
+        }"
+      >
         <video
           #videoElement
           class="str-chat__video-angular"
           controls
           data-testclass="video-attachment"
           [src]="getVideoAttachmentConfiguration(attachment, videoElement).url"
-          [ngStyle]="{
-            height: getVideoAttachmentConfiguration(attachment, videoElement)
-              .height,
-            width: getVideoAttachmentConfiguration(attachment, videoElement)
-              .width
-          }"
           [poster]="
             getVideoAttachmentConfiguration(attachment, videoElement).thumbUrl
           "
@@ -325,6 +366,18 @@
           imagesToView[imagesToViewCurrentIndex],
           imgElement
         ).url
+      "
+      [style.--original-height]="
+        getCarouselImageAttachmentConfiguration(
+          imagesToView[imagesToViewCurrentIndex],
+          imgElement
+        ).originalHeight
+      "
+      [style.--original-width]="
+        getCarouselImageAttachmentConfiguration(
+          imagesToView[imagesToViewCurrentIndex],
+          imgElement
+        ).originalWidth
       "
       [alt]="imagesToView[imagesToViewCurrentIndex].fallback"
       [ngStyle]="{
