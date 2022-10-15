@@ -3,6 +3,7 @@ import { Attachment } from 'stream-chat';
 import {
   AttachmentConfigration,
   DefaultStreamChatGenerics,
+  ImageAttachmentConfiguration,
   VideoAttachmentConfiguration,
 } from './types';
 
@@ -22,7 +23,7 @@ export class AttachmentConfigurationService<
     a: Attachment<T>,
     type: 'gallery' | 'single' | 'carousel',
     containerElement: HTMLElement
-  ) => AttachmentConfigration;
+  ) => ImageAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
@@ -57,7 +58,7 @@ export class AttachmentConfigurationService<
     attachment: Attachment<T>,
     location: 'gallery' | 'single' | 'carousel',
     element: HTMLElement
-  ): AttachmentConfigration {
+  ): ImageAttachmentConfiguration {
     if (this.customImageAttachmentConfigurationHandler) {
       return this.customImageAttachmentConfigurationHandler(
         attachment,
@@ -72,8 +73,16 @@ export class AttachmentConfigurationService<
         attachment.image_url ||
         '') as string
     );
+    const originalHeight =
+      Number(url.searchParams.get('oh')) > 1
+        ? Number(url.searchParams.get('oh'))
+        : 1000000;
+    const originalWidth =
+      Number(url.searchParams.get('ow')) > 1
+        ? Number(url.searchParams.get('ow'))
+        : 1000000;
     const displayWarning = location === 'gallery' || location === 'single';
-    const { sizeRestriction, height } = this.getSizingRestrictions(
+    const sizeRestriction = this.getSizingRestrictions(
       url,
       element,
       displayWarning
@@ -89,7 +98,9 @@ export class AttachmentConfigurationService<
     return {
       url: url.href,
       width: '', // Not set to respect responsive width
-      height,
+      height: '', // Set from CSS
+      originalHeight,
+      originalWidth,
     };
   }
 
@@ -109,12 +120,21 @@ export class AttachmentConfigurationService<
       );
     }
 
-    let attachmentHeight = ``;
     let thumbUrl = undefined;
+    let originalHeight = 1000000;
+    let originalWidth = 1000000;
     if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
       const url = new URL(attachment.thumb_url);
+      originalHeight =
+        Number(url.searchParams.get('oh')) > 1
+          ? Number(url.searchParams.get('oh'))
+          : originalHeight;
+      originalWidth =
+        Number(url.searchParams.get('ow')) > 1
+          ? Number(url.searchParams.get('ow'))
+          : originalWidth;
       const displayWarning = true;
-      const { sizeRestriction, height } = this.getSizingRestrictions(
+      const sizeRestriction = this.getSizingRestrictions(
         url,
         element,
         displayWarning
@@ -126,18 +146,14 @@ export class AttachmentConfigurationService<
         this.addResizingParamsToUrl(sizeRestriction, url);
       }
       thumbUrl = url.href;
-      attachmentHeight = height;
-    } else {
-      const cssSizeRestriction = this.getCSSSizeRestriction(element);
-      attachmentHeight = `${
-        cssSizeRestriction.maxHeight || cssSizeRestriction.height || ''
-      }px`;
     }
     return {
       url: attachment.asset_url || '',
       width: '', // Not set to respect responsive width
-      height: attachmentHeight,
+      height: '', // Set from CSS
       thumbUrl: thumbUrl,
+      originalHeight,
+      originalWidth,
     };
   }
 
@@ -197,7 +213,6 @@ export class AttachmentConfigurationService<
     const originalWidth = Number(urlParams.get('ow')) || 1;
     const cssSizeRestriction = this.getCSSSizeRestriction(htmlElement);
     let sizeRestriction: { width: number; height: number } | undefined;
-    let height = '';
 
     if (
       (cssSizeRestriction.maxHeight || cssSizeRestriction.height) &&
@@ -209,22 +224,6 @@ export class AttachmentConfigurationService<
         (cssSizeRestriction.maxHeight || cssSizeRestriction.height)!,
         cssSizeRestriction.maxWidth
       );
-      if (cssSizeRestriction.maxHeight) {
-        const heightNum =
-          originalHeight > 1 && originalWidth > 1
-            ? originalHeight <= cssSizeRestriction.maxHeight &&
-              originalWidth <= cssSizeRestriction.maxWidth
-              ? originalHeight
-              : Math.round(
-                  Math.min(
-                    cssSizeRestriction.maxHeight,
-                    (cssSizeRestriction.maxWidth / originalWidth) *
-                      originalHeight
-                  )
-                )
-            : cssSizeRestriction.maxHeight;
-        height = `${heightNum}px`;
-      }
     } else {
       sizeRestriction = undefined;
       if (displayWarning) {
@@ -234,7 +233,7 @@ export class AttachmentConfigurationService<
       }
     }
 
-    return { sizeRestriction, height };
+    return sizeRestriction;
   }
 
   private getSizeRestrictions(

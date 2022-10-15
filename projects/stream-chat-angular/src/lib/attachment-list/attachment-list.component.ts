@@ -13,6 +13,7 @@ import {
   DefaultStreamChatGenerics,
   AttachmentConfigration,
   VideoAttachmentConfiguration,
+  ImageAttachmentConfiguration,
 } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
@@ -51,7 +52,9 @@ export class AttachmentListComponent implements OnChanges {
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
     Attachment,
-    AttachmentConfigration | VideoAttachmentConfiguration
+    | AttachmentConfigration
+    | VideoAttachmentConfiguration
+    | ImageAttachmentConfiguration
   > = new Map();
 
   constructor(
@@ -185,10 +188,10 @@ export class AttachmentListComponent implements OnChanges {
     attachment: Attachment,
     type: 'gallery' | 'single',
     element: HTMLElement
-  ) {
+  ): ImageAttachmentConfiguration {
     const existingConfiguration = this.attachmentConfigurations.get(attachment);
     if (existingConfiguration) {
-      return existingConfiguration;
+      return existingConfiguration as ImageAttachmentConfiguration;
     }
     const configuration =
       this.attachmentConfigurationService.getImageAttachmentConfiguration(
@@ -214,7 +217,7 @@ export class AttachmentListComponent implements OnChanges {
   getVideoAttachmentConfiguration(
     attachment: Attachment,
     element: HTMLElement
-  ) {
+  ): VideoAttachmentConfiguration {
     const existingConfiguration = this.attachmentConfigurations.get(attachment);
     if (existingConfiguration) {
       return existingConfiguration as VideoAttachmentConfiguration;

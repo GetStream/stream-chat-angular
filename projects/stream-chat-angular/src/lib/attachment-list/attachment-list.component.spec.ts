@@ -28,6 +28,7 @@ describe('AttachmentListComponent', () => {
   let queryImageModalNextButton: () => HTMLButtonElement | null;
   let queryGallery: () => HTMLElement | null;
   let queryVideos: () => HTMLVideoElement[];
+  let queryVideoContainers: () => HTMLElement[];
   let sendAction: jasmine.Spy;
 
   beforeEach(async () => {
@@ -94,6 +95,12 @@ describe('AttachmentListComponent', () => {
     queryVideos = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="video-attachment"]')
+      );
+    queryVideoContainers = () =>
+      Array.from(
+        nativeElement.querySelectorAll(
+          '[data-testclass="video-attachment-parent"]'
+        )
       );
   });
 
@@ -803,12 +810,14 @@ describe('AttachmentListComponent', () => {
     expect(queryVideos().length).toBe(0);
   });
 
-  it('should set #height and #width property for all image attachments', () => {
+  it('should set respect image configuration for all attachments', () => {
     const configurationService = TestBed.inject(AttachmentConfigurationService);
     const testConfiguration = {
       url: 'test-url',
       width: '300px',
       height: '300px',
+      originalHeight: 1200,
+      originalWidth: 800,
     };
     spyOn(
       configurationService,
@@ -860,12 +869,24 @@ describe('AttachmentListComponent', () => {
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
 
-    [...queryImages(), ...queryCardImages(), ...queryVideos()].forEach(
-      (element) => {
-        expect(element.style.height).toBe(testConfiguration.height);
-        expect(element.style.width).toBe(testConfiguration.width);
-      }
-    );
+    [...queryImages(), ...queryVideoContainers()].forEach((element) => {
+      expect(element.style.height).toBe(testConfiguration.height);
+
+      expect(element.style.width).toBe(testConfiguration.width);
+
+      expect(
+        getComputedStyle(element).getPropertyValue('--original-height')
+      ).toBe(testConfiguration.originalHeight.toString());
+
+      expect(
+        getComputedStyle(element).getPropertyValue('--original-width')
+      ).toBe(testConfiguration.originalWidth.toString());
+    });
+
+    [...queryCardImages()].forEach((element) => {
+      expect(element.style.height).toBe(testConfiguration.height);
+      expect(element.style.width).toBe(testConfiguration.width);
+    });
 
     // Gallery
     component.attachments = [
@@ -887,6 +908,14 @@ describe('AttachmentListComponent', () => {
     ].forEach((element) => {
       expect(element.style.height).toBe(testConfiguration.height);
       expect(element.style.width).toBe(testConfiguration.width);
+
+      expect(
+        getComputedStyle(element).getPropertyValue('--original-height')
+      ).toBe(testConfiguration.originalHeight.toString());
+
+      expect(
+        getComputedStyle(element).getPropertyValue('--original-width')
+      ).toBe(testConfiguration.originalWidth.toString());
     });
 
     // Image carousel
@@ -903,6 +932,14 @@ describe('AttachmentListComponent', () => {
 
     expect(modalImage.style.height).toBe(testConfiguration.height);
     expect(modalImage.style.width).toBe(testConfiguration.width);
+
+    expect(
+      getComputedStyle(modalImage).getPropertyValue('--original-height')
+    ).toBe(testConfiguration.originalHeight.toString());
+
+    expect(
+      getComputedStyle(modalImage).getPropertyValue('--original-width')
+    ).toBe(testConfiguration.originalWidth.toString());
   });
 
   it('should display video attachment with thumb url', () => {
