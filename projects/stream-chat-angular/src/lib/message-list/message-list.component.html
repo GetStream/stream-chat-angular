@@ -5,12 +5,13 @@
   (scroll)="scrolled()"
 >
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
-    <ul class="str-chat__ul">
+    <ul class="str-chat__ul" style="-webkit-transform: translate3d(0, 0, 0)">
       <li
         #parentMessageElement
         *ngIf="mode === 'thread'"
         data-testid="parent-message"
         class="str-chat__parent-message-li"
+        style="-webkit-transform: translate3d(0, 0, 0)"
       >
         <ng-container
           *ngTemplateOutlet="
