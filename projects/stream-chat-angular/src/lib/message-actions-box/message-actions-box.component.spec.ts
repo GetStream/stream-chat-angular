@@ -225,7 +225,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(channelService.pinMessage).toHaveBeenCalledWith(component.message);
 
-    component.message!.pinned = true;
+    component.message = { ...component.message!, pinned: true };
     action?.click();
     fixture.detectChanges();
 

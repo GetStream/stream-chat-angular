@@ -27,7 +27,7 @@
   <button
     class="str-chat__message-actions-list-item-button"
     [attr.data-testid]="actionName + '-action'"
-    (click)="actionHandler()"
+    (click)="actionHandler(message, isMine)"
   >
     <li class="str-chat__message-actions-list-item">
       {{ getActionLabel(actionLabelOrTranslationKey) | translate }}

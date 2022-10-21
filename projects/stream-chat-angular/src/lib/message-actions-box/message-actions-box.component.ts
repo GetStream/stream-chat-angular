@@ -164,14 +164,6 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.isMine || changes.enabledActions || changes.message) {
-      this.messageActionItems.forEach(
-        (i) =>
-          (i.actionHandler = i.actionHandler.bind(
-            this,
-            this.message!,
-            this.isMine
-          ))
-      );
       this.visibleMessageActionItems = this.messageActionItems.filter((item) =>
         item.isVisible(this.enabledActions, this.isMine, this.message!)
       );
