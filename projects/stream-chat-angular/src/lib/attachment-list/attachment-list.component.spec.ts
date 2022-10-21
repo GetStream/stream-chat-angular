@@ -424,7 +424,6 @@ describe('AttachmentListComponent', () => {
       const link = queryFileLinks()[0];
       const titleElement = queryFileNames()[0];
 
-      expect(link.hasAttribute('download')).toBeTrue();
       expect(link.href).toContain(asset_url);
       expect(titleElement.textContent).toContain(title);
     });
@@ -467,7 +466,6 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
       const link = queryFileLinks()[0];
 
-      expect(link.hasAttribute('download')).toBeTrue();
       expect(link.href).toContain('unsafe:' + asset_url);
     });
 

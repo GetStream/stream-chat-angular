@@ -189,12 +189,16 @@
           "
         ></video>
       </div>
-      <div
+      <a
         *ngIf="isFile(attachment)"
         class="
           str-chat__message-attachment-file--item
           str-chat-angular__message-attachment-file-single
         "
+        style="cursor: pointer; text-decoration: none"
+        data-testclass="file-link"
+        href="{{ attachment.asset_url }}"
+        target="_blank"
       >
         <stream-icon-placeholder
           *ngIf="themeVersion === '1'"
@@ -214,7 +218,8 @@
             >
               {{ attachment.title }}
             </div>
-            <a
+            <!-- Temporary disabled, will be fixed with this: https://github.com/GetStream/stream-chat-angular/issues/393  -->
+            <!-- <a
               class="str-chat__message-attachment-file--item-download"
               data-testclass="file-link"
               download
@@ -225,7 +230,7 @@
                 class="str-chat__message-attachment-download-icon"
                 icon="download"
               ></stream-icon-placeholder>
-            </a>
+            </a> -->
           </div>
           <span
             class="str-chat__message-attachment-file--item-size"
@@ -234,7 +239,7 @@
             >{{ getFileSize(attachment) }}</span
           >
         </div>
-      </div>
+      </a>
       <div
         *ngIf="
           isCard(attachment) &&
