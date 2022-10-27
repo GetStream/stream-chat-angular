@@ -7,6 +7,7 @@ import {
   ChannelActionsContext,
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
+  DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
   LoadingIndicatorContext,
@@ -19,6 +20,8 @@ import {
   MessageReactionsContext,
   ModalContext,
   NotificationContext,
+  ReadStatusContext,
+  SendingStatusContext,
   ThreadHeaderContext,
   TypingIndicatorContext,
 } from './types';
@@ -189,6 +192,24 @@ export class CustomTemplatesService {
    */
   threadHeaderTemplate$ = new BehaviorSubject<
     TemplateRef<ThreadHeaderContext> | undefined
+  >(undefined);
+  /**
+   * The template used for displaying the delivered state of the message inside the [message component](../components/MessageComponent.mdx)
+   */
+  deliveredStatusTemplate$ = new BehaviorSubject<
+    TemplateRef<DeliveredStatusContext> | undefined
+  >(undefined);
+  /**
+   * The template used for displaying the sending state of the message inside the [message component](../components/MessageComponent.mdx)
+   */
+  sendingStatusTemplate$ = new BehaviorSubject<
+    TemplateRef<SendingStatusContext> | undefined
+  >(undefined);
+  /**
+   * The template used for displaying the sent state of the message inside the [message component](../components/MessageComponent.mdx)
+   */
+  readStatusTemplate$ = new BehaviorSubject<
+    TemplateRef<ReadStatusContext> | undefined
   >(undefined);
 
   constructor() {}

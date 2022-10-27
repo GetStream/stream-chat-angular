@@ -275,3 +275,16 @@ export type ImageAttachmentConfiguration = AttachmentConfigration & {
 export type VideoAttachmentConfiguration = ImageAttachmentConfiguration & {
   thumbUrl?: string;
 };
+
+export type DeliveredStatusContext = {
+  message: StreamMessage;
+};
+
+export type SendingStatusContext = {
+  message: StreamMessage;
+};
+
+export type ReadStatusContext = {
+  message: StreamMessage;
+  readByText: string;
+};

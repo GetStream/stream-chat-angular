@@ -20,6 +20,9 @@ import {
   MessageReactionsContext,
   DefaultStreamChatGenerics,
   StreamMessage,
+  DeliveredStatusContext,
+  SendingStatusContext,
+  ReadStatusContext,
 } from '../types';
 import { parseDate } from './parse-date';
 import emojiRegex from 'emoji-regex';
@@ -73,6 +76,11 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
   mentionTemplate: TemplateRef<MentionTemplateContext> | undefined;
+  customDeliveredStatusTemplate:
+    | TemplateRef<DeliveredStatusContext>
+    | undefined;
+  customSendingStatusTemplate: TemplateRef<SendingStatusContext> | undefined;
+  customReadStatusTemplate: TemplateRef<ReadStatusContext> | undefined;
   attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
   messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
   messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
@@ -122,6 +130,21 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     this.subscriptions.push(
       this.customTemplatesService.messageReactionsTemplate$.subscribe(
         (template) => (this.messageReactionsTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.deliveredStatusTemplate$.subscribe(
+        (template) => (this.customDeliveredStatusTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.sendingStatusTemplate$.subscribe(
+        (template) => (this.customSendingStatusTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.readStatusTemplate$.subscribe(
+        (template) => (this.customReadStatusTemplate = template)
       )
     );
   }
@@ -288,6 +311,25 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         this.isEditing = isEditing;
         this.isActionBoxOpen = !this.isEditing;
       },
+    };
+  }
+
+  getDeliveredStatusContext(): DeliveredStatusContext {
+    return {
+      message: this.message!,
+    };
+  }
+
+  getSendingStatusContext(): SendingStatusContext {
+    return {
+      message: this.message!,
+    };
+  }
+
+  getReadStatusContext(): ReadStatusContext {
+    return {
+      message: this.message!,
+      readByText: this.readByText,
     };
   }
 
