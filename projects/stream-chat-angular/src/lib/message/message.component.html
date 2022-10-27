@@ -471,6 +471,14 @@
       </ng-container>
     </ng-template>
     <ng-template #deliveredStatus>
+      <ng-container
+        *ngTemplateOutlet="
+          customDeliveredStatusTemplate || defaultDeliveredStatus;
+          context: getDeliveredStatusContext()
+        "
+      ></ng-container>
+    </ng-template>
+    <ng-template #defaultDeliveredStatus>
       <span
         *ngIf="mode === 'main'"
         class="
@@ -499,6 +507,14 @@
       </span>
     </ng-template>
     <ng-template #sendingStatus>
+      <ng-container
+        *ngTemplateOutlet="
+          customSendingStatusTemplate || defaultSendingStatus;
+          context: getSendingStatusContext()
+        "
+      ></ng-container>
+    </ng-template>
+    <ng-template #defaultSendingStatus>
       <span
         class="
           str-chat__message-simple-status
@@ -525,6 +541,14 @@
       </span>
     </ng-template>
     <ng-template #readStatus>
+      <ng-container
+        *ngTemplateOutlet="
+          customReadStatusTemplate || defaultReadStatus;
+          context: getReadStatusContext()
+        "
+      ></ng-container>
+    </ng-template>
+    <ng-template #defaultReadStatus>
       <span
         class="
           str-chat__message-simple-status
