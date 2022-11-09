@@ -45,13 +45,13 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      - name: E2e tests
-        env:
-          STREAM_API_KEY: ${{ secrets.API_KEY }}
-          STREAM_USER_ID: ${{ secrets.USER_ID }}
-          STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
-        run: |
-          npm run e2e:ci
+      # - name: E2e tests
+      #   env:
+      #     STREAM_API_KEY: ${{ secrets.API_KEY }}
+      #     STREAM_USER_ID: ${{ secrets.USER_ID }}
+      #     STREAM_USER_TOKEN: ${{ secrets.USER_TOKEN }}
+      #   run: |
+      #     npm run e2e:ci
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
