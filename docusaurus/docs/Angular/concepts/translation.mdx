@@ -25,12 +25,12 @@ export class AppModule {}
 ```
 
 :::important
-You should import the `TranslateModule.forRoot()` in a non-lazy loaded module (even if the chat application is displayed from a lazy loaded module).
+You should import the `TranslateModule.forRoot()` in a non-lazy loaded module (for example `AppModule`) even if the chat application is displayed from a lazy loaded module. If the translation isn't initialized properly the UI labels will be displayed as "streamChat...".
 :::
 
 ### Set up the translations
 
-Typically you will be doing it in your `AppComponent`:
+Initialize the translation in the **constructor** of the component which displays the chat UI (for example `AppComponent`)
 
 ```typescript
 import { StreamI18nService } from 'stream-chat-angular';
@@ -39,6 +39,10 @@ constructor(private streamI18nService: StreamI18nService) {
   this.streamI18nService.setTranslation();
 }
 ```
+
+:::important
+It's important to call the `setTranslation` in the constructor of the component that displays the chat UI. If the translation isn't initialized properly the UI labels will be displayed as "streamChat...".
+:::
 
 ## Setup, if you're using ngx-translate in your project
 
