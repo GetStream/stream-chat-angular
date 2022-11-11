@@ -645,6 +645,9 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should open image viewer modal - single image', () => {
+      const imageModalSpy = jasmine.createSpy();
+      component.imageModalStateChange.subscribe(imageModalSpy);
+
       const attachment = {
         type: 'image',
         image_url: 'http://url1',
@@ -663,6 +666,7 @@ describe('AttachmentListComponent', () => {
       expect(component.imagesToViewCurrentIndex).toBe(0);
       expect(queryImageModalPrevButton()?.style.visibility).toBe('hidden');
       expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
+      expect(imageModalSpy).toHaveBeenCalledWith('opened');
     });
 
     it('should open image viewer modal - image gallery', () => {
@@ -773,19 +777,23 @@ describe('AttachmentListComponent', () => {
       expect(queryImageModalNextButton()?.style.visibility).toBe('hidden');
     });
 
-    // Will be part of modal implementation
-    // eslint-disable-next-line jasmine/no-disabled-tests
-    xit('should deselect images if modal is closed', () => {
+    it('should deselect images if modal is closed', () => {
+      const imageModalSpy = jasmine.createSpy();
+      component.imageModalStateChange.subscribe(imageModalSpy);
+      imageModalSpy.calls.reset();
       const attachment = {
         type: 'image',
         image_url: 'http://url1',
       };
+      component.attachments = [attachment];
+      component.ngOnChanges({ attachments: {} as SimpleChange });
       component.imagesToView = [attachment];
       fixture.detectChanges();
       queryImageModal().close();
       fixture.detectChanges();
 
       expect(component.imagesToView).toEqual([]);
+      expect(imageModalSpy).toHaveBeenCalledWith('closed');
     });
   });
 

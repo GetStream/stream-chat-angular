@@ -1,8 +1,10 @@
 import {
   Component,
+  EventEmitter,
   HostBinding,
   Input,
   OnChanges,
+  Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
@@ -43,6 +45,12 @@ export class AttachmentListComponent implements OnChanges {
    * The attachments to display
    */
   @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  /**
+   * Emits the state of the image carousel window
+   */
+  @Output() readonly imageModalStateChange = new EventEmitter<
+    'opened' | 'closed'
+  >();
   @HostBinding() class = 'str-chat__attachment-list-angular-host';
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
@@ -172,6 +180,7 @@ export class AttachmentListComponent implements OnChanges {
   }
 
   openImageModal(attachments: Attachment[], selectedIndex = 0) {
+    this.imageModalStateChange.next('opened');
     this.imagesToView = attachments;
     this.imagesToViewCurrentIndex = selectedIndex;
   }
@@ -268,6 +277,7 @@ export class AttachmentListComponent implements OnChanges {
   }
 
   private closeImageModal() {
+    this.imageModalStateChange.next('closed');
     this.imagesToView = [];
   }
 }

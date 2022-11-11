@@ -162,6 +162,7 @@ export type AttachmentListContext = {
   messageId: string;
   attachments: Attachment<DefaultStreamChatGenerics>[];
   parentMessageId?: string;
+  imageModalStateChangeHandler?: (state: 'opened' | 'closed') => {};
 };
 
 export type AvatarType = 'channel' | 'user';
