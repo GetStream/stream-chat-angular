@@ -40,6 +40,7 @@ describe('MessageListComponent', () => {
   let queryParentMessageReplyCount: () => HTMLElement | null;
   let queryTypingIndicator: () => HTMLElement | null;
   let queryTypingUsers: () => HTMLElement | null;
+  let queryLoadingIndicator: (pos: 'top' | 'bottom') => HTMLElement | null;
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
@@ -90,6 +91,8 @@ describe('MessageListComponent', () => {
       nativeElement.querySelector('[data-testid="typing-users"]');
     queryParentMessageReplyCount = () =>
       nativeElement.querySelector('[data-testid="reply-count"]');
+    queryLoadingIndicator = (pos: 'top' | 'bottom') =>
+      nativeElement.querySelector(`[data-testid="${pos}-loading-indicator"]`);
     TestBed.inject(StreamI18nService).setTranslation('en');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
@@ -869,5 +872,42 @@ describe('MessageListComponent', () => {
         component.parentMessage!.id
       );
     });
+  });
+
+  it('should set isLoading flag', () => {
+    expect(component.isLoading).toBeFalse();
+
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({ top: 0 });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(component.isLoading).toBeTrue();
+
+    channelServiceMock.activeChannelMessages$.next(generateMockMessages());
+
+    expect(component.isLoading).toBeFalse();
+  });
+
+  it('should display loading indicator', () => {
+    component.isLoading = false;
+    fixture.detectChanges();
+
+    expect(queryLoadingIndicator('top')).toBeNull();
+    expect(queryLoadingIndicator('bottom')).toBeNull();
+
+    component.direction = 'top-to-bottom';
+    component.isLoading = true;
+    fixture.detectChanges();
+
+    expect(queryLoadingIndicator('top')).toBeNull();
+    expect(queryLoadingIndicator('bottom')).not.toBeNull();
+
+    component.direction = 'bottom-to-top';
+    component.isLoading = true;
+    fixture.detectChanges();
+
+    expect(queryLoadingIndicator('top')).not.toBeNull();
+    expect(queryLoadingIndicator('bottom')).toBeNull();
   });
 });
