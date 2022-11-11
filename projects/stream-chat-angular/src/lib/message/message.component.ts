@@ -89,6 +89,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
+  imageAttachmentModalState: 'opened' | 'closed' = 'closed';
   private quotedMessageAttachments: Attachment[] | undefined;
   private user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
@@ -258,6 +259,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
       messageId: this.message?.id || '',
       attachments: this.message?.attachments || [],
       parentMessageId: this.message?.parent_id,
+      imageModalStateChangeHandler: (state) =>
+        (this.imageAttachmentModalState = state),
     };
   }
 

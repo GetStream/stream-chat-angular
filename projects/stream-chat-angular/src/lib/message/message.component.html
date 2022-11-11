@@ -163,25 +163,19 @@
             "
           ></ng-container>
         </div>
-        <div class="str-chat__message-bubble">
+        <!-- transform: translate3d(0, 0, 0) fixes scrolling issues on iOS, see: https://stackoverflow.com/questions/50105780/elements-disappear-when-scrolling-in-safari-webkit-transform-fix-only-works-t/50144295#50144295 -->
+        <!-- transform: none is required when image carousel is open in order for the modal to be correctly positioned, see how the transform property changes the behavior of fixed positioned elements https://developer.mozilla.org/en-US/docs/Web/CSS/position  -->
+        <div
+          class="str-chat__message-bubble"
+          style="transform: {{
+            imageAttachmentModalState === 'opened'
+              ? 'none'
+              : 'translate3d(0, 0, 0)'
+          }}"
+        >
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
-            <ng-template
-              #defaultAttachments
-              let-messageId="messageId"
-              let-attachments="attachments"
-              let-parentMessageId="parentMessageId"
-            >
-              <stream-attachment-list
-                [messageId]="messageId"
-                [attachments]="attachments"
-                [parentMessageId]="parentMessageId"
-              ></stream-attachment-list>
-            </ng-template>
             <ng-container
-              *ngTemplateOutlet="
-                attachmentListTemplate || defaultAttachments;
-                context: getAttachmentListContext()
-              "
+              *ngTemplateOutlet="attachmentsTemplate"
             ></ng-container>
           </ng-container>
           <div
@@ -209,11 +203,11 @@
               "
             >
               <ng-container *ngTemplateOutlet="quotedMessage"></ng-container>
-              <stream-attachment-list
-                *ngIf="hasAttachment && message?.quoted_message"
-                [attachments]="message!.attachments!"
-                [messageId]="message!.id"
-              ></stream-attachment-list>
+              <ng-container *ngIf="hasAttachment && message?.quoted_message">
+                <ng-container
+                  *ngTemplateOutlet="attachmentsTemplate"
+                ></ng-container>
+              </ng-container>
               <div
                 data-testid="client-error-message"
                 *ngIf="message?.type === 'error'"
@@ -365,11 +359,13 @@
           let-messageId="messageId"
           let-attachments="attachments"
           let-parentMessageId="parentMessageId"
+          let-imageModalStateChangeHandler="imageModalStateChangeHandler"
         >
           <stream-attachment-list
             [messageId]="messageId"
             [attachments]="attachments"
             [parentMessageId]="parentMessageId"
+            (imageModalStateChange)="imageModalStateChangeHandler($event)"
           ></stream-attachment-list>
         </ng-template>
         <ng-container
@@ -622,4 +618,27 @@
       replies' | translate:replyCountParam)}}
     </button>
   </div>
+</ng-template>
+
+<ng-template #attachmentsTemplate>
+  <ng-template
+    #defaultAttachments
+    let-messageId="messageId"
+    let-attachments="attachments"
+    let-parentMessageId="parentMessageId"
+    let-imageModalStateChangeHandler="imageModalStateChangeHandler"
+  >
+    <stream-attachment-list
+      [messageId]="messageId"
+      [attachments]="attachments"
+      [parentMessageId]="parentMessageId"
+      (imageModalStateChange)="imageModalStateChangeHandler($event)"
+    ></stream-attachment-list>
+  </ng-template>
+  <ng-container
+    *ngTemplateOutlet="
+      attachmentListTemplate || defaultAttachments;
+      context: getAttachmentListContext()
+    "
+  ></ng-container>
 </ng-template>

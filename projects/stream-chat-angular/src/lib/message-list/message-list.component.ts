@@ -58,6 +58,7 @@ export class MessageListComponent
   lastSentMessageId: string | undefined;
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
+  isLoading = false;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -276,6 +277,7 @@ export class MessageListComponent
       this.mode === 'main'
         ? void this.channelService.loadMoreMessages(direction)
         : void this.channelService.loadMoreThreadReplies(direction);
+      this.isLoading = true;
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
   }
@@ -346,6 +348,7 @@ export class MessageListComponent
         : this.channelService.activeThreadMessages$
     ).pipe(
       tap((messages) => {
+        this.isLoading = false;
         if (messages.length === 0) {
           return;
         }

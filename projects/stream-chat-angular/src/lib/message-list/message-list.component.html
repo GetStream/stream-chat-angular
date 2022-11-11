@@ -23,6 +23,10 @@
           replies' | translate:replyCountParam)}}
         </div>
       </li>
+      <stream-loading-indicator
+        data-testid="top-loading-indicator"
+        *ngIf="isLoading && direction === 'bottom-to-top'"
+      ></stream-loading-indicator>
       <li
         tabindex="0"
         data-testclass="message"
@@ -41,6 +45,10 @@
           "
         ></ng-container>
       </li>
+      <stream-loading-indicator
+        data-testid="bottom-loading-indicator"
+        *ngIf="isLoading && direction === 'top-to-bottom'"
+      ></stream-loading-indicator>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
       <!-- eslint-disable-next-line @angular-eslint/template/no-any -->
