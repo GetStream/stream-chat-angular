@@ -171,7 +171,7 @@ export class ChatClientService<
       return;
     }
     const settings = await this.chatClient.getAppSettings();
-    this.appSettingsSubject.next(settings.app || {});
+    this.appSettingsSubject.next((settings.app as AppSettings) || {});
   }
 
   /**
