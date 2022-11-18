@@ -11,7 +11,7 @@ export const getReadBy = <
   Object.keys(channel.state.read).forEach((key) => {
     if (
       channel.state.read[key].last_read.getTime() >=
-        message.updated_at.getTime() &&
+        message.created_at.getTime() &&
       message.user?.id !== key
     ) {
       readBy.push(channel.state.read[key].user);

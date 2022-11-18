@@ -7,7 +7,7 @@ describe('getReadBy', () => {
     const sender = { id: 'sender', name: 'Tess' };
 
     const message = {
-      updated_at: new Date('2021-09-14T13:08:30.004112Z'),
+      created_at: new Date('2021-09-14T13:08:30.004112Z'),
       user: sender,
     } as FormatMessageResponse<DefaultStreamChatGenerics>;
     const channel = {
