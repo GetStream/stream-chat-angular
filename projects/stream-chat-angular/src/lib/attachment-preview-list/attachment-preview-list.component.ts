@@ -4,7 +4,7 @@ import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
 
 /**
- * The `AttachmentPreviewList` compontent displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
+ * The `AttachmentPreviewList` component displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
  */
 @Component({
   selector: 'stream-attachment-preview-list',

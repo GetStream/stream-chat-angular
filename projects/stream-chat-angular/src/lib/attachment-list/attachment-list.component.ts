@@ -25,7 +25,7 @@ import { AttachmentConfigurationService } from '../attachment-configuration.serv
 import { ThemeService } from '../theme.service';
 
 /**
- * The `AttachmentList` compontent displays the attachments of a message
+ * The `AttachmentList` component displays the attachments of a message
  */
 @Component({
   selector: 'stream-attachment-list',

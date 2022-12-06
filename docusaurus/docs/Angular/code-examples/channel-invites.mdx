@@ -299,7 +299,7 @@ First we create a component that will display a pending invitation:
 ng g c invitation --inline-template --inline-style
 ```
 
-Here are the most importnat parts of the component:
+Here are the most important parts of the component:
 
 - The component will be displayed inside the [`NotificationList`](../components/NotificationListComponent.mdx) component
 - We create an input with `Channel` type, this will be provided by the `NotificationList`
@@ -433,7 +433,7 @@ This is how the invitation notifications look like:
 ### Channel filter
 
 If a user is invited to a channel they immediately become member of the channel (the membership applies even if the invite is rejected).
-This means that if you use a channel filter that is based on membership (for example `{members: {$in: [<user id>]}}`), channels with pending and recejted invites will be returned and displayed in the channel list as well.
+This means that if you use a channel filter that is based on membership (for example `{members: {$in: [<user id>]}}`), channels with pending and rejected invites will be returned and displayed in the channel list as well.
 If this is not what you need, you can use the [`joined`](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#channel-queryable-built-in-fields) flag to only list channels that the user was directly added to or the invitation was accepted by the user.
 
 The channel filter can be provided to the `init` method of the [`ChannelService`](../services/ChannelService.mdx), here is an example:
@@ -475,7 +475,7 @@ this.channelService.customAddedToChannelNotificationHandler =
 
 ### `notification.invite_accepted` event
 
-The `notification.invite_accepted` event emitted by the [`ChatClientService`](../services/ChatClientService.mdx) signals that the user accepted an invitation to a channel, we should add the channel to the channel list, we can do this by reinitializing the channel list.
+The `notification.invite_accepted` event emitted by the [`ChatClientService`](../services/ChatClientService.mdx) signals that the user accepted an invitation to a channel, we should add the channel to the channel list, we can do this by re-initializing the channel list.
 
 Add this to the constructor of your `app.component.ts`:
 

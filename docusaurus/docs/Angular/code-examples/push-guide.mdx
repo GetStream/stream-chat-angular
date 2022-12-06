@@ -144,7 +144,7 @@ Go to the [Firebase Console](https://console.firebase.google.com/), and select t
 
 Click on the gear icon next to **Project Overview** and navigate to **Project settings**.
 
-Navigate to the **Service Accounts** tab. Under **Firebase Admin SDK section**, click on **Generate new private key** button that will generate a _json_ file with the Firebase Credentials.
+Navigate to the **Service Accounts** tab. Under **Firebase Admin SDK section**, click on **Generate new private key** button that will generate a _JSON_ file with the Firebase Credentials.
 
 <img src={FirebaseConsoleScreenshot} width="500" />
 
@@ -154,11 +154,11 @@ Select **Push notifications** from the left menu.
 
 Add a new **Firebase** configuration.
 
-Upload the _json_ file you created in the Firebase console.
+Upload the _JSON_ file you created in the Firebase console.
 
 For more information about push configurations see our [Push Providers & Multi Bundle guide](https://getstream.io/chat/docs/javascript/push_providers_and_multi_bundle/?language=javascript)
 
-### Push templates in Stream Dashbaord
+### Push templates in Stream Dashboard
 
 The [Capacitor Push API has some limitations around data-only notifications](https://capacitorjs.com/docs/apis/push-notifications#silent-push-notifications--data-only-notifications). The default Firebase APN notification payload works well with the Capacitor Push API, but if you need to send notifications for Android you have to update the **Notification Template** in the **Push Notifications** settings in the **Stream Dashboard**.
 
@@ -184,4 +184,4 @@ Add the following code to your `android/app/src/main/AndroidManifest.xml` file t
 </intent-filter>
 ```
 
-Add this element as a child to the `activity` element. "OPEN_ACTIVITY_1" is the "click_action" field from your Firebase Notification template.
+Add this element as a child to the `activity` element. "OPEN_ACTIVITY_1" is the "`click_action`" field from your Firebase Notification template.

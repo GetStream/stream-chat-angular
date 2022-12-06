@@ -2,7 +2,7 @@ import MessageScreenshot from "../assets/message-screenshot.png";
 import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
 import MessageReactionsScreenshot from "../assets/message-reactions-screenshot.png";
 
-The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](../concepts/message-interactions.mdx).
+The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (for example edit or react)](../concepts/message-interactions.mdx).
 
 **Example 1** - example message:
 
@@ -18,7 +18,7 @@ The `Message` component displays a message with additional information such as s
 
 ## Customization
 
-The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, you can do that by providing it to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#messagetemplate). It's also possible to just override parts of the message comonent.
+The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, you can do that by providing it to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#messagetemplate). It's also possible to just override parts of the message component.
 
 :::note
 
@@ -30,7 +30,7 @@ The `Message` component uses the [`Avatar`](./AvatarComponent.mdx) component to 
 
 ### Message actions
 
-The `Message` component uses the [`MessageActionsBox`](./MessageActionsBoxComponent.mdx) component to enable interaction with the message (i.e. edit).
+The `Message` component uses the [`MessageActionsBox`](./MessageActionsBoxComponent.mdx) component to enable interaction with the message (edit).
 
 ### Message reactions
 
@@ -40,9 +40,9 @@ The `Message` component uses the [`MessageReactions`](./MessageReactionsComponen
 
 The `Message` component uses the [`AttachmentList`](./AttachmentListComponent.mdx) component to display the attachments of the message.
 
-### User firendly dates
+### User friendly dates
 
-The `Message` component uses the [`parseDate`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message/parse-date.ts) utility function to create user-firendly dates (for example _Yesterday at 8:15 AM_).
+The `Message` component uses the [`parseDate`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message/parse-date.ts) utility function to create user-friendly dates (for example _Yesterday at 8:15 AM_).
 
 ### Read by
 

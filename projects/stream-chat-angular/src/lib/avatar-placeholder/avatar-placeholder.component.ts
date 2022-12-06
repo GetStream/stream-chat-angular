@@ -9,7 +9,7 @@ import {
 } from '../types';
 
 /**
- * The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This componet is used by the SDK internally, you likely won't need to use it.
+ * The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
  */
 @Component({
   selector: 'stream-avatar-placeholder',

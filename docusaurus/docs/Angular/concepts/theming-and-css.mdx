@@ -25,7 +25,7 @@ To override pre-defined library styles, follow this simple process:
 
 - Add your local CSS selectors after Stream's bundled CSS
 
-- Additionally you can overrive [the following CSS variables](https://github.com/GetStream/stream-chat-css/blob/main/src/styles/_variables.scss) to better customize the chat UI
+- Additionally you can override [the following CSS variables](https://github.com/GetStream/stream-chat-css/blob/main/src/styles/_variables.scss) to better customize the chat UI
 
 For example:
 
@@ -43,13 +43,13 @@ OR
 /* Your CSS here */
 ```
 
-## Importing scss Files
+## Importing SCSS Files
 
 As an alternative to importing our entire style sheet (perhaps, due to it's size), there's also the option to easily assemble only
-what you need by importing individual scss files. The imports should happen in your root stylesheet.
+what you need by importing individual SCSS files. The imports should happen in your root stylesheet.
 
 :::note
-If not importing our entire bundled CSS, individually importing the SDK's scss files is the better alternative to copy and pasting
+If not importing our entire bundled CSS, individually importing the SDK's SCSS files is the better alternative to copy and pasting
 our stylesheets and then customizing that code in your application. The CSS in the library does change occasionally, and you want
 to keep up to date with these to ensure no problems arise by falling behind in important styling updates.
 :::
