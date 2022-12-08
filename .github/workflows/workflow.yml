@@ -63,7 +63,7 @@ jobs:
         run: |
           npm run generate-docs
       - name: Push to docusaurus
-        uses: GetStream/push-stream-chat-docusaurus-action@main
+        uses: GetStream/push-stream-chat-docusaurus-action@source-dir-fix
         with:
           target-branch: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
         env:
