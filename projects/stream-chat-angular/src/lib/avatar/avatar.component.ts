@@ -1,4 +1,12 @@
-import { Component, Input } from '@angular/core';
+import {
+  Component,
+  Input,
+  NgZone,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { Channel, User } from 'stream-chat';
 import { ChatClientService } from '../chat-client.service';
 import {
@@ -15,7 +23,7 @@ import {
   templateUrl: './avatar.component.html',
   styleUrls: ['./avatar.component.scss'],
 })
-export class AvatarComponent {
+export class AvatarComponent implements OnChanges {
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -44,10 +52,54 @@ export class AvatarComponent {
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */
   @Input() type: AvatarType | undefined;
+  /**
+   * If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
+   */
+  @Input() showOnlineIndicator = true;
   isLoaded = false;
   isError = false;
+  isOnline = false;
+  private isOnlineSubscription?: Subscription;
 
-  constructor(private chatClientService: ChatClientService) {}
+  constructor(
+    private chatClientService: ChatClientService,
+    private ngZone: NgZone
+  ) {}
+
+  async ngOnChanges(changes: SimpleChanges) {
+    if (changes['channel']) {
+      if (this.channel) {
+        const otherMember = this.getOtherMemberIfOneToOneChannel();
+        if (otherMember) {
+          this.isOnlineSubscription = this.chatClientService.events$
+            .pipe(filter((e) => e.eventType === 'user.presence.changed'))
+            .subscribe((event) => {
+              if (event.event.user?.id === otherMember.id) {
+                this.ngZone.run(() => {
+                  this.isOnline = event.event.user?.online || false;
+                });
+              }
+            });
+          try {
+            const response = await this.chatClientService.chatClient.queryUsers(
+              {
+                id: { $eq: otherMember.id },
+              }
+            );
+            this.isOnline = response.users[0]?.online || false;
+          } catch (error) {
+            // Fallback if we can't query user -> for example due to permission problems
+            this.isOnline = otherMember.online || false;
+          }
+        } else {
+          this.isOnlineSubscription?.unsubscribe();
+        }
+      } else {
+        this.isOnline = false;
+        this.isOnlineSubscription?.unsubscribe();
+      }
+    }
+  }
 
   get initials() {
     let result: string = '';

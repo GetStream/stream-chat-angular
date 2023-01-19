@@ -33,4 +33,9 @@
       {{ initials }}
     </div>
   </ng-template>
+  <div
+    data-testid="online-indicator"
+    *ngIf="isOnline"
+    class="str-chat__avatar--online-indicator"
+  ></div>
 </div>
