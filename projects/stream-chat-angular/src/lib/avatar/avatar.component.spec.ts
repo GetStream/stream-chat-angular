@@ -1,5 +1,7 @@
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ChatClientService } from '../chat-client.service';
+import { Subject } from 'rxjs';
+import { ChatClientService, ClientEvent } from '../chat-client.service';
 import { generateMockChannels } from '../mocks';
 import { AvatarComponent } from './avatar.component';
 
@@ -10,10 +12,21 @@ describe('AvatarComponent', () => {
   const imageUrl = 'https://picsum.photos/200/300';
   let queryImg: () => HTMLImageElement | null;
   let queryFallbackImg: () => HTMLImageElement | null;
-  let chatClientServiceMock: { chatClient: { user: { id: string } } };
+  let queryOnlineIndicator: () => HTMLElement | null;
+  let queryUsersMock: jasmine.Spy;
+  let events$: Subject<ClientEvent>;
+  let chatClientServiceMock: {
+    chatClient: { user: { id: string }; queryUsers: jasmine.Spy };
+    events$: Subject<ClientEvent>;
+  };
 
   beforeEach(() => {
-    chatClientServiceMock = { chatClient: { user: { id: 'current-user' } } };
+    queryUsersMock = jasmine.createSpy();
+    events$ = new Subject();
+    chatClientServiceMock = {
+      chatClient: { user: { id: 'current-user' }, queryUsers: queryUsersMock },
+      events$,
+    };
     TestBed.configureTestingModule({
       declarations: [AvatarComponent],
       providers: [
@@ -26,6 +39,8 @@ describe('AvatarComponent', () => {
     queryFallbackImg = () =>
       nativeElement.querySelector('[data-testid=fallback-img]');
     queryImg = () => nativeElement.querySelector('[data-testid=avatar-img]');
+    queryOnlineIndicator = () =>
+      nativeElement.querySelector('[data-testid=online-indicator]');
   });
 
   const waitForImgComplete = () => {
@@ -207,5 +222,151 @@ describe('AvatarComponent', () => {
     fixture.detectChanges();
 
     expect(queryImg()).toBeNull();
+  });
+
+  it('should display online indicator in 1:1 channels', async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.resolveTo({ users: [{ online: true }] });
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).not.toBeNull();
+  });
+
+  it('should only display online indicator if user is online', async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.resolveTo({ users: [{ online: false }] });
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).toBeNull();
+  });
+
+  it(`should update online indicator if user's presence changed`, async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.resolveTo({ users: [{ online: false }] });
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).toBeNull();
+
+    events$.next({
+      eventType: 'user.presence.changed',
+      event: {
+        type: 'user.presence.changed',
+        user: { id: 'otheruser', online: true },
+      },
+    });
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).not.toBeNull();
+  });
+
+  it(`should handle query users error when displaying the online indicator`, async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: {
+          id: 'otheruser',
+          name: 'Jack',
+          image: 'url/to/img',
+          online: true,
+        },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.rejectWith(new Error('Permission denied'));
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).not.toBeNull();
+  });
+
+  it(`shouldn't display online indicator in not 1:1 channels`, async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      thirduser: {
+        user_id: 'thirduser',
+        user: { id: 'thirduser', name: 'John', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.resolveTo({ users: [{ online: true }] });
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).toBeNull();
+  });
+
+  it(`shouldn't display online indicator if #showOnlineIndicator is false`, async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    queryUsersMock.and.resolveTo({ users: [{ online: true }] });
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).not.toBeNull();
   });
 });
