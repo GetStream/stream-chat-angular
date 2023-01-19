@@ -32,5 +32,18 @@ The `ChannelList` component uses the [`Icon`](./IconComponent.mdx) component to 
 
 If you only want to customize the channel preview items (not the whole list), see the [channel preview customization](./ChannelPreviewComponent.mdx/#customization) guide.
 
+**Example 3** - Content injection points
+
+It's possible to inject your own content to the top or to the bottom of the channel list:
+
+```html
+<stream-channel-list>
+  <input channel-list-top placeholder="Search" />
+  <button channel-list-bottom>Add new channel</button>
+</stream-channel-list>
+```
+
+Use the `channel-list-top` attribute to inject content at the top of the channel list, and the `channel-list-bottom` to display content at the bottom of the channel list.
+
 [//]: # "Start of generated content"
 [//]: # "End of generated content"

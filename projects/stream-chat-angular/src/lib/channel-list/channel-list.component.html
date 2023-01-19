@@ -31,6 +31,7 @@
       >
         {{ "streamChat.You have no channels currently" | translate }}
       </p>
+      <ng-content select="[channel-list-top]"></ng-content>
       <ng-container
         *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
       >
@@ -69,6 +70,7 @@
           ></ng-template>
         </button>
       </div>
+      <ng-content select="[channel-list-bottom]"></ng-content>
     </div>
   </div>
 </div>
