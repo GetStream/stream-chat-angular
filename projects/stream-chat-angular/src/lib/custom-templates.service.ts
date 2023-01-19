@@ -5,6 +5,7 @@ import {
   AttachmentPreviewListContext,
   AvatarContext,
   ChannelActionsContext,
+  ChannelHeaderInfoContext,
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
   DeliveredStatusContext,
@@ -210,6 +211,12 @@ export class CustomTemplatesService {
    */
   readStatusTemplate$ = new BehaviorSubject<
     TemplateRef<ReadStatusContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display additional information about a channel under the channel name inside the [channel header component](../components/ChannelHeaderComponent.mdx)
+   */
+  channelHeaderInfoTemplate$ = new BehaviorSubject<
+    TemplateRef<ChannelHeaderInfoContext> | undefined
   >(undefined);
 
   constructor() {}

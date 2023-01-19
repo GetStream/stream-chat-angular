@@ -24,16 +24,25 @@
     >
       {{ displayText }}
     </p>
-    <p
-      data-testid="info"
-      class="
-        str-chat__header-livestream-left--members str-chat__channel-header-info
+    <ng-container
+      *ngTemplateOutlet="
+        channelHeaderInfoTemplate || defaultChannelInfo;
+        context: getChannelInfoContext()
       "
-    >
-      {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}
-      {{canReceiveConnectEvents ? ('streamChat.{{ watcherCount }} online' |
-      translate:watcherCountParam) : ''}}
-    </p>
+    ></ng-container>
+    <ng-template #defaultChannelInfo>
+      <p
+        data-testid="info"
+        class="
+          str-chat__header-livestream-left--members
+          str-chat__channel-header-info
+        "
+      >
+        {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}
+        {{canReceiveConnectEvents ? ('streamChat.{{ watcherCount }} online' |
+        translate:watcherCountParam) : ''}}
+      </p>
+    </ng-template>
   </div>
   <ng-container *ngIf="channelActionsTemplate">
     <ng-container

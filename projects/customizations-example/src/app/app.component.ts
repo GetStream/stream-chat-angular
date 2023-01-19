@@ -4,6 +4,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { ChannelHeaderInfoContext } from 'projects/stream-chat-angular/src/public-api';
 import { Channel } from 'stream-chat';
 import {
   ChatClientService,
@@ -79,6 +80,8 @@ export class AppComponent implements AfterViewInit {
   private notificationTemplate!: TemplateRef<NotificationContext>;
   @ViewChild('threadHeaderTemplate')
   private threadHeaderTemplate!: TemplateRef<ThreadHeaderContext>;
+  @ViewChild('customChannelInfo')
+  private chstomChannelInfoTemplate!: TemplateRef<ChannelHeaderInfoContext>;
 
   constructor(
     private chatService: ChatClientService,
@@ -148,6 +151,9 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.threadHeaderTemplate$.next(
       this.threadHeaderTemplate
+    );
+    this.customTemplatesService.channelHeaderInfoTemplate$.next(
+      this.chstomChannelInfoTemplate
     );
   }
 

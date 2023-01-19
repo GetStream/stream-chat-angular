@@ -289,3 +289,7 @@ export type ReadStatusContext = {
   message: StreamMessage;
   readByText: string;
 };
+
+export type ChannelHeaderInfoContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = { channel: Channel<T> };
