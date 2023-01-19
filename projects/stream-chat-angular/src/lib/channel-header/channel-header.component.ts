@@ -12,7 +12,11 @@ import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import { ChannelActionsContext, DefaultStreamChatGenerics } from '../types';
+import {
+  ChannelActionsContext,
+  ChannelHeaderInfoContext,
+  DefaultStreamChatGenerics,
+} from '../types';
 
 /**
  * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript)
@@ -24,6 +28,7 @@ import { ChannelActionsContext, DefaultStreamChatGenerics } from '../types';
 })
 export class ChannelHeaderComponent implements OnInit, OnDestroy {
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
+  channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
   activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
   canReceiveConnectEvents: boolean | undefined;
   private subscriptions: Subscription[] = [];
@@ -55,6 +60,14 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
         }
       )
     );
+    this.subscriptions.push(
+      this.customTemplatesService.channelHeaderInfoTemplate$.subscribe(
+        (template) => {
+          this.channelHeaderInfoTemplate = template;
+          this.cdRef.detectChanges();
+        }
+      )
+    );
   }
 
   ngOnDestroy(): void {
@@ -67,6 +80,10 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
   }
 
   getChannelActionsContext(): ChannelActionsContext {
+    return { channel: this.activeChannel! };
+  }
+
+  getChannelInfoContext(): ChannelHeaderInfoContext {
     return { channel: this.activeChannel! };
   }
 

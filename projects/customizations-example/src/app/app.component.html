@@ -1,5 +1,8 @@
 <div id="root">
-  <stream-channel-list></stream-channel-list>
+  <stream-channel-list>
+    <input channel-list-top placeholder="Search" />
+    <button channel-list-bottom>Add new channel</button>
+  </stream-channel-list>
   <stream-channel>
     <stream-channel-header></stream-channel-header>
     <stream-message-list></stream-message-list>
@@ -224,4 +227,8 @@
     [parentMessage]="parentMessage"
     (closeThread)="closeThreadHandler()"
   ></app-thread-header>
+</ng-template>
+
+<ng-template #customChannelInfo let-channel="channel">
+  This channel has {{ channel?.data?.member_count }} members
 </ng-template>
