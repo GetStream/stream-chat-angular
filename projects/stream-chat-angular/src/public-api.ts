@@ -41,6 +41,8 @@ export * from './lib/notification-list/notification-list.component';
 export * from './lib/thread/thread.component';
 export * from './lib/modal/modal.component';
 export * from './lib/read-by';
+export * from './lib/get-message-translation';
+export * from './lib/get-channel-display-text';
 export * from './lib/is-image-attachment';
 export * from './lib/is-image-file';
 export * from './lib/message-preview';
