@@ -9,7 +9,8 @@ describe('AvatarComponent', () => {
   let component: AvatarComponent;
   let fixture: ComponentFixture<AvatarComponent>;
   let nativeElement: HTMLElement;
-  const imageUrl = 'https://picsum.photos/200/300';
+  const imageUrl =
+    'https://fastly.picsum.photos/id/615/200/300.jpg?hmac=ehJCfeXO1-ZbwBXgbYKroA97kTtoPKNoyEbCxnzsYfU';
   let queryImg: () => HTMLImageElement | null;
   let queryFallbackImg: () => HTMLImageElement | null;
   let queryOnlineIndicator: () => HTMLElement | null;
