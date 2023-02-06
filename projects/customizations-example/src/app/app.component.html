@@ -101,10 +101,12 @@
   #attachmentListTemplate
   let-messageId="messageId"
   let-attachments="attachments"
+  let-imageModalStateChangeHandler="imageModalStateChangeHandler"
 >
   <stream-attachment-list
     [messageId]="messageId"
     [attachments]="attachments"
+    (imageModalStateChange)="imageModalStateChangeHandler($event)"
   ></stream-attachment-list>
 </ng-template>
 
