@@ -913,18 +913,14 @@ describe('MessageListComponent', () => {
 
   it('should add/rome CSS class based on #messageOptionsTrigger input', () => {
     expect(
-      fixture.nativeElement.querySelector(
-        '.str-chat__message-options-in-bubble'
-      )
+      nativeElement.querySelector('.str-chat__message-options-in-bubble')
     ).toBeNull();
 
     component.messageOptionsTrigger = 'message-bubble';
     fixture.detectChanges();
 
     expect(
-      fixture.nativeElement.querySelector(
-        '.str-chat__message-options-in-bubble'
-      )
+      nativeElement.querySelector('.str-chat__message-options-in-bubble')
     ).not.toBeNull();
   });
 });

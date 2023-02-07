@@ -83,6 +83,10 @@ export class MessageInputComponent
    */
   @Input() sendMessage$: Observable<void> | undefined;
   /**
+   * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+   */
+  inputMode: 'desktop' | 'mobile';
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<void>();
@@ -182,6 +186,7 @@ export class MessageInputComponent
       this.configService.isMultipleFileUploadEnabled;
     this.areMentionsEnabled = this.configService.areMentionsEnabled;
     this.mentionScope = this.configService.mentionScope;
+    this.inputMode = this.configService.inputMode;
 
     this.subscriptions.push(
       this.typingStart$.subscribe(
@@ -270,6 +275,9 @@ export class MessageInputComponent
     }
     if (changes.mode) {
       this.setCanSendMessages();
+    }
+    if (changes.inputMode) {
+      this.configService.inputMode = this.inputMode;
     }
     if (changes.sendMessage$) {
       if (this.sendMessageSubcription) {
