@@ -5,7 +5,12 @@
   (scroll)="scrolled()"
 >
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
-    <ul class="str-chat__ul">
+    <ul
+      class="str-chat__ul"
+      [class.str-chat__message-options-in-bubble]="
+        messageOptionsTrigger === 'message-bubble'
+      "
+    >
       <li
         #parentMessageElement
         *ngIf="mode === 'thread'"

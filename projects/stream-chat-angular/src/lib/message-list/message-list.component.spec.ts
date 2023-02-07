@@ -910,4 +910,21 @@ describe('MessageListComponent', () => {
     expect(queryLoadingIndicator('top')).not.toBeNull();
     expect(queryLoadingIndicator('bottom')).toBeNull();
   });
+
+  it('should add/rome CSS class based on #messageOptionsTrigger input', () => {
+    expect(
+      fixture.nativeElement.querySelector(
+        '.str-chat__message-options-in-bubble'
+      )
+    ).toBeNull();
+
+    component.messageOptionsTrigger = 'message-bubble';
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector(
+        '.str-chat__message-options-in-bubble'
+      )
+    ).not.toBeNull();
+  });
 });
