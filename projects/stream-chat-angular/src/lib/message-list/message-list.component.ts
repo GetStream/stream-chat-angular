@@ -213,9 +213,7 @@ export class MessageListComponent
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
         this.olderMassagesLoaded = false;
       } else if (
-        this.containerHeight !== undefined &&
-        this.containerHeight <
-          this.scrollContainer.nativeElement.scrollHeight &&
+        this.getScrollPosition() !== 'bottom' &&
         !this.isUserScrolled
       ) {
         this.isLatestMessageInList
