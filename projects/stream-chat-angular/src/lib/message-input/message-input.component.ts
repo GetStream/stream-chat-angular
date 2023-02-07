@@ -85,7 +85,7 @@ export class MessageInputComponent
   /**
    * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
    */
-  inputMode: 'desktop' | 'mobile';
+  @Input() inputMode: 'desktop' | 'mobile';
   /**
    * Emits when a message was successfuly sent or updated
    */
