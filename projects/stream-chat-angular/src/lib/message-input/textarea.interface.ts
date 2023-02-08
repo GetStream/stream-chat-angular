@@ -9,4 +9,5 @@ export interface TextareaInterface extends OnChanges {
   areMentionsEnabled?: boolean;
   mentionScope?: 'channel' | 'application';
   placeholder?: string;
+  inputMode: 'mobile' | 'desktop';
 }

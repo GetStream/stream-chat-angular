@@ -17,6 +17,7 @@ describe('TextareaDirective', () => {
       directive = new TextareaDirective({} as ViewContainerRef);
       mockComponent = {
         value: '',
+        inputMode: 'desktop',
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
         ngOnChanges: () => {},
@@ -57,6 +58,7 @@ describe('TextareaDirective', () => {
       directive = new TextareaDirective({} as ViewContainerRef);
       mockComponent = {
         value: '',
+        inputMode: 'desktop',
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
         userMentions: new EventEmitter<UserResponse[]>(),
@@ -82,6 +84,17 @@ describe('TextareaDirective', () => {
       directive.ngOnChanges({ areMentionsEnabled: {} as any as SimpleChange });
 
       expect(mockComponent.areMentionsEnabled).toBeFalse();
+      expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
+        jasmine.any(Object)
+      );
+    });
+
+    it('should pass on #inputMode', () => {
+      directive.inputMode = 'mobile';
+      spyOn(mockComponent, 'ngOnChanges');
+      directive.ngOnChanges({ inputMode: {} as any as SimpleChange });
+
+      expect(mockComponent.inputMode).toBe('mobile');
       expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
         jasmine.any(Object)
       );

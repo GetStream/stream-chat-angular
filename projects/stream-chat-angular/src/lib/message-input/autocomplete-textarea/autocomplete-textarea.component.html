@@ -12,7 +12,7 @@
   "
   rows="1"
   (input)="inputChanged()"
-  (keydown.enter)="sent($event)"
+  (keydown.enter)="enterHit($event)"
   [mentionConfig]="autocompleteConfig"
   (searchTerm)="autcompleteSearchTermChanged($event)"
   [mentionListTemplate]="autocompleteItem"

@@ -38,6 +38,10 @@ export class TextareaComponent
    */
   @Input() placeholder = '';
   /**
+   * See [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) for more information
+   */
+  @Input() inputMode!: 'desktop' | 'mobile';
+  /**
    * Emits the current value of the input element when a user types.
    */
   @Output() readonly valueChange = new EventEmitter<string>();
@@ -87,9 +91,11 @@ export class TextareaComponent
     this.adjustTextareaHeight();
   }
 
-  sent(event: Event) {
-    event.preventDefault();
-    this.send.next();
+  enterHit(event: Event) {
+    if (this.inputMode === 'desktop') {
+      event.preventDefault();
+      this.send.next();
+    }
   }
 
   private adjustTextareaHeight() {

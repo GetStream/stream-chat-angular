@@ -55,6 +55,10 @@ export class AutocompleteTextareaComponent
    */
   @Input() areMentionsEnabled: boolean | undefined = true;
   /**
+   * See [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) for more information
+   */
+  @Input() inputMode!: 'desktop' | 'mobile';
+  /**
    * The scope for user mentions, either members of the current channel of members of the application. You can also set this input on the [`MessageInput`](./MessageInputComponent.mdx/#inputs-and-outputs) component.
    */
   @Input() mentionScope: 'channel' | 'application' = 'channel';
@@ -236,10 +240,12 @@ export class AutocompleteTextareaComponent
     this.updateMentionedUsersFromText();
   }
 
-  sent(event: Event) {
-    event.preventDefault();
-    this.updateMentionedUsersFromText();
-    this.send.next();
+  enterHit(event: Event) {
+    if (this.inputMode === 'desktop') {
+      event.preventDefault();
+      this.updateMentionedUsersFromText();
+      this.send.next();
+    }
   }
 
   private adjustTextareaHeight() {

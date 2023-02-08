@@ -46,6 +46,11 @@ export class MessageListComponent
    * The direction of the messages in the list, `bottom-to-top` means newest message is at the bottom of the message list and users scroll upwards to load older messages
    */
   @Input() direction: 'bottom-to-top' | 'top-to-bottom' = 'bottom-to-top';
+  /**
+   * Determines what triggers the appearance of the message options: by default you can hover (click on mobile) anywhere in the row of the message (`message-row` option), or you can set `message-bubble`, in that case only a hover (click on mobile) in the message bubble will trigger the options to appear.
+   */
+  @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
+    'message-row';
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
@@ -208,10 +213,9 @@ export class MessageListComponent
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
         this.olderMassagesLoaded = false;
       } else if (
-        this.containerHeight !== undefined &&
-        this.containerHeight <
-          this.scrollContainer.nativeElement.scrollHeight &&
-        !this.isUserScrolled
+        this.getScrollPosition() !== 'bottom' &&
+        !this.isUserScrolled &&
+        !this.highlightedMessageId
       ) {
         this.isLatestMessageInList
           ? this.scrollToBottom()

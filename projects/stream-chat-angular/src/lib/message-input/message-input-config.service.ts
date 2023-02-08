@@ -24,5 +24,10 @@ export class MessageInputConfigService {
    */
   mentionScope: 'channel' | 'application' | undefined = 'channel';
 
+  /**
+   * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input.
+   */
+  inputMode: 'desktop' | 'mobile' = 'desktop';
+
   constructor() {}
 }

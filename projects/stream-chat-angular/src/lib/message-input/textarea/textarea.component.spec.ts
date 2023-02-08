@@ -36,6 +36,7 @@ describe('TextareaComponent', () => {
     fixture = TestBed.createComponent(TextareaComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;
+    component.inputMode = 'desktop';
     queryTextarea = () =>
       nativeElement.querySelector('[data-testid="textarea"]');
     fixture.detectChanges();
@@ -68,7 +69,7 @@ describe('TextareaComponent', () => {
     expect(spy).toHaveBeenCalledWith('message');
   });
 
-  it(`shouldn't emit #valueChange if enter is hit`, () => {
+  it(`shouldn't emit #valueChange if enter is hit and #inputMode is desktop`, () => {
     const spy = jasmine.createSpy();
     component.valueChange.subscribe(spy);
     const textarea = queryTextarea();
@@ -81,7 +82,7 @@ describe('TextareaComponent', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should emit #send if enter is hit', () => {
+  it('should emit #send if enter is hit and #inputMode is desktop', () => {
     const spy = jasmine.createSpy();
     component.send.subscribe(spy);
     const textarea = queryTextarea();
@@ -94,6 +95,22 @@ describe('TextareaComponent', () => {
 
     expect(spy).toHaveBeenCalledWith(undefined);
     expect(event.preventDefault).toHaveBeenCalledWith();
+  });
+
+  it(`shouldn't emit #send if enter is hit and #inputMode is mobile`, () => {
+    component.inputMode = 'mobile';
+    const spy = jasmine.createSpy();
+    component.send.subscribe(spy);
+    const textarea = queryTextarea();
+    const message = 'This is my message';
+    textarea!.value = message;
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+    spyOn(event, 'preventDefault');
+    textarea?.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
   it(`shouldn't emit #send if shift+enter is hit`, () => {
