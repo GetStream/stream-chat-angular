@@ -214,7 +214,8 @@ export class MessageListComponent
         this.olderMassagesLoaded = false;
       } else if (
         this.getScrollPosition() !== 'bottom' &&
-        !this.isUserScrolled
+        !this.isUserScrolled &&
+        !this.highlightedMessageId
       ) {
         this.isLatestMessageInList
           ? this.scrollToBottom()
