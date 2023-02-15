@@ -11,7 +11,7 @@
   "peerDependencies": {
     "@angular/common": "^12.2.0 || ^13.0.0 || ^14.0.0",
     "@angular/core": "^12.2.0 || ^13.0.0 || ^14.0.0",
-    "@ngx-translate/core": "^12.0.0  || ^13.0.0 || ^14.0.0",
+    "@ngx-translate/core": ">=13.0.0",
     "angular-mentions": "^1.4.0",
     "stream-chat": "^8.0.0",
     "ngx-popperjs": "^12.2.1 || ^13.0.0 || ^14.0.0"
