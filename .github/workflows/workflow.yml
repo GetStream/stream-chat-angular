@@ -4,11 +4,13 @@ on:
     branches:
       - master
       - beta
+      - test
       - theming-v2
   pull_request:
     branches:
       - master
       - beta
+      - test
       - theming-v2
 jobs:
   workflow:

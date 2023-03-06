@@ -52,6 +52,10 @@
         "prerelease": true
       },
       {
+        "name": "test",
+        "prerelease": true
+      },
+      {
         "name": "theming-v2",
         "prerelease": true
       }
