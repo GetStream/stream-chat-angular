@@ -178,6 +178,6 @@ export class AppComponent implements AfterViewInit {
     if (!files) {
       return;
     }
-    attachmentService.filesSelected(files);
+    void attachmentService.filesSelected(files);
   }
 }
