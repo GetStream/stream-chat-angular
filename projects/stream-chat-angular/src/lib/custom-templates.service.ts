@@ -8,6 +8,7 @@ import {
   ChannelHeaderInfoContext,
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
+  CustomAttachmentUploadContext,
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
@@ -196,27 +197,43 @@ export class CustomTemplatesService {
   >(undefined);
   /**
    * The template used for displaying the delivered state of the message inside the [message component](../components/MessageComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   deliveredStatusTemplate$ = new BehaviorSubject<
     TemplateRef<DeliveredStatusContext> | undefined
   >(undefined);
   /**
    * The template used for displaying the sending state of the message inside the [message component](../components/MessageComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   sendingStatusTemplate$ = new BehaviorSubject<
     TemplateRef<SendingStatusContext> | undefined
   >(undefined);
   /**
    * The template used for displaying the sent state of the message inside the [message component](../components/MessageComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   readStatusTemplate$ = new BehaviorSubject<
     TemplateRef<ReadStatusContext> | undefined
   >(undefined);
   /**
    * The template used to display additional information about a channel under the channel name inside the [channel header component](../components/ChannelHeaderComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   channelHeaderInfoTemplate$ = new BehaviorSubject<
     TemplateRef<ChannelHeaderInfoContext> | undefined
+  >(undefined);
+  /**
+   * The template used for displaying file upload/attachment selector inside the [message input](../components/MessageInputComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
+   */
+  customAttachmentUploadTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomAttachmentUploadContext> | undefined
   >(undefined);
 
   constructor() {}

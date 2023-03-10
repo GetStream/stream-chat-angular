@@ -29,6 +29,7 @@ import { NotificationService } from '../notification.service';
 import {
   AttachmentPreviewListContext,
   AttachmentUpload,
+  CustomAttachmentUploadContext,
   DefaultStreamChatGenerics,
   EmojiPickerContext,
   StreamMessage,
@@ -104,6 +105,9 @@ export class MessageInputComponent
   cooldown$: Observable<number> | undefined;
   isCooldownInProgress = false;
   emojiPickerTemplate: TemplateRef<EmojiPickerContext> | undefined;
+  customAttachmentUploadTemplate:
+    | TemplateRef<CustomAttachmentUploadContext>
+    | undefined;
   attachmentPreviewListTemplate:
     | TemplateRef<AttachmentPreviewListContext>
     | undefined;
@@ -239,6 +243,14 @@ export class MessageInputComponent
       this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
         (template) => {
           this.attachmentPreviewListTemplate = template;
+          this.cdRef.detectChanges();
+        }
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.customAttachmentUploadTemplate$.subscribe(
+        (template) => {
+          this.customAttachmentUploadTemplate = template;
           this.cdRef.detectChanges();
         }
       )
@@ -415,8 +427,22 @@ export class MessageInputComponent
     };
   }
 
+  getAttachmentUploadContext(): CustomAttachmentUploadContext {
+    return {
+      isMultipleFileUploadEnabled: this.isMultipleFileUploadEnabled,
+      attachmentService: this.attachmentService,
+    };
+  }
+
   private deleteUpload(upload: AttachmentUpload) {
-    void this.attachmentService.deleteAttachment(upload);
+    if (this.isUpdate) {
+      // Delay delete to avoid modal detecting this click as outside click
+      setTimeout(() => {
+        void this.attachmentService.deleteAttachment(upload);
+      });
+    } else {
+      void this.attachmentService.deleteAttachment(upload);
+    }
   }
 
   private retryUpload(file: File) {

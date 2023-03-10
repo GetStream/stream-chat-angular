@@ -15,6 +15,7 @@ import type {
   User,
   UserResponse,
 } from 'stream-chat';
+import { AttachmentService } from './attachment.service';
 import { Icon } from './icon/icon.component';
 
 export type UnknownType = Record<string, unknown>;
@@ -41,6 +42,7 @@ export type DefaultAttachmentType = UnknownType & {
   id?: string;
   images?: Array<Attachment<DefaultStreamChatGenerics>>;
   mime_type?: string;
+  isCustomAttachment?: boolean;
 };
 
 export type DefaultChannelType = UnknownType & {
@@ -76,13 +78,16 @@ export type StreamMessage<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = FormatMessageResponse<T>;
 
-export type AttachmentUpload = {
+export type AttachmentUpload<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
   file: File;
   state: 'error' | 'success' | 'uploading';
   url?: string;
   type: 'image' | 'file' | 'video';
   previewUri?: string | ArrayBuffer;
   thumb_url?: string;
+  fromAttachment?: Attachment<T>;
 };
 
 export type MentionAutcompleteListItemContext = {
@@ -293,3 +298,8 @@ export type ReadStatusContext = {
 export type ChannelHeaderInfoContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = { channel: Channel<T> };
+
+export type CustomAttachmentUploadContext = {
+  isMultipleFileUploadEnabled: boolean | undefined;
+  attachmentService: AttachmentService;
+};

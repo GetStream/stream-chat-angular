@@ -5,7 +5,7 @@ import { Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload } from './types';
+import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
 
 /**
  * The `AttachmentService` manages the uploads of a message input.
@@ -13,7 +13,9 @@ import { AttachmentUpload } from './types';
 @Injectable({
   providedIn: 'root',
 })
-export class AttachmentService {
+export class AttachmentService<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> {
   /**
    * Emits the number of uploads in progress.
    */
@@ -92,6 +94,18 @@ export class AttachmentService {
   }
 
   /**
+   * You can add custom `image`, `video` and `file` attachments using this method.
+   *
+   * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](./ChannelService.mdx)
+   *
+   * @param attachment
+   */
+  addAttachment(attachment: Attachment<T>) {
+    attachment.isCustomAttachment = true;
+    this.createFromAttachments([attachment]);
+  }
+
+  /**
    * Retries to upload an attachment.
    * @param file
    * @returns A promise with the result
@@ -114,7 +128,10 @@ export class AttachmentService {
   async deleteAttachment(upload: AttachmentUpload) {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
     let result!: AttachmentUpload[];
-    if (upload.state === 'success') {
+    if (
+      upload.state === 'success' &&
+      !upload.fromAttachment?.isCustomAttachment
+    ) {
       try {
         await this.channelService.deleteAttachment(upload);
         result = [...attachmentUploads];
@@ -146,14 +163,18 @@ export class AttachmentService {
         const attachment: Attachment = {
           type: r.type,
         };
-        if (r.type === 'image') {
-          attachment.fallback = r.file?.name;
-          attachment.image_url = r.url;
+        if (r.fromAttachment) {
+          return r.fromAttachment;
         } else {
-          attachment.asset_url = r.url;
-          attachment.title = r.file?.name;
-          attachment.file_size = r.file?.size;
-          attachment.thumb_url = r.thumb_url;
+          if (r.type === 'image') {
+            attachment.fallback = r.file?.name;
+            attachment.image_url = r.url;
+          } else {
+            attachment.asset_url = r.url;
+            attachment.title = r.file?.name;
+            attachment.file_size = r.file?.size;
+            attachment.thumb_url = r.thumb_url;
+          }
         }
 
         return attachment;
@@ -164,7 +185,7 @@ export class AttachmentService {
    * Maps attachments received from the Stream API to uploads. This is useful when editing a message.
    * @param attachments Attachemnts received with the message
    */
-  createFromAttachments(attachments: Attachment[]) {
+  createFromAttachments(attachments: Attachment<T>[]) {
     const attachmentUploads: AttachmentUpload[] = [];
     attachments.forEach((attachment) => {
       if (isImageAttachment(attachment)) {
@@ -177,6 +198,7 @@ export class AttachmentService {
           file: {
             name: attachment.fallback,
           } as File,
+          fromAttachment: attachment,
         });
       } else if (attachment.type === 'file' || attachment.type === 'video') {
         attachmentUploads.push({
@@ -188,6 +210,7 @@ export class AttachmentService {
           } as File,
           type: attachment.type,
           thumb_url: attachment.thumb_url,
+          fromAttachment: attachment,
         });
       }
     });
