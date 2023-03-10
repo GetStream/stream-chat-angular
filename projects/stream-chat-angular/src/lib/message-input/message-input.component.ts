@@ -435,7 +435,14 @@ export class MessageInputComponent
   }
 
   private deleteUpload(upload: AttachmentUpload) {
-    void this.attachmentService.deleteAttachment(upload);
+    if (this.isUpdate) {
+      // Delay delete to avoid modal detecting this click as outside click
+      setTimeout(() => {
+        void this.attachmentService.deleteAttachment(upload);
+      });
+    } else {
+      void this.attachmentService.deleteAttachment(upload);
+    }
   }
 
   private retryUpload(file: File) {
