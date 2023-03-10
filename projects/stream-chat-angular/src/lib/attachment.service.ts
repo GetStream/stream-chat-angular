@@ -96,8 +96,8 @@ export class AttachmentService<
   /**
    * If you want to use custom attachments you can add them using this method.
    *
-   * Note 2: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](./ChannelService.mdx)
-   * Note 3: If you want to use a custom attachment type that is not supported by the default [`AttachmentPreviewList`](../components/AttachmentPreviewListComponent.mdx) and [`AttachmentList`](../components/AttachmentListComponent.mdx) you'll have to provide you own UI for rendering them in the message input and message list.
+   * Note 1: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](./ChannelService.mdx)
+   * Note 2: If you want to use a custom attachment type that is not supported by the default [`AttachmentPreviewList`](../components/AttachmentPreviewListComponent.mdx) and [`AttachmentList`](../components/AttachmentListComponent.mdx) you'll have to provide you own UI for rendering them in the message input and message list.
    * @param attachment
    */
   addAttachment(attachment: Attachment<T>) {
