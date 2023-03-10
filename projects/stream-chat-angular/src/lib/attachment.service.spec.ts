@@ -4,10 +4,10 @@ import { Attachment } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload } from './types';
+import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
 
 describe('AttachmentService', () => {
-  let service: AttachmentService;
+  let service: AttachmentService<DefaultStreamChatGenerics>;
   let uploadAttachmentsSpy: jasmine.Spy;
   let deleteAttachmentSpy: jasmine.Spy;
   let readAsDataURLSpy: jasmine.Spy;
@@ -31,7 +31,9 @@ describe('AttachmentService', () => {
         },
       ],
     });
-    service = TestBed.inject(AttachmentService);
+    service = TestBed.inject(
+      AttachmentService
+    ) as AttachmentService<DefaultStreamChatGenerics>;
   });
 
   it('should delete attachment, if file is already uploaded', async () => {
