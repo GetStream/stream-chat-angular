@@ -8,7 +8,7 @@ import {
   AttachmentService,
   ChannelHeaderInfoContext,
 } from 'projects/stream-chat-angular/src/public-api';
-import { Channel } from 'stream-chat';
+import { Attachment, Channel } from 'stream-chat';
 import {
   ChatClientService,
   ChannelService,
@@ -179,5 +179,14 @@ export class AppComponent implements AfterViewInit {
       return;
     }
     void attachmentService.filesSelected(files);
+  }
+
+  addRandomImage(attachmentService: AttachmentService) {
+    const customAttachment: Attachment = {
+      type: 'image',
+      image_url: 'https://picsum.photos/200/300',
+      fallback: 'Just a random image',
+    };
+    attachmentService.addAttachment(customAttachment);
   }
 }

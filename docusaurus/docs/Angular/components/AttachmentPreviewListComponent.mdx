@@ -2,6 +2,12 @@ import Screenshot from "../assets/attachment-preview-list-screenshot.png";
 
 The `AttachmentPreviewList` component displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
 
+The following attachment types are supported:
+
+- Images - displayed inline
+- Video files - no preview provided inside the message input, but displayed inline inside the message list
+- Other files - no preview provided, users can download the uploaded files
+
 **Example 1** - attachment previews
 
 <img src={Screenshot} width="1000" />

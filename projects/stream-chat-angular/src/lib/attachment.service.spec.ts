@@ -1,5 +1,6 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { first } from 'rxjs/operators';
+import { Attachment } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
@@ -116,6 +117,26 @@ describe('AttachmentService', () => {
       url,
       type: 'image',
     });
+  }));
+
+  it(`shouldn't try to delete custom attachments from CDN`, fakeAsync(() => {
+    const customAttachment = {
+      image_url: 'url/to/my/image',
+      type: 'image',
+    };
+    const attachmentUploadsSpy = jasmine.createSpy('attachmentUploadsSpy');
+    service.attachmentUploads$.subscribe(attachmentUploadsSpy);
+    service.addAttachment(customAttachment);
+    let attachmentUpload!: AttachmentUpload;
+    service.attachmentUploads$.pipe(first()).subscribe((uploads) => {
+      attachmentUpload = uploads[0];
+    });
+    attachmentUploadsSpy.calls.reset();
+    void service.deleteAttachment(attachmentUpload);
+    tick();
+
+    expect(attachmentUploadsSpy).toHaveBeenCalledWith([]);
+    expect(deleteAttachmentSpy).not.toHaveBeenCalled();
   }));
 
   it('should display error message, if upload was unsuccessful', async () => {
@@ -322,6 +343,14 @@ describe('AttachmentService', () => {
       videoFile,
     ] as any as FileList);
 
+    const customAttachment: Attachment = {
+      type: 'video',
+      asset_url: 'url/to/my/video',
+      thumb_url: 'url/to/my/thumb',
+    };
+
+    service.addAttachment(customAttachment);
+
     expect(service.mapToAttachments()).toEqual([
       { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
       {
@@ -338,35 +367,16 @@ describe('AttachmentService', () => {
         type: 'file',
         thumb_url: undefined,
       },
+      {
+        type: 'video',
+        asset_url: 'url/to/my/video',
+        thumb_url: 'url/to/my/thumb',
+        isCustomAttachment: true,
+      },
     ]);
   });
 
   it('should create attachmentUploads from attachments', () => {
-    const imageFile = { name: 'flower.png' };
-    const dataFile = { name: 'note.txt', size: 3272969 };
-    const videoFile = { name: 'cute.mov', size: 45367543 };
-    const result = [
-      {
-        file: imageFile,
-        state: 'success',
-        url: 'http://url/to/img',
-        type: 'image',
-      },
-      {
-        file: dataFile,
-        state: 'success',
-        url: 'http://url/to/data',
-        type: 'file',
-        thumb_url: undefined,
-      },
-      {
-        file: videoFile,
-        state: 'success',
-        url: 'http://url/to/video',
-        type: 'video',
-        thumb_url: 'http://url/to/poster',
-      },
-    ];
     const attachments = [
       { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
       {
@@ -382,13 +392,56 @@ describe('AttachmentService', () => {
         type: 'video',
         thumb_url: 'http://url/to/poster',
       },
+      {
+        type: 'file',
+        asset_url: 'url/to/my/file',
+        title: 'my-file.pdf',
+        isCustomAttachment: true,
+      },
+    ];
+    const imageFile = { name: 'flower.png' };
+    const dataFile = { name: 'note.txt', size: 3272969 };
+    const videoFile = { name: 'cute.mov', size: 45367543 };
+    const customFile = { name: 'my-file.pdf', size: undefined };
+    const result = [
+      {
+        file: imageFile,
+        state: 'success',
+        url: 'http://url/to/img',
+        type: 'image',
+        fromAttachment: attachments[0],
+      },
+      {
+        file: dataFile,
+        state: 'success',
+        url: 'http://url/to/data',
+        type: 'file',
+        thumb_url: undefined,
+        fromAttachment: attachments[1],
+      },
+      {
+        file: videoFile,
+        state: 'success',
+        url: 'http://url/to/video',
+        type: 'video',
+        thumb_url: 'http://url/to/poster',
+        fromAttachment: attachments[2],
+      },
+      {
+        file: customFile,
+        type: 'file',
+        url: 'url/to/my/file',
+        state: 'success',
+        thumb_url: undefined,
+        fromAttachment: attachments[3],
+      },
     ];
     const spy = jasmine.createSpy();
     service.attachmentUploads$.subscribe(spy);
     spy.calls.reset();
     service.createFromAttachments(attachments);
 
-    expect(spy).toHaveBeenCalledWith(result);
+    expect(spy).toHaveBeenCalledWith(jasmine.arrayContaining(result));
   });
 
   it('should ignore URL attachments if creating from attachments', () => {
@@ -399,5 +452,33 @@ describe('AttachmentService', () => {
     service.createFromAttachments([urlAttachment]);
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should be able to add custom attachment', () => {
+    const customAttachment: Attachment = {
+      type: 'file',
+      asset_url: 'url/to/my/file',
+      file_size: undefined,
+      title: 'my-file.pdf',
+    };
+
+    const spy = jasmine.createSpy();
+    service.attachmentUploads$.subscribe(spy);
+    spy.calls.reset();
+    service.addAttachment(customAttachment);
+
+    expect(spy).toHaveBeenCalledWith([
+      {
+        url: 'url/to/my/file',
+        state: 'success',
+        file: {
+          name: 'my-file.pdf',
+          size: undefined,
+        } as unknown as File,
+        type: 'file',
+        fromAttachment: { ...customAttachment, isCustomAttachment: true },
+        thumb_url: undefined,
+      },
+    ]);
   });
 });

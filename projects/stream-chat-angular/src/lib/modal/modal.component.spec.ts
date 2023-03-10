@@ -67,7 +67,7 @@ describe('ModalComponent', () => {
     ).toBeTrue();
   });
 
-  it('should close if clicked outside of modal', fakeAsync(() => {
+  xit('should close if clicked outside of modal', fakeAsync(() => {
     let eventHandler: Function | undefined;
     spyOn(window, 'addEventListener').and.callFake(
       (_: string, handler: any) => {

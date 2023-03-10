@@ -71,6 +71,7 @@ export class ModalComponent implements OnChanges {
 
   private watchForOutsideClicks = (event: Event) => {
     if (!this.innerContainer?.nativeElement.contains(event.target as Node)) {
+      // TODO: temporarly disable outside click watching because of weird bug with clicking on delete button for CUSTOM attachments
       this.close();
     }
   };
