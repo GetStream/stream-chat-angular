@@ -4,7 +4,10 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { ChannelHeaderInfoContext } from 'projects/stream-chat-angular/src/public-api';
+import {
+  AttachmentService,
+  ChannelHeaderInfoContext,
+} from 'projects/stream-chat-angular/src/public-api';
 import { Channel } from 'stream-chat';
 import {
   ChatClientService,
@@ -31,6 +34,7 @@ import {
   ModalContext,
   NotificationContext,
   ThreadHeaderContext,
+  CustomAttachmentUploadContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -82,6 +86,8 @@ export class AppComponent implements AfterViewInit {
   private threadHeaderTemplate!: TemplateRef<ThreadHeaderContext>;
   @ViewChild('customChannelInfo')
   private chstomChannelInfoTemplate!: TemplateRef<ChannelHeaderInfoContext>;
+  @ViewChild('customAttachmentUpload')
+  private customAttachmentUploadTemplate!: TemplateRef<CustomAttachmentUploadContext>;
 
   constructor(
     private chatService: ChatClientService,
@@ -155,6 +161,9 @@ export class AppComponent implements AfterViewInit {
     this.customTemplatesService.channelHeaderInfoTemplate$.next(
       this.chstomChannelInfoTemplate
     );
+    this.customTemplatesService.customAttachmentUploadTemplate$.next(
+      this.customAttachmentUploadTemplate
+    );
   }
 
   inviteClicked(channel: Channel) {
@@ -163,5 +172,12 @@ export class AppComponent implements AfterViewInit {
         channel.data?.name || (channel.data?.id as string)
       } channel`
     );
+  }
+
+  filesSelected(files: FileList | null, attachmentService: AttachmentService) {
+    if (!files) {
+      return;
+    }
+    attachmentService.filesSelected(files);
   }
 }

@@ -15,6 +15,7 @@ import type {
   User,
   UserResponse,
 } from 'stream-chat';
+import { AttachmentService } from './attachment.service';
 import { Icon } from './icon/icon.component';
 
 export type UnknownType = Record<string, unknown>;
@@ -293,3 +294,8 @@ export type ReadStatusContext = {
 export type ChannelHeaderInfoContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = { channel: Channel<T> };
+
+export type CustomAttachmentUploadContext = {
+  isMultipleFileUploadEnabled: boolean | undefined;
+  attachmentService: AttachmentService;
+};

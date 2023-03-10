@@ -8,6 +8,7 @@ import {
   ChannelHeaderInfoContext,
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
+  CustomAttachmentUploadContext,
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
@@ -217,6 +218,12 @@ export class CustomTemplatesService {
    */
   channelHeaderInfoTemplate$ = new BehaviorSubject<
     TemplateRef<ChannelHeaderInfoContext> | undefined
+  >(undefined);
+  /**
+   * The template used for displaying file upload/attachment selector inside the [message input](../components/MessageInputComponent.mdx)
+   */
+  customAttachmentUploadTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomAttachmentUploadContext> | undefined
   >(undefined);
 
   constructor() {}

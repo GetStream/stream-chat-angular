@@ -234,3 +234,17 @@
 <ng-template #customChannelInfo let-channel="channel">
   This channel has {{ channel?.data?.member_count }} members
 </ng-template>
+
+<!-- Message inputs use separate AttachmentService instances and component-tree based DI lookup doesn't work with content injection so we need to provide the AttachmentService as an input -->
+<ng-template
+  #customAttachmentUpload
+  let-isMultipleFileUploadEnabled="isMultipleFileUploadEnabled"
+  let-attachmentService="attachmentService"
+>
+  <input
+    #fileInput
+    type="file"
+    [multiple]="isMultipleFileUploadEnabled"
+    (change)="filesSelected(fileInput.files, attachmentService)"
+  />
+</ng-template>

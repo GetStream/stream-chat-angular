@@ -120,32 +120,43 @@
           ></textarea>
         </ng-template>
       </div>
-      <div
+      <ng-container
         *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
-        class="str-chat__fileupload-wrapper"
-        data-testid="file-upload-button"
       >
-        <div class="str-chat__tooltip">
-          {{ "streamChat.Attach files" | translate }}
-        </div>
-        <div class="rfu-file-upload-button">
-          <label>
-            <input
-              #fileInput
-              type="file"
-              class="rfu-file-input"
-              data-testid="file-input"
-              [multiple]="isMultipleFileUploadEnabled"
-              (change)="filesSelected(fileInput.files)"
-            />
-            <span class="str-chat__input-flat-fileupload">
-              <stream-icon-placeholder
-                icon="file-upload"
-              ></stream-icon-placeholder>
-            </span>
-          </label>
-        </div>
-      </div>
+        <ng-container
+          *ngTemplateOutlet="
+            customAttachmentUploadTemplate || defaultAttachmentUpload;
+            context: getAttachmentUploadContext()
+          "
+        ></ng-container>
+        <ng-template #defaultAttachmentUpload>
+          <div
+            class="str-chat__fileupload-wrapper"
+            data-testid="file-upload-button"
+          >
+            <div class="str-chat__tooltip">
+              {{ "streamChat.Attach files" | translate }}
+            </div>
+            <div class="rfu-file-upload-button">
+              <label>
+                <input
+                  #fileInput
+                  type="file"
+                  class="rfu-file-input"
+                  data-testid="file-input"
+                  [multiple]="isMultipleFileUploadEnabled"
+                  (change)="filesSelected(fileInput.files)"
+                />
+                <span class="str-chat__input-flat-fileupload">
+                  <stream-icon-placeholder
+                    icon="file-upload"
+                  ></stream-icon-placeholder>
+                </span>
+              </label>
+            </div>
+          </div>
+        </ng-template>
+      </ng-container>
     </div>
     <button
       *ngIf="canSendMessages && !isCooldownInProgress"
@@ -197,24 +208,35 @@
         str-chat-angular__message-input-inner
       "
     >
-      <div
+      <ng-container
         *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
-        class="str-chat__file-input-container"
-        data-testid="file-upload-button"
       >
-        <input
-          #fileInput
-          type="file"
-          class="str-chat__file-input"
-          data-testid="file-input"
-          [multiple]="isMultipleFileUploadEnabled"
-          (change)="filesSelected(fileInput.files)"
-          id="{{ fileInputId }}"
-        />
-        <label class="str-chat__file-input-label" for="{{ fileInputId }}">
-          <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
-        </label>
-      </div>
+        <ng-container
+          *ngTemplateOutlet="
+            customAttachmentUploadTemplate || defaultAttachmentUpload;
+            context: getAttachmentUploadContext()
+          "
+        ></ng-container>
+        <ng-template #defaultAttachmentUpload>
+          <div
+            class="str-chat__file-input-container"
+            data-testid="file-upload-button"
+          >
+            <input
+              #fileInput
+              type="file"
+              class="str-chat__file-input"
+              data-testid="file-input"
+              [multiple]="isMultipleFileUploadEnabled"
+              (change)="filesSelected(fileInput.files)"
+              id="{{ fileInputId }}"
+            />
+            <label class="str-chat__file-input-label" for="{{ fileInputId }}">
+              <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
+            </label>
+          </div>
+        </ng-template>
+      </ng-container>
       <div class="str-chat__message-textarea-container">
         <div
           data-testid="quoted-message-container"
