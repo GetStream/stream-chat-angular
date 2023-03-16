@@ -100,12 +100,14 @@
 <ng-template
   #attachmentListTemplate
   let-messageId="messageId"
+  let-parentMessageId="parentMessageId"
   let-attachments="attachments"
   let-imageModalStateChangeHandler="imageModalStateChangeHandler"
 >
   <stream-attachment-list
     [messageId]="messageId"
     [attachments]="attachments"
+    [parentMessageId]="parentMessageId"
     (imageModalStateChange)="imageModalStateChangeHandler($event)"
   ></stream-attachment-list>
 </ng-template>
