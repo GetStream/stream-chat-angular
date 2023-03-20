@@ -190,6 +190,7 @@ export type AvatarContext = {
   location: AvatarLocation | undefined;
   channel?: Channel<DefaultStreamChatGenerics>;
   user?: User<DefaultStreamChatGenerics>;
+  initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
 };
 
 export type AttachmentPreviewListContext = {

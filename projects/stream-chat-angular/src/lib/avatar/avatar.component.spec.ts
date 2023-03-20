@@ -370,4 +370,13 @@ describe('AvatarComponent', () => {
 
     expect(queryOnlineIndicator()).not.toBeNull();
   });
+
+  it('should display initials correctly, #initialsType is "first-letter-of-each-word"', () => {
+    component.type = 'user';
+    component.initialsType = 'first-letter-of-each-word';
+    component.name = 'John Doe';
+    fixture.detectChanges();
+
+    expect(component.initials).toBe('JD');
+  });
 });
