@@ -56,6 +56,12 @@ export class AvatarComponent implements OnChanges {
    * If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
    */
   @Input() showOnlineIndicator = true;
+  /**
+   * If channel/user image isn't provided the initials of the name of the channel/user is shown instead, you can choose how the initals should be computed
+   */
+  @Input() initialsType:
+    | 'first-letter-of-first-word'
+    | 'first-letter-of-each-word' = 'first-letter-of-first-word';
   isLoaded = false;
   isError = false;
   isOnline = false;
@@ -118,7 +124,14 @@ export class AvatarComponent implements OnChanges {
       }
     }
 
-    return result.charAt(0) || '';
+    const words = result.split(' ');
+    let initials: string;
+    if (this.initialsType === 'first-letter-of-each-word') {
+      initials = words.map((w) => w.charAt(0) || '').join('');
+    } else {
+      initials = words[0].charAt(0) || '';
+    }
+    return initials;
   }
 
   get fallbackChannelImage() {

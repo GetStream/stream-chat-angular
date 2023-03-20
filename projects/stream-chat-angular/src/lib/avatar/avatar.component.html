@@ -5,7 +5,10 @@
   title="{{ name }}"
   [style]="{
     flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-    fontSize: 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 2 + ')',
+    fontSize:
+      initialsType === 'first-letter-of-first-word'
+        ? 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 2 + ')'
+        : 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 3 + ')',
     height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
     lineHeight: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
     width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
@@ -29,7 +32,11 @@
     }"
   />
   <ng-template #fallback>
-    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
+    <div
+      data-testid="fallback-img"
+      style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis"
+      class="str-chat__avatar-fallback"
+    >
       {{ initials }}
     </div>
   </ng-template>

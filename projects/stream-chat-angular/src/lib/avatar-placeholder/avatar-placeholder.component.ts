@@ -45,6 +45,12 @@ export class AvatarPlaceholderComponent {
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */
   @Input() type: AvatarType | undefined;
+  /**
+   * If channel/user image isn't provided the initials of the name of the channel/user is shown instead, you can choose how the initals should be computed
+   */
+  @Input() initialsType:
+    | 'first-letter-of-first-word'
+    | 'first-letter-of-each-word' = 'first-letter-of-first-word';
   constructor(public customTemplatesService: CustomTemplatesService) {}
 
   getAvatarContext(): AvatarContext {
@@ -56,6 +62,7 @@ export class AvatarPlaceholderComponent {
       type: this.type,
       user: this.user,
       channel: this.channel,
+      initialsType: this.initialsType,
     };
   }
 }
