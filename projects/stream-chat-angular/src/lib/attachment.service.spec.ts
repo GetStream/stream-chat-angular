@@ -354,13 +354,19 @@ describe('AttachmentService', () => {
     service.addAttachment(customAttachment);
 
     expect(service.mapToAttachments()).toEqual([
-      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
+      {
+        fallback: 'flower.png',
+        image_url: 'http://url/to/img',
+        type: 'image',
+        mime_type: 'image/png',
+      },
       {
         type: 'video',
         title: 'test.mp4',
         file_size: 22233332,
         asset_url: 'http://url/to/file',
         thumb_url: 'http://url/to/thumb',
+        mime_type: 'video/mp4',
       },
       {
         title: 'note.txt',
@@ -368,6 +374,7 @@ describe('AttachmentService', () => {
         asset_url: 'http://url/to/data',
         type: 'file',
         thumb_url: undefined,
+        mime_type: 'plain/text',
       },
       {
         type: 'video',
@@ -380,12 +387,18 @@ describe('AttachmentService', () => {
 
   it('should create attachmentUploads from attachments', () => {
     const attachments = [
-      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
+      {
+        fallback: 'flower.png',
+        image_url: 'http://url/to/img',
+        type: 'image',
+        mime_type: undefined,
+      },
       {
         title: 'note.txt',
         file_size: 3272969,
         asset_url: 'http://url/to/data',
         type: 'file',
+        mime_type: undefined,
       },
       {
         title: 'cute.mov',
@@ -393,18 +406,28 @@ describe('AttachmentService', () => {
         asset_url: 'http://url/to/video',
         type: 'video',
         thumb_url: 'http://url/to/poster',
+        mime_type: 'video/mov',
       },
       {
         type: 'file',
         asset_url: 'url/to/my/file',
         title: 'my-file.pdf',
+        mime_type: 'application/pdf',
         isCustomAttachment: true,
       },
     ];
-    const imageFile = { name: 'flower.png' };
-    const dataFile = { name: 'note.txt', size: 3272969 };
-    const videoFile = { name: 'cute.mov', size: 45367543 };
-    const customFile = { name: 'my-file.pdf', size: undefined };
+    const imageFile = { name: 'flower.png', type: undefined };
+    const dataFile = { name: 'note.txt', size: 3272969, type: undefined };
+    const videoFile = {
+      name: 'cute.mov',
+      size: 45367543,
+      type: 'video/mov',
+    };
+    const customFile = {
+      name: 'my-file.pdf',
+      size: undefined,
+      type: 'application/pdf',
+    };
     const result = [
       {
         file: imageFile,
@@ -462,6 +485,7 @@ describe('AttachmentService', () => {
       asset_url: 'url/to/my/file',
       file_size: undefined,
       title: 'my-file.pdf',
+      mime_type: undefined,
     };
 
     const spy = jasmine.createSpy();
@@ -476,6 +500,7 @@ describe('AttachmentService', () => {
         file: {
           name: 'my-file.pdf',
           size: undefined,
+          type: undefined,
         } as unknown as File,
         type: 'file',
         fromAttachment: { ...customAttachment, isCustomAttachment: true },

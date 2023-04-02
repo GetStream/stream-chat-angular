@@ -166,6 +166,7 @@ export class AttachmentService<
         if (r.fromAttachment) {
           return r.fromAttachment;
         } else {
+          attachment.mime_type = r.file?.type;
           if (r.type === 'image') {
             attachment.fallback = r.file?.name;
             attachment.image_url = r.url;
@@ -197,6 +198,7 @@ export class AttachmentService<
           type: 'image',
           file: {
             name: attachment.fallback,
+            type: attachment.mime_type,
           } as File,
           fromAttachment: attachment,
         });
@@ -207,6 +209,7 @@ export class AttachmentService<
           file: {
             name: attachment.title,
             size: attachment.file_size,
+            type: attachment.mime_type,
           } as File,
           type: attachment.type,
           thumb_url: attachment.thumb_url,
