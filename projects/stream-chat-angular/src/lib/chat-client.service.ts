@@ -6,6 +6,7 @@ import {
   ChannelResponse,
   ConnectAPIResponse,
   OwnUserResponse,
+  StreamChatOptions,
   UserFilters,
   UserResponse,
 } from 'stream-chat';
@@ -84,13 +85,15 @@ export class ChatClientService<
    * @param apiKey
    * @param userOrId
    * @param userTokenOrProvider You can provide a token, or the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users)
+   * @param clientOptions Setting to provide to the Stream client instance
    */
   async init(
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T>,
-    userTokenOrProvider: TokenOrProvider | 'guest'
+    userTokenOrProvider: TokenOrProvider | 'guest',
+    clientOptions?: StreamChatOptions
   ): ConnectAPIResponse<T> {
-    this.chatClient = StreamChat.getInstance<T>(apiKey);
+    this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
     this.chatClient.devToken;
     let result;
     await this.ngZone.runOutsideAngular(async () => {
