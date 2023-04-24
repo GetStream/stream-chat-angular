@@ -33,7 +33,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, userToken);
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -51,7 +51,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, 'guest');
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -122,6 +122,17 @@ describe('ChatClientService', () => {
     await service.init(apiKey, user, userToken);
 
     expect(mockChatClient.connectUser).toHaveBeenCalledWith(user, userToken);
+  });
+
+  it('should init with options', async () => {
+    const user = {
+      id: userId,
+      name: 'Test user',
+    } as OwnUserResponse<DefaultStreamChatGenerics>;
+    const options = { timeout: 5000 };
+    await service.init(apiKey, user, userToken, options);
+
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options as any);
   });
 
   it('should init with token provider', async () => {
