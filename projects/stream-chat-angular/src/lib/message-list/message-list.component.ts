@@ -52,6 +52,10 @@ export class MessageListComponent
   @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
     'message-row';
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
+  /**
+   * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar](https://github.com/GetStream/stream-chat-angular/issues/418)
+   */
+  @Input() hideJumpToLatestButtonDuringScroll = false;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
@@ -64,6 +68,8 @@ export class MessageListComponent
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
   isLoading = false;
+  isScrollInProgress = false;
+  scrollEndTimeout: any;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -228,6 +234,9 @@ export class MessageListComponent
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.newMessageSubscription?.unsubscribe();
+    if (this.scrollEndTimeout) {
+      clearTimeout(this.scrollEndTimeout);
+    }
   }
 
   trackByMessageId(index: number, item: StreamMessage) {
@@ -255,6 +264,13 @@ export class MessageListComponent
   }
 
   scrolled() {
+    this.isScrollInProgress = true;
+    if (this.scrollEndTimeout) {
+      clearTimeout(this.scrollEndTimeout);
+    }
+    this.scrollEndTimeout = setTimeout(() => {
+      this.isScrollInProgress = false;
+    }, 100);
     if (
       this.scrollContainer.nativeElement.scrollHeight ===
       this.scrollContainer.nativeElement.clientHeight
