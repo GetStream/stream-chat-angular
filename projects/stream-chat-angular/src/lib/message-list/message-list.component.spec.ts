@@ -583,6 +583,8 @@ describe('MessageListComponent', () => {
         'latest',
         undefined
       );
+
+      component.ngOnDestroy();
     }));
   });
 
