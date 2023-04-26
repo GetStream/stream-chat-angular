@@ -304,3 +304,7 @@ export type CustomAttachmentUploadContext = {
   isMultipleFileUploadEnabled: boolean | undefined;
   attachmentService: AttachmentService;
 };
+
+export type AttachmentContext = {
+  attachment: Attachment<DefaultStreamChatGenerics>;
+};

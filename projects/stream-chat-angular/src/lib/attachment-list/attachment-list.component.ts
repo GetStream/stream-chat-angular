@@ -4,6 +4,8 @@ import {
   HostBinding,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -16,6 +18,7 @@ import {
   AttachmentConfigration,
   VideoAttachmentConfiguration,
   ImageAttachmentConfiguration,
+  AttachmentContext,
 } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
@@ -23,6 +26,7 @@ import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { ThemeService } from '../theme.service';
+import { Subscription } from 'rxjs';
 
 /**
  * The `AttachmentList` component displays the attachments of a message
@@ -32,7 +36,7 @@ import { ThemeService } from '../theme.service';
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
-export class AttachmentListComponent implements OnChanges {
+export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   /**
    * The id of the message the attachments belong to
    */
@@ -56,6 +60,12 @@ export class AttachmentListComponent implements OnChanges {
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
   themeVersion: '1' | '2';
+  imageAttachmentTemplate?: TemplateRef<AttachmentContext>;
+  videoAttachmentTemplate?: TemplateRef<AttachmentContext>;
+  galleryAttachmentTemplate?: TemplateRef<AttachmentContext>;
+  fileAttachmentTemplate?: TemplateRef<AttachmentContext>;
+  cardAttachmentTemplate?: TemplateRef<AttachmentContext>;
+  attachmentActionsTemplate?: TemplateRef<AttachmentContext>;
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
@@ -64,6 +74,7 @@ export class AttachmentListComponent implements OnChanges {
     | VideoAttachmentConfiguration
     | ImageAttachmentConfiguration
   > = new Map();
+  private subscriptions: Subscription[] = [];
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
@@ -72,6 +83,38 @@ export class AttachmentListComponent implements OnChanges {
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
+  }
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.imageAttachmentTemplate$.subscribe(
+        (t) => (this.imageAttachmentTemplate = t)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.galleryAttachmentTemplate$.subscribe(
+        (t) => (this.galleryAttachmentTemplate = t)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.videoAttachmentTemplate$.subscribe(
+        (t) => (this.videoAttachmentTemplate = t)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.fileAttachmentTemplate$.subscribe(
+        (t) => (this.fileAttachmentTemplate = t)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.cardAttachmentTemplate$.subscribe(
+        (t) => (this.cardAttachmentTemplate = t)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.attachmentActionsTemplate$.subscribe(
+        (t) => (this.attachmentActionsTemplate = t)
+      )
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -92,6 +135,10 @@ export class AttachmentListComponent implements OnChanges {
         );
       }
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   trackByUrl(_: number, attachment: Attachment) {
@@ -191,6 +238,12 @@ export class AttachmentListComponent implements OnChanges {
 
   trackByImageUrl(_: number, item: Attachment) {
     return item.image_url || item.img_url || item.thumb_url;
+  }
+
+  getAttachmentContext(
+    attachment: Attachment<DefaultStreamChatGenerics>
+  ): AttachmentContext {
+    return { attachment };
   }
 
   getImageAttachmentConfiguration(

@@ -1,6 +1,7 @@
 import { Injectable, TemplateRef } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import {
+  AttachmentContext,
   AttachmentListContext,
   AttachmentPreviewListContext,
   AvatarContext,
@@ -234,6 +235,42 @@ export class CustomTemplatesService {
    */
   customAttachmentUploadTemplate$ = new BehaviorSubject<
     TemplateRef<CustomAttachmentUploadContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how a single image attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  imageAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how a video attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  videoAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how image gallery is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  galleryAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how a file attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  fileAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how a card attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  cardAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template that can be used to override how attachment actions are displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+   */
+  attachmentActionsTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
   >(undefined);
 
   constructor() {}
