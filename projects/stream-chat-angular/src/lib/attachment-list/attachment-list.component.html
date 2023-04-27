@@ -16,210 +16,274 @@
       "
       [class.str-chat__message-attachment--svg-image]="isSvg(attachment)"
     >
-      <img
-        #imgElement
-        *ngIf="isImage(attachment)"
-        class="str-chat__message-attachment--img"
-        data-testclass="image"
-        [src]="
-          getImageAttachmentConfiguration(attachment, 'single', imgElement).url
-        "
-        [alt]="attachment?.fallback"
-        (click)="openImageModal([attachment])"
-        (keyup.enter)="openImageModal([attachment])"
-        [style.--original-height]="
-          getImageAttachmentConfiguration(attachment, 'single', imgElement)
-            .originalHeight
-        "
-        [style.--original-width]="
-          getImageAttachmentConfiguration(attachment, 'single', imgElement)
-            .originalWidth
-        "
-        [ngStyle]="{
-          height: getImageAttachmentConfiguration(
-            attachment,
-            'single',
-            imgElement
-          ).height,
-          width: getImageAttachmentConfiguration(
-            attachment,
-            'single',
-            imgElement
-          ).width
-        }"
-      />
-      <div
-        class="str-chat__gallery"
-        data-testid="image-gallery"
-        *ngIf="isGallery(attachment)"
-        [class.str-chat__gallery--square]="(attachment?.images)!.length > 3"
-        [class.str-chat__gallery-two-rows]="(attachment?.images)!.length > 2"
-      >
+      <ng-container *ngIf="isImage(attachment)">
         <ng-container
-          *ngFor="
-            let galleryImage of attachment.images;
-            let index = index;
-            let isLast = last;
-            trackBy: trackByImageUrl
+          *ngTemplateOutlet="
+            imageAttachmentTemplate || defaultImage;
+            context: getAttachmentContext(attachment)
           "
-        >
-          <button
-            *ngIf="index < 3 || (index === 3 && isLast)"
-            class="str-chat__gallery-image"
-            data-testclass="gallery-image"
-            (click)="openImageModal(attachment.images!, index)"
-            (keyup.enter)="openImageModal(attachment.images!, index)"
-            [class.str-chat__message-attachment--svg-image]="
-              isSvg(galleryImage)
+        ></ng-container>
+        <ng-template #defaultImage let-attachmentContext="attachment">
+          <img
+            #imgElement
+            class="str-chat__message-attachment--img"
+            data-testclass="image"
+            [src]="
+              getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).url
+            "
+            [alt]="attachmentContext?.fallback"
+            (click)="openImageModal([attachmentContext])"
+            (keyup.enter)="openImageModal([attachmentContext])"
+            [style.--original-height]="
+              getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).originalHeight
+            "
+            [style.--original-width]="
+              getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).originalWidth
+            "
+            [ngStyle]="{
+              height: getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).height,
+              width: getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).width
+            }"
+          />
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="isGallery(attachment)">
+        <ng-container
+          *ngTemplateOutlet="
+            galleryAttachmentTemplate || defaultGallery;
+            context: getAttachmentContext(attachment)
+          "
+        ></ng-container>
+        <ng-template #defaultGallery let-attachmentContext="attachment">
+          <div
+            class="str-chat__gallery"
+            data-testid="image-gallery"
+            [class.str-chat__gallery--square]="
+              (attachmentContext?.images)!.length > 3
+            "
+            [class.str-chat__gallery-two-rows]="
+              (attachmentContext?.images)!.length > 2
             "
           >
-            <img
-              #imgElement
-              [src]="
-                getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  imgElement
-                ).url
+            <ng-container
+              *ngFor="
+                let galleryImage of attachmentContext.images;
+                let index = index;
+                let isLast = last;
+                trackBy: trackByImageUrl
               "
-              [alt]="galleryImage.fallback"
-              [style.--original-height]="
-                getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  imgElement
-                ).originalHeight
-              "
-              [style.--original-width]="
-                getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  imgElement
-                ).originalWidth
-              "
-              [ngStyle]="{
-                height: getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  imgElement
-                ).height,
-                width: getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  imgElement
-                ).width
-              }"
-            />
-          </button>
-          <button
-            #element
-            *ngIf="index === 3 && !isLast"
-            class="str-chat__gallery-placeholder"
-            data-testclass="gallery-image"
-            data-testid="more-image-button"
-            (click)="openImageModal(attachment.images!, index)"
-            (keyup.enter)="openImageModal(attachment.images!, index)"
-            [class.str-chat__message-attachment--svg-image]="
-              isSvg(galleryImage)
-            "
+            >
+              <button
+                *ngIf="index < 3 || (index === 3 && isLast)"
+                class="str-chat__gallery-image"
+                data-testclass="gallery-image"
+                (click)="openImageModal(attachmentContext.images!, index)"
+                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
+                [class.str-chat__message-attachment--svg-image]="
+                  isSvg(galleryImage)
+                "
+              >
+                <img
+                  #imgElement
+                  [src]="
+                    getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).url
+                  "
+                  [alt]="galleryImage.fallback"
+                  [style.--original-height]="
+                    getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).originalHeight
+                  "
+                  [style.--original-width]="
+                    getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).originalWidth
+                  "
+                  [ngStyle]="{
+                    height: getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).height,
+                    width: getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).width
+                  }"
+                />
+              </button>
+              <button
+                #element
+                *ngIf="index === 3 && !isLast"
+                class="str-chat__gallery-placeholder"
+                data-testclass="gallery-image"
+                data-testid="more-image-button"
+                (click)="openImageModal(attachmentContext.images!, index)"
+                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
+                [class.str-chat__message-attachment--svg-image]="
+                  isSvg(galleryImage)
+                "
+                [style.--original-height]="
+                  getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).originalHeight
+                "
+                [style.--original-width]="
+                  getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).originalWidth
+                "
+                [ngStyle]="{
+                  'background-image':
+                    'url(' +
+                    getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      element
+                    ).url +
+                    ')',
+                  height: getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).height,
+                  width: getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).width
+                }"
+              >
+                <p
+                  [innerHTML]="
+                    'streamChat.{{ imageCount }} more'
+                      | translate
+                        : { imageCount: attachmentContext!.images!.length - 4 }
+                  "
+                ></p>
+              </button>
+            </ng-container>
+          </div>
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="isVideo(attachment)">
+        <ng-container
+          *ngTemplateOutlet="
+            videoAttachmentTemplate || defaultVideo;
+            context: getAttachmentContext(attachment)
+          "
+        ></ng-container>
+        <ng-template #defaultVideo let-attachmentContext="attachment">
+          <div
+            class="str-chat__player-wrapper"
+            data-testclass="video-attachment-parent"
             [style.--original-height]="
-              getImageAttachmentConfiguration(galleryImage, 'gallery', element)
+              getVideoAttachmentConfiguration(attachmentContext, videoElement)
                 .originalHeight
             "
             [style.--original-width]="
-              getImageAttachmentConfiguration(galleryImage, 'gallery', element)
+              getVideoAttachmentConfiguration(attachmentContext, videoElement)
                 .originalWidth
             "
             [ngStyle]="{
-              'background-image':
-                'url(' +
-                getImageAttachmentConfiguration(
-                  galleryImage,
-                  'gallery',
-                  element
-                ).url +
-                ')',
-              height: getImageAttachmentConfiguration(
-                galleryImage,
-                'gallery',
-                element
+              height: getVideoAttachmentConfiguration(
+                attachmentContext,
+                videoElement
               ).height,
-              width: getImageAttachmentConfiguration(
-                galleryImage,
-                'gallery',
-                element
+              width: getVideoAttachmentConfiguration(
+                attachmentContext,
+                videoElement
               ).width
             }"
           >
-            <p
-              [innerHTML]="
-                'streamChat.{{ imageCount }} more'
-                  | translate: { imageCount: attachment!.images!.length - 4 }
+            <video
+              #videoElement
+              class="str-chat__video-angular"
+              controls
+              data-testclass="video-attachment"
+              [src]="
+                getVideoAttachmentConfiguration(attachmentContext, videoElement)
+                  .url
               "
-            ></p>
-          </button>
-        </ng-container>
-      </div>
-      <div
-        class="str-chat__player-wrapper"
-        *ngIf="isVideo(attachment)"
-        data-testclass="video-attachment-parent"
-        [style.--original-height]="
-          getVideoAttachmentConfiguration(attachment, videoElement)
-            .originalHeight
-        "
-        [style.--original-width]="
-          getVideoAttachmentConfiguration(attachment, videoElement)
-            .originalWidth
-        "
-        [ngStyle]="{
-          height: getVideoAttachmentConfiguration(attachment, videoElement)
-            .height,
-          width: getVideoAttachmentConfiguration(attachment, videoElement).width
-        }"
-      >
-        <video
-          #videoElement
-          class="str-chat__video-angular"
-          controls
-          data-testclass="video-attachment"
-          [src]="getVideoAttachmentConfiguration(attachment, videoElement).url"
-          [poster]="
-            getVideoAttachmentConfiguration(attachment, videoElement).thumbUrl
+              [poster]="
+                getVideoAttachmentConfiguration(attachmentContext, videoElement)
+                  .thumbUrl
+              "
+            ></video>
+          </div>
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="isFile(attachment)">
+        <ng-container
+          *ngTemplateOutlet="
+            fileAttachmentTemplate || defaultFile;
+            context: getAttachmentContext(attachment)
           "
-        ></video>
-      </div>
-      <a
-        *ngIf="isFile(attachment)"
-        class="
-          str-chat__message-attachment-file--item
-          str-chat-angular__message-attachment-file-single
-        "
-        style="cursor: pointer; text-decoration: none"
-        data-testclass="file-link"
-        href="{{ attachment.asset_url }}"
-        target="_blank"
-      >
-        <stream-icon-placeholder
-          *ngIf="themeVersion === '1'"
-          icon="file"
-          [size]="30"
-        ></stream-icon-placeholder>
-        <stream-icon-placeholder
-          *ngIf="themeVersion === '2'"
-          icon="unspecified-filetype"
-          [size]="30"
-        ></stream-icon-placeholder>
-        <div class="str-chat__message-attachment-file--item-text">
-          <div class="str-chat__message-attachment-file--item-first-row">
-            <div
-              data-testclass="file-title"
-              class="str-chat__message-attachment-file--item-name"
-            >
-              {{ attachment.title }}
-            </div>
-            <!-- Temporary disabled, will be fixed with this: https://github.com/GetStream/stream-chat-angular/issues/393  -->
-            <!-- <a
+        ></ng-container>
+        <ng-template #defaultFile let-attachmentContext="attachment">
+          <a
+            class="
+              str-chat__message-attachment-file--item
+              str-chat-angular__message-attachment-file-single
+            "
+            style="cursor: pointer; text-decoration: none"
+            data-testclass="file-link"
+            href="{{ attachmentContext.asset_url }}"
+            target="_blank"
+          >
+            <stream-icon-placeholder
+              *ngIf="themeVersion === '1'"
+              icon="file"
+              [size]="30"
+            ></stream-icon-placeholder>
+            <stream-icon-placeholder
+              *ngIf="themeVersion === '2'"
+              icon="unspecified-filetype"
+              [size]="30"
+            ></stream-icon-placeholder>
+            <div class="str-chat__message-attachment-file--item-text">
+              <div class="str-chat__message-attachment-file--item-first-row">
+                <div
+                  data-testclass="file-title"
+                  class="str-chat__message-attachment-file--item-name"
+                >
+                  {{ attachmentContext.title }}
+                </div>
+                <!-- Temporary disabled, will be fixed with this: https://github.com/GetStream/stream-chat-angular/issues/393  -->
+                <!-- <a
               class="str-chat__message-attachment-file--item-download"
               data-testclass="file-link"
               download
@@ -231,89 +295,120 @@
                 icon="download"
               ></stream-icon-placeholder>
             </a> -->
-          </div>
-          <span
-            class="str-chat__message-attachment-file--item-size"
-            data-testclass="size"
-            *ngIf="hasFileSize(attachment)"
-            >{{ getFileSize(attachment) }}</span
-          >
-        </div>
-      </a>
-      <div
+              </div>
+              <span
+                class="str-chat__message-attachment-file--item-size"
+                data-testclass="size"
+                *ngIf="hasFileSize(attachmentContext)"
+                >{{ getFileSize(attachmentContext) }}</span
+              >
+            </div>
+          </a>
+        </ng-template>
+      </ng-container>
+      <ng-container
         *ngIf="
           isCard(attachment) &&
           getCardAttachmentConfiguration(attachment) as attachmentConfiguration
         "
-        class="str-chat__message-attachment-card str-chat__message-attachment-card--{{
-          attachment.type
-        }}"
       >
-        <div
-          *ngIf="attachmentConfiguration.url"
-          class="str-chat__message-attachment-card--header"
-        >
-          <img
-            data-testclass="card-img"
-            alt="{{ attachmentConfiguration.url }}"
-            src="{{ attachmentConfiguration.url }}"
-            [ngStyle]="{
-              height: attachmentConfiguration.height,
-              width: attachmentConfiguration.width
-            }"
-          />
-        </div>
-        <div class="str-chat__message-attachment-card--content">
-          <div class="str-chat__message-attachment-card--flex">
-            <div
-              *ngIf="attachment.title"
-              data-testclass="card-title"
-              class="str-chat__message-attachment-card--title"
-            >
-              {{ attachment.title }}
-            </div>
-            <div
-              *ngIf="attachment.text"
-              class="str-chat__message-attachment-card--text"
-              data-testclass="card-text"
-            >
-              {{ attachment.text }}
-            </div>
-            <a
-              class="str-chat__message-attachment-card--url"
-              *ngIf="attachment.title_link || attachment.og_scrape_url"
-              data-testclass="url-link"
-              noopener
-              noreferrer
-              href="{{ attachment.title_link || attachment.og_scrape_url }}"
-              target="_blank"
-            >
-              {{ trimUrl(attachment.title_link || attachment.og_scrape_url) }}
-            </a>
-          </div>
-        </div>
-      </div>
-      <div
-        class="str-chat__message-attachment-actions"
-        *ngIf="attachment.actions && attachment.actions.length > 0"
-      >
-        <div class="str-chat__message-attachment-actions-form">
-          <button
-            *ngFor="
-              let action of attachment.actions;
-              trackBy: trackByActionValue
-            "
-            class="str-chat__message-attachment-actions-button str-chat__message-attachment-actions-button--{{
-              action.style
+        <ng-container
+          *ngTemplateOutlet="
+            cardAttachmentTemplate || defaultCard;
+            context: getAttachmentContext(attachment)
+          "
+        ></ng-container>
+        <ng-template #defaultCard let-attachmentContext="attachment">
+          <div
+            class="str-chat__message-attachment-card str-chat__message-attachment-card--{{
+              attachmentContext.type
             }}"
-            data-testclass="attachment-action"
-            (click)="sendAction(action)"
-            (keyup.enter)="sendAction(action)"
           >
-            {{ action.text }}
-          </button>
-        </div>
-      </div>
+            <div
+              *ngIf="attachmentConfiguration.url"
+              class="str-chat__message-attachment-card--header"
+            >
+              <img
+                data-testclass="card-img"
+                alt="{{ attachmentConfiguration.url }}"
+                src="{{ attachmentConfiguration.url }}"
+                [ngStyle]="{
+                  height: attachmentConfiguration.height,
+                  width: attachmentConfiguration.width
+                }"
+              />
+            </div>
+            <div class="str-chat__message-attachment-card--content">
+              <div class="str-chat__message-attachment-card--flex">
+                <div
+                  *ngIf="attachmentContext.title"
+                  data-testclass="card-title"
+                  class="str-chat__message-attachment-card--title"
+                >
+                  {{ attachmentContext.title }}
+                </div>
+                <div
+                  *ngIf="attachmentContext.text"
+                  class="str-chat__message-attachment-card--text"
+                  data-testclass="card-text"
+                >
+                  {{ attachmentContext.text }}
+                </div>
+                <a
+                  class="str-chat__message-attachment-card--url"
+                  *ngIf="
+                    attachmentContext.title_link ||
+                    attachmentContext.og_scrape_url
+                  "
+                  data-testclass="url-link"
+                  noopener
+                  noreferrer
+                  href="{{
+                    attachmentContext.title_link ||
+                      attachmentContext.og_scrape_url
+                  }}"
+                  target="_blank"
+                >
+                  {{
+                    trimUrl(
+                      attachmentContext.title_link ||
+                        attachmentContext.og_scrape_url
+                    )
+                  }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="attachment.actions && attachment.actions.length > 0">
+        <ng-container
+          *ngTemplateOutlet="
+            attachmentActionsTemplate || defaultActions;
+            context: getAttachmentContext(attachment)
+          "
+        ></ng-container>
+        <ng-template #defaultActions let-attachmentContext="attachment">
+          <div class="str-chat__message-attachment-actions">
+            <div class="str-chat__message-attachment-actions-form">
+              <button
+                *ngFor="
+                  let action of attachmentContext.actions;
+                  trackBy: trackByActionValue
+                "
+                class="str-chat__message-attachment-actions-button str-chat__message-attachment-actions-button--{{
+                  action.style
+                }}"
+                data-testclass="attachment-action"
+                (click)="sendAction(action)"
+                (keyup.enter)="sendAction(action)"
+              >
+                {{ action.text }}
+              </button>
+            </div>
+          </div>
+        </ng-template>
+      </ng-container>
     </div>
   </ng-container>
 

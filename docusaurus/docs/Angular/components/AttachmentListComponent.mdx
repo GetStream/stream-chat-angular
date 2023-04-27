@@ -44,6 +44,15 @@ You can use the [`AttachmentConfigurationService`](../services/AttachmentConfigu
 
 You can provide your own attachment list component by the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx)
 
+You can override attachment display by attachment types, here are the available options for this:
+
+- [Single image](../services/CustomTemplatesService.mdx/#imageattachmenttemplate): this template is used if a message has only one image attachment. Please note that your template is responsible for proper image sizing (see below).
+- [Gallery image](../services/CustomTemplatesService.mdx/#galleryattachmenttemplate): this template is used if a message has multiple image attachments, the template will receive all image attachments. Please note that your template is responsible for proper image sizing (see below).
+- [Video attachment](../services/CustomTemplatesService.mdx/#videoattachmenttemplate): this template is used to display video attachments. Please note that your template is responsible for proper image sizing (see below).
+- [File attachment](../services/CustomTemplatesService.mdx/#fileattachmenttemplate): this template is used to display file type attachments
+- [Card attachment](../services/CustomTemplatesService.mdx/#cardattachmenttemplate): this template is used to display GIFs or open graph URL data
+- [Attachment actions](../services/CustomTemplatesService.mdx/#attachmentactionstemplate): this template is used to display attachment actions
+
 ### Image and video sizing
 
 The following section details how the width and height of images and videos uploaded from files are computed.
