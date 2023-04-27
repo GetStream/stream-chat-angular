@@ -14,7 +14,11 @@
     "
     class="str-chat__channel-list-messenger"
   >
-    <div class="str-chat__channel-list-messenger__main">
+    <div
+      class="str-chat__channel-list-messenger__main"
+      style="display: flex; flex-direction: column"
+    >
+      <ng-content select="[channel-list-top]"></ng-content>
       <div
         class="str-chat__channel-list-empty"
         *ngIf="!(channels$ | async)?.length"
@@ -31,7 +35,6 @@
       >
         {{ "streamChat.You have no channels currently" | translate }}
       </p>
-      <ng-content select="[channel-list-top]"></ng-content>
       <ng-container
         *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
       >
