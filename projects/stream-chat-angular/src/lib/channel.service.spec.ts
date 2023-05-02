@@ -706,9 +706,11 @@ describe('ChannelService', () => {
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
-    expect(channels.find((c) => c.cid === channel.cid)!.data!.name).toBe(
-      'New name'
-    );
+    const updatedChannel = channels.find((c) => c.cid === channel.cid);
+
+    expect(updatedChannel!.data!.name).toBe('New name');
+    expect(updatedChannel!.data!.own_capabilities).toBeDefined();
+    expect(updatedChannel!.data!.hidden).toBeDefined();
   });
 
   it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {

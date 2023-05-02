@@ -1413,11 +1413,17 @@ export class ChannelService<
       (c) => c.cid === event.channel!.cid
     );
     if (channelIndex !== -1) {
-      this.channels[channelIndex].data = event.channel;
+      const channel = this.channels[channelIndex];
+      const notIncludedProperies = {
+        hidden: channel.data?.hidden || false,
+        own_capabilities: channel.data?.own_capabilities || [],
+      };
+      channel.data = {
+        ...event.channel!,
+        ...notIncludedProperies,
+      };
       this.channelsSubject.next([...this.channels]);
       if (event.channel?.cid === this.activeChannelSubject.getValue()?.cid) {
-        const channel = this.activeChannelSubject.getValue()!;
-        channel.data = event.channel;
         this.activeChannelSubject.next(channel);
       }
     }
