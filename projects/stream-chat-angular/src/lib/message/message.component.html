@@ -64,7 +64,7 @@
                 let-isMine="isMine"
                 let-enabledActions="enabledActions"
                 let-messageInput="message"
-                let-displayedActionsCountChaneHanler="displayedActionsCountChaneHanler"
+                let-displayedActionsCountChangeHandler="displayedActionsCountChangeHandler"
                 let-isEditingChangeHandler="isEditingChangeHandler"
               >
                 <stream-message-actions-box
@@ -73,7 +73,7 @@
                   [enabledActions]="enabledActions"
                   [message]="messageInput"
                   (displayedActionsCount)="
-                    displayedActionsCountChaneHanler($event)
+                    displayedActionsCountChangeHandler($event)
                   "
                   (isEditing)="isEditingChangeHandler($event)"
                 ></stream-message-actions-box>
