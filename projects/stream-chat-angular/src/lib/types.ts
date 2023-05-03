@@ -214,7 +214,11 @@ export type MessageActionsBoxContext = {
   isMine: boolean;
   message: StreamMessage | undefined;
   enabledActions: string[];
+  /**
+   * @deprecated because the name contains typos, use the `displayedActionsCountChangeHandler` instead
+   */
   displayedActionsCountChaneHanler: (count: number) => any;
+  displayedActionsCountChangeHandler: (count: number) => any;
   isEditingChangeHandler: (isEditing: boolean) => any;
 };
 

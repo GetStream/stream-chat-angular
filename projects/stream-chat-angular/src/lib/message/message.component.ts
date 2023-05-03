@@ -310,6 +310,11 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         // message action box changes UI bindings in parent, so we'll have to rerun change detection
         this.cdRef.detectChanges();
       },
+      displayedActionsCountChangeHandler: (count) => {
+        this.visibleMessageActionsCount = count;
+        // message action box changes UI bindings in parent, so we'll have to rerun change detection
+        this.cdRef.detectChanges();
+      },
       isEditingChangeHandler: (isEditing) => {
         this.isEditing = isEditing;
         this.isActionBoxOpen = !this.isEditing;
