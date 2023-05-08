@@ -20,6 +20,7 @@ import {
   DefaultStreamChatGenerics,
   StreamMessage,
   TypingIndicatorContext,
+  CustomMessageActionItem,
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
@@ -56,6 +57,10 @@ export class MessageListComponent
    * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar](https://github.com/GetStream/stream-chat-angular/issues/418)
    */
   @Input() hideJumpToLatestButtonDuringScroll = false;
+  /**
+   * A list of custom message actions to be displayed in the message action box
+   */
+  @Input() customMessageActions: CustomMessageActionItem<any>[] = [];
   messageTemplate: TemplateRef<MessageContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
@@ -317,6 +322,7 @@ export class MessageListComponent
       enabledMessageActions: this.enabledMessageActions,
       mode: this.mode,
       isHighlighted: message?.id === this.highlightedMessageId,
+      customActions: this.customMessageActions || [],
     };
   }
 

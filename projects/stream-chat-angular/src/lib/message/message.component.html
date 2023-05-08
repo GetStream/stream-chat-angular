@@ -66,12 +66,14 @@
                 let-messageInput="message"
                 let-displayedActionsCountChangeHandler="displayedActionsCountChangeHandler"
                 let-isEditingChangeHandler="isEditingChangeHandler"
+                let-customActions="customActions"
               >
                 <stream-message-actions-box
                   [isOpen]="isOpen"
                   [isMine]="isMine"
                   [enabledActions]="enabledActions"
                   [message]="messageInput"
+                  [customActions]="customActions"
                   (displayedActionsCount)="
                     displayedActionsCountChangeHandler($event)
                   "

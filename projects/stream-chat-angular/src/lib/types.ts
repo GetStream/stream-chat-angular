@@ -157,6 +157,7 @@ export type MessageContext = {
   isLastSentMessage: boolean | undefined;
   mode: 'thread' | 'main';
   isHighlighted: boolean;
+  customActions: CustomMessageActionItem[];
 };
 
 export type ChannelActionsContext<
@@ -214,6 +215,7 @@ export type MessageActionsBoxContext = {
   isMine: boolean;
   message: StreamMessage | undefined;
   enabledActions: string[];
+  customActions: CustomMessageActionItem[];
   /**
    * @deprecated because the name contains typos, use the `displayedActionsCountChangeHandler` instead
    */
@@ -222,21 +224,36 @@ export type MessageActionsBoxContext = {
   isEditingChangeHandler: (isEditing: boolean) => any;
 };
 
-export type MessageActionBoxItemContext = {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
-  actionLabelOrTranslationKey: (() => string) | string;
+export type MessageActionBoxItemContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | string;
+  actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   actionHandler: () => any;
 };
 
-export type MessageActionItem = {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
-  actionLabelOrTranslationKey: (() => string) | string;
+type MessageActionItemBase<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage
+    message: StreamMessage<T>
   ) => boolean;
-  actionHandler: (message: StreamMessage, isMine: boolean) => any;
+  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
+};
+
+export type MessageActionItem<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = MessageActionItemBase<T> & {
+  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
+};
+
+export type CustomMessageActionItem<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = MessageActionItemBase<T> & {
+  actionName: string;
 };
 
 export type MessageReactionsContext = {

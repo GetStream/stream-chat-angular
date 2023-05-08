@@ -15,6 +15,7 @@ import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { NotificationService } from '../notification.service';
 import {
+  CustomMessageActionItem,
   MessageActionBoxItemContext,
   MessageActionItem,
   MessageInputContext,
@@ -48,6 +49,10 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
    */
   @Input() enabledActions: string[] = [];
   /**
+   * A list of custom message actions to be displayed in the action box
+   */
+  @Input() customActions: CustomMessageActionItem[] = [];
+  /**
    * The number of authorized actions (it can be less or equal than the number of enabled actions)
    */
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
@@ -62,7 +67,8 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
     | undefined;
   modalTemplate: TemplateRef<ModalContext> | undefined;
   subscriptions: Subscription[] = [];
-  visibleMessageActionItems: MessageActionItem[] = [];
+  visibleMessageActionItems: (MessageActionItem | CustomMessageActionItem)[] =
+    [];
   sendMessage$: Observable<void>;
   private readonly messageActionItems: MessageActionItem[];
   @ViewChild('modalContent', { static: true })
@@ -100,8 +106,8 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
       },
       {
         actionName: 'pin',
-        actionLabelOrTranslationKey: () =>
-          this.message?.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
+        actionLabelOrTranslationKey: (message: StreamMessage) =>
+          message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
         actionHandler: (message: StreamMessage) =>
           message.pinned
             ? this.channelService.unpinMessage(message)
@@ -163,8 +169,16 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.isMine || changes.enabledActions || changes.message) {
-      this.visibleMessageActionItems = this.messageActionItems.filter((item) =>
+    if (
+      changes.isMine ||
+      changes.enabledActions ||
+      changes.message ||
+      changes.customActions
+    ) {
+      this.visibleMessageActionItems = [
+        ...this.messageActionItems,
+        ...this.customActions,
+      ].filter((item) =>
         item.isVisible(this.enabledActions, this.isMine, this.message!)
       );
       this.displayedActionsCount.emit(this.visibleMessageActionItems.length);
@@ -175,10 +189,12 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  getActionLabel(actionLabelOrTranslationKey: (() => string) | string) {
+  getActionLabel(
+    actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string
+  ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey
-      : actionLabelOrTranslationKey();
+      : actionLabelOrTranslationKey(this.message!);
   }
 
   sendClicked() {
@@ -216,7 +232,10 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
     };
   }
 
-  trackByActionName(_: number, item: MessageActionItem) {
+  trackByActionName(
+    _: number,
+    item: MessageActionItem | CustomMessageActionItem
+  ) {
     return item.actionName;
   }
 }

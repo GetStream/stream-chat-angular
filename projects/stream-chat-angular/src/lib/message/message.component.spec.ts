@@ -553,6 +553,21 @@ describe('MessageComponent', () => {
     expect(messageActionsBoxComponent.message).toBe(message);
   });
 
+  it('should provide #customActions to message actions box', () => {
+    const customActions = [
+      {
+        actionName: 'forward',
+        isVisible: () => true,
+        actionHandler: () => {},
+        actionLabelOrTranslationKey: 'Forward',
+      },
+    ];
+    component.customActions = customActions;
+    fixture.detectChanges();
+
+    expect(messageActionsBoxComponent.customActions).toBe(customActions);
+  });
+
   it('should display attachment if message has attachment', () => {
     expect(
       queryContainer()?.classList.contains('str-chat__message--has-attachment')
