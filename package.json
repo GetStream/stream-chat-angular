@@ -52,11 +52,7 @@
         "prerelease": true
       },
       {
-        "name": "test",
-        "prerelease": true
-      },
-      {
-        "name": "theming-v2",
+        "name": "angular-v16-support",
         "prerelease": true
       }
     ],
