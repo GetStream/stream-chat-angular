@@ -106,6 +106,15 @@ describe('MessageListComponent', () => {
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     component.highlightedMessageId = messages[0].id;
     channelServiceMock.activeChannelMessages$.next([...messages]);
+    const customActions = [
+      {
+        actionName: 'forward',
+        isVisible: () => true,
+        actionHandler: () => {},
+        actionLabelOrTranslationKey: 'Forward',
+      },
+    ];
+    component.customMessageActions = customActions;
     fixture.detectChanges();
     const messagesComponents = queryMessageComponents();
     const messageElements = queryMessages();
@@ -126,6 +135,7 @@ describe('MessageListComponent', () => {
       );
 
       expect(messageElements[i].id).toBe(messages[i].id);
+      expect(m.customActions).toBe(customActions);
     });
   });
 

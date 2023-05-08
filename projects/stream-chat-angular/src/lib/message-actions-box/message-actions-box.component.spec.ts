@@ -520,4 +520,17 @@ describe('MessageActionsBoxComponent', () => {
       'streamChat.Error deleting message'
     );
   }));
+
+  it('should display custom message actions', () => {
+    const customAction = {
+      actionName: 'forward',
+      isVisible: () => true,
+      actionHandler: () => {},
+      actionLabelOrTranslationKey: 'Forward',
+    };
+    component.customActions = [customAction];
+    component.ngOnChanges({ customActions: {} as SimpleChange });
+
+    expect(component.visibleMessageActionItems).toContain(customAction);
+  });
 });

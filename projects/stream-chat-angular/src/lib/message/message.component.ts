@@ -23,6 +23,7 @@ import {
   DeliveredStatusContext,
   SendingStatusContext,
   ReadStatusContext,
+  CustomMessageActionItem,
 } from '../types';
 import { parseDate } from './parse-date';
 import emojiRegex from 'emoji-regex';
@@ -67,6 +68,10 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
    * Highlighting is used to add visual emphasize to a message when jumping to the message
    */
   @Input() isHighlighted = false;
+  /**
+   * A list of custom message actions to be displayed in the action box
+   */
+  @Input() customActions: CustomMessageActionItem[] = [];
   readonly themeVersion: '1' | '2';
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
@@ -319,6 +324,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         this.isEditing = isEditing;
         this.isActionBoxOpen = !this.isEditing;
       },
+      customActions: this.customActions || [],
     };
   }
 
