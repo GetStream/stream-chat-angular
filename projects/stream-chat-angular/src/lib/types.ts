@@ -229,7 +229,9 @@ export type MessageActionBoxItemContext<
 > = {
   actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | string;
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
-  actionHandler: () => any;
+  message: StreamMessage<T>;
+  isMine: boolean;
+  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
 };
 
 type MessageActionItemBase<

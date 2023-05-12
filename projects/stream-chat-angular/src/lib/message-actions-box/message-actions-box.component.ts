@@ -197,6 +197,18 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
       : actionLabelOrTranslationKey(this.message!);
   }
 
+  getMessageActionTemplateContext(
+    item: MessageActionItem | CustomMessageActionItem
+  ): MessageActionBoxItemContext<any> {
+    return {
+      actionHandler: item.actionHandler,
+      isMine: this.isMine,
+      actionName: item.actionName,
+      message: this.message,
+      actionLabelOrTranslationKey: item.actionLabelOrTranslationKey,
+    };
+  }
+
   sendClicked() {
     this.sendMessageSubject.next();
   }

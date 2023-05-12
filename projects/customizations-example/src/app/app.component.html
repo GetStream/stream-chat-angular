@@ -159,20 +159,27 @@
   let-displayedActionsCountChangeHandler="displayedActionsCountChangeHandler"
   let-isEditingChangeHandler="isEditingChangeHandler"
 >
-  <app-message-actions
+  <stream-message-actions-box
+    [isOpen]="isOpen"
+    [isMine]="isMine"
+    [enabledActions]="enabledActions"
+    [message]="messageInput"
     (displayedActionsCount)="displayedActionsCountChangeHandler($event)"
-  ></app-message-actions>
+    (isEditing)="isEditingChangeHandler($event)"
+  ></stream-message-actions-box>
 </ng-template>
 
 <ng-template
   #messageActionItemTemplate
   let-actionName="actionName"
   let-actionHandler="actionHandler"
+  let-message="message"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
 >
   <app-message-action
     [actionName]="actionName"
     [actionHandler]="actionHandler"
+    [message]="message"
     [actionLabelOrTranslationKey]="actionLabelOrTranslationKey"
   ></app-message-action>
 </ng-template>

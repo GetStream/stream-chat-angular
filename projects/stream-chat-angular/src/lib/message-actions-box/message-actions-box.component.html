@@ -11,7 +11,7 @@
       <ng-container
         *ngTemplateOutlet="
           messageActionItemTemplate || defaultMessageActionItem;
-          context: item
+          context: getMessageActionTemplateContext(item)
         "
       ></ng-container>
     </ng-container>
