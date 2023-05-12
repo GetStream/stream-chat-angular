@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { DefaultStreamChatGenerics, StreamMessage } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-message-action',
@@ -7,8 +8,12 @@ import { Component, Input } from '@angular/core';
 })
 export class MessageActionComponent {
   @Input() actionName!: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
-  @Input() actionLabelOrTranslationKey!: (() => string) | string;
-  @Input() actionHandler!: () => any;
+  @Input() actionLabelOrTranslationKey!:
+    | ((m: StreamMessage<DefaultStreamChatGenerics>) => string)
+    | string;
+  @Input() message!: StreamMessage<DefaultStreamChatGenerics>;
+  @Input() isMine!: boolean;
+  @Input() actionHandler!: (message: StreamMessage, isMine: boolean) => any;
 
   constructor() {}
 
@@ -23,9 +28,13 @@ export class MessageActionComponent {
     return iconMapping[this.actionName];
   }
 
-  getActionLabel(actionLabelOrTranslationKey: (() => string) | string) {
+  getActionLabel(
+    actionLabelOrTranslationKey:
+      | ((m: StreamMessage<DefaultStreamChatGenerics>) => string)
+      | string
+  ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey
-      : actionLabelOrTranslationKey();
+      : actionLabelOrTranslationKey(this.message);
   }
 }
