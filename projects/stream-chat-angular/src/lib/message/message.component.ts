@@ -24,6 +24,7 @@ import {
   SendingStatusContext,
   ReadStatusContext,
   CustomMessageActionItem,
+  SystemMessageContext,
 } from '../types';
 import { parseDate } from './parse-date';
 import emojiRegex from 'emoji-regex';
@@ -89,6 +90,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
   messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
   messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
+  systemMessageTemplate: TemplateRef<SystemMessageContext> | undefined;
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
@@ -151,6 +153,11 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     this.subscriptions.push(
       this.customTemplatesService.readStatusTemplate$.subscribe(
         (template) => (this.customReadStatusTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.systemMessageTemplate$.subscribe(
+        (template) => (this.systemMessageTemplate = template)
       )
     );
   }
@@ -266,6 +273,18 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
       parentMessageId: this.message?.parent_id,
       imageModalStateChangeHandler: (state) =>
         (this.imageAttachmentModalState = state),
+    };
+  }
+
+  getMessageContext(): SystemMessageContext {
+    return {
+      message: this.message,
+      enabledMessageActions: this.enabledMessageActions,
+      isHighlighted: this.isHighlighted,
+      isLastSentMessage: this.isLastSentMessage,
+      mode: this.mode,
+      customActions: this.customActions,
+      parsedDate: this.parsedDate,
     };
   }
 

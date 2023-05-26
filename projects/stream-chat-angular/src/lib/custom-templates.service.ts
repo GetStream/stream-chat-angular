@@ -25,6 +25,7 @@ import {
   NotificationContext,
   ReadStatusContext,
   SendingStatusContext,
+  SystemMessageContext,
   ThreadHeaderContext,
   TypingIndicatorContext,
 } from './types';
@@ -271,6 +272,12 @@ export class CustomTemplatesService {
    */
   attachmentActionsTemplate$ = new BehaviorSubject<
     TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display [system messages](https://getstream.io/chat/docs/javascript/silent_messages/?language=javascript&q=system) indise the [message component](../components/MessageComponent.mdx)
+   */
+  systemMessageTemplate$ = new BehaviorSubject<
+    TemplateRef<SystemMessageContext> | undefined
   >(undefined);
 
   constructor() {}

@@ -306,16 +306,24 @@
 </ng-template>
 
 <ng-template #systemMessage>
-  <div data-testid="system-message" class="str-chat__message--system">
-    <div class="str-chat__message--system__text">
-      <div class="str-chat__message--system__line"></div>
-      <p>{{ message?.text }}</p>
-      <div class="str-chat__message--system__line"></div>
+  <ng-container
+    *ngTemplateOutlet="
+      systemMessageTemplate || defaultSystemMessage;
+      context: getMessageContext()
+    "
+  ></ng-container>
+  <ng-template #defaultSystemMessage let-messageInput="message">
+    <div data-testid="system-message" class="str-chat__message--system">
+      <div class="str-chat__message--system__text">
+        <div class="str-chat__message--system__line"></div>
+        <p>{{ messageInput?.text }}</p>
+        <div class="str-chat__message--system__line"></div>
+      </div>
+      <div class="str-chat__message--system__date">
+        {{ parsedDate }}
+      </div>
     </div>
-    <div class="str-chat__message--system__date">
-      {{ parsedDate }}
-    </div>
-  </div>
+  </ng-template>
 </ng-template>
 
 <ng-template #quotedMessage>
