@@ -419,6 +419,8 @@ export class ChannelService<
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
     this.messageToQuoteSubject.next(undefined);
+    this.usersTypingInChannelSubject.next([]);
+    this.usersTypingInThreadSubject.next([]);
   }
 
   /**
@@ -438,6 +440,8 @@ export class ChannelService<
     this.selectMessageToQuote(undefined);
     this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
     this.activeChannelPinnedMessagesSubject.next([]);
+    this.usersTypingInChannelSubject.next([]);
+    this.usersTypingInThreadSubject.next([]);
   }
 
   /**

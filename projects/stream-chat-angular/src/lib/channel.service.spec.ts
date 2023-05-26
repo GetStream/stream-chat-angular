@@ -249,12 +249,18 @@ describe('ChannelService', () => {
     service.jumpToMessage$.subscribe(jumpToMessageSpy);
     const pinnedMessagesSpy = jasmine.createSpy();
     service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
+    const typingUsersSpy = jasmine.createSpy();
+    service.usersTypingInChannel$.subscribe(typingUsersSpy);
+    const typingUsersInThreadSpy = jasmine.createSpy();
+    service.usersTypingInThread$.subscribe(typingUsersInThreadSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
     latestMessagesSpy.calls.reset();
     jumpToMessageSpy.calls.reset();
     pinnedMessagesSpy.calls.reset();
+    typingUsersSpy.calls.reset();
+    typingUsersInThreadSpy.calls.reset();
     service.deselectActiveChannel();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -267,6 +273,8 @@ describe('ChannelService', () => {
     });
 
     expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
+    expect(typingUsersSpy).toHaveBeenCalledWith([]);
+    expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
 
     messagesSpy.calls.reset();
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
@@ -323,6 +331,12 @@ describe('ChannelService', () => {
     const messageToQuoteSpy = jasmine.createSpy();
     service.messageToQuote$.subscribe(messageToQuoteSpy);
     messageToQuoteSpy.calls.reset();
+    const typingUsersSpy = jasmine.createSpy();
+    service.usersTypingInChannel$.subscribe(typingUsersSpy);
+    typingUsersSpy.calls.reset();
+    const typingUsersInThreadSpy = jasmine.createSpy();
+    service.usersTypingInThread$.subscribe(typingUsersInThreadSpy);
+    typingUsersInThreadSpy.calls.reset();
     const newActiveChannel = mockChannels[1];
     spyOn(newActiveChannel, 'markRead');
     const pinnedMessages = generateMockMessages();
@@ -335,6 +349,8 @@ describe('ChannelService', () => {
     expect(newActiveChannel.markRead).toHaveBeenCalledWith();
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(pinnedMessagesSpy).toHaveBeenCalledWith(pinnedMessages);
+    expect(typingUsersSpy).toHaveBeenCalledWith([]);
+    expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
   });
 
   it('should emit #activeChannelMessages$', async () => {
