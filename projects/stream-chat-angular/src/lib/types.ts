@@ -331,3 +331,7 @@ export type CustomAttachmentUploadContext = {
 export type AttachmentContext = {
   attachment: Attachment<DefaultStreamChatGenerics>;
 };
+
+export type SystemMessageContext = MessageContext & {
+  parsedDate: string | undefined;
+};
