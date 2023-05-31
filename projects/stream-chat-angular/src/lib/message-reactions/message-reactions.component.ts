@@ -14,15 +14,7 @@ import { ReactionResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
 import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
-
-const emojiReactionsMapping: { [key in MessageReactionType]: string } = {
-  like: '👍',
-  angry: '😠',
-  love: '❤️',
-  haha: '😂',
-  wow: '😮',
-  sad: '😞',
-};
+import { MessageReactionsService } from '../message-reactions.service';
 
 /**
  * The `MessageReactions` component displays the reactions of a message, the current user can add and remove reactions. You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
@@ -72,7 +64,8 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
 
   constructor(
     private cdRef: ChangeDetectorRef,
-    private channelService: ChannelService
+    private channelService: ChannelService,
+    private messageReactionsService: MessageReactionsService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -91,20 +84,20 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   }
 
   get existingReactions(): MessageReactionType[] {
-    return Object.keys(this.messageReactionCounts).filter(
-      (k) => this.messageReactionCounts[k as MessageReactionType]! > 0
-    ) as MessageReactionType[];
+    return Object.keys(this.messageReactionCounts)
+      .filter((k) => this.reactionOptions.indexOf(k) !== -1)
+      .filter((k) => this.messageReactionCounts[k]! > 0);
   }
 
   get reactionsCount() {
-    return Object.values(this.messageReactionCounts).reduce(
-      (total, count) => total + count,
+    return this.existingReactions.reduce(
+      (total, reaction) => total + this.messageReactionCounts[reaction]!,
       0
     );
   }
 
   get reactionOptions(): MessageReactionType[] {
-    return ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+    return Object.keys(this.messageReactionsService.reactions);
   }
 
   getLatestUserByReaction(reactionType: MessageReactionType) {
@@ -113,7 +106,7 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   }
 
   getEmojiByReaction(reactionType: MessageReactionType) {
-    return emojiReactionsMapping[reactionType];
+    return this.messageReactionsService.reactions[reactionType];
   }
 
   getUsersByReaction(reactionType: MessageReactionType) {

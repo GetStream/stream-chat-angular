@@ -289,7 +289,8 @@ export type MessageReactionType =
   | 'like'
   | 'love'
   | 'sad'
-  | 'wow';
+  | 'wow'
+  | string;
 
 export type AttachmentConfigration = {
   url: string;
