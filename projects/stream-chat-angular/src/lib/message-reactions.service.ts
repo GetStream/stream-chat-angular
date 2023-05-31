@@ -13,7 +13,7 @@ export class MessageReactionsService {
   /**
    * The enabled [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) and the associated emoji
    *
-   * You can provide any string as a reaction.
+   * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](../../services/CustomTemplatesService/#messagereactionstemplate)
    */
   reactions$ = new BehaviorSubject<{ [key in MessageReactionType]: string }>({
     like: '👍',
