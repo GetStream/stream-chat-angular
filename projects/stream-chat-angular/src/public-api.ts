@@ -54,4 +54,5 @@ export * from './lib/stream-autocomplete-textarea.module';
 export * from './lib/stream-textarea.module';
 export * from './lib/injection-tokens';
 export * from './lib/custom-templates.service';
+export * from './lib/message-reactions.service';
 export * from './lib/types';

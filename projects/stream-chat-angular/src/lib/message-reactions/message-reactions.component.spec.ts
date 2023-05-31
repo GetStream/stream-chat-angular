@@ -13,6 +13,7 @@ import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { MessageReactionType } from '../types';
+import { MessageReactionsService } from '../message-reactions.service';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -38,15 +39,29 @@ describe('MessageReactionsComponent', () => {
     // eslint-disable-next-line no-unused-vars
     removeReaction: (id: string, type: MessageReactionType) => {},
   };
+  const reactionsServiceMock = {
+    reactions: {},
+  };
 
   beforeEach(async () => {
+    reactionsServiceMock.reactions = {
+      like: '👍',
+      angry: '😠',
+      love: '❤️',
+      haha: '😂',
+      wow: '😮',
+      sad: '😞',
+    };
     await TestBed.configureTestingModule({
       declarations: [
         MessageReactionsComponent,
         AvatarComponent,
         AvatarPlaceholderComponent,
       ],
-      providers: [{ provide: ChannelService, useValue: channelServiceMock }],
+      providers: [
+        { provide: ChannelService, useValue: channelServiceMock },
+        { provide: MessageReactionsService, useValue: reactionsServiceMock },
+      ],
     }).compileComponents();
   });
 
@@ -349,5 +364,23 @@ describe('MessageReactionsComponent', () => {
       'str-chat__message-reaction-own'
     );
     /* eslint-disable jasmine/new-line-before-expect */
+  });
+
+  it('should filter not supported reactions', () => {
+    reactionsServiceMock.reactions = {
+      angry: '😠',
+      haha: '😂',
+    };
+    component.messageReactionCounts = {
+      angry: 1,
+      haha: 2,
+      like: 1,
+    };
+    fixture.detectChanges();
+    const reactionCounts = queryReactionCountsFromReactionList();
+
+    expect(queryEmojis().length).toBe(2);
+    expect(reactionCounts[0].textContent).toContain('1');
+    expect(reactionCounts[1].textContent).toContain('2');
   });
 });
