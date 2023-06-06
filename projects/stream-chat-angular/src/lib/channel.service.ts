@@ -387,12 +387,15 @@ export class ChannelService<
 
   /**
    * Sets the given `channel` as active and marks it as read.
+   * If the channel wasn't previously part of the channel, it will be added to the beginning of the list.
+   *
    * @param channel
    */
   setAsActiveChannel(channel: Channel<T>) {
     const prevActiveChannel = this.activeChannelSubject.getValue();
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
     this.watchForActiveChannelEvents(channel);
+    this.addChannel(channel);
     this.activeChannelSubject.next(channel);
     channel.state.messages.forEach((m) => {
       m.readBy = getReadBy(m, channel);
@@ -821,6 +824,18 @@ export class ChannelService<
    */
   selectMessageToQuote(message: StreamMessage | undefined) {
     this.messageToQuoteSubject.next(message);
+  }
+
+  /**
+   * Add a new channel to the channel list
+   * The channel will be added to the beginning of the channel list
+   * @param channel
+   */
+  addChannel(channel: Channel<T>) {
+    if (!this.channels.find((c) => c.cid === channel.cid)) {
+      this.channelsSubject.next([channel, ...this.channels]);
+      this.watchForChannelEvents(channel);
+    }
   }
 
   private async sendMessageRequest(

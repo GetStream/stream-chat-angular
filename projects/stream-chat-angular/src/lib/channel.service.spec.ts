@@ -1876,4 +1876,24 @@ describe('ChannelService', () => {
     expect(spy).not.toHaveBeenCalled();
     expect(service.deselectActiveChannel).not.toHaveBeenCalled();
   }));
+
+  it('should add new channel to channel list', () => {
+    const channelsSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    channelsSpy.calls.reset();
+
+    const newChannel = generateMockChannels(1)[0];
+    newChannel.cid = 'my-new-channel';
+    spyOn(service as any, 'watchForChannelEvents').and.callThrough();
+    service.setAsActiveChannel(newChannel);
+
+    expect(channelsSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([newChannel])
+    );
+
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect((service as any).watchForChannelEvents).toHaveBeenCalledWith(
+      newChannel
+    );
+  });
 });
