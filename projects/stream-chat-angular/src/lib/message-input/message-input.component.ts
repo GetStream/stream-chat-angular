@@ -153,8 +153,10 @@ export class MessageInputComponent
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        this.textareaValue = '';
-        this.attachmentService.resetAttachmentUploads();
+        if (channel && this.channel && channel.id !== this.channel.id) {
+          this.textareaValue = '';
+          this.attachmentService.resetAttachmentUploads();
+        }
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
           this.isFileUploadAuthorized =
