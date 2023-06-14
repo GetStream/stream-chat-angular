@@ -338,6 +338,7 @@ describe('MessageInputComponent', () => {
       { file, state: 'success', url: 'http://url/to/image' },
     ]);
     const files = [file];
+    component.textareaValue = 'my message';
     await component.filesSelected(files as any as FileList);
     await component.messageSent();
 
@@ -427,6 +428,25 @@ describe('MessageInputComponent', () => {
 
     expect(component.textareaValue).toBe('');
     expect(attachmentService.resetAttachmentUploads).toHaveBeenCalledWith();
+  });
+
+  it('should not reset textarea and attachments if channel id remains the same', () => {
+    attachmentService.attachmentUploads$.next([
+      {
+        file: { name: 'img.png' } as any as File,
+        state: 'uploading',
+        type: 'image',
+      },
+    ]);
+    component.textareaValue = 'text';
+    mockActiveChannel$.next({
+      ...mockActiveChannel$.getValue(),
+      getConfig: () => ({ commands: [] }),
+    } as any as Channel<DefaultStreamChatGenerics>);
+    fixture.detectChanges();
+
+    expect(component.textareaValue).toBe('text');
+    expect(attachmentService.resetAttachmentUploads).not.toHaveBeenCalled();
   });
 
   it('should accept #message as input', () => {
