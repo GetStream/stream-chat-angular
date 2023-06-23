@@ -145,9 +145,16 @@
   <ng-container
     *ngTemplateOutlet="
       messageTemplate || defaultMessageTemplate;
-      context: index === 'parent'
-        ? parentMessageContext!
-        : messageContexts[index]
+      context: {
+        message: message,
+        isLastSentMessage: !!(
+          lastSentMessageId && message?.id === lastSentMessageId
+        ),
+        enabledMessageActions: enabledMessageActions,
+        mode: mode,
+        isHighlighted: message?.id === highlightedMessageId,
+        customActions: customMessageActions
+      }
     "
   ></ng-container>
 </ng-template>
