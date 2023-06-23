@@ -48,7 +48,7 @@
           <ng-container
             *ngTemplateOutlet="
               customChannelPreviewTemplate || defaultTemplate;
-              context: getChannelPreviewContext(channel)
+              context: { channel: channel }
             "
           ></ng-container>
         </div>

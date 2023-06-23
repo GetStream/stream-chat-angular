@@ -81,12 +81,4 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
   channelSelected() {
     this.channelListToggleService.channelSelected();
   }
-
-  getChannelPreviewContext(
-    channel: Channel<DefaultStreamChatGenerics>
-  ): ChannelPreviewContext<DefaultStreamChatGenerics> {
-    return {
-      channel,
-    };
-  }
 }
