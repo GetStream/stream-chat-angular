@@ -71,10 +71,12 @@ export class MessageListComponent
   groupStyles: GroupStyle[] = [];
   lastSentMessageId: string | undefined;
   parentMessage: StreamMessage | undefined;
+  parentMessageContext?: MessageContext;
   highlightedMessageId: string | undefined;
   isLoading = false;
   isScrollInProgress = false;
   scrollEndTimeout: any;
+  messageContexts: MessageContext[] = [];
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -107,6 +109,16 @@ export class MessageListComponent
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
           this.enabledMessageActions = capabilites;
+          this.messageContexts = this.messageContexts.map((context) => ({
+            ...context,
+            enabledMessageActions: this.enabledMessageActions,
+          }));
+          if (this.parentMessageContext) {
+            this.parentMessageContext = {
+              ...this.parentMessageContext,
+              enabledMessageActions: this.enabledMessageActions,
+            };
+          }
         }
         this.newMessageSubscription?.unsubscribe();
         if (channel) {
@@ -139,6 +151,9 @@ export class MessageListComponent
           this.resetScrollState();
         }
         this.parentMessage = message;
+        this.parentMessageContext = this.parentMessage
+          ? this.getMessageContextFromMessage(this.parentMessage)
+          : undefined;
       })
     );
     this.subscriptions.push(
@@ -168,6 +183,18 @@ export class MessageListComponent
         this.jumpToLatestMessage();
       }
     }
+    if (changes.customMessageActions) {
+      this.messageContexts = this.messageContexts.map((c) => ({
+        ...c,
+        customActions: this.customMessageActions,
+      }));
+      if (this.parentMessageContext) {
+        this.parentMessageContext = {
+          ...this.parentMessageContext,
+          customActions: this.customMessageActions,
+        };
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -187,6 +214,7 @@ export class MessageListComponent
             } else {
               this.scrollMessageIntoView(messageId);
               this.highlightedMessageId = messageId;
+              this.updateMessageHighlightContext();
             }
           }
         })
@@ -313,19 +341,6 @@ export class MessageListComponent
     };
   }
 
-  getMessageContext(message: StreamMessage): MessageContext {
-    return {
-      message,
-      isLastSentMessage: !!(
-        this.lastSentMessageId && message?.id === this.lastSentMessageId
-      ),
-      enabledMessageActions: this.enabledMessageActions,
-      mode: this.mode,
-      isHighlighted: message?.id === this.highlightedMessageId,
-      customActions: this.customMessageActions || [],
-    };
-  }
-
   getTypingIndicatorText(users: UserResponse[]) {
     const text = listUsers(users);
 
@@ -420,6 +435,7 @@ export class MessageListComponent
         this.groupStyles = messages.map((m, i) =>
           getGroupStyles(m, messages[i - 1], messages[i + 1])
         );
+        this.updateMessageContexts(messages);
       })
     );
   }
@@ -452,6 +468,7 @@ export class MessageListComponent
       element.scrollIntoView({ block: 'center' });
       setTimeout(() => {
         this.highlightedMessageId = undefined;
+        this.updateMessageHighlightContext();
       }, 1000);
     }
   }
@@ -484,5 +501,35 @@ export class MessageListComponent
         this.unreadMessageCount++;
       }
     }
+  }
+
+  private updateMessageContexts(messages: StreamMessage[]) {
+    this.messageContexts = messages.map((message) =>
+      this.getMessageContextFromMessage(message)
+    );
+  }
+
+  private getMessageContextFromMessage(message: StreamMessage) {
+    return {
+      message,
+      isLastSentMessage: !!(
+        this.lastSentMessageId && message?.id === this.lastSentMessageId
+      ),
+      enabledMessageActions: this.enabledMessageActions || [],
+      mode: this.mode,
+      isHighlighted: message?.id === this.highlightedMessageId,
+      customActions: this.customMessageActions || [],
+    };
+  }
+
+  private updateMessageHighlightContext() {
+    this.messageContexts = this.messageContexts.map((context) => {
+      if (context.message?.id === this.highlightedMessageId) {
+        return { ...context, isHighlighted: true };
+      } else if (context.isHighlighted) {
+        return { ...context, isHighlighted: false };
+      }
+      return context;
+    });
   }
 }

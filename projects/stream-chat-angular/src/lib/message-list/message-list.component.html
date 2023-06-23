@@ -13,14 +13,14 @@
     >
       <li
         #parentMessageElement
-        *ngIf="mode === 'thread'"
+        *ngIf="mode === 'thread' && parentMessage"
         data-testid="parent-message"
         class="str-chat__parent-message-li"
       >
         <ng-container
           *ngTemplateOutlet="
             messageTemplateContainer;
-            context: { message: parentMessage }
+            context: { message: parentMessage, index: 'parent' }
           "
         ></ng-container>
         <div data-testid="reply-count" class="str-chat__thread-start">
@@ -46,7 +46,7 @@
         <ng-container
           *ngTemplateOutlet="
             messageTemplateContainer;
-            context: { message: message }
+            context: { message: message, index: i }
           "
         ></ng-container>
       </li>
@@ -123,7 +123,7 @@
   </button>
 </div>
 
-<ng-template #messageTemplateContainer let-message="message">
+<ng-template #messageTemplateContainer let-message="message" let-index="index">
   <ng-template
     #defaultMessageTemplate
     let-messageInput="message"
@@ -145,7 +145,9 @@
   <ng-container
     *ngTemplateOutlet="
       messageTemplate || defaultMessageTemplate;
-      context: getMessageContext(message)
+      context: index === 'parent'
+        ? parentMessageContext!
+        : messageContexts[index]
     "
   ></ng-container>
 </ng-template>

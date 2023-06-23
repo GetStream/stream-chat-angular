@@ -115,6 +115,10 @@ describe('MessageListComponent', () => {
       },
     ];
     component.customMessageActions = customActions;
+    component.ngOnChanges({
+      highlightedMessageId: {} as SimpleChange,
+      customMessageActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const messagesComponents = queryMessageComponents();
     const messageElements = queryMessages();
