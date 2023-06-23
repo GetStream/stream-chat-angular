@@ -23,6 +23,6 @@
 <ng-container
   *ngTemplateOutlet="
     (customTemplatesService.avatarTemplate$ | async) || defaultAvatar;
-    context: getAvatarContext()
+    context: context
   "
 ></ng-container>

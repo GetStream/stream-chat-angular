@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Channel, User } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import {
@@ -16,7 +16,7 @@ import {
   templateUrl: './avatar-placeholder.component.html',
   styles: [],
 })
-export class AvatarPlaceholderComponent {
+export class AvatarPlaceholderComponent implements OnChanges {
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -51,10 +51,20 @@ export class AvatarPlaceholderComponent {
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
+  context: AvatarContext = {
+    name: undefined,
+    imageUrl: undefined,
+    size: undefined,
+    location: undefined,
+    channel: undefined,
+    user: undefined,
+    type: undefined,
+    initialsType: undefined,
+  };
   constructor(public customTemplatesService: CustomTemplatesService) {}
 
-  getAvatarContext(): AvatarContext {
-    return {
+  ngOnChanges(): void {
+    this.context = {
       name: this.name,
       imageUrl: this.imageUrl,
       size: this.size,
