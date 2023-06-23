@@ -1002,7 +1002,8 @@ describe('MessageInputComponent', () => {
   it('should trim leading and ending empty lines in message text', () => {
     component.textareaValue =
       'This is a multiline text\nthis should be left unchanged';
-    component.messageSent();
+    void component.messageSent();
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(
@@ -1011,7 +1012,8 @@ describe('MessageInputComponent', () => {
 
     component.textareaValue =
       '\n\nLeading and trailing empty \nlines should be removed\n\n';
-    component.messageSent();
+    void component.messageSent();
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(
@@ -1020,7 +1022,8 @@ describe('MessageInputComponent', () => {
 
     component.textareaValue =
       'Multiple empty line inside the message\n\n\nis allowed';
-    component.messageSent();
+    void component.messageSent();
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(

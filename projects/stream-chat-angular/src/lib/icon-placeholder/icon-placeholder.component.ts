@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { Icon } from '../icon/icon.component';
 import { IconContext } from '../types';

@@ -3,7 +3,6 @@ import { By } from '@angular/platform-browser';
 import { IconComponent } from '../icon/icon.component';
 
 import { IconPlaceholderComponent } from './icon-placeholder.component';
-import { SimpleChange, SimpleChanges } from '@angular/core';
 
 describe('IconPlaceholderComponent', () => {
   let component: IconPlaceholderComponent;
