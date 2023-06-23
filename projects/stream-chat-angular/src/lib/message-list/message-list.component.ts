@@ -313,19 +313,6 @@ export class MessageListComponent
     };
   }
 
-  getMessageContext(message: StreamMessage): MessageContext {
-    return {
-      message,
-      isLastSentMessage: !!(
-        this.lastSentMessageId && message?.id === this.lastSentMessageId
-      ),
-      enabledMessageActions: this.enabledMessageActions,
-      mode: this.mode,
-      isHighlighted: message?.id === this.highlightedMessageId,
-      customActions: this.customMessageActions || [],
-    };
-  }
-
   getTypingIndicatorText(users: UserResponse[]) {
     const text = listUsers(users);
 

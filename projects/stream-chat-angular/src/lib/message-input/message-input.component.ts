@@ -331,6 +331,8 @@ export class MessageInputComponent
     }
     const attachments = this.attachmentService.mapToAttachments();
     let text = this.textareaValue;
+    text = text.replace(/^\n+/g, ''); // leading empty lines
+    text = text.replace(/\n+$/g, ''); // ending empty lines
     const textContainsOnlySpaceChars = !text.replace(/ /g, ''); //spcae
     if (
       (!text || textContainsOnlySpaceChars) &&

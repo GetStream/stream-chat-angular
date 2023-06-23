@@ -19,6 +19,7 @@ describe('AvatarPlaceholderComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(AvatarPlaceholderComponent);
     component = fixture.componentInstance;
+    component.ngOnChanges();
     fixture.detectChanges();
   });
 
@@ -39,6 +40,7 @@ describe('AvatarPlaceholderComponent', () => {
     component.location = 'autocomplete-item';
     const user = { id: 'user-id' };
     component.user = user;
+    component.ngOnChanges();
     fixture.detectChanges();
 
     expect(avatar.imageUrl).toBe('imageUrl');
@@ -51,6 +53,7 @@ describe('AvatarPlaceholderComponent', () => {
     component.type = 'channel';
     const channel = { id: 'channel-id' } as Channel<DefaultStreamChatGenerics>;
     component.channel = channel;
+    component.ngOnChanges();
     fixture.detectChanges();
 
     expect(avatar.type).toEqual('channel');

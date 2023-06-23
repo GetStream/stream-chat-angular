@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { Icon } from '../icon/icon.component';
 import { IconContext } from '../types';
@@ -11,7 +11,7 @@ import { IconContext } from '../types';
   templateUrl: './icon-placeholder.component.html',
   styles: [],
 })
-export class IconPlaceholderComponent {
+export class IconPlaceholderComponent implements OnChanges {
   /**
    * The icon to display, the list of [supported icons](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/icon/icon.component.ts) can be found on GitHub.
    */
@@ -20,10 +20,12 @@ export class IconPlaceholderComponent {
    * The size of the icon (in pixels)
    */
   @Input() size: number | undefined;
+  iconContext: IconContext = { icon: undefined, size: undefined };
+
   constructor(public customTemplatesService: CustomTemplatesService) {}
 
-  getIconContext(): IconContext {
-    return {
+  ngOnChanges(): void {
+    this.iconContext = {
       icon: this.icon,
       size: this.size,
     };
