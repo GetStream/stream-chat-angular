@@ -998,4 +998,33 @@ describe('MessageInputComponent', () => {
 
     expect(component.messageSent).toHaveBeenCalledWith();
   });
+
+  it('should trim leading and ending empty lines in message text', () => {
+    component.textareaValue =
+      'This is a multiline text\nthis should be left unchanged';
+    component.messageSent();
+    let sentText = sendMessageSpy.calls.mostRecent().args[0];
+
+    expect(sentText).toEqual(
+      'This is a multiline text\nthis should be left unchanged'
+    );
+
+    component.textareaValue =
+      '\n\nLeading and trailing empty \nlines should be removed\n\n';
+    component.messageSent();
+    sentText = sendMessageSpy.calls.mostRecent().args[0];
+
+    expect(sentText).toEqual(
+      'Leading and trailing empty \nlines should be removed'
+    );
+
+    component.textareaValue =
+      'Multiple empty line inside the message\n\n\nis allowed';
+    component.messageSent();
+    sentText = sendMessageSpy.calls.mostRecent().args[0];
+
+    expect(sentText).toEqual(
+      'Multiple empty line inside the message\n\n\nis allowed'
+    );
+  });
 });
