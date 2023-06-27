@@ -32,24 +32,52 @@
         data-testid="top-loading-indicator"
         *ngIf="isLoading && direction === 'bottom-to-top'"
       ></stream-loading-indicator>
-      <li
-        tabindex="0"
-        data-testclass="message"
-        *ngFor="
-          let message of messages$ | async;
-          let i = index;
-          trackBy: trackByMessageId
-        "
-        class="str-chat__li str-chat__li--{{ groupStyles[i] }}"
-        id="{{ message.id }}"
-      >
+      <ng-container *ngIf="messages$ | async as messages">
         <ng-container
-          *ngTemplateOutlet="
-            messageTemplateContainer;
-            context: { message: message, index: i }
+          *ngFor="
+            let message of messages;
+            let i = index;
+            let isFirst = first;
+            trackBy: trackByMessageId
           "
-        ></ng-container>
-      </li>
+        >
+          <ng-container *ngIf="isFirst">
+            <ng-container
+              *ngTemplateOutlet="
+                dateSeparator;
+                context: {
+                  date: message.created_at,
+                  parsedDate: parseDate(message.created_at)
+                }
+              "
+            ></ng-container>
+          </ng-container>
+          <li
+            tabindex="0"
+            data-testclass="message"
+            class="str-chat__li str-chat__li--{{ groupStyles[i] }}"
+            id="{{ message.id }}"
+          >
+            <ng-container
+              *ngTemplateOutlet="
+                messageTemplateContainer;
+                context: { message: message, index: i }
+              "
+            ></ng-container>
+          </li>
+          <ng-container *ngIf="areOnSeparateDates(message, messages[i + 1])">
+            <ng-container
+              *ngTemplateOutlet="
+                dateSeparator;
+                context: {
+                  date: messages[i + 1].created_at,
+                  parsedDate: parseDate(messages[i + 1].created_at)
+                }
+              "
+            ></ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
       <stream-loading-indicator
         data-testid="bottom-loading-indicator"
         *ngIf="isLoading && direction === 'top-to-bottom'"
@@ -157,4 +185,39 @@
       }
     "
   ></ng-container>
+</ng-template>
+
+<ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
+  <ng-container *ngIf="displayDateSeparator">
+    <ng-container
+      *ngTemplateOutlet="
+        customDateSeparatorTemplate || defaultDateSeparator;
+        context: { date: date, parsedDate: parsedDate }
+      "
+    ></ng-container>
+  </ng-container>
+
+  <ng-template
+    #defaultDateSeparator
+    let-date="date"
+    let-parsedDate="parsedDate"
+  >
+    <div data-testid="date-separator" class="str-chat__date-separator">
+      <hr
+        *ngIf="
+          dateSeparatorTextPos === 'right' || dateSeparatorTextPos === 'center'
+        "
+        class="str-chat__date-separator-line"
+      />
+      <div class="str-chat__date-separator-date">
+        {{ parsedDate }}
+      </div>
+      <hr
+        *ngIf="
+          dateSeparatorTextPos === 'left' || dateSeparatorTextPos === 'center'
+        "
+        class="str-chat__date-separator-line"
+      />
+    </div>
+  </ng-template>
 </ng-template>

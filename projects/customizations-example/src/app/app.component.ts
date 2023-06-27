@@ -35,6 +35,7 @@ import {
   NotificationContext,
   ThreadHeaderContext,
   CustomAttachmentUploadContext,
+  DateSeparatorContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -88,6 +89,8 @@ export class AppComponent implements AfterViewInit {
   private chstomChannelInfoTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('customAttachmentUpload')
   private customAttachmentUploadTemplate!: TemplateRef<CustomAttachmentUploadContext>;
+  @ViewChild('dateSeparator')
+  private dateSeparatorTemplate!: TemplateRef<DateSeparatorContext>;
 
   constructor(
     private chatService: ChatClientService,
@@ -163,6 +166,9 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.customAttachmentUploadTemplate$.next(
       this.customAttachmentUploadTemplate
+    );
+    this.customTemplatesService.dateSeparatorTemplate$.next(
+      this.dateSeparatorTemplate
     );
   }
 

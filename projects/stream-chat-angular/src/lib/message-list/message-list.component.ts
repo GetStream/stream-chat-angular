@@ -21,12 +21,14 @@ import {
   StreamMessage,
   TypingIndicatorContext,
   CustomMessageActionItem,
+  DateSeparatorContext,
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
+import { DateParserService } from '../date-parser.service';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -61,7 +63,16 @@ export class MessageListComponent
    * A list of custom message actions to be displayed in the message action box
    */
   @Input() customMessageActions: CustomMessageActionItem<any>[] = [];
+  /**
+   * If `true` date separators will be displayed
+   */
+  @Input() displayDateSeparator = true;
+  /**
+   * If date separators are displayed, you can set the horizontal position of the date text.
+   */
+  @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
   messageTemplate: TemplateRef<MessageContext> | undefined;
+  customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
@@ -99,7 +110,8 @@ export class MessageListComponent
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private dateParser: DateParserService
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -144,6 +156,11 @@ export class MessageListComponent
     this.subscriptions.push(
       this.customTemplatesService.messageTemplate$.subscribe(
         (template) => (this.messageTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.dateSeparatorTemplate$.subscribe(
+        (template) => (this.customDateSeparatorTemplate = template)
       )
     );
     this.subscriptions.push(
@@ -317,6 +334,26 @@ export class MessageListComponent
     const text = listUsers(users);
 
     return text;
+  }
+
+  areOnSeparateDates(message: StreamMessage, nextMessage?: StreamMessage) {
+    if (!nextMessage) {
+      return false;
+    }
+    if (message.created_at.getDate() !== nextMessage.created_at.getDate()) {
+      return true;
+    } else if (
+      message.created_at.getFullYear() !==
+        nextMessage.created_at.getFullYear() ||
+      message.created_at.getMonth() !== nextMessage.created_at.getMonth()
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  parseDate(date: Date) {
+    return this.dateParser.parseDate(date);
   }
 
   get replyCountParam() {

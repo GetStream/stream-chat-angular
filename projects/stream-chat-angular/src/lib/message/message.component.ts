@@ -26,13 +26,13 @@ import {
   CustomMessageActionItem,
   SystemMessageContext,
 } from '../types';
-import { parseDate } from './parse-date';
 import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
 import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
+import { DateParserService } from '../date-parser.service';
 
 type MessagePart = {
   content: string;
@@ -109,7 +109,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    themeService: ThemeService
+    themeService: ThemeService,
+    private dateParser: DateParserService
   ) {
     this.themeVersion = themeService.themeVersion;
   }
@@ -226,7 +227,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.message || !this.message?.created_at) {
       return;
     }
-    return parseDate(this.message.created_at);
+    return this.dateParser.parseDateTime(this.message.created_at);
   }
 
   get areOptionsVisible() {

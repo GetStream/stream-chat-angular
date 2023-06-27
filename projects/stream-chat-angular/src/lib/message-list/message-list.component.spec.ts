@@ -41,6 +41,7 @@ describe('MessageListComponent', () => {
   let queryTypingIndicator: () => HTMLElement | null;
   let queryTypingUsers: () => HTMLElement | null;
   let queryLoadingIndicator: (pos: 'top' | 'bottom') => HTMLElement | null;
+  let queryDateSeparators: () => HTMLElement[];
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
@@ -93,6 +94,10 @@ describe('MessageListComponent', () => {
       nativeElement.querySelector('[data-testid="reply-count"]');
     queryLoadingIndicator = (pos: 'top' | 'bottom') =>
       nativeElement.querySelector(`[data-testid="${pos}-loading-indicator"]`);
+    queryDateSeparators = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testid="date-separator"]')
+      );
     TestBed.inject(StreamI18nService).setTranslation('en');
     fixture.detectChanges();
     const scrollContainer = queryScrollContainer()!;
@@ -938,5 +943,72 @@ describe('MessageListComponent', () => {
     expect(
       nativeElement.querySelector('.str-chat__message-options-in-bubble')
     ).not.toBeNull();
+  });
+
+  it('should tell if two messages are on separate dates', () => {
+    const messages = generateMockMessages();
+    const message = messages[0];
+    const nextMessage = messages[1];
+    message.created_at = new Date();
+
+    expect(component.areOnSeparateDates(message, undefined)).toBe(false);
+
+    message.created_at = new Date(2023, 6, 26);
+    nextMessage.created_at = new Date(2023, 6, 27);
+
+    expect(component.areOnSeparateDates(message, nextMessage)).toBe(true);
+
+    message.created_at = new Date();
+    nextMessage.created_at = new Date();
+
+    expect(component.areOnSeparateDates(message, nextMessage)).toBe(false);
+
+    message.created_at = new Date(2023, 6, 26);
+    nextMessage.created_at = new Date(2023, 7, 26);
+
+    expect(component.areOnSeparateDates(message, nextMessage)).toBe(true);
+  });
+
+  it('should display date separators', () => {
+    const messages = generateMockMessages();
+    const message = messages[0];
+    const nextMessage = messages[1];
+
+    channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
+    fixture.detectChanges();
+
+    expect(queryDateSeparators().length).toBe(1);
+
+    message.created_at = new Date(2023, 6, 26);
+    nextMessage.created_at = new Date(2023, 6, 27);
+
+    channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
+    fixture.detectChanges();
+
+    const dateSeparators = queryDateSeparators();
+
+    expect(dateSeparators.length).toBe(2);
+
+    expect(dateSeparators[0].textContent).toContain('26/07/2023');
+    expect(dateSeparators[1].textContent).toContain('27/07/2023');
+  });
+
+  it(`shoud hide date separator if it's turned off`, () => {
+    const messages = generateMockMessages();
+    const message = messages[0];
+    const nextMessage = messages[1];
+
+    message.created_at = new Date(2023, 6, 26);
+    nextMessage.created_at = new Date(2023, 6, 27);
+
+    channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
+    fixture.detectChanges();
+
+    expect(queryDateSeparators().length).toBe(2);
+
+    component.displayDateSeparator = false;
+    fixture.detectChanges();
+
+    expect(queryDateSeparators().length).toBe(0);
   });
 });
