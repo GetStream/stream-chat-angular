@@ -336,3 +336,8 @@ export type AttachmentContext = {
 export type SystemMessageContext = MessageContext & {
   parsedDate: string | undefined;
 };
+
+export type DateSeparatorContext = {
+  date: Date;
+  parsedDate: string;
+};

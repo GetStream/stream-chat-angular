@@ -7,7 +7,19 @@ The `MessageList` displays messages using pagination, new messages are loaded wh
 
 ## Customization
 
-See [our customization guide](../concepts/customization.mdx) on how to provide your own message list component.
+### Custom message component
+
+If you want to customize how messages are displayed in the list, head over to the [`Message` component's page](../../components/MessageComponent/#customization).
+
+### Date separator
+
+- The component provides the [`displayDateSeparator`](#displaydateseparator) and [`dateSeparatorTextPos`](#dateseparatortextpos) inputs for configuring the date separator's behavior.
+- You can customize the displayed date format by providing your own [date parser](../../services/DateParserService/#customdateparser).
+- If you want to provide your own date separator UI, provide that to the [`CustomTemplatesService`](../../services/CustomTemplatesService/#dateseparatortemplate).
+
+### Custom message list
+
+The message list contains a lot of low-level logic related to scrolling, we don't advise to create your own message list component, however it's possible: see [our customization guide](../concepts/customization.mdx) on how to provide your own message list component.
 
 :::note
 If you want to create your own message list, you can use the [`ChannelService`](../services/ChannelService.mdx) to receive the necessary messages and interact with the Stream API.

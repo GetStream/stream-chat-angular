@@ -20,6 +20,8 @@ The `Message` component displays a message with additional information such as s
 
 The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, you can do that by providing it to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#messagetemplate). It's also possible to just override parts of the message component.
 
+The `Message` component uses the [`DateParserService`](../services/DateParserService.mdx) to create user-friendly dates, you can override the date-parsing methods with your own functions.
+
 :::note
 
 If you want to build your own `Message` component, you might find the following building blocks useful:
@@ -39,10 +41,6 @@ The `Message` component uses the [`MessageReactions`](./MessageReactionsComponen
 ### Attachments
 
 The `Message` component uses the [`AttachmentList`](./AttachmentListComponent.mdx) component to display the attachments of the message.
-
-### User friendly dates
-
-The `Message` component uses the [`parseDate`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message/parse-date.ts) utility function to create user-friendly dates (for example _Yesterday at 8:15 AM_).
 
 ### Read by
 

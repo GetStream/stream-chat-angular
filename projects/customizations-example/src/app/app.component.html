@@ -255,3 +255,7 @@
   />
   <button (click)="addRandomImage(attachmentService)">Random image</button>
 </ng-template>
+
+<ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
+  {{ date }} - {{ parsedDate }}
+</ng-template>

@@ -10,6 +10,7 @@ import {
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
   CustomAttachmentUploadContext,
+  DateSeparatorContext,
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
@@ -278,6 +279,12 @@ export class CustomTemplatesService {
    */
   systemMessageTemplate$ = new BehaviorSubject<
     TemplateRef<SystemMessageContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display the date separator inside the [message list](../components/MessageListComponent.mdx)
+   */
+  dateSeparatorTemplate$ = new BehaviorSubject<
+    TemplateRef<DateSeparatorContext> | undefined
   >(undefined);
 
   constructor() {}
