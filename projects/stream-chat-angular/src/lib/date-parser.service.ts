@@ -22,7 +22,7 @@ export class DateParserService {
   /**
    * Return a user-friendly string representation of the date (year, month and date)
    * @param date
-   * @returns
+   * @returns The parsed date
    */
   parseDate(date: Date) {
     if (this.customDateParser) {
@@ -34,7 +34,7 @@ export class DateParserService {
   /**
    * Return a user-friendly string representation of the date and time
    * @param date
-   * @returns
+   * @returns The parsed date
    */
   parseDateTime(date: Date) {
     if (this.customDateTimeParser) {
