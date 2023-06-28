@@ -7,7 +7,7 @@ import {
 } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { Channel } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -26,6 +26,7 @@ import { StreamI18nService } from '../stream-i18n.service';
 import { DefaultStreamChatGenerics } from '../types';
 import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
+import { take } from 'rxjs/operators';
 
 describe('MessageListComponent', () => {
   let component: MessageListComponent;
@@ -489,7 +490,9 @@ describe('MessageListComponent', () => {
 
   it('should get unread message information from "message.new" event if an older message list is displayed', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
-    channelServiceMock.activeChannel$.subscribe((c) => (channel = c!));
+    channelServiceMock.activeChannel$
+      .pipe(take(1))
+      .subscribe((c) => (channel = c!));
     // Simulate message set change
     channel.state.latestMessages = [];
     channelServiceMock.activeChannelMessages$.next(
@@ -1010,5 +1013,16 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryDateSeparators().length).toBe(0);
+  });
+
+  it(`shouldn't reset the scroll state if active channel is updated`, () => {
+    spyOn<any>(component, 'resetScrollState');
+    channelServiceMock.activeChannel$.next(
+      (
+        channelServiceMock.activeChannel$ as any as BehaviorSubject<any>
+      ).getValue()
+    );
+
+    expect(component['resetScrollState']).not.toHaveBeenCalled();
   });
 });

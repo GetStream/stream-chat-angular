@@ -106,6 +106,7 @@ export class MessageListComponent
     UserResponse<DefaultStreamChatGenerics>[]
   >;
   private isLatestMessageInList = true;
+  private channelId?: string;
 
   constructor(
     private channelService: ChannelService,
@@ -115,7 +116,10 @@ export class MessageListComponent
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        this.resetScrollState();
+        if (this.channelId !== channel?.id) {
+          this.resetScrollState();
+          this.channelId = channel?.id;
+        }
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
           this.enabledMessageActions = capabilites;
@@ -400,6 +404,7 @@ export class MessageListComponent
       tap((messages) => {
         this.isLoading = false;
         if (messages.length === 0) {
+          this.resetScrollState();
           return;
         }
         const currentLatestMessage = messages[messages.length - 1];
