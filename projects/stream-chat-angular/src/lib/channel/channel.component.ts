@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { Observable, of, Subscription } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ChannelService } from '../channel.service';
 import { ThemeService } from '../theme.service';
 
@@ -24,14 +24,21 @@ export class ChannelComponent {
     private channelService: ChannelService,
     private themeService: ThemeService
   ) {
-    this.isError$ = this.channelService.channels$.pipe(
-      map(() => false),
-      catchError(() => of(true)),
-      startWith(false)
+    this.isError$ = combineLatest([
+      this.channelService.channelQueryState$,
+      this.channelService.activeChannel$,
+    ]).pipe(
+      map(([state, activeChannel]) => {
+        return !activeChannel && state?.state === 'error';
+      })
     );
-    this.isInitializing$ = this.channelService.channels$.pipe(
-      map((channels) => !channels),
-      catchError(() => of(false))
+    this.isInitializing$ = combineLatest([
+      this.channelService.channelQueryState$,
+      this.channelService.activeChannel$,
+    ]).pipe(
+      map(([state, activeChannel]) => {
+        return !activeChannel && state?.state === 'in-progress';
+      })
     );
     this.isActiveThread$ = this.channelService.activeParentMessageId$.pipe(
       map((id) => !!id)

@@ -6,8 +6,8 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable, of, Subscription } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -45,14 +45,11 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
     this.isOpen$ = this.channelListToggleService.isOpen$;
     this.channels$ = this.channelService.channels$;
     this.hasMoreChannels$ = this.channelService.hasMoreChannels$;
-    this.isError$ = this.channels$.pipe(
-      map(() => false),
-      catchError(() => of(true)),
-      startWith(false)
+    this.isError$ = this.channelService.channelQueryState$.pipe(
+      map((s) => !this.isLoadingMoreChannels && s?.state === 'error')
     );
-    this.isInitializing$ = this.channels$.pipe(
-      map((channels) => !channels),
-      catchError(() => of(false))
+    this.isInitializing$ = this.channelService.channelQueryState$.pipe(
+      map((s) => !this.isLoadingMoreChannels && s?.state === 'in-progress')
     );
     this.subscriptions.push(
       this.customTemplatesService.channelPreviewTemplate$.subscribe(

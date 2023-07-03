@@ -1,4 +1,8 @@
-import { DefaultStreamChatGenerics, StreamMessage } from '../types';
+import {
+  ChannelQueryState,
+  DefaultStreamChatGenerics,
+  StreamMessage,
+} from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import {
   AppSettings,
@@ -196,6 +200,7 @@ export type MockChannelService = {
   usersTypingInChannel$: BehaviorSubject<UserResponse[]>;
   usersTypingInThread$: BehaviorSubject<UserResponse[]>;
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
+  channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
   loadMoreMessages: (d: 'older' | 'newer') => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
@@ -262,6 +267,10 @@ export const mockChannelService = (): MockChannelService => {
 
   const jumpToMessage = () => {};
 
+  const channelQueryState$ = new BehaviorSubject<ChannelQueryState | undefined>(
+    undefined
+  );
+
   return {
     activeChannelMessages$,
     activeChannel$,
@@ -280,6 +289,7 @@ export const mockChannelService = (): MockChannelService => {
     usersTypingInThread$,
     jumpToMessage$,
     jumpToMessage,
+    channelQueryState$,
   };
 };
 
