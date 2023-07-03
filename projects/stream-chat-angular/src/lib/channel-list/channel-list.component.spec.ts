@@ -82,13 +82,19 @@ describe('ChannelListComponent', () => {
   it('should display error indicator, if error happened', () => {
     expect(queryChatdownContainer()).toBeNull();
 
-    channelServiceMock.channels$.error(new Error('error'));
+    channelServiceMock.channelQueryState$.next({
+      state: 'error',
+      error: new Error('error'),
+    });
     fixture.detectChanges();
 
     expect(queryChatdownContainer()).not.toBeNull();
   });
 
   it('should display loading indicator, if loading', () => {
+    channelServiceMock.channelQueryState$.next({
+      state: 'in-progress',
+    });
     fixture.detectChanges();
 
     expect(queryChatdownContainer()).toBeNull();
@@ -96,6 +102,9 @@ describe('ChannelListComponent', () => {
 
     const channels = generateMockChannels();
     channelServiceMock.channels$.next(channels);
+    channelServiceMock.channelQueryState$.next({
+      state: 'success',
+    });
     fixture.detectChanges();
 
     expect(queryLoadingIndicator()).toBeNull();

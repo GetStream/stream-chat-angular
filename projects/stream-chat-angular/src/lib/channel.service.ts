@@ -29,6 +29,7 @@ import { NotificationService } from './notification.service';
 import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
+  ChannelQueryState,
   DefaultStreamChatGenerics,
   MessageReactionType,
   StreamMessage,
@@ -73,6 +74,10 @@ export class ChannelService<
    *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
    */
   channels$: Observable<Channel<T>[] | undefined>;
+  /**
+   * The result of the latest channel query request.
+   */
+  channelQueryState$: Observable<ChannelQueryState | undefined>;
   /**
    * Emits the currently active channel.
    *
@@ -264,7 +269,9 @@ export class ChannelService<
   }>({});
   private filters: ChannelFilters<T> | undefined;
   private sort: ChannelSort<T> | undefined;
-  private options: ChannelOptions | undefined;
+  private options:
+    | (ChannelOptions & { keepAliveChannels$OnError?: boolean })
+    | undefined;
   private readonly messagePageSize = 25;
   private messageToQuoteSubject = new BehaviorSubject<
     StreamMessage<T> | undefined
@@ -279,6 +286,9 @@ export class ChannelService<
   private shouldSetActiveChannel: boolean | undefined;
   private clientEventsSubscription: Subscription | undefined;
   private isStateRecoveryInProgress = false;
+  private channelQueryStateSubject = new BehaviorSubject<
+    ChannelQueryState | undefined
+  >(undefined);
 
   private channelListSetter = (
     channels: (Channel<T> | ChannelResponse<T>)[]
@@ -305,6 +315,7 @@ export class ChannelService<
   private parentMessageSetter = (message: StreamMessage<T> | undefined) => {
     this.activeParentMessageIdSubject.next(message?.id);
   };
+  private dismissErrorNotification?: Function;
 
   constructor(
     private chatClientService: ChatClientService<T>,
@@ -366,6 +377,7 @@ export class ChannelService<
       this.latestMessageDateByUserByChannelsSubject.asObservable();
     this.activeChannelPinnedMessages$ =
       this.activeChannelPinnedMessagesSubject.asObservable();
+    this.channelQueryState$ = this.channelQueryStateSubject.asObservable();
   }
 
   /**
@@ -554,31 +566,33 @@ export class ChannelService<
   async init(
     filters: ChannelFilters<T>,
     sort?: ChannelSort<T>,
-    options?: ChannelOptions,
+    options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
     shouldSetActiveChannel: boolean = true
   ) {
     this.filters = filters;
-    this.options = options || {
+    this.options = {
       offset: 0,
       limit: 25,
       state: true,
       presence: true,
       watch: true,
       message_limit: this.messagePageSize,
+      ...options,
     };
     this.sort = sort || { last_message_at: -1, updated_at: -1 };
     this.shouldSetActiveChannel = shouldSetActiveChannel;
+    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
+      (notification) => void this.handleNotification(notification)
+    );
     try {
       const result = await this.queryChannels(this.shouldSetActiveChannel);
-      this.clientEventsSubscription = this.chatClientService.events$.subscribe(
-        (notification) => void this.handleNotification(notification)
-      );
       return result;
     } catch (error) {
-      this.notificationService.addPermanentNotification(
-        'streamChat.Error loading channels',
-        'error'
-      );
+      this.dismissErrorNotification =
+        this.notificationService.addPermanentNotification(
+          'streamChat.Error loading channels',
+          'error'
+        );
       throw error;
     }
   }
@@ -589,7 +603,10 @@ export class ChannelService<
   reset() {
     this.deselectActiveChannel();
     this.channelsSubject.next(undefined);
+    this.channelQueryStateSubject.next(undefined);
     this.clientEventsSubscription?.unsubscribe();
+    this.dismissErrorNotification?.();
+    this.dismissErrorNotification = undefined;
   }
 
   /**
@@ -973,7 +990,11 @@ export class ChannelService<
             if (this.options) {
               this.options.offset = 0;
             }
-            await this.queryChannels(false, true);
+            // If channel list is not inited, we set the active channel
+            const shoulSetActiveChannel =
+              this.shouldSetActiveChannel &&
+              !this.activeChannelSubject.getValue();
+            await this.queryChannels(shoulSetActiveChannel || false, true);
             // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
             void this.setAsActiveParentMessage(undefined);
             this.isStateRecoveryInProgress = false;
@@ -1264,6 +1285,7 @@ export class ChannelService<
     recoverState = false
   ) {
     try {
+      this.channelQueryStateSubject.next({ state: 'in-progress' });
       const channels = await this.chatClientService.chatClient.queryChannels(
         this.filters!,
         this.sort || {},
@@ -1274,13 +1296,14 @@ export class ChannelService<
         ? []
         : this.channelsSubject.getValue() || [];
       this.channelsSubject.next([...prevChannels, ...channels]);
-      const currentActiveChannel = this.activeChannelSubject.getValue();
+      let currentActiveChannel = this.activeChannelSubject.getValue();
       if (
         channels.length > 0 &&
         !currentActiveChannel &&
         shouldSetActiveChannel
       ) {
         this.setAsActiveChannel(channels[0]);
+        currentActiveChannel = this.activeChannelSubject.getValue();
       }
       if (
         recoverState &&
@@ -1289,9 +1312,23 @@ export class ChannelService<
         this.deselectActiveChannel();
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
+      this.channelQueryStateSubject.next({ state: 'success' });
+      if (
+        this.options?.keepAliveChannels$OnError &&
+        this.dismissErrorNotification
+      ) {
+        this.dismissErrorNotification();
+      }
       return channels;
     } catch (error) {
-      this.channelsSubject.error(error);
+      if (!this.options?.keepAliveChannels$OnError) {
+        this.channelsSubject.error(error);
+      }
+      this.channelQueryStateSubject.next({
+        state: 'error',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        error,
+      });
       throw error;
     }
   }

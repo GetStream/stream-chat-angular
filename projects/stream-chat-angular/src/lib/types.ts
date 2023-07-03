@@ -341,3 +341,9 @@ export type DateSeparatorContext = {
   date: Date;
   parsedDate: string;
 };
+
+export type ChannelQueryState = {
+  state: 'in-progress' | 'success' | 'error';
+  // No type def from stream-chat
+  error?: unknown;
+};

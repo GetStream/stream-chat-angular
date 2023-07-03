@@ -44,7 +44,7 @@ describe('ChannelService', () => {
   let init: (
     c?: Channel<DefaultStreamChatGenerics>[],
     sort?: ChannelSort<DefaultStreamChatGenerics>,
-    options?: ChannelOptions,
+    options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
     mockChannelQuery?: Function,
     shouldSetActiveChannel?: boolean
   ) => Promise<Channel<DefaultStreamChatGenerics>[]>;
@@ -84,7 +84,7 @@ describe('ChannelService', () => {
     init = async (
       channels?: Channel<DefaultStreamChatGenerics>[],
       sort?: ChannelSort<DefaultStreamChatGenerics>,
-      options?: ChannelOptions,
+      options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
       mockChannelQuery?: Function,
       shouldSetActiveChannel?: boolean
     ) => {
@@ -118,7 +118,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      options
+      jasmine.objectContaining(options)
     );
   });
 
@@ -179,6 +179,70 @@ describe('ChannelService', () => {
     );
   });
 
+  it('should handle errors during channel load', fakeAsync(() => {
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    const activeChannelSpy = jasmine.createSpy();
+    service.activeChannel$.subscribe(activeChannelSpy);
+
+    try {
+      void init(undefined, undefined, { keepAliveChannels$OnError: true }, () =>
+        mockChatClient.queryChannels.and.rejectWith('there was an error')
+      );
+      tick();
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+
+    const channels = generateMockChannels();
+    mockChatClient.queryChannels.and.resolveTo(channels);
+    spy.calls.reset();
+    activeChannelSpy.calls.reset();
+    const notificationService = TestBed.inject(NotificationService);
+    const notificationSpy = jasmine.createSpy();
+    notificationService.notifications$.subscribe(notificationSpy);
+    notificationSpy.calls.reset();
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    tick();
+
+    expect(spy).toHaveBeenCalledWith(channels);
+    expect(activeChannelSpy).toHaveBeenCalledWith(channels[0]);
+    expect(notificationSpy).toHaveBeenCalledWith([]);
+  }));
+
+  it('should emit channel query state correctly', async () => {
+    const spy = jasmine.createSpy();
+    service.channelQueryState$.subscribe(spy);
+
+    await init();
+
+    let calls = spy.calls.all();
+
+    /* eslint-disable  @typescript-eslint/no-unsafe-member-access */
+    expect(calls[1].args[0].state).toBe('in-progress');
+
+    expect(calls[2].args[0].state).toBe('success');
+
+    spy.calls.reset();
+
+    await expectAsync(
+      init(undefined, undefined, undefined, () =>
+        mockChatClient.queryChannels.and.rejectWith('there was an error')
+      )
+    ).toBeRejected();
+
+    calls = spy.calls.all();
+
+    expect(calls[0].args[0]?.state).toBe('in-progress');
+
+    expect(calls[1].args[0]).toEqual({
+      state: 'error',
+      error: 'there was an error',
+    });
+
+    /* eslint-enable  @typescript-eslint/no-unsafe-member-access */
+  });
+
   it('should not set active channel if #shouldSetActiveChannel is false', async () => {
     const activeChannelSpy = jasmine.createSpy();
     service.activeChannel$.subscribe(activeChannelSpy);
@@ -204,6 +268,8 @@ describe('ChannelService', () => {
     service.jumpToMessage$.subscribe(jumpToMessageSpy);
     const pinnedMessagesSpy = jasmine.createSpy();
     service.activeChannelPinnedMessages$.subscribe(pinnedMessagesSpy);
+    const channelsQueryStateSpy = jasmine.createSpy();
+    service.channelQueryState$.subscribe(channelsQueryStateSpy);
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     channelsSpy.calls.reset();
@@ -211,6 +277,7 @@ describe('ChannelService', () => {
     latestMessagesSpy.calls.reset();
     jumpToMessageSpy.calls.reset();
     pinnedMessagesSpy.calls.reset();
+    channelsQueryStateSpy.calls.reset();
     service.reset();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -219,6 +286,7 @@ describe('ChannelService', () => {
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(latestMessagesSpy).toHaveBeenCalledWith({});
     expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
+    expect(channelsQueryStateSpy).toHaveBeenCalledWith(undefined);
 
     channelsSpy.calls.reset();
     events$.next({
