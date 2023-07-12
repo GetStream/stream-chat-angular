@@ -63,6 +63,19 @@ describe('ChatClientService', () => {
     expect(mockChatClient.setGuestUser).toHaveBeenCalledWith({ id: userId });
   });
 
+  it('should connect user - anonymous user', async () => {
+    mockChatClient.connectUser.calls.reset();
+    await service.init(apiKey, undefined, 'anonymous');
+
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    const spy = jasmine.createSpy();
+    service.appSettings$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith(undefined);
+    expect(mockChatClient.connectUser).not.toHaveBeenCalled();
+    expect(mockChatClient.connectAnonymousUser).toHaveBeenCalledWith();
+  });
+
   it(`should notify if connection wasn't successful`, async () => {
     const notificationService = TestBed.inject(NotificationService);
     const spy = jasmine.createSpy();

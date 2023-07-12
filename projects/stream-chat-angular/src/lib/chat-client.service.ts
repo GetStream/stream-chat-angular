@@ -83,14 +83,18 @@ export class ChatClientService<
   /**
    * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
    * @param apiKey
-   * @param userOrId
-   * @param userTokenOrProvider You can provide a token, or the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users)
+   * @param userOrId you can emit this for anonymous logins
+   * @param userTokenOrProvider You can provide:<ul>
+   *  <li> a token, </li>
+   *  <li> the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users) </li>
+   *  <li> the keyword 'anonymous' to connect as [anonymous user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#anonymous-users) </li>
+   *  </ul>
    * @param clientOptions Setting to provide to the Stream client instance
    */
   async init(
     apiKey: string,
-    userOrId: string | OwnUserResponse<T> | UserResponse<T>,
-    userTokenOrProvider: TokenOrProvider | 'guest',
+    userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
+    userTokenOrProvider: TokenOrProvider | 'anonymous' | 'guest',
     clientOptions?: StreamChatOptions
   ): ConnectAPIResponse<T> {
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
@@ -99,10 +103,14 @@ export class ChatClientService<
     await this.ngZone.runOutsideAngular(async () => {
       const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
       try {
-        result =
-          userTokenOrProvider === 'guest'
-            ? await this.chatClient.setGuestUser(user)
-            : await this.chatClient.connectUser(user, userTokenOrProvider);
+        result = await (
+          {
+            guest: () => this.chatClient.setGuestUser(user!),
+            anonymous: () => this.chatClient.connectAnonymousUser(),
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          }[`${userTokenOrProvider}`] ??
+          (() => this.chatClient.connectUser(user!, userTokenOrProvider))
+        )();
       } catch (error) {
         this.notificationService.addPermanentNotification(
           'streamChat.Error connecting to chat, refresh the page to try again.',
