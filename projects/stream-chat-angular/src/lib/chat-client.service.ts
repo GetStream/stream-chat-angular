@@ -85,9 +85,9 @@ export class ChatClientService<
    * @param apiKey
    * @param userOrId you can emit this for anonymous logins
    * @param userTokenOrProvider You can provide:<ul>
-   *  <li> a token,
-   *  <li> the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users)
-   *  <li> the keyword 'anonymous' to connect as [anonymous user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#anonymous-users)
+   *  <li> a token, </li>
+   *  <li> the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users) </li>
+   *  <li> the keyword 'anonymous' to connect as [anonymous user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#anonymous-users) </li>
    *  </ul>
    * @param clientOptions Setting to provide to the Stream client instance
    */
