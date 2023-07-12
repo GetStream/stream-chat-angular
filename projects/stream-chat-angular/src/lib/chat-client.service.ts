@@ -83,7 +83,7 @@ export class ChatClientService<
   /**
    * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
    * @param apiKey
-   * @param userOrId
+   * @param userOrId you can emit this for anonymous logins
    * @param userTokenOrProvider You can provide:<ul>
    *  <li> a token,
    *  <li> the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users)
@@ -93,7 +93,7 @@ export class ChatClientService<
    */
   async init(
     apiKey: string,
-    userOrId: string | OwnUserResponse<T> | UserResponse<T>,
+    userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
     userTokenOrProvider: TokenOrProvider | 'anonymous' | 'guest',
     clientOptions?: StreamChatOptions
   ): ConnectAPIResponse<T> {
@@ -105,10 +105,11 @@ export class ChatClientService<
       try {
         result = await (
           {
-            guest: () => this.chatClient.setGuestUser(user),
+            guest: () => this.chatClient.setGuestUser(user!),
             anonymous: () => this.chatClient.connectAnonymousUser(),
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           }[`${userTokenOrProvider}`] ??
-          (() => this.chatClient.connectUser(user, userTokenOrProvider))
+          (() => this.chatClient.connectUser(user!, userTokenOrProvider))
         )();
       } catch (error) {
         this.notificationService.addPermanentNotification(
