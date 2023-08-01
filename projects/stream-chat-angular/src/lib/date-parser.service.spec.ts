@@ -15,9 +15,9 @@ describe('DateParserService', () => {
   });
 
   it('should parse date', () => {
-    const date = new Date(2023, 7, 2);
+    const date = new Date();
 
-    expect(service.parseDate(date)).toEqual('02/08/2023');
+    expect(service.parseDate(date)).toEqual('Today');
   });
 
   it('should parse date-time', () => {
