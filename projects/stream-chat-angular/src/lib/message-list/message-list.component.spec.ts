@@ -982,8 +982,8 @@ describe('MessageListComponent', () => {
 
     expect(queryDateSeparators().length).toBe(1);
 
-    message.created_at = new Date(2023, 6, 26);
-    nextMessage.created_at = new Date(2023, 6, 27);
+    message.created_at = new Date(2013, 6, 26);
+    nextMessage.created_at = new Date(2013, 6, 27);
 
     channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
     fixture.detectChanges();
@@ -992,8 +992,8 @@ describe('MessageListComponent', () => {
 
     expect(dateSeparators.length).toBe(2);
 
-    expect(dateSeparators[0].textContent).toContain('26/07/2023');
-    expect(dateSeparators[1].textContent).toContain('27/07/2023');
+    expect(dateSeparators[0].textContent).toContain('26/07/2013');
+    expect(dateSeparators[1].textContent).toContain('27/07/2013');
   });
 
   it(`shoud hide date separator if it's turned off`, () => {
