@@ -19,6 +19,9 @@ export class ChannelComponent {
   isActiveChannel$: Observable<boolean>;
   subscriptions: Subscription[] = [];
   theme$: Observable<string>;
+  isChrome =
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    !!(window as any).chrome && typeof (window as any).opr === 'undefined';
 
   constructor(
     private channelService: ChannelService,
