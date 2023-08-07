@@ -5,7 +5,16 @@
   </stream-channel-list>
   <stream-channel>
     <stream-channel-header></stream-channel-header>
-    <stream-message-list></stream-message-list>
+    <stream-message-list
+      [customMessageActions]="[
+        {
+          actionName: 'forward',
+          actionLabelOrTranslationKey: 'Forward',
+          isVisible: isVisible,
+          actionHandler: actionHandler
+        }
+      ]"
+    ></stream-message-list>
     <stream-notification-list></stream-notification-list>
     <stream-message-input></stream-message-input>
     <stream-thread name="thread">
@@ -34,6 +43,7 @@
   let-isLastSentMessage="isLastSentMessage"
   let-enabledMessageActions="enabledMessageActions"
   let-mode="mode"
+  let-customActions="customActions"
 >
   <div>
     <stream-message
@@ -41,6 +51,7 @@
       [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
+      [customActions]="customActions"
     ></stream-message>
   </div>
 </ng-template>

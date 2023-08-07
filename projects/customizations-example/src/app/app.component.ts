@@ -195,4 +195,10 @@ export class AppComponent implements AfterViewInit {
     };
     attachmentService.addAttachment(customAttachment);
   }
+
+  isVisible() {
+    return true;
+  }
+
+  actionHandler() {}
 }
