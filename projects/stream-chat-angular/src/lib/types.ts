@@ -340,6 +340,7 @@ export type SystemMessageContext = MessageContext & {
 export type DateSeparatorContext = {
   date: Date;
   parsedDate: string;
+  isNewMessage: boolean;
 };
 
 export type ChannelQueryState = {

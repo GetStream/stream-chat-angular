@@ -286,6 +286,12 @@ export class CustomTemplatesService {
   dateSeparatorTemplate$ = new BehaviorSubject<
     TemplateRef<DateSeparatorContext> | undefined
   >(undefined);
+  /**
+   * The template used to display the new messages indicator inside the [message list](../components/MessageListComponent.mdx)
+   */
+  newMessagesIndicatorTemplate$ = new BehaviorSubject<
+    TemplateRef<void> | undefined
+  >(undefined);
 
   constructor() {}
 }

@@ -38,6 +38,7 @@
             let message of messages;
             let i = index;
             let isFirst = first;
+            let isLast = last;
             trackBy: trackByMessageId
           "
         >
@@ -47,7 +48,8 @@
                 dateSeparator;
                 context: {
                   date: message.created_at,
-                  parsedDate: parseDate(message.created_at)
+                  parsedDate: parseDate(message.created_at),
+                  isNewMessage: false
                 }
               "
             ></ng-container>
@@ -65,13 +67,39 @@
               "
             ></ng-container>
           </li>
+          <ng-container
+            *ngIf="
+              (lastReadMessageId === message.id &&
+                !isLast &&
+                direction === 'bottom-to-top' &&
+                !isSentByCurrentUser(messages[i + 1]) &&
+                (!displayDateSeparator ||
+                  !areOnSeparateDates(message, messages[i + 1]))) ||
+              (direction === 'top-to-bottom' &&
+                !isLast &&
+                !isSentByCurrentUser(message) &&
+                lastReadMessageId === messages[i + 1].id)
+            "
+          >
+            <ng-container
+              *ngTemplateOutlet="
+                customnewMessagesIndicatorTemplate ||
+                defaultNewMessagesIndicator
+              "
+            ></ng-container>
+          </ng-container>
           <ng-container *ngIf="areOnSeparateDates(message, messages[i + 1])">
             <ng-container
               *ngTemplateOutlet="
                 dateSeparator;
                 context: {
                   date: messages[i + 1].created_at,
-                  parsedDate: parseDate(messages[i + 1].created_at)
+                  parsedDate: parseDate(messages[i + 1].created_at),
+                  isNewMessage:
+                    (direction === 'bottom-to-top' &&
+                      message.id === lastReadMessageId &&
+                      !isSentByCurrentUser(messages[i + 1])) ||
+                    (direction === 'top-to-bottom' && false)
                 }
               "
             ></ng-container>
@@ -180,19 +208,30 @@
         ),
         enabledMessageActions: enabledMessageActions,
         mode: mode,
-        isHighlighted: message?.id === highlightedMessageId,
+        isHighlighted:
+          message?.id === highlightedMessageId &&
+          !isJumpingToLatestUnreadMessage,
         customActions: customMessageActions
       }
     "
   ></ng-container>
 </ng-template>
 
-<ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
+<ng-template
+  #dateSeparator
+  let-date="date"
+  let-parsedDate="parsedDate"
+  let-isNewMessage="isNewMessage"
+>
   <ng-container *ngIf="displayDateSeparator">
     <ng-container
       *ngTemplateOutlet="
         customDateSeparatorTemplate || defaultDateSeparator;
-        context: { date: date, parsedDate: parsedDate }
+        context: {
+          date: date,
+          parsedDate: parsedDate,
+          isNewMessage: isNewMessage
+        }
       "
     ></ng-container>
   </ng-container>
@@ -201,6 +240,7 @@
     #defaultDateSeparator
     let-date="date"
     let-parsedDate="parsedDate"
+    let-isNewMessage="isNewMessage"
   >
     <div data-testid="date-separator" class="str-chat__date-separator">
       <hr
@@ -211,6 +251,11 @@
       />
       <div class="str-chat__date-separator-date">
         {{ parsedDate }}
+        <span
+          *ngIf="isNewMessage"
+          data-testid="new-messages-indicator-date-separator"
+          >• {{ "streamChat.New" | translate }}</span
+        >
       </div>
       <hr
         *ngIf="
@@ -220,4 +265,22 @@
       />
     </div>
   </ng-template>
+</ng-template>
+
+<ng-template #defaultNewMessagesIndicator>
+  <div data-testid="new-messages-indicator" class="str-chat__date-separator">
+    <hr
+      *ngIf="
+        dateSeparatorTextPos === 'right' || dateSeparatorTextPos === 'center'
+      "
+      class="str-chat__date-separator-line"
+    />
+    <div class="str-chat__date-separator-date" translate>streamChat.New</div>
+    <hr
+      *ngIf="
+        dateSeparatorTextPos === 'left' || dateSeparatorTextPos === 'center'
+      "
+      class="str-chat__date-separator-line"
+    />
+  </div>
 </ng-template>

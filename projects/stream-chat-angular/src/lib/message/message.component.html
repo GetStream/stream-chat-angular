@@ -101,7 +101,6 @@
               ></stream-icon-placeholder>
             </div>
           </div>
-          <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
           <div
             *ngIf="
               enabledMessageActions.indexOf('send-reply') !== -1 &&
@@ -139,7 +138,6 @@
           </div>
         </div>
         <div class="str-chat__message-reactions-host">
-          <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
           <ng-template
             #defaultMessageReactions
             let-messageReactionCounts="messageReactionCounts"
@@ -399,7 +397,6 @@
 
 <!-- We need these markups in slightly different positions in theme-v1 and theme-v2, this soultion makes that possible without duplicating the code -->
 <ng-template #messageDateAndSender let-position="position">
-  <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
   <ng-container
     *ngIf="
       (position === 'inside-message-bubble' && themeVersion === '1') ||
@@ -437,7 +434,6 @@
         str-chat__message-metadata
       "
     >
-      <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
       <ng-container *ngIf="themeVersion === '2'">
         <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
       </ng-container>
@@ -601,7 +597,6 @@
 </ng-template>
 
 <ng-template #replyCountButton let-position="position">
-  <!-- eslint-disable @angular-eslint/template/conditional-complexity -->
   <div
     *ngIf="
       (position === 'inside-message-bubble' && themeVersion === '1') ||
@@ -612,7 +607,6 @@
       str-chat__message-replies-count-button-wrapper
     "
   >
-    <!-- eslint-enable @angular-eslint/template/conditional-complexity -->
     <button
       *ngIf="shouldDisplayThreadLink"
       class="str-chat__message-replies-count-button"
