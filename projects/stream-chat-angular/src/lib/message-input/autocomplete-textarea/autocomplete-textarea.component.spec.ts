@@ -272,6 +272,25 @@ describe('AutocompleteTextareaComponent', () => {
     expect(userMentionSpy).toHaveBeenCalledWith([]);
   });
 
+  it('should update mentioned users after value is changed', () => {
+    const userMentionSpy = jasmine.createSpy();
+    component.userMentions.subscribe(userMentionSpy);
+    component.autocompleteConfig.mentions![0].mentionSelect!(
+      {
+        user: { id: 'jack', name: 'Jack' },
+      },
+      '@'
+    );
+
+    expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
+
+    component.value = '';
+    userMentionSpy.calls.reset();
+    component.ngOnChanges({ value: {} as SimpleChange });
+
+    expect(userMentionSpy).toHaveBeenCalledWith([]);
+  });
+
   it('should disable mentions if #areMentionsEnabled is false', () => {
     expect(component.autocompleteConfig.mentions!.length).toBe(2);
 
