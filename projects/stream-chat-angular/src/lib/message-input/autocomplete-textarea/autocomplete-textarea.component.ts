@@ -191,6 +191,7 @@ export class AutocompleteTextareaComponent
     }
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
+      this.updateMentionedUsersFromText();
     }
   }
 
