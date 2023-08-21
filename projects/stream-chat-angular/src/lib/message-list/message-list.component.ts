@@ -69,10 +69,17 @@ export class MessageListComponent
   @Input() displayDateSeparator = true;
   /**
    * If date separators are displayed, you can set the horizontal position of the date text.
+   * If `openMessageListAt` is `last-unread-message` it will also set the text position of the new messages indicator.
    */
   @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
+  /**
+   * `last-message` option will open the message list at the last message, `last-unread-message` will open the list at the last unread message. This option only works if mode is `main`.
+   */
+  @Input() openMessageListAt: 'last-message' | 'last-unread-message' =
+    'last-message';
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
+  customnewMessagesIndicatorTemplate: TemplateRef<void> | undefined;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   @HostBinding('class') private class =
@@ -86,6 +93,8 @@ export class MessageListComponent
   isLoading = false;
   isScrollInProgress = false;
   scrollEndTimeout: any;
+  lastReadMessageId?: string;
+  isJumpingToLatestUnreadMessage = false;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -119,6 +128,21 @@ export class MessageListComponent
         if (this.channelId !== channel?.id) {
           this.resetScrollState();
           this.channelId = channel?.id;
+          if (
+            this.openMessageListAt === 'last-unread-message' &&
+            this.mode === 'main'
+          ) {
+            this.lastReadMessageId =
+              channel?.state.read[
+                this.chatClientService.chatClient.user?.id || ''
+              ]?.last_read_message_id;
+            if (this.lastReadMessageId) {
+              this.isJumpingToLatestUnreadMessage = true;
+              void this.channelService.jumpToMessage(this.lastReadMessageId);
+            }
+          } else {
+            this.lastReadMessageId = undefined;
+          }
         }
         const capabilites = channel?.data?.own_capabilities as string[];
         if (capabilites) {
@@ -165,6 +189,11 @@ export class MessageListComponent
     this.subscriptions.push(
       this.customTemplatesService.dateSeparatorTemplate$.subscribe(
         (template) => (this.customDateSeparatorTemplate = template)
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.newMessagesIndicatorTemplate$.subscribe(
+        (template) => (this.customnewMessagesIndicatorTemplate = template)
       )
     );
     this.subscriptions.push(
@@ -340,8 +369,8 @@ export class MessageListComponent
     return text;
   }
 
-  areOnSeparateDates(message: StreamMessage, nextMessage?: StreamMessage) {
-    if (!nextMessage) {
+  areOnSeparateDates(message?: StreamMessage, nextMessage?: StreamMessage) {
+    if (!message || !nextMessage) {
       return false;
     }
     if (message.created_at.getDate() !== nextMessage.created_at.getDate()) {
@@ -354,6 +383,13 @@ export class MessageListComponent
       return true;
     }
     return false;
+  }
+
+  isSentByCurrentUser(message?: StreamMessage) {
+    if (!message) {
+      return false;
+    }
+    return message.user?.id === this.chatClientService.chatClient.user?.id;
   }
 
   parseDate(date: Date) {
@@ -442,6 +478,15 @@ export class MessageListComponent
           this.isUserScrolled = true;
         }
       }),
+      tap(() => {
+        if (
+          this.isJumpingToLatestUnreadMessage &&
+          this.lastReadMessageId &&
+          this.lastReadMessageId === this.latestMessage?.id
+        ) {
+          this.lastReadMessageId = undefined;
+        }
+      }),
       map((messages) =>
         this.direction === 'bottom-to-top' ? messages : [...messages].reverse()
       ),
@@ -481,6 +526,7 @@ export class MessageListComponent
       element.scrollIntoView({ block: 'center' });
       setTimeout(() => {
         this.highlightedMessageId = undefined;
+        this.isJumpingToLatestUnreadMessage = false;
       }, 1000);
     }
   }
