@@ -69,6 +69,7 @@ export class MessageListComponent
   @Input() displayDateSeparator = true;
   /**
    * If date separators are displayed, you can set the horizontal position of the date text.
+   * If `openMessageListAt` is `last-unread-message` it will also set the text position of the new messages indicator.
    */
   @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
   /**
