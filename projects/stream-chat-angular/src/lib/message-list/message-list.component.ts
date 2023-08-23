@@ -125,7 +125,17 @@ export class MessageListComponent
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `${channel?.cid || 'undefined'} selected`,
+          { tags: `message list ${this.mode}` }
+        );
         if (this.channelId !== channel?.id) {
+          this.chatClientService?.chatClient?.logger?.(
+            'info',
+            `new channel is different from prev channel, reseting scroll state`,
+            { tags: `message list ${this.mode}` }
+          );
           this.resetScrollState();
           this.channelId = channel?.id;
           if (
@@ -231,6 +241,11 @@ export class MessageListComponent
           } else if (config.parentId) {
             messageId = config.id;
           }
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Jumping to ${messageId || ''}`,
+            { tags: `message list ${this.mode}` }
+          );
           if (messageId) {
             if (messageId === 'latest') {
               this.scrollToLatestMessage();
@@ -263,6 +278,13 @@ export class MessageListComponent
     } else {
       if (this.hasNewMessages) {
         if (!this.isUserScrolled || this.isNewMessageSentByUser) {
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `User has new messages, and not scrolled or sent new messages, therefore we ${
+              this.isLatestMessageInList ? 'scroll' : 'jump'
+            } to latest message`,
+            { tags: `message list ${this.mode}` }
+          );
           this.isLatestMessageInList
             ? this.scrollToBottom()
             : this.jumpToLatestMessage();
@@ -270,6 +292,11 @@ export class MessageListComponent
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       } else if (this.olderMassagesLoaded) {
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `Older messages are loaded, we preserve the scroll position`,
+          { tags: `message list ${this.mode}` }
+        );
         this.preserveScrollbarPosition();
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
         this.olderMassagesLoaded = false;
@@ -278,6 +305,13 @@ export class MessageListComponent
         !this.isUserScrolled &&
         !this.highlightedMessageId
       ) {
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `Container grew and user didn't scroll therefore we ${
+            this.isLatestMessageInList ? 'scroll' : 'jump'
+          } to latest message`,
+          { tags: `message list ${this.mode}` }
+        );
         this.isLatestMessageInList
           ? this.scrollToBottom()
           : this.jumpToLatestMessage();
@@ -333,6 +367,11 @@ export class MessageListComponent
       return;
     }
     const scrollPosition = this.getScrollPosition();
+    this.chatClientService.chatClient?.logger?.(
+      'info',
+      `Scrolled - scroll position: ${scrollPosition}`,
+      { tags: `message list ${this.mode}` }
+    );
 
     this.isUserScrolled =
       (this.direction === 'bottom-to-top'
@@ -440,9 +479,23 @@ export class MessageListComponent
       tap((messages) => {
         this.isLoading = false;
         if (messages.length === 0) {
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Empty messages array, reseting scroll state`,
+            {
+              tags: `message list ${this.mode}`,
+            }
+          );
           this.resetScrollState();
           return;
         }
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `Received one or more messages`,
+          {
+            tags: `message list ${this.mode}`,
+          }
+        );
         const currentLatestMessage = messages[messages.length - 1];
         this.newMessageReceived(currentLatestMessage);
         const currentOldestMessage = messages[0];
@@ -551,6 +604,11 @@ export class MessageListComponent
       !this.latestMessage ||
       this.latestMessage.created_at?.getTime() < message.created_at.getTime()
     ) {
+      this.chatClientService.chatClient?.logger?.(
+        'info',
+        `Received new message`,
+        { tags: `message list ${this.mode}` }
+      );
       this.latestMessage = message;
       this.hasNewMessages = true;
       this.isNewMessageSentByUser =
