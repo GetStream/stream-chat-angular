@@ -127,7 +127,7 @@ export class MessageListComponent
       this.channelService.activeChannel$.subscribe((channel) => {
         this.chatClientService.chatClient?.logger?.(
           'info',
-          `${channel?.cid} selected`,
+          `${channel?.cid || 'undefined'} selected`,
           { tags: `message list ${this.mode}` }
         );
         if (this.channelId !== channel?.id) {
@@ -243,7 +243,7 @@ export class MessageListComponent
           }
           this.chatClientService.chatClient?.logger?.(
             'info',
-            `Jumping to ${messageId}`,
+            `Jumping to ${messageId || ''}`,
             { tags: `message list ${this.mode}` }
           );
           if (messageId) {
@@ -479,9 +479,23 @@ export class MessageListComponent
       tap((messages) => {
         this.isLoading = false;
         if (messages.length === 0) {
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Empty messages array, reseting scroll state`,
+            {
+              tags: `message list ${this.mode}`,
+            }
+          );
           this.resetScrollState();
           return;
         }
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `Received one or more messages`,
+          {
+            tags: `message list ${this.mode}`,
+          }
+        );
         const currentLatestMessage = messages[messages.length - 1];
         this.newMessageReceived(currentLatestMessage);
         const currentOldestMessage = messages[0];
@@ -590,6 +604,11 @@ export class MessageListComponent
       !this.latestMessage ||
       this.latestMessage.created_at?.getTime() < message.created_at.getTime()
     ) {
+      this.chatClientService.chatClient?.logger?.(
+        'info',
+        `Received new message`,
+        { tags: `message list ${this.mode}` }
+      );
       this.latestMessage = message;
       this.hasNewMessages = true;
       this.isNewMessageSentByUser =
