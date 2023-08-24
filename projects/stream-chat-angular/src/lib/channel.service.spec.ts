@@ -1524,6 +1524,7 @@ describe('ChannelService', () => {
   it('should query members, less than 100 members', async () => {
     await init();
     const channel = generateMockChannels(1)[0];
+    channel.cid = 'new-channel';
     channel.state.members = {
       jack: { user: { id: 'jack', name: 'Jack' } },
       john: { user: { id: 'john' } },
@@ -1545,6 +1546,7 @@ describe('ChannelService', () => {
   it('should query members, more than 100 members', async () => {
     await init();
     const channel = generateMockChannels(1)[0];
+    channel.cid = 'new-channel';
     spyOn(channel, 'queryMembers').and.callThrough();
     const users = Array.from({ length: 101 }, (_, i) => ({ id: `${i}` }));
     channel.state.members = {} as any as Record<
@@ -1963,5 +1965,18 @@ describe('ChannelService', () => {
     expect((service as any).watchForChannelEvents).toHaveBeenCalledWith(
       newChannel
     );
+  });
+
+  it('should do nothing if same channel is selected twice', () => {
+    const activeChannel = generateMockChannels()[0];
+
+    service.setAsActiveChannel(activeChannel);
+
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
+    spy.calls.reset();
+    service.setAsActiveChannel(activeChannel);
+
+    expect(spy).not.toHaveBeenCalled();
   });
 });

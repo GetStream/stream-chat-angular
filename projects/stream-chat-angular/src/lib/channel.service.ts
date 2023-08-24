@@ -405,6 +405,9 @@ export class ChannelService<
    */
   setAsActiveChannel(channel: Channel<T>) {
     const prevActiveChannel = this.activeChannelSubject.getValue();
+    if (prevActiveChannel?.cid === channel.cid) {
+      return;
+    }
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
