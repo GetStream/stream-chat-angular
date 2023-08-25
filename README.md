@@ -89,6 +89,8 @@ STREAM_USER_ID=<Your user ID>
 STREAM_USER_TOKEN=<Your user token>
 ```
 
+The easiest way to generate a token for testing purposes is to use our [token generator](https://getstream.io/chat/docs/react/token_generator/).
+
 Run `npm install` to install dependencies.
 
 Run `npm start` and navigate to `http://localhost:4200/`.
