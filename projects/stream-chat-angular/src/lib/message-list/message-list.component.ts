@@ -77,6 +77,10 @@ export class MessageListComponent
    */
   @Input() openMessageListAt: 'last-message' | 'last-unread-message' =
     'last-message';
+  /**
+   * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
+   */
+  @Input() displayLoadingIndicator = true;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
   customnewMessagesIndicatorTemplate: TemplateRef<void> | undefined;
@@ -369,7 +373,7 @@ export class MessageListComponent
     const scrollPosition = this.getScrollPosition();
     this.chatClientService.chatClient?.logger?.(
       'info',
-      `Scrolled - scroll position: ${scrollPosition}`,
+      `Scrolled - scroll position: ${scrollPosition}, container height: ${this.scrollContainer.nativeElement.scrollHeight}`,
       { tags: `message list ${this.mode}` }
     );
 
@@ -391,6 +395,11 @@ export class MessageListComponent
       this.mode === 'main'
         ? void this.channelService.loadMoreMessages(direction)
         : void this.channelService.loadMoreThreadReplies(direction);
+      this.chatClientService.chatClient?.logger?.(
+        'info',
+        `Displaying loading indicator`,
+        { tags: `message list ${this.mode}` }
+      );
       this.isLoading = true;
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;

@@ -30,7 +30,9 @@
       </li>
       <stream-loading-indicator
         data-testid="top-loading-indicator"
-        *ngIf="isLoading && direction === 'bottom-to-top'"
+        *ngIf="
+          isLoading && direction === 'bottom-to-top' && displayLoadingIndicator
+        "
       ></stream-loading-indicator>
       <ng-container *ngIf="messages$ | async as messages">
         <ng-container
@@ -108,7 +110,9 @@
       </ng-container>
       <stream-loading-indicator
         data-testid="bottom-loading-indicator"
-        *ngIf="isLoading && direction === 'top-to-bottom'"
+        *ngIf="
+          isLoading && direction === 'top-to-bottom' && displayLoadingIndicator
+        "
       ></stream-loading-indicator>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
