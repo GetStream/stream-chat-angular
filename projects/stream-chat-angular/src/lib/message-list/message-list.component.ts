@@ -593,7 +593,9 @@ export class MessageListComponent
       // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
       setTimeout(() => this.scrollMessageIntoView(messageId, false));
     } else if (element) {
-      element.scrollIntoView({ block: 'center' });
+      element.scrollIntoView({
+        block: messageId === this.lastReadMessageId ? 'start' : 'center',
+      });
       setTimeout(() => {
         this.highlightedMessageId = undefined;
         this.isJumpingToLatestUnreadMessage = false;
