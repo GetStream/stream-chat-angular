@@ -69,13 +69,13 @@ export class MessageListComponent
   @Input() displayDateSeparator = true;
   /**
    * If date separators are displayed, you can set the horizontal position of the date text.
-   * If `openMessageListAt` is `last-unread-message` it will also set the text position of the new messages indicator.
+   * If `openMessageListAt` is `last-read-message` it will also set the text position of the new messages indicator.
    */
   @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
   /**
-   * `last-message` option will open the message list at the last message, `last-unread-message` will open the list at the last unread message. This option only works if mode is `main`.
+   * `last-message` option will open the message list at the last message, `last-read-message` will open the list at the last unread message. This option only works if mode is `main`.
    */
-  @Input() openMessageListAt: 'last-message' | 'last-unread-message' =
+  @Input() openMessageListAt: 'last-message' | 'last-read-message' =
     'last-message';
   /**
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
@@ -143,13 +143,21 @@ export class MessageListComponent
           this.resetScrollState();
           this.channelId = channel?.id;
           if (
-            this.openMessageListAt === 'last-unread-message' &&
+            this.openMessageListAt === 'last-read-message' &&
             this.mode === 'main'
           ) {
             this.lastReadMessageId =
               channel?.state.read[
                 this.chatClientService.chatClient.user?.id || ''
               ]?.last_read_message_id;
+            if (
+              channel &&
+              channel.state.latestMessages[
+                channel.state.latestMessages.length - 1
+              ].id === this.lastReadMessageId
+            ) {
+              this.lastReadMessageId = undefined;
+            }
             if (this.lastReadMessageId) {
               this.isJumpingToLatestUnreadMessage = true;
               void this.channelService.jumpToMessage(this.lastReadMessageId);
