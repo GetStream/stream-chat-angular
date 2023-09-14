@@ -907,7 +907,7 @@ describe('MessageListComponent', () => {
     });
 
     it('should ignore openMessageListAt input', () => {
-      component.openMessageListAt = 'last-unread-message';
+      component.openMessageListAt = 'last-read-message';
 
       const channel = generateMockChannels()[0];
       const messages = generateMockMessages();
@@ -1055,7 +1055,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should jump to latest unread message if openMessageListAt specifies', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
@@ -1075,7 +1075,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is the first on the given day, date separator visible', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = true;
 
     const channel = generateMockChannels()[0];
@@ -1101,7 +1101,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is the first on the given day, date separator not visible', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = false;
 
     const channel = generateMockChannels()[0];
@@ -1127,7 +1127,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is not the first on the given day', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = false;
 
     const channel = generateMockChannels()[0];
@@ -1150,7 +1150,7 @@ describe('MessageListComponent', () => {
   });
 
   it(`shouldn't highlight latest unread message`, () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
@@ -1169,7 +1169,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is not the first on the given day, direction top-to-bottom', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = false;
     component.direction = 'top-to-bottom';
 
@@ -1194,7 +1194,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is the first on the given day, date separator visible, direction top-to-bottom', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = true;
     component.direction = 'top-to-bottom';
 
@@ -1221,7 +1221,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should display new message indicator - new mesage is the first on the given day, date separator not visible, direction top-to-bottom', () => {
-    component.openMessageListAt = 'last-unread-message';
+    component.openMessageListAt = 'last-read-message';
     component.displayDateSeparator = false;
     component.direction = 'top-to-bottom';
 
