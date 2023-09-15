@@ -481,4 +481,66 @@ describe('AutocompleteTextareaComponent', () => {
 
     expect(height).toBeGreaterThan(0);
   });
+
+  it('should control slash command auto complete visibility', () => {
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeUndefined();
+
+    component.value = '/';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeUndefined();
+
+    component.value = '/ban';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeUndefined();
+
+    component.value = '/ban ';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeTrue();
+
+    component.value = '/ban @';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeUndefined();
+
+    component.value = 'http:/';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeTrue();
+
+    component.value = 'http://getstream.io @';
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.classes[
+        'str-chat__message-textarea-angular-host--autocomplete-hidden'
+      ]
+    ).toBeUndefined();
+  });
 });

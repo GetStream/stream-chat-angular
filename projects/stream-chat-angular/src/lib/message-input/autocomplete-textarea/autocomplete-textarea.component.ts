@@ -40,12 +40,11 @@ import { ThemeService } from '../../theme.service';
 export class AutocompleteTextareaComponent
   implements TextareaInterface, OnChanges, AfterViewInit
 {
-  @HostBinding() class =
-    'str-chat__textarea str-chat__message-textarea-angular-host';
   /**
    * The value of the input HTML element.
    */
   @Input() value = '';
+
   /**
    * Placeholder of the textarea
    */
@@ -171,6 +170,19 @@ export class AutocompleteTextareaComponent
       this.slashCommandConfig,
     ];
     this.themeVersion = this.themeService.themeVersion;
+  }
+
+  @HostBinding()
+  get class() {
+    return `str-chat__textarea str-chat__message-textarea-angular-host ${
+      (this.value.includes(' ') ||
+        !this.value.startsWith(this.commandTriggerChar) ||
+        this.value.lastIndexOf(this.commandTriggerChar) !== 0) &&
+      this.value.lastIndexOf(this.commandTriggerChar) >
+        this.value.lastIndexOf(this.mentionTriggerChar)
+        ? 'str-chat__message-textarea-angular-host--autocomplete-hidden'
+        : ''
+    }`;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
