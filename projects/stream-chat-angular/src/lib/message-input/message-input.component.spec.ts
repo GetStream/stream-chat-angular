@@ -238,9 +238,12 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
+    updateMessageSpy.and.resolveTo({ id: component.message.id });
     await component.messageSent();
 
-    expect(spy).toHaveBeenCalledWith(undefined);
+    expect(spy).toHaveBeenCalledWith({
+      message: jasmine.objectContaining({ id: component.message.id }),
+    });
   });
 
   it('should send message if button is clicked', () => {

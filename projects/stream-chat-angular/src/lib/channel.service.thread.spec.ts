@@ -548,7 +548,7 @@ describe('ChannelService - threads', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
-    const replies = [mockMessage(), mockMessage()];
+    const replies = [mockMessage(1), mockMessage(2)];
     replies.forEach((r) => (r.parent_id = parentMessage.id));
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({

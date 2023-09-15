@@ -21,9 +21,9 @@ export const mockCurrentUser = () =>
     image: 'link/to/photo',
   } as UserResponse<DefaultStreamChatGenerics>);
 
-export const mockMessage = () =>
+export const mockMessage = (id?: number) =>
   ({
-    id: 'id',
+    id: id === undefined ? 'id' : `id${id}`,
     text: 'Hello from Angular SDK',
     user: mockCurrentUser(),
     type: 'regular',
@@ -84,7 +84,10 @@ export const generateMockChannels = (length = 25) => {
       },
       watch: () => {},
       stopWatching: () => {},
-      sendMessage: () => {},
+      sendMessage: (m: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        return Promise.resolve({ message: m });
+      },
       sendImage: () => {},
       sendFile: () => {},
       sendAction: () => {},
@@ -113,22 +116,31 @@ export const generateMockChannels = (length = 25) => {
           eddie: { user: { id: 'eddie' } },
         },
         addMessageSorted: function (response: MessageResponse) {
-          if (response.parent_id) {
-            if (
-              (this.threads as { [key: string]: StreamMessage[] })[
-                response.parent_id
-              ]
-            ) {
-              (this.threads as { [key: string]: StreamMessage[] })[
-                response.parent_id
-              ].push(response as any as StreamMessage);
+          if (!response) {
+            return;
+          }
+          let array: StreamMessage[];
+          const message = response as any as StreamMessage;
+          const threads = this.threads as { [key: string]: StreamMessage[] };
+          if (message.parent_id) {
+            if (threads[message.parent_id]) {
+              array = threads[message.parent_id];
             } else {
-              (this.threads as { [key: string]: StreamMessage[] })[
-                response.parent_id
-              ] = [response as any as StreamMessage];
+              array = [];
+              threads[message.parent_id] = array;
             }
           } else {
-            this.messages.push(response as any as StreamMessage);
+            array = this.messages;
+          }
+          const existingMessageIndex = array.findIndex((m) =>
+            message.id
+              ? m.id === message.id
+              : m.created_at === message.created_at
+          );
+          if (existingMessageIndex === -1) {
+            array.push(message);
+          } else {
+            array[existingMessageIndex] = message;
           }
         },
         removeMessage: () => {},
