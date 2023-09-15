@@ -90,7 +90,9 @@ export class MessageInputComponent
   /**
    * Emits when a message was successfuly sent or updated
    */
-  @Output() readonly messageUpdate = new EventEmitter<void>();
+  @Output() readonly messageUpdate = new EventEmitter<{
+    message: StreamMessage;
+  }>();
   @HostBinding() class = 'str-chat__message-input-angular-host';
   isFileUploadAuthorized: boolean | undefined;
   canSendLinks: boolean | undefined;
@@ -353,7 +355,7 @@ export class MessageInputComponent
       this.textareaValue = '';
     }
     try {
-      await (this.isUpdate
+      const message = await (this.isUpdate
         ? this.channelService.updateMessage({
             ...this.message!,
             text: text,
@@ -366,7 +368,7 @@ export class MessageInputComponent
             this.parentMessageId,
             this.quotedMessage?.id
           ));
-      this.messageUpdate.emit();
+      this.messageUpdate.emit({ message });
       if (!this.isUpdate) {
         this.attachmentService.resetAttachmentUploads();
       }

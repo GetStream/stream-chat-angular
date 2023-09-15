@@ -1256,7 +1256,14 @@ describe('ChannelService', () => {
       true
     );
 
-    expect(latestMessage.status).toBe('sending');
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        status: 'received',
+      }),
+      true
+    );
+
+    expect(latestMessage.status).toBe('received');
   });
 
   it('should set message state while sending', async () => {

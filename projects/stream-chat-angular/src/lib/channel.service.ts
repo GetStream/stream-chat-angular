@@ -6,7 +6,7 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { first, map, shareReplay } from 'rxjs/operators';
+import { first, map, shareReplay, take } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -677,7 +677,8 @@ export class ChannelService<
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
     channel.state.addMessageSorted(preview, true);
-    await this.sendMessageRequest(preview, customData);
+    const response = await this.sendMessageRequest(preview, customData);
+    return response;
   }
 
   /**
@@ -704,9 +705,15 @@ export class ChannelService<
   async updateMessage(message: StreamMessage<T>) {
     const messageToUpdate = { ...message };
     delete messageToUpdate.i18n;
-    await this.chatClientService.chatClient.updateMessage(
+    const response = await this.chatClientService.chatClient.updateMessage(
       messageToUpdate as any as UpdatedMessage<T>
     );
+
+    const channel = this.channelsSubject
+      .getValue()
+      ?.find((c) => c.cid === message.cid);
+
+    return this.transformToStreamMessage(response.message, channel);
   }
 
   /**
@@ -879,20 +886,24 @@ export class ChannelService<
         quoted_message_id: preview.quoted_message_id,
         ...customData,
       } as Message<T>); // TODO: find out why we need typecast here
-      if (response?.message) {
-        channel.state.addMessageSorted(
-          {
-            ...response.message,
-            status: 'received',
-          },
-          true
-        );
-        isThreadReply
-          ? this.activeThreadMessagesSubject.next([
-              ...channel.state.threads[preview.parent_id!],
-            ])
-          : this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      }
+      channel.state.addMessageSorted(
+        {
+          ...response.message,
+          status: 'received',
+        },
+        true
+      );
+      isThreadReply
+        ? this.activeThreadMessagesSubject.next([
+            ...channel.state.threads[preview.parent_id!],
+          ])
+        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      let messages!: StreamMessage<T>[];
+      (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
+        .pipe(take(1))
+        .subscribe((m) => (messages = m));
+      const newMessage = messages[messages.length - 1]!;
+      return newMessage;
     } catch (error) {
       const stringError = JSON.stringify(error);
       const parsedError: { status?: number } = stringError
@@ -912,6 +923,12 @@ export class ChannelService<
             ...channel.state.threads[preview.parent_id!],
           ])
         : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      let messages!: StreamMessage<T>[];
+      (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
+        .pipe(take(1))
+        .subscribe((m) => (messages = m));
+      const newMessage = messages[messages.length - 1]!;
+      return newMessage;
     }
   }
 
@@ -1521,7 +1538,7 @@ export class ChannelService<
 
   private transformToStreamMessage(
     message: StreamMessage<T> | MessageResponse<T> | FormatMessageResponse<T>,
-    channel: Channel<T>
+    channel?: Channel<T>
   ) {
     const isThreadMessage = !!message.parent_id;
     if (
@@ -1555,7 +1572,11 @@ export class ChannelService<
       if (this.isFormatMessageResponse(message)) {
         return {
           ...message,
-          readBy: isThreadMessage ? [] : getReadBy(message, channel),
+          readBy: isThreadMessage
+            ? []
+            : channel
+            ? getReadBy(message, channel)
+            : [],
           translation: getMessageTranslation(
             message,
             channel,
@@ -1566,7 +1587,11 @@ export class ChannelService<
         const formatMessage = this.formatMessage(message);
         return {
           ...formatMessage,
-          readBy: isThreadMessage ? [] : getReadBy(formatMessage, channel),
+          readBy: isThreadMessage
+            ? []
+            : channel
+            ? getReadBy(formatMessage, channel)
+            : [],
           translation: getMessageTranslation(
             message,
             channel,
