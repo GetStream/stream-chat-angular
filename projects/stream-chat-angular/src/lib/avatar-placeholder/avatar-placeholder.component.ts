@@ -1,4 +1,12 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+} from '@angular/core';
 import { Channel, User } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import {
@@ -16,7 +24,9 @@ import {
   templateUrl: './avatar-placeholder.component.html',
   styles: [],
 })
-export class AvatarPlaceholderComponent implements OnChanges {
+export class AvatarPlaceholderComponent
+  implements OnChanges, AfterViewInit, OnDestroy
+{
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -61,7 +71,34 @@ export class AvatarPlaceholderComponent implements OnChanges {
     type: undefined,
     initialsType: undefined,
   };
-  constructor(public customTemplatesService: CustomTemplatesService) {}
+  isVisible = true;
+  private mutationObserver?: MutationObserver;
+  constructor(
+    public customTemplatesService: CustomTemplatesService,
+    private hostElement: ElementRef<HTMLElement>,
+    private cdRef: ChangeDetectorRef
+  ) {}
+
+  ngAfterViewInit(): void {
+    if (this.location !== 'message-sender') {
+      this.isVisible = true;
+      this.cdRef.detectChanges();
+      return;
+    }
+    this.checkIfVisible();
+    const elementToObserve =
+      this.hostElement.nativeElement.parentElement?.parentElement
+        ?.parentElement;
+    if (!elementToObserve) {
+      return;
+    }
+    this.mutationObserver = new MutationObserver(() => {
+      this.checkIfVisible();
+    });
+    this.mutationObserver.observe(elementToObserve, {
+      attributeFilter: ['class'],
+    });
+  }
 
   ngOnChanges(): void {
     this.context = {
@@ -74,5 +111,20 @@ export class AvatarPlaceholderComponent implements OnChanges {
       channel: this.channel,
       initialsType: this.initialsType,
     };
+  }
+
+  ngOnDestroy(): void {
+    this.mutationObserver?.disconnect();
+  }
+
+  private checkIfVisible() {
+    const isVisible =
+      getComputedStyle(this.hostElement.nativeElement).getPropertyValue(
+        'visibility'
+      ) === 'visible';
+    if (isVisible !== this.isVisible) {
+      this.isVisible = isVisible;
+      this.cdRef.detectChanges();
+    }
   }
 }
