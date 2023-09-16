@@ -192,6 +192,7 @@ export type AvatarContext = {
   channel?: Channel<DefaultStreamChatGenerics>;
   user?: User<DefaultStreamChatGenerics>;
   initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
+  showOnlineIndicator?: boolean;
 };
 
 export type AttachmentPreviewListContext = {

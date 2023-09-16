@@ -61,6 +61,10 @@ export class AvatarPlaceholderComponent
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
+  /**
+   * If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
+   */
+  @Input() showOnlineIndicator = true;
   context: AvatarContext = {
     name: undefined,
     imageUrl: undefined,
@@ -70,6 +74,7 @@ export class AvatarPlaceholderComponent
     user: undefined,
     type: undefined,
     initialsType: undefined,
+    showOnlineIndicator: undefined,
   };
   isVisible = true;
   private mutationObserver?: MutationObserver;
@@ -110,6 +115,7 @@ export class AvatarPlaceholderComponent
       user: this.user,
       channel: this.channel,
       initialsType: this.initialsType,
+      showOnlineIndicator: this.showOnlineIndicator,
     };
   }
 

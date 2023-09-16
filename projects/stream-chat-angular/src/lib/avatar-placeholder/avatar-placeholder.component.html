@@ -8,6 +8,7 @@
   let-user="user"
   let-location="location"
   let-initialsType="initialsType"
+  let-showOnlineIndicator="showOnlineIndicator"
 >
   <stream-avatar
     [name]="name"
@@ -18,6 +19,7 @@
     [user]="user"
     [location]="location"
     [initialsType]="initialsType"
+    [showOnlineIndicator]="showOnlineIndicator"
   ></stream-avatar>
 </ng-template>
 <ng-container *ngIf="isVisible; else emptyPlaceholder">
