@@ -15,6 +15,7 @@ import {
   AvatarType,
   DefaultStreamChatGenerics,
 } from '../types';
+import { ThemeService } from '../theme.service';
 
 /**
  * The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
@@ -81,22 +82,25 @@ export class AvatarPlaceholderComponent
   constructor(
     public customTemplatesService: CustomTemplatesService,
     private hostElement: ElementRef<HTMLElement>,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private themeService: ThemeService
   ) {}
 
   ngAfterViewInit(): void {
-    if (this.location !== 'message-sender') {
+    const elementToObserve =
+      this.hostElement.nativeElement.parentElement?.parentElement
+        ?.parentElement;
+    if (
+      this.location !== 'message-sender' ||
+      !elementToObserve ||
+      !elementToObserve.classList.contains('str-chat__li') ||
+      this.themeService.themeVersion === '1'
+    ) {
       this.isVisible = true;
       this.cdRef.detectChanges();
       return;
     }
     this.checkIfVisible();
-    const elementToObserve =
-      this.hostElement.nativeElement.parentElement?.parentElement
-        ?.parentElement;
-    if (!elementToObserve) {
-      return;
-    }
     this.mutationObserver = new MutationObserver(() => {
       this.checkIfVisible();
     });
