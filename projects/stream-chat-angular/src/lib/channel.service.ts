@@ -1169,13 +1169,16 @@ export class ChannelService<
       channel.on('message.read', (e) => {
         this.ngZone.run(() => {
           let latestMessage!: StreamMessage;
-          this.activeChannelMessages$.pipe(first()).subscribe((messages) => {
+          let messages!: StreamMessage[];
+          this.activeChannelMessages$.pipe(first()).subscribe((m) => {
+            messages = m;
             latestMessage = messages[messages.length - 1];
           });
           if (!latestMessage || !e.user) {
             return;
           }
           latestMessage.readBy = getReadBy(latestMessage, channel);
+          messages[messages.length - 1] = { ...latestMessage };
 
           this.activeChannelMessagesSubject.next(
             this.activeChannelMessagesSubject.getValue()
@@ -1251,14 +1254,17 @@ export class ChannelService<
       )
         .pipe(first())
         .subscribe((m) => (messages = m));
-      const message = messages.find((m) => m.id === e?.message?.id);
-      if (!message) {
+      const messageIndex = messages.findIndex((m) => m.id === e?.message?.id);
+      if (messageIndex === -1) {
         return;
       }
+      const message = messages[messageIndex];
       message.reaction_counts = { ...e.message?.reaction_counts };
       message.reaction_scores = { ...e.message?.reaction_scores };
       message.latest_reactions = [...(e.message?.latest_reactions || [])];
       message.own_reactions = [...(e.message?.own_reactions || [])];
+
+      messages[messageIndex] = { ...message };
       isThreadMessage
         ? this.activeThreadMessagesSubject.next([...messages])
         : this.activeChannelMessagesSubject.next([...messages]);

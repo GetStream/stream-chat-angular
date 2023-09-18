@@ -10,7 +10,8 @@
     >
       <ng-container
         *ngTemplateOutlet="
-          messageActionItemTemplate || defaultMessageActionItem;
+          (customTemplatesService.messageActionsBoxItemTemplate$ | async) ||
+            defaultMessageActionItem;
           context: getMessageActionTemplateContext(item)
         "
       ></ng-container>
@@ -37,7 +38,7 @@
 
 <ng-container
   *ngTemplateOutlet="
-    modalTemplate || defaultModal;
+    (customTemplatesService.modalTemplate$ | async) || defaultModal;
     context: getEditModalContext()
   "
 ></ng-container>
@@ -72,7 +73,7 @@
     </ng-template>
     <ng-container
       *ngTemplateOutlet="
-        messageInputTemplate || defaultInput;
+        (customTemplatesService.messageInputTemplate$ | async) || defaultInput;
         context: getMessageInputContext()
       "
     >

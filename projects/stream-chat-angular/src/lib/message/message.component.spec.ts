@@ -18,7 +18,7 @@ import { AttachmentListComponent } from '../attachment-list/attachment-list.comp
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
-import { SimpleChange } from '@angular/core';
+import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ThemeService } from '../theme.service';
 import { of } from 'rxjs';
@@ -99,6 +99,8 @@ describe('MessageComponent', () => {
           useValue: { themeVersion: '2' },
         },
       ],
+    }).overrideComponent(MessageComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default },
     });
     fixture = TestBed.createComponent(MessageComponent);
     component = fixture.componentInstance;
@@ -167,6 +169,7 @@ describe('MessageComponent', () => {
       'send-reaction',
       'send-reply',
     ];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
   });
 
@@ -175,6 +178,7 @@ describe('MessageComponent', () => {
       ...component.message,
       ...{ reaction_counts: { wow: 1 } },
     } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const container = queryContainer();
     let classList = container?.classList;
@@ -198,6 +202,7 @@ describe('MessageComponent', () => {
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
     component.message.reaction_counts = {};
     component.message.reply_count = 3;
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     classList = container?.classList;
 
@@ -236,6 +241,7 @@ describe('MessageComponent', () => {
     it('if message is delivered', () => {
       component.isLastSentMessage = true;
       component.message = { ...message, ...{ readBy: [] } };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const deliveredIndicator = queryDeliveredIndicator();
       const icon = nativeElement.querySelector(
@@ -275,6 +281,7 @@ describe('MessageComponent', () => {
     it(`should display delivered icon, if user can't receive delivered events`, () => {
       component.isLastSentMessage = true;
       component.enabledMessageActions = [];
+      component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
       fixture.detectChanges();
       const readIndicator = queryReadIndicator();
       const deliveredIndicator = queryDeliveredIndicator();
@@ -295,6 +302,7 @@ describe('MessageComponent', () => {
           readBy,
         },
       };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const readByCounter = queryReadByCounter();
 
@@ -327,6 +335,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ user: { id: 'id', name: senderName, image: senderImage } },
     };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const avatar = queryAvatar();
 
@@ -348,6 +357,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ readBy: [userWithoutName] },
     };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryAvatar()?.name).toContain(currentUser.id);
@@ -357,6 +367,7 @@ describe('MessageComponent', () => {
       ...message,
       ...{ user: userWithoutName },
     };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryAvatar()?.name).toContain(userWithoutName.id);
@@ -385,6 +396,7 @@ describe('MessageComponent', () => {
         ...message,
         ...{ errorStatusCode: 403, status: 'failed' },
       };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const errorMessage = queryErrorMessage();
 
@@ -402,6 +414,7 @@ describe('MessageComponent', () => {
         ...message,
         ...{ errorStatusCode: 500, status: 'failed' },
       };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const errorMessage = queryErrorMessage();
 
@@ -423,6 +436,7 @@ describe('MessageComponent', () => {
         ...message,
         ...{ type: 'error' },
       };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const clientErrorMessage = queryClientErrorMessage();
 
@@ -434,6 +448,7 @@ describe('MessageComponent', () => {
   it('should display message sender and date', () => {
     const sender = { id: 'sender', name: 'Jack' };
     component.message = { ...message, ...{ user: sender } };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const senderElement = querySender();
     const dateElement = queryDate();
@@ -453,6 +468,7 @@ describe('MessageComponent', () => {
   describe('should not display message options', () => {
     it('if message is being sent', () => {
       component.message = { ...message, ...{ status: 'sending' } };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(component.areOptionsVisible).toBe(false);
@@ -461,24 +477,28 @@ describe('MessageComponent', () => {
 
     it('if message sending failed', () => {
       message.status = 'failed';
+      component.ngOnChanges({ message: {} as SimpleChange });
 
       expect(component.areOptionsVisible).toBe(false);
     });
 
     it('if message is unsent', () => {
       message.type = 'error';
+      component.ngOnChanges({ message: {} as SimpleChange });
 
       expect(component.areOptionsVisible).toBe(false);
     });
 
     it('if message is system message', () => {
       message.type = 'system';
+      component.ngOnChanges({ message: {} as SimpleChange });
 
       expect(component.areOptionsVisible).toBe(false);
     });
 
     it('if message is ephemeral message', () => {
       message.type = 'ephemeral';
+      component.ngOnChanges({ message: {} as SimpleChange });
 
       expect(component.areOptionsVisible).toBe(false);
     });
@@ -490,6 +510,7 @@ describe('MessageComponent', () => {
 
   it('should display message actions for regular messages', () => {
     component.enabledMessageActions = ['delete'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryActionIcon()).not.toBeNull();
@@ -497,6 +518,7 @@ describe('MessageComponent', () => {
 
   it(`shouldn't display message actions if there are no enabled message actions`, () => {
     component.enabledMessageActions = [];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryActionIcon()).toBeNull();
@@ -504,6 +526,7 @@ describe('MessageComponent', () => {
 
   it(`shouldn't display message actions if there is no visible message action`, () => {
     component.enabledMessageActions = ['flag-message'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryActionIcon()).toBeNull();
@@ -511,6 +534,7 @@ describe('MessageComponent', () => {
 
   it('should open and close message actions box', () => {
     component.enabledMessageActions = ['update-own-message', 'flag-message'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(messageActionsBoxComponent.isOpen).toBeFalse();
@@ -524,6 +548,7 @@ describe('MessageComponent', () => {
   it('should close message actions box on mouseleave event', () => {
     component.enabledMessageActions = ['update-own-message', 'flag-message'];
     component.isActionBoxOpen = true;
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
     queryContainer()?.dispatchEvent(new Event('mouseleave'));
@@ -542,6 +567,7 @@ describe('MessageComponent', () => {
     expect(messageActionsBoxComponent.isMine).toBeTrue();
 
     component.message = { ...message, ...{ user: { id: 'notcurrentuser' } } };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(messageActionsBoxComponent.isMine).toBeFalse();
@@ -587,6 +613,7 @@ describe('MessageComponent', () => {
       ...{ attachments },
     };
     component.message.parent_id = 'parent-id';
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const attachmentComponent = queryAttachmentComponent();
 
@@ -668,6 +695,7 @@ describe('MessageComponent', () => {
 
   it(`shouldn't display empty text`, () => {
     component.message = { ...component.message!, ...{ text: '' } };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryText()).toBeNull();
@@ -688,6 +716,7 @@ describe('MessageComponent', () => {
 
   it('should resend message, if sending is failed', () => {
     component.message = { ...component.message!, status: 'failed' };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     spyOn(component, 'resendMessage');
     queryMessageInner()!.click();
@@ -697,6 +726,7 @@ describe('MessageComponent', () => {
 
   it(`shouldn't resend message, if message could be sent`, () => {
     component.message = { ...component.message!, status: 'received' };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     spyOn(component, 'resendMessage');
     queryMessageInner()!.click();
@@ -710,6 +740,7 @@ describe('MessageComponent', () => {
       status: 'failed',
       errorStatusCode: 403,
     };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     spyOn(component, 'resendMessage');
     queryMessageInner()!.click();
@@ -727,6 +758,7 @@ describe('MessageComponent', () => {
     expect(queryDeletedMessageContainer()).toBeNull();
 
     component.message = { ...message, deleted_at: new Date().toISOString() };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryDeletedMessageContainer()).not.toBeNull();
@@ -951,6 +983,7 @@ describe('MessageComponent', () => {
     expect(queryReplyCountButton()).toBeNull();
 
     component.message = { ...message, reply_count: 1 };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
     expect(queryReplyCountButton()).not.toBeNull();
@@ -961,6 +994,7 @@ describe('MessageComponent', () => {
     expect(queryReplyCountButton()).toBeNull();
 
     component.message = { ...message, reply_count: 1 };
+    component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     queryReplyCountButton()?.click();
     fixture.detectChanges();
@@ -971,7 +1005,10 @@ describe('MessageComponent', () => {
   it(`shouldn't display reply count for parent messages if user doesn't have the necessary capability`, () => {
     component.message = { ...message, reply_count: 1 };
     component.enabledMessageActions = [];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    component.ngOnChanges({
+      message: {} as SimpleChange,
+      enabledMessageActions: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryReplyCountButton()).toBeNull();
@@ -1003,6 +1040,7 @@ describe('MessageComponent', () => {
       component.mode = 'thread';
       component.enabledMessageActions = ['update-own-message', 'delete'];
       component.ngOnChanges({
+        mode: {} as SimpleChange,
         enabledMessageActions: {} as SimpleChange,
       });
       fixture.detectChanges();
@@ -1038,6 +1076,7 @@ describe('MessageComponent', () => {
       component.enabledMessageActions = ['send-reply'];
       component.message!.parent_id = 'parentMessage';
       component.ngOnChanges({
+        message: {} as SimpleChange,
         enabledMessageActions: {} as SimpleChange,
       });
       fixture.detectChanges();
@@ -1049,6 +1088,7 @@ describe('MessageComponent', () => {
       component.enabledMessageActions = ['update-any-message'];
       component.message!.parent_id = 'parentMessage';
       component.ngOnChanges({
+        message: {} as SimpleChange,
         enabledMessageActions: {} as SimpleChange,
       });
       fixture.detectChanges();
@@ -1060,6 +1100,7 @@ describe('MessageComponent', () => {
       component.enabledMessageActions = ['send-reaction'];
       component.message!.parent_id = 'parentMessage';
       component.ngOnChanges({
+        message: {} as SimpleChange,
         enabledMessageActions: {} as SimpleChange,
       });
       fixture.detectChanges();
@@ -1149,6 +1190,7 @@ describe('MessageComponent', () => {
       expect(quotedMessageContainer?.classList).toContain('mine');
 
       component.message = { ...component.message!, user: { id: 'otheruser' } };
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(quotedMessageContainer?.classList).not.toContain('mine');
@@ -1159,6 +1201,7 @@ describe('MessageComponent', () => {
         { image_url: 'http://url/to/image', type: 'image' },
       ];
       component.message!.text = undefined;
+      component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryAttachmentComponent()).toBeDefined();

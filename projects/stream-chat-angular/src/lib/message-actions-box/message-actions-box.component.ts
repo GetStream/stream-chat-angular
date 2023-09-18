@@ -3,13 +3,12 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -30,7 +29,7 @@ import {
   templateUrl: './message-actions-box.component.html',
   styles: [],
 })
-export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
+export class MessageActionsBoxComponent implements OnChanges {
   /**
    * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
    * @deprecated No need for this since [theme-v2](../theming/introduction.mdx)
@@ -66,7 +65,6 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
     | TemplateRef<MessageActionBoxItemContext>
     | undefined;
   modalTemplate: TemplateRef<ModalContext> | undefined;
-  subscriptions: Subscription[] = [];
   visibleMessageActionItems: (MessageActionItem | CustomMessageActionItem)[] =
     [];
   sendMessage$: Observable<void>;
@@ -78,23 +76,8 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
     private channelService: ChannelService,
-    private customTemplatesService: CustomTemplatesService
+    public readonly customTemplatesService: CustomTemplatesService
   ) {
-    this.subscriptions.push(
-      this.customTemplatesService.messageInputTemplate$.subscribe(
-        (template) => (this.messageInputTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.messageActionsBoxItemTemplate$.subscribe(
-        (template) => (this.messageActionItemTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.modalTemplate$.subscribe(
-        (template) => (this.modalTemplate = template)
-      )
-    );
     this.messageActionItems = [
       {
         actionName: 'quote',
@@ -183,10 +166,6 @@ export class MessageActionsBoxComponent implements OnChanges, OnDestroy {
       );
       this.displayedActionsCount.emit(this.visibleMessageActionItems.length);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   getActionLabel(

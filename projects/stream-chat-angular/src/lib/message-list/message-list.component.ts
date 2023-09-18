@@ -54,7 +54,6 @@ export class MessageListComponent
    */
   @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
     'message-row';
-  typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   /**
    * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar](https://github.com/GetStream/stream-chat-angular/issues/418)
    */
@@ -81,6 +80,7 @@ export class MessageListComponent
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
    */
   @Input() displayLoadingIndicator = true;
+  typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
   customnewMessagesIndicatorTemplate: TemplateRef<void> | undefined;
@@ -358,6 +358,7 @@ export class MessageListComponent
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight;
+    this.forceRepaint();
   }
 
   scrollToTop() {
@@ -460,6 +461,14 @@ export class MessageListComponent
     this.scrollContainer.nativeElement.scrollTop =
       (this.prevScrollTop || 0) +
       (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
+    this.forceRepaint();
+  }
+
+  private forceRepaint() {
+    // Solves the issue of empty screen on iOS Safari when scrolling
+    this.scrollContainer.nativeElement.style.display = 'none';
+    this.scrollContainer.nativeElement.offsetHeight; // no need to store this anywhere, the reference is enough
+    this.scrollContainer.nativeElement.style.display = '';
   }
 
   private getScrollPosition(): 'top' | 'bottom' | 'middle' {

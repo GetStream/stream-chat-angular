@@ -19,7 +19,8 @@
       <ng-container *ngIf="isImage(attachment)">
         <ng-container
           *ngTemplateOutlet="
-            imageAttachmentTemplate || defaultImage;
+            (customTemplatesService.imageAttachmentTemplate$ | async) ||
+              defaultImage;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
@@ -70,7 +71,8 @@
       <ng-container *ngIf="isGallery(attachment)">
         <ng-container
           *ngTemplateOutlet="
-            galleryAttachmentTemplate || defaultGallery;
+            (customTemplatesService.galleryAttachmentTemplate$ | async) ||
+              defaultGallery;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
@@ -202,7 +204,8 @@
       <ng-container *ngIf="isVideo(attachment)">
         <ng-container
           *ngTemplateOutlet="
-            videoAttachmentTemplate || defaultVideo;
+            (customTemplatesService.videoAttachmentTemplate$ | async) ||
+              defaultVideo;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
@@ -249,7 +252,8 @@
       <ng-container *ngIf="isFile(attachment)">
         <ng-container
           *ngTemplateOutlet="
-            fileAttachmentTemplate || defaultFile;
+            (customTemplatesService.fileAttachmentTemplate$ | async) ||
+              defaultFile;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
@@ -314,7 +318,8 @@
       >
         <ng-container
           *ngTemplateOutlet="
-            cardAttachmentTemplate || defaultCard;
+            (customTemplatesService.cardAttachmentTemplate$ | async) ||
+              defaultCard;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
@@ -384,7 +389,8 @@
       <ng-container *ngIf="attachment.actions && attachment.actions.length > 0">
         <ng-container
           *ngTemplateOutlet="
-            attachmentActionsTemplate || defaultActions;
+            (customTemplatesService.attachmentActionsTemplate$ | async) ||
+              defaultActions;
             context: getAttachmentContext(attachment)
           "
         ></ng-container>
