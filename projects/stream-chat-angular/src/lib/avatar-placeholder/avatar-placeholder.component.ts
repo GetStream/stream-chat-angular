@@ -15,6 +15,7 @@ import {
   AvatarType,
   DefaultStreamChatGenerics,
 } from '../types';
+import { ThemeService } from '../theme.service';
 
 /**
  * The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
@@ -61,6 +62,10 @@ export class AvatarPlaceholderComponent
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
+  /**
+   * If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
+   */
+  @Input() showOnlineIndicator = true;
   context: AvatarContext = {
     name: undefined,
     imageUrl: undefined,
@@ -70,28 +75,32 @@ export class AvatarPlaceholderComponent
     user: undefined,
     type: undefined,
     initialsType: undefined,
+    showOnlineIndicator: undefined,
   };
   isVisible = true;
   private mutationObserver?: MutationObserver;
   constructor(
     public customTemplatesService: CustomTemplatesService,
     private hostElement: ElementRef<HTMLElement>,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private themeService: ThemeService
   ) {}
 
   ngAfterViewInit(): void {
-    if (this.location !== 'message-sender') {
+    const elementToObserve =
+      this.hostElement.nativeElement.parentElement?.parentElement
+        ?.parentElement;
+    if (
+      this.location !== 'message-sender' ||
+      !elementToObserve ||
+      !elementToObserve.classList.contains('str-chat__li') ||
+      this.themeService.themeVersion === '1'
+    ) {
       this.isVisible = true;
       this.cdRef.detectChanges();
       return;
     }
     this.checkIfVisible();
-    const elementToObserve =
-      this.hostElement.nativeElement.parentElement?.parentElement
-        ?.parentElement;
-    if (!elementToObserve) {
-      return;
-    }
     this.mutationObserver = new MutationObserver(() => {
       this.checkIfVisible();
     });
@@ -110,6 +119,7 @@ export class AvatarPlaceholderComponent
       user: this.user,
       channel: this.channel,
       initialsType: this.initialsType,
+      showOnlineIndicator: this.showOnlineIndicator,
     };
   }
 
