@@ -256,7 +256,6 @@ export class AutocompleteTextareaComponent
   }
 
   enterHit(event: Event) {
-    console.log(event);
     if (this.inputMode === 'desktop') {
       event.preventDefault();
       this.updateMentionedUsersFromText();
