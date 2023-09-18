@@ -175,11 +175,7 @@ export class AutocompleteTextareaComponent
   @HostBinding()
   get class() {
     return `str-chat__textarea str-chat__message-textarea-angular-host ${
-      (this.value.includes(' ') ||
-        !this.value.startsWith(this.commandTriggerChar) ||
-        this.value.lastIndexOf(this.commandTriggerChar) !== 0) &&
-      this.value.lastIndexOf(this.commandTriggerChar) >
-        this.value.lastIndexOf(this.mentionTriggerChar)
+      this.areSlashCommandsHidden
         ? 'str-chat__message-textarea-angular-host--autocomplete-hidden'
         : ''
     }`;
@@ -225,6 +221,12 @@ export class AutocompleteTextareaComponent
     item: MentionAutcompleteListItem,
     triggerChar = ''
   ) {
+    if (
+      triggerChar === this.commandTriggerChar &&
+      this.areSlashCommandsHidden
+    ) {
+      return this.commandTriggerChar;
+    }
     if (triggerChar === this.mentionTriggerChar) {
       this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
       this.userMentions.next([...this.mentionedUsers]);
@@ -254,6 +256,7 @@ export class AutocompleteTextareaComponent
   }
 
   enterHit(event: Event) {
+    console.log(event);
     if (this.inputMode === 'desktop') {
       event.preventDefault();
       this.updateMentionedUsersFromText();
@@ -317,5 +320,15 @@ export class AutocompleteTextareaComponent
       this.userMentions.next([...updatedMentionedUsers]);
       this.mentionedUsers = updatedMentionedUsers;
     }
+  }
+
+  private get areSlashCommandsHidden() {
+    return (
+      (this.value.includes(' ') ||
+        !this.value.startsWith(this.commandTriggerChar) ||
+        this.value.lastIndexOf(this.commandTriggerChar) !== 0) &&
+      this.value.lastIndexOf(this.commandTriggerChar) >
+        this.value.lastIndexOf(this.mentionTriggerChar)
+    );
   }
 }
