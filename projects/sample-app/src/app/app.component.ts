@@ -47,7 +47,6 @@ export class AppComponent implements AfterViewInit {
     void this.channelService.init({
       type: 'messaging',
       members: { $in: [environment.userId] },
-      // id: { $eq: '1af49475-b988-479e-9444-2a10aab707f0' },
     });
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
@@ -55,15 +54,12 @@ export class AppComponent implements AfterViewInit {
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
     this.themeVersion = themeService.themeVersion;
     this.theme$ = themeService.theme$;
-
-    // setInterval(() => this.counter++, 1000);
   }
 
   ngAfterViewInit(): void {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
     );
-    // this.customTemplateService.avatarTemplate$.next(this.avatarTemplate);
   }
 
   closeMenu() {
