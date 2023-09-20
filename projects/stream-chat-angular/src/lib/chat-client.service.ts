@@ -118,7 +118,9 @@ export class ChatClientService<
         );
         throw error;
       }
-      this.userSubject.next(this.chatClient.user);
+      this.userSubject.next(
+        this.chatClient.user ? { ...this.chatClient.user } : undefined
+      );
       const sdkPrefix = 'stream-chat-angular';
       if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
         this.chatClient.setUserAgent(

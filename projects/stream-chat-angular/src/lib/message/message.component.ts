@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   ChangeDetectorRef,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -27,7 +28,7 @@ import {
   SystemMessageContext,
 } from '../types';
 import emojiRegex from 'emoji-regex';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
@@ -47,6 +48,7 @@ type MessagePart = {
   selector: 'stream-message',
   templateUrl: './message.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   /**
@@ -81,24 +83,51 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   isReactionSelectorOpen = false;
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
-  mentionTemplate: TemplateRef<MentionTemplateContext> | undefined;
-  customDeliveredStatusTemplate:
-    | TemplateRef<DeliveredStatusContext>
-    | undefined;
-  customSendingStatusTemplate: TemplateRef<SendingStatusContext> | undefined;
-  customReadStatusTemplate: TemplateRef<ReadStatusContext> | undefined;
-  attachmentListTemplate: TemplateRef<AttachmentListContext> | undefined;
-  messageActionsBoxTemplate: TemplateRef<MessageActionsBoxContext> | undefined;
-  messageReactionsTemplate: TemplateRef<MessageReactionsContext> | undefined;
-  systemMessageTemplate: TemplateRef<SystemMessageContext> | undefined;
+  mentionTemplate$?: Observable<
+    TemplateRef<MentionTemplateContext> | undefined
+  >;
+  deliveredStatusTemplate$?: Observable<
+    TemplateRef<DeliveredStatusContext> | undefined
+  >;
+  sendingStatusTemplate$?: Observable<
+    TemplateRef<SendingStatusContext> | undefined
+  >;
+  readStatusTemplate$?: Observable<TemplateRef<ReadStatusContext> | undefined>;
+  attachmentListTemplate$?: Observable<
+    TemplateRef<AttachmentListContext> | undefined
+  >;
+  messageActionsBoxTemplate$?: Observable<
+    TemplateRef<MessageActionsBoxContext> | undefined
+  >;
+  messageReactionsTemplate$?: Observable<
+    TemplateRef<MessageReactionsContext> | undefined
+  >;
+  systemMessageTemplate$?: Observable<
+    TemplateRef<SystemMessageContext> | undefined
+  >;
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
   imageAttachmentModalState: 'opened' | 'closed' = 'closed';
+  shouldDisplayThreadLink = false;
+  isSentByCurrentUser = false;
+  readByText = '';
+  lastReadUser: UserResponse<DefaultStreamChatGenerics> | undefined = undefined;
+  isOnlyReadByMe = false;
+  isReadByMultipleUsers = false;
+  isMessageDeliveredAndRead = false;
+  parsedDate = '';
+  areOptionsVisible = false;
+  hasAttachment = false;
+  hasReactions = false;
+  replyCountParam: { replyCount: number | undefined } = {
+    replyCount: undefined,
+  };
+  canDisplayReadStatus = false;
   private quotedMessageAttachments: Attachment[] | undefined;
-  private user: UserResponse<DefaultStreamChatGenerics> | undefined;
+  user: UserResponse<DefaultStreamChatGenerics> | undefined;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
@@ -118,49 +147,28 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.subscriptions.push(
       this.chatClientService.user$.subscribe((u) => {
-        this.user = u;
+        if (u !== this.user) {
+          this.user = u;
+          this.setIsSentByCurrentUser();
+          this.setLastReadUser();
+          this.cdRef.detectChanges();
+        }
       })
     );
-    this.subscriptions.push(
-      this.customTemplatesService.mentionTemplate$.subscribe(
-        (template) => (this.mentionTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.attachmentListTemplate$.subscribe(
-        (template) => (this.attachmentListTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.messageActionsBoxTemplate$.subscribe(
-        (template) => (this.messageActionsBoxTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.messageReactionsTemplate$.subscribe(
-        (template) => (this.messageReactionsTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.deliveredStatusTemplate$.subscribe(
-        (template) => (this.customDeliveredStatusTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.sendingStatusTemplate$.subscribe(
-        (template) => (this.customSendingStatusTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.readStatusTemplate$.subscribe(
-        (template) => (this.customReadStatusTemplate = template)
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.systemMessageTemplate$.subscribe(
-        (template) => (this.systemMessageTemplate = template)
-      )
-    );
+    this.mentionTemplate$ = this.customTemplatesService.mentionTemplate$;
+    this.attachmentListTemplate$ =
+      this.customTemplatesService.attachmentListTemplate$;
+    this.messageActionsBoxTemplate$ =
+      this.customTemplatesService.messageActionsBoxTemplate$;
+    this.messageReactionsTemplate$ =
+      this.customTemplatesService.messageReactionsTemplate$;
+    this.deliveredStatusTemplate$ =
+      this.customTemplatesService.deliveredStatusTemplate$;
+    this.sendingStatusTemplate$ =
+      this.customTemplatesService.sendingStatusTemplate$;
+    this.readStatusTemplate$ = this.customTemplatesService.readStatusTemplate$;
+    this.systemMessageTemplate$ =
+      this.customTemplatesService.systemMessageTemplate$;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -173,98 +181,71 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         originalAttachments && originalAttachments.length
           ? [originalAttachments[0]]
           : [];
+      this.setIsSentByCurrentUser();
+      this.setLastReadUser();
+      this.readByText = this.message?.readBy
+        ? listUsers(this.message.readBy)
+        : '';
+      this.isOnlyReadByMe = !!(
+        this.message &&
+        this.message.readBy &&
+        this.message.readBy.length === 0
+      );
+      this.isReadByMultipleUsers = !!(
+        this.message &&
+        this.message.readBy &&
+        this.message.readBy.length > 1
+      );
+      this.isMessageDeliveredAndRead = !!(
+        this.message &&
+        this.message.readBy &&
+        this.message.status === 'received' &&
+        this.message.readBy.length > 0
+      );
+      this.parsedDate =
+        (this.message &&
+          this.message.created_at &&
+          this.dateParser.parseDateTime(this.message.created_at)) ||
+        '';
+      this.hasAttachment =
+        !!this.message?.attachments && !!this.message.attachments.length;
+      this.hasReactions =
+        !!this.message?.reaction_counts &&
+        Object.keys(this.message.reaction_counts).length > 0;
+      this.replyCountParam = { replyCount: this.message?.reply_count };
     }
     if (changes.enabledMessageActions) {
       this.canReactToMessage =
         this.enabledMessageActions.indexOf('send-reaction') !== -1;
       this.canReceiveReadEvents =
         this.enabledMessageActions.indexOf('read-events') !== -1;
+      this.canDisplayReadStatus =
+        this.canReceiveReadEvents !== false &&
+        this.enabledMessageActions.indexOf('read-events') !== -1;
+    }
+    if (changes.message || changes.enabledMessageActions || changes.mode) {
+      this.shouldDisplayThreadLink =
+        !!this.message?.reply_count &&
+        this.mode !== 'thread' &&
+        this.enabledMessageActions.indexOf('send-reply') !== -1;
+    }
+    if (changes.message || changes.mode) {
+      this.areOptionsVisible = this.message
+        ? !(
+            !this.message.type ||
+            this.message.type === 'error' ||
+            this.message.type === 'system' ||
+            this.message.type === 'ephemeral' ||
+            this.message.status === 'failed' ||
+            this.message.status === 'sending' ||
+            (this.mode === 'thread' && !this.message.parent_id)
+          )
+        : false;
     }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  get shouldDisplayThreadLink() {
-    return (
-      !!this.message?.reply_count &&
-      this.mode !== 'thread' &&
-      this.enabledMessageActions.indexOf('send-reply') !== -1
-    );
-  }
-
-  get isSentByCurrentUser() {
-    return this.message?.user?.id === this.user?.id;
-  }
-
-  get readByText() {
-    return listUsers(this.message!.readBy);
-  }
-
-  get lastReadUser() {
-    return this.message?.readBy.filter((u) => u.id !== this.user?.id)[0];
-  }
-
-  get isOnlyReadByMe() {
-    return this.message && this.message.readBy.length === 0;
-  }
-
-  get isReadByMultipleUsers() {
-    return this.message && this.message.readBy.length > 1;
-  }
-
-  get isMessageDeliveredAndRead() {
-    return (
-      this.message &&
-      this.message.readBy &&
-      this.message.status === 'received' &&
-      this.message.readBy.length > 0
-    );
-  }
-
-  get parsedDate() {
-    if (!this.message || !this.message?.created_at) {
-      return;
-    }
-    return this.dateParser.parseDateTime(this.message.created_at);
-  }
-
-  get areOptionsVisible() {
-    if (!this.message) {
-      return false;
-    }
-    return !(
-      !this.message.type ||
-      this.message.type === 'error' ||
-      this.message.type === 'system' ||
-      this.message.type === 'ephemeral' ||
-      this.message.status === 'failed' ||
-      this.message.status === 'sending' ||
-      (this.mode === 'thread' && !this.message.parent_id)
-    );
-  }
-
-  get hasAttachment() {
-    return !!this.message?.attachments && !!this.message.attachments.length;
-  }
-
-  get hasReactions() {
-    return (
-      !!this.message?.reaction_counts &&
-      Object.keys(this.message.reaction_counts).length > 0
-    );
-  }
-
-  get replyCountParam() {
-    return { replyCount: this.message?.reply_count };
-  }
-
-  get canDisplayReadStatus() {
-    return (
-      this.canReceiveReadEvents !== false &&
-      this.enabledMessageActions.indexOf('read-events') !== -1
-    );
   }
 
   getAttachmentListContext(): AttachmentListContext {
@@ -478,5 +459,15 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     );
 
     return content;
+  }
+
+  private setIsSentByCurrentUser() {
+    this.isSentByCurrentUser = this.message?.user?.id === this.user?.id;
+  }
+
+  private setLastReadUser() {
+    this.lastReadUser = this.message?.readBy?.filter(
+      (u) => u.id !== this.user?.id
+    )[0];
   }
 }
