@@ -1942,16 +1942,26 @@ describe('ChannelService', () => {
     await init();
     let channels!: Channel<DefaultStreamChatGenerics>[];
     service.channels$.subscribe((c) => (channels = c!));
+    const activeChannel = channels[0];
     const spy = jasmine.createSpy();
     service.activeChannel$.subscribe(spy);
     spy.calls.reset();
+    const messagesSpy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(messagesSpy);
+    messagesSpy.calls.reset();
     mockChatClient.queryChannels.and.resolveTo(channels);
     spyOn(service, 'deselectActiveChannel').and.callThrough();
+    const newMessage = generateMockMessages()[0];
+    newMessage.text = 'new message received while offline';
+    activeChannel.state.messages.push(newMessage);
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     tick();
 
     expect(spy).not.toHaveBeenCalled();
     expect(service.deselectActiveChannel).not.toHaveBeenCalled();
+    expect(messagesSpy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([newMessage])
+    );
   }));
 
   it('should add new channel to channel list', () => {

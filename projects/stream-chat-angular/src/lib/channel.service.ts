@@ -412,33 +412,7 @@ export class ChannelService<
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
-    channel.state.messages.forEach((m) => {
-      m.readBy = getReadBy(m, channel);
-      m.translation = getMessageTranslation(
-        m,
-        channel,
-        this.chatClientService.chatClient.user
-      );
-      if (m.quoted_message) {
-        m.quoted_message.translation = getMessageTranslation(
-          m.quoted_message,
-          channel,
-          this.chatClientService.chatClient.user
-        );
-      }
-    });
-    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
-      void channel.markRead();
-    }
-    this.activeChannelMessagesSubject.next([...channel.state.messages]);
-    this.activeChannelPinnedMessagesSubject.next([
-      ...channel.state.pinnedMessages,
-    ]);
-    this.activeParentMessageIdSubject.next(undefined);
-    this.activeThreadMessagesSubject.next([]);
-    this.messageToQuoteSubject.next(undefined);
-    this.usersTypingInChannelSubject.next([]);
-    this.usersTypingInThreadSubject.next([]);
+    this.setChannelState(channel);
   }
 
   /**
@@ -1015,8 +989,23 @@ export class ChannelService<
               this.shouldSetActiveChannel &&
               !this.activeChannelSubject.getValue();
             await this.queryChannels(shoulSetActiveChannel || false, true);
-            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
-            void this.setAsActiveParentMessage(undefined);
+            if (this.activeChannelSubject.getValue()) {
+              // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+              void this.setAsActiveParentMessage(undefined);
+              // Update and reselect message to quote
+              const messageToQuote = this.messageToQuoteSubject.getValue();
+              this.setChannelState(this.activeChannelSubject.getValue()!);
+              let messages!: StreamMessage<T>[];
+              this.activeChannelMessages$
+                .pipe(take(1))
+                .subscribe((m) => (messages = m));
+              const updatedMessageToQuote = messages.find(
+                (m) => m.id === messageToQuote?.id
+              );
+              if (updatedMessageToQuote) {
+                this.selectMessageToQuote(updatedMessageToQuote);
+              }
+            }
             this.isStateRecoveryInProgress = false;
           } catch {
             this.isStateRecoveryInProgress = false;
@@ -1677,5 +1666,35 @@ export class ChannelService<
         ...latestMessages,
       });
     }
+  }
+
+  private setChannelState(channel: Channel<T>) {
+    channel.state.messages.forEach((m) => {
+      m.readBy = getReadBy(m, channel);
+      m.translation = getMessageTranslation(
+        m,
+        channel,
+        this.chatClientService.chatClient.user
+      );
+      if (m.quoted_message) {
+        m.quoted_message.translation = getMessageTranslation(
+          m.quoted_message,
+          channel,
+          this.chatClientService.chatClient.user
+        );
+      }
+    });
+    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
+      void channel.markRead();
+    }
+    this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    this.activeChannelPinnedMessagesSubject.next([
+      ...channel.state.pinnedMessages,
+    ]);
+    this.activeParentMessageIdSubject.next(undefined);
+    this.activeThreadMessagesSubject.next([]);
+    this.messageToQuoteSubject.next(undefined);
+    this.usersTypingInChannelSubject.next([]);
+    this.usersTypingInThreadSubject.next([]);
   }
 }
