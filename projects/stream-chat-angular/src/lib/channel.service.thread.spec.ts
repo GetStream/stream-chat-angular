@@ -335,6 +335,28 @@ describe('ChannelService - threads', () => {
     expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
+  it('should only add new message to thread, if the parent id is the same as active thread id', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    const parentMessage = mockMessage();
+    await service.setAsActiveParentMessage(parentMessage);
+    service.activeThreadMessages$.subscribe(spy);
+    spy.calls.reset();
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.subscribe((c) => (activeChannel = c!));
+    const newMessage = mockMessage();
+    newMessage.parent_id = 'not' + parentMessage.id;
+    activeChannel.state.threads = {
+      [newMessage.parent_id]: [newMessage],
+      [parentMessage.id]: [],
+    };
+    (activeChannel as MockChannel).handleEvent('message.new', {
+      message: newMessage,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it('should watch for message update events', async () => {
     await init();
     const parentMessage = mockMessage();
