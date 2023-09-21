@@ -1120,9 +1120,12 @@ export class ChannelService<
       channel.on('message.new', (event) => {
         this.ngZone.run(() => {
           event.message && event.message.parent_id
-            ? this.activeThreadMessagesSubject.next([
-                ...channel.state.threads[event.message.parent_id],
-              ])
+            ? event.message.parent_id ===
+              this.activeParentMessageIdSubject.getValue()
+              ? this.activeThreadMessagesSubject.next([
+                  ...channel.state.threads[event.message.parent_id],
+                ])
+              : null
             : this.activeChannelMessagesSubject.next([
                 ...channel.state.messages,
               ]);
