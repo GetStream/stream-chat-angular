@@ -8,6 +8,7 @@ import {
   ChannelResponse,
   ChannelSort,
   Event,
+  FormatMessageResponse,
   SendMessageAPIResponse,
   UserResponse,
 } from 'stream-chat';
@@ -343,6 +344,7 @@ describe('ChannelService', () => {
     expect(pinnedMessagesSpy).toHaveBeenCalledWith([]);
     expect(typingUsersSpy).toHaveBeenCalledWith([]);
     expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
+    expect(service.activeChannelLastReadMessageId).toBeUndefined();
 
     messagesSpy.calls.reset();
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
@@ -1995,5 +1997,40 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should set last read message id', () => {
+    const activeChannel = generateMockChannels()[0];
+    activeChannel.id = 'next-active-channel';
+    activeChannel.state.read[user.id] = {
+      last_read: new Date(),
+      last_read_message_id: 'last-read-message-id',
+      unread_messages: 5,
+      user: user,
+    };
+
+    service.setAsActiveChannel(activeChannel);
+
+    expect(service.activeChannelLastReadMessageId).toBe('last-read-message-id');
+  });
+
+  it(`should set last read message id to undefined if it's the last message`, () => {
+    const activeChannel = generateMockChannels()[0];
+    activeChannel.id = 'next-active-channel';
+    activeChannel.state.read[user.id] = {
+      last_read: new Date(),
+      last_read_message_id: 'last-read-message-id',
+      unread_messages: 5,
+      user: user,
+    };
+    activeChannel.state.latestMessages = [
+      {
+        id: 'last-read-message-id',
+      } as any as FormatMessageResponse<DefaultStreamChatGenerics>,
+    ];
+
+    service.setAsActiveChannel(activeChannel);
+
+    expect(service.activeChannelLastReadMessageId).toBe(undefined);
   });
 });

@@ -147,17 +147,7 @@ export class MessageListComponent
             this.mode === 'main'
           ) {
             this.lastReadMessageId =
-              channel?.state.read[
-                this.chatClientService.chatClient.user?.id || ''
-              ]?.last_read_message_id;
-            if (
-              channel &&
-              channel.state.latestMessages[
-                channel.state.latestMessages.length - 1
-              ].id === this.lastReadMessageId
-            ) {
-              this.lastReadMessageId = undefined;
-            }
+              this.channelService.activeChannelLastReadMessageId;
             if (this.lastReadMessageId) {
               this.isJumpingToLatestUnreadMessage = true;
               void this.channelService.jumpToMessage(this.lastReadMessageId);

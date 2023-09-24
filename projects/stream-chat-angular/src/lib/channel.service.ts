@@ -129,6 +129,10 @@ export class ChannelService<
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
+   * The last read message id of the active channel, it's only set once, when a new active channel is set. It's used by the message list to jump to the latest read message
+   */
+  activeChannelLastReadMessageId?: string;
+  /**
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customNewMessageNotificationHandler?: (
@@ -392,7 +396,10 @@ export class ChannelService<
    */
   set shouldMarkActiveChannelAsRead(shouldMarkActiveChannelAsRead: boolean) {
     if (!this._shouldMarkActiveChannelAsRead && shouldMarkActiveChannelAsRead) {
-      this.activeChannelSubject.getValue()?.markRead();
+      const activeChannel = this.activeChannelSubject.getValue();
+      if (activeChannel && this.canSendReadEvents) {
+        void activeChannel.markRead();
+      }
     }
     this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
   }
@@ -409,6 +416,16 @@ export class ChannelService<
       return;
     }
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
+    this.activeChannelLastReadMessageId =
+      channel.state.read[
+        this.chatClientService.chatClient.user?.id || ''
+      ]?.last_read_message_id;
+    if (
+      channel.state.latestMessages[channel.state.latestMessages.length - 1]
+        .id === this.activeChannelLastReadMessageId
+    ) {
+      this.activeChannelLastReadMessageId = undefined;
+    }
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
@@ -434,6 +451,7 @@ export class ChannelService<
     this.activeChannelPinnedMessagesSubject.next([]);
     this.usersTypingInChannelSubject.next([]);
     this.usersTypingInThreadSubject.next([]);
+    this.activeChannelLastReadMessageId = undefined;
   }
 
   /**
@@ -1130,8 +1148,8 @@ export class ChannelService<
                 ...channel.state.messages,
               ]);
           this.activeChannel$.pipe(first()).subscribe((c) => {
-            if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
-              void c?.markRead();
+            if (c) {
+              this.markRead(c);
             }
           });
           this.updateLatestMessages(event);
@@ -1687,9 +1705,7 @@ export class ChannelService<
         );
       }
     });
-    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
-      void channel.markRead();
-    }
+    this.markRead(channel);
     this.activeChannelMessagesSubject.next([...channel.state.messages]);
     this.activeChannelPinnedMessagesSubject.next([
       ...channel.state.pinnedMessages,
@@ -1699,5 +1715,11 @@ export class ChannelService<
     this.messageToQuoteSubject.next(undefined);
     this.usersTypingInChannelSubject.next([]);
     this.usersTypingInThreadSubject.next([]);
+  }
+
+  private markRead(channel: Channel<T>) {
+    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
+      void channel.markRead();
+    }
   }
 }
