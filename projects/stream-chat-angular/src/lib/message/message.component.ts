@@ -2,7 +2,6 @@ import {
   Component,
   ElementRef,
   Input,
-  TemplateRef,
   OnChanges,
   SimpleChanges,
   ViewChild,
@@ -28,7 +27,7 @@ import {
   SystemMessageContext,
 } from '../types';
 import emojiRegex from 'emoji-regex';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
@@ -83,28 +82,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   isReactionSelectorOpen = false;
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] = [];
-  mentionTemplate$?: Observable<
-    TemplateRef<MentionTemplateContext> | undefined
-  >;
-  deliveredStatusTemplate$?: Observable<
-    TemplateRef<DeliveredStatusContext> | undefined
-  >;
-  sendingStatusTemplate$?: Observable<
-    TemplateRef<SendingStatusContext> | undefined
-  >;
-  readStatusTemplate$?: Observable<TemplateRef<ReadStatusContext> | undefined>;
-  attachmentListTemplate$?: Observable<
-    TemplateRef<AttachmentListContext> | undefined
-  >;
-  messageActionsBoxTemplate$?: Observable<
-    TemplateRef<MessageActionsBoxContext> | undefined
-  >;
-  messageReactionsTemplate$?: Observable<
-    TemplateRef<MessageReactionsContext> | undefined
-  >;
-  systemMessageTemplate$?: Observable<
-    TemplateRef<SystemMessageContext> | undefined
-  >;
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
@@ -136,7 +113,7 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private chatClientService: ChatClientService,
     private channelService: ChannelService,
-    private customTemplatesService: CustomTemplatesService,
+    public customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
     themeService: ThemeService,
     private dateParser: DateParserService
@@ -155,20 +132,6 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
         }
       })
     );
-    this.mentionTemplate$ = this.customTemplatesService.mentionTemplate$;
-    this.attachmentListTemplate$ =
-      this.customTemplatesService.attachmentListTemplate$;
-    this.messageActionsBoxTemplate$ =
-      this.customTemplatesService.messageActionsBoxTemplate$;
-    this.messageReactionsTemplate$ =
-      this.customTemplatesService.messageReactionsTemplate$;
-    this.deliveredStatusTemplate$ =
-      this.customTemplatesService.deliveredStatusTemplate$;
-    this.sendingStatusTemplate$ =
-      this.customTemplatesService.sendingStatusTemplate$;
-    this.readStatusTemplate$ = this.customTemplatesService.readStatusTemplate$;
-    this.systemMessageTemplate$ =
-      this.customTemplatesService.systemMessageTemplate$;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

@@ -82,7 +82,7 @@
               </ng-template>
               <ng-container
                 *ngTemplateOutlet="
-                  (messageActionsBoxTemplate$ | async) ||
+                  (customTemplatesService.messageActionsBoxTemplate$ | async) ||
                     defaultMessageActionsBox;
                   context: getMessageActionsBoxContext()
                 "
@@ -159,7 +159,8 @@
           </ng-template>
           <ng-container
             *ngTemplateOutlet="
-              (messageReactionsTemplate$ | async) || defaultMessageReactions;
+              (customTemplatesService.messageReactionsTemplate$ | async) ||
+                defaultMessageReactions;
               context: getMessageReactionsContext()
             "
           ></ng-container>
@@ -250,7 +251,8 @@
                       </ng-template>
                       <ng-container
                         *ngTemplateOutlet="
-                          (mentionTemplate$ | async) || defaultMention;
+                          (customTemplatesService.mentionTemplate$ | async) ||
+                            defaultMention;
                           context: getMentionContext(part)
                         "
                       ></ng-container>
@@ -307,7 +309,8 @@
 <ng-template #systemMessage>
   <ng-container
     *ngTemplateOutlet="
-      (systemMessageTemplate$ | async) || defaultSystemMessage;
+      (customTemplatesService.systemMessageTemplate$ | async) ||
+        defaultSystemMessage;
       context: getMessageContext()
     "
   ></ng-container>
@@ -379,7 +382,8 @@
         </ng-template>
         <ng-container
           *ngTemplateOutlet="
-            (attachmentListTemplate$ | async) || defaultAttachments;
+            (customTemplatesService.attachmentListTemplate$ | async) ||
+              defaultAttachments;
             context: getQuotedMessageAttachmentListContext()
           "
         ></ng-container>
@@ -476,7 +480,8 @@
     <ng-template #deliveredStatus>
       <ng-container
         *ngTemplateOutlet="
-          (deliveredStatusTemplate$ | async) || defaultDeliveredStatus;
+          (customTemplatesService.deliveredStatusTemplate$ | async) ||
+            defaultDeliveredStatus;
           context: getDeliveredStatusContext()
         "
       ></ng-container>
@@ -512,7 +517,8 @@
     <ng-template #sendingStatus>
       <ng-container
         *ngTemplateOutlet="
-          (sendingStatusTemplate$ | async) || defaultSendingStatus;
+          (customTemplatesService.sendingStatusTemplate$ | async) ||
+            defaultSendingStatus;
           context: getSendingStatusContext()
         "
       ></ng-container>
@@ -546,7 +552,8 @@
     <ng-template #readStatus>
       <ng-container
         *ngTemplateOutlet="
-          (readStatusTemplate$ | async) || defaultReadStatus;
+          (customTemplatesService.readStatusTemplate$ | async) ||
+            defaultReadStatus;
           context: getReadStatusContext()
         "
       ></ng-container>
@@ -642,7 +649,8 @@
   </ng-template>
   <ng-container
     *ngTemplateOutlet="
-      (attachmentListTemplate$ | async) || defaultAttachments;
+      (customTemplatesService.attachmentListTemplate$ | async) ||
+        defaultAttachments;
       context: getAttachmentListContext()
     "
   ></ng-container>
