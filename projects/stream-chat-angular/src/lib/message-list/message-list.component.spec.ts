@@ -912,13 +912,8 @@ describe('MessageListComponent', () => {
       const channel = generateMockChannels()[0];
       const messages = generateMockMessages();
       channel.id = 'test-channel';
-      channel.state.read[mockCurrentUser().id] = {
-        last_read: new Date(),
-        last_read_message_id: messages[messages.length - 1].id,
-        unread_messages: 5,
-        user: mockCurrentUser(),
-      };
-
+      channelServiceMock.activeChannelLastReadMessageId =
+        messages[messages.length - 1].id;
       channelServiceMock.activeChannel$.next(channel);
       channelServiceMock.activeChannelMessages$.next(messages);
 
@@ -1060,13 +1055,8 @@ describe('MessageListComponent', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 5,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
 
@@ -1085,13 +1075,8 @@ describe('MessageListComponent', () => {
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1111,13 +1096,8 @@ describe('MessageListComponent', () => {
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1134,13 +1114,8 @@ describe('MessageListComponent', () => {
     const messages = generateMockMessages();
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1156,13 +1131,8 @@ describe('MessageListComponent', () => {
     const messages = generateMockMessages();
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1177,13 +1147,8 @@ describe('MessageListComponent', () => {
     const messages = generateMockMessages();
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1205,13 +1170,8 @@ describe('MessageListComponent', () => {
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
@@ -1232,13 +1192,8 @@ describe('MessageListComponent', () => {
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
-    channel.state.read[mockCurrentUser().id] = {
-      last_read: new Date(),
-      last_read_message_id: messages[messages.length - 2].id,
-      unread_messages: 1,
-      user: mockCurrentUser(),
-    };
-
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();

@@ -213,6 +213,7 @@ export type MockChannelService = {
   usersTypingInThread$: BehaviorSubject<UserResponse[]>;
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
   channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
+  activeChannelLastReadMessageId?: string;
   loadMoreMessages: (d: 'older' | 'newer') => void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
