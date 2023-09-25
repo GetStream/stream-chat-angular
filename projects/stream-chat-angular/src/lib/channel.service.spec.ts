@@ -2033,4 +2033,19 @@ describe('ChannelService', () => {
 
     expect(service.activeChannelLastReadMessageId).toBe(undefined);
   });
+
+  it('should be able to select empty channel as active channel', () => {
+    const channel = generateMockChannels()[0];
+    channel.id = 'new-empty-channel';
+    channel.state.messages = [];
+    channel.state.latestMessages = [];
+
+    service.setAsActiveChannel(channel);
+
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith(channel);
+    expect(service.activeChannelLastReadMessageId).toBeUndefined();
+  });
 });

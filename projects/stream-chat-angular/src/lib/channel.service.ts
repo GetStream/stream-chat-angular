@@ -422,7 +422,7 @@ export class ChannelService<
       ]?.last_read_message_id;
     if (
       channel.state.latestMessages[channel.state.latestMessages.length - 1]
-        .id === this.activeChannelLastReadMessageId
+        ?.id === this.activeChannelLastReadMessageId
     ) {
       this.activeChannelLastReadMessageId = undefined;
     }
