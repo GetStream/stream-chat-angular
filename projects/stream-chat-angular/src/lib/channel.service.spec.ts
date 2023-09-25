@@ -684,9 +684,9 @@ describe('ChannelService', () => {
     let channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
-    expect(channel.stopWatching).toHaveBeenCalledWith();
+    expect(channel.stopWatching).not.toHaveBeenCalledWith();
 
-    (channel as MockChannel).handleEvent('channel.hidden', {
+    (channel as MockChannel).handleEvent('channel.visible', {
       type: 'channel.visible',
       channel,
     });
@@ -899,10 +899,15 @@ describe('ChannelService', () => {
 
   it('should watch for channel events', async () => {
     const channel = generateMockChannels(1)[0];
-    spyOn(channel, 'on').and.callThrough();
-    await init([channel]);
+    const unsubscribeSpy = jasmine.createSpy();
+    spyOn(channel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
+    await init([channel], undefined, undefined, undefined, false);
 
     expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
+
+    service.reset();
+
+    expect(unsubscribeSpy).toHaveBeenCalledWith();
   });
 
   it('should add the new channel to the top of the list, and start watching it, if user is added to a channel', fakeAsync(async () => {
@@ -993,16 +998,27 @@ describe('ChannelService', () => {
     mockChatClient.activeChannels[channel.cid] = channel;
     spyOn(channel, 'stopWatching');
     spyOn(service, 'setAsActiveChannel');
+
     events$.next({
       eventType: 'notification.removed_from_channel',
       event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
 
-    const channels = spy.calls.mostRecent().args[0] as Channel[];
+    let channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
     expect(service.setAsActiveChannel).not.toHaveBeenCalled();
     expect(channel.stopWatching).toHaveBeenCalledWith();
+
+    // Check that new messages won't readd the channel to the list
+    (channel as MockChannel).handleEvent('message.new', {
+      id: 'new-message',
+      type: 'message.new',
+    });
+
+    channels = spy.calls.mostRecent().args[0] as Channel[];
+
+    expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
   });
 
   it('should remove channel form the list if user is removed from channel, and emit new active channel', async () => {

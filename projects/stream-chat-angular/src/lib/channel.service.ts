@@ -137,21 +137,30 @@ export class ChannelService<
    */
   customNewMessageNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void
   ) => void;
   /**
    * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customAddedToChannelNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void
   ) => void;
   /**
    * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
   customRemovedFromChannelNotificationHandler?: (
     clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
@@ -159,7 +168,10 @@ export class ChannelService<
   customChannelDeletedHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
     threadListSetter: (messages: StreamMessage<T>[]) => void,
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
@@ -170,7 +182,10 @@ export class ChannelService<
   customChannelUpdatedHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
     threadListSetter: (messages: StreamMessage[]) => void,
     parentMessageSetter: (message: StreamMessage | undefined) => void
@@ -181,7 +196,10 @@ export class ChannelService<
   customChannelTruncatedHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
     threadListSetter: (messages: StreamMessage<T>[]) => void,
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
@@ -192,7 +210,10 @@ export class ChannelService<
   customChannelHiddenHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
     threadListSetter: (messages: StreamMessage<T>[]) => void,
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
@@ -203,7 +224,10 @@ export class ChannelService<
   customChannelVisibleHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
     threadListSetter: (messages: StreamMessage<T>[]) => void,
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
@@ -214,7 +238,10 @@ export class ChannelService<
   customNewMessageHandler?: (
     event: Event,
     channel: Channel<T>,
-    channelListSetter: (channels: (Channel<T> | ChannelResponse<T>)[]) => void,
+    channelListSetter: (
+      channels: (Channel<T> | ChannelResponse<T>)[],
+      shouldStopWatchingRemovedChannels?: boolean
+    ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
     threadListSetter: (messages: StreamMessage<T>[]) => void,
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
@@ -258,6 +285,7 @@ export class ChannelService<
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
+  private channelSubscriptions: { [key: string]: () => void } = {};
   private activeParentMessageIdSubject = new BehaviorSubject<
     string | undefined
   >(undefined);
@@ -295,7 +323,8 @@ export class ChannelService<
   >(undefined);
 
   private channelListSetter = (
-    channels: (Channel<T> | ChannelResponse<T>)[]
+    channels: (Channel<T> | ChannelResponse<T>)[],
+    shouldStopWatchingRemovedChannels = true
   ) => {
     const currentChannels = this.channelsSubject.getValue() || [];
     const newChannels = channels.filter(
@@ -305,7 +334,10 @@ export class ChannelService<
       (c) => !channels?.find((channel) => channel.cid === c.cid)
     );
     void this.addChannelsFromNotification(newChannels as ChannelResponse<T>[]);
-    this.removeChannelsFromChannelList(deletedChannels.map((c) => c.cid));
+    this.removeChannelsFromChannelList(
+      deletedChannels.map((c) => c.cid),
+      shouldStopWatchingRemovedChannels
+    );
   };
 
   private messageListSetter = (messages: StreamMessage<T>[]) => {
@@ -602,6 +634,10 @@ export class ChannelService<
     this.clientEventsSubscription?.unsubscribe();
     this.dismissErrorNotification?.();
     this.dismissErrorNotification = undefined;
+    Object.keys(this.channelSubscriptions).forEach((cid) => {
+      this.channelSubscriptions[cid]();
+    });
+    this.channelSubscriptions = {};
   }
 
   /**
@@ -1074,7 +1110,7 @@ export class ChannelService<
 
   private handleRemovedFromChannelNotification(clientEvent: ClientEvent<T>) {
     const channelIdToBeRemoved = clientEvent.event.channel!.cid;
-    this.removeChannelsFromChannelList([channelIdToBeRemoved]);
+    this.removeChannelsFromChannelList([channelIdToBeRemoved], true);
   }
 
   private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
@@ -1113,14 +1149,22 @@ export class ChannelService<
     }
   }
 
-  private removeChannelsFromChannelList(cids: string[]) {
+  private removeChannelsFromChannelList(
+    cids: string[],
+    shouldStopWatching: boolean
+  ) {
     const channels = this.channels.filter((c) => !cids.includes(c.cid || ''));
-    cids.forEach(
-      (cid) =>
+    if (shouldStopWatching) {
+      cids.forEach((cid) => {
+        if (this.channelSubscriptions[cid]) {
+          this.channelSubscriptions[cid]();
+          delete this.channelSubscriptions.cid;
+        }
         void this.chatClientService.chatClient.activeChannels[
           cid
-        ]?.stopWatching()
-    );
+        ]?.stopWatching();
+      });
+    }
     if (channels.length < this.channels.length) {
       this.channelsSubject.next(channels);
       if (cids.includes(this.activeChannelSubject.getValue()?.cid || '')) {
@@ -1370,7 +1414,7 @@ export class ChannelService<
   }
 
   private watchForChannelEvents(channel: Channel<T>) {
-    channel.on((event: Event<T>) => {
+    const unsubscribe = channel.on((event: Event<T>) => {
       switch (event.type) {
         case 'message.new': {
           this.ngZone.run(() => {
@@ -1476,6 +1520,7 @@ export class ChannelService<
         }
       }
     });
+    this.channelSubscriptions[channel.cid] = unsubscribe.unsubscribe;
   }
 
   private handleNewMessage(_: Event, channel: Channel<T>) {
@@ -1485,11 +1530,11 @@ export class ChannelService<
   }
 
   private handleChannelHidden(event: Event) {
-    this.removeChannelsFromChannelList([event.channel!.cid]);
+    this.removeChannelsFromChannelList([event.channel!.cid], false);
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeChannelsFromChannelList([event.channel!.cid]);
+    this.removeChannelsFromChannelList([event.channel!.cid], true);
   }
 
   private handleChannelVisible(event: Event, channel: Channel<T>) {
