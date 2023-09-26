@@ -22,20 +22,9 @@
     [showOnlineIndicator]="showOnlineIndicator"
   ></stream-avatar>
 </ng-template>
-<ng-container *ngIf="isVisible; else emptyPlaceholder">
-  <ng-container
-    *ngTemplateOutlet="
-      (customTemplatesService.avatarTemplate$ | async) || defaultAvatar;
-      context: context
-    "
-  ></ng-container>
-</ng-container>
-<ng-template #emptyPlaceholder>
-  <div
-    class="str-chat__avatar"
-    [ngStyle]="{
-      width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-      height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
-    }"
-  ></div>
-</ng-template>
+<ng-container
+  *ngTemplateOutlet="
+    (customTemplatesService.avatarTemplate$ | async) || defaultAvatar;
+    context: context
+  "
+></ng-container>

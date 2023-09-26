@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  OnChanges,
-  OnDestroy,
-} from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { Channel, User } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import {
@@ -15,7 +7,6 @@ import {
   AvatarType,
   DefaultStreamChatGenerics,
 } from '../types';
-import { ThemeService } from '../theme.service';
 
 /**
  * The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
@@ -25,9 +16,7 @@ import { ThemeService } from '../theme.service';
   templateUrl: './avatar-placeholder.component.html',
   styles: [],
 })
-export class AvatarPlaceholderComponent
-  implements OnChanges, AfterViewInit, OnDestroy
-{
+export class AvatarPlaceholderComponent implements OnChanges {
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -77,37 +66,7 @@ export class AvatarPlaceholderComponent
     initialsType: undefined,
     showOnlineIndicator: undefined,
   };
-  isVisible = true;
-  private mutationObserver?: MutationObserver;
-  constructor(
-    public customTemplatesService: CustomTemplatesService,
-    private hostElement: ElementRef<HTMLElement>,
-    private cdRef: ChangeDetectorRef,
-    private themeService: ThemeService
-  ) {}
-
-  ngAfterViewInit(): void {
-    const elementToObserve =
-      this.hostElement.nativeElement.parentElement?.parentElement
-        ?.parentElement;
-    if (
-      this.location !== 'message-sender' ||
-      !elementToObserve ||
-      !elementToObserve.classList.contains('str-chat__li') ||
-      this.themeService.themeVersion === '1'
-    ) {
-      this.isVisible = true;
-      this.cdRef.detectChanges();
-      return;
-    }
-    this.checkIfVisible();
-    this.mutationObserver = new MutationObserver(() => {
-      this.checkIfVisible();
-    });
-    this.mutationObserver.observe(elementToObserve, {
-      attributeFilter: ['class'],
-    });
-  }
+  constructor(public customTemplatesService: CustomTemplatesService) {}
 
   ngOnChanges(): void {
     this.context = {
@@ -121,20 +80,5 @@ export class AvatarPlaceholderComponent
       initialsType: this.initialsType,
       showOnlineIndicator: this.showOnlineIndicator,
     };
-  }
-
-  ngOnDestroy(): void {
-    this.mutationObserver?.disconnect();
-  }
-
-  private checkIfVisible() {
-    const isVisible =
-      getComputedStyle(this.hostElement.nativeElement).getPropertyValue(
-        'visibility'
-      ) === 'visible';
-    if (isVisible !== this.isVisible) {
-      this.isVisible = isVisible;
-      this.cdRef.detectChanges();
-    }
   }
 }
