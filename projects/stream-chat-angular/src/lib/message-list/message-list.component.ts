@@ -455,7 +455,7 @@ export class MessageListComponent
   }
 
   private forceRepaint() {
-    // Solves the issue of empty screen on iOS Safari when scrolling
+    // Solves the issue of empty screen on Safari when scrolling
     this.scrollContainer.nativeElement.style.display = 'none';
     this.scrollContainer.nativeElement.offsetHeight; // no need to store this anywhere, the reference is enough
     this.scrollContainer.nativeElement.style.display = '';

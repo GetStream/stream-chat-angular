@@ -1234,9 +1234,7 @@ export class ChannelService<
           latestMessage.readBy = getReadBy(latestMessage, channel);
           messages[messages.length - 1] = { ...latestMessage };
 
-          this.activeChannelMessagesSubject.next(
-            this.activeChannelMessagesSubject.getValue()
-          );
+          this.activeChannelMessagesSubject.next([...messages]);
         });
       })
     );
@@ -1326,18 +1324,17 @@ export class ChannelService<
   }
 
   private formatMessage(message: MessageResponse<T>) {
-    return {
-      ...message,
-      // parse the date..
-      pinned_at: message.pinned_at ? new Date(message.pinned_at) : null,
-      created_at: message.created_at
-        ? new Date(message.created_at)
-        : new Date(),
-      updated_at: message.updated_at
-        ? new Date(message.updated_at)
-        : new Date(),
-      status: message.status || 'received',
-    };
+    const m = message as any as FormatMessageResponse<T>;
+    m.pinned_at = message.pinned_at ? new Date(message.pinned_at) : null;
+    m.created_at = message.created_at
+      ? new Date(message.created_at)
+      : new Date();
+    m.updated_at = message.updated_at
+      ? new Date(message.updated_at)
+      : new Date();
+    message.status = message.status || 'received';
+
+    return m;
   }
 
   private isStreamMessage(
@@ -1621,44 +1618,38 @@ export class ChannelService<
       return message;
     } else {
       if (message.quoted_message) {
-        message.quoted_message = {
-          ...message.quoted_message,
-          translation: getMessageTranslation(
-            message.quoted_message,
-            channel,
-            this.chatClientService.chatClient.user
-          ),
-        };
+        message.quoted_message.translation = getMessageTranslation(
+          message.quoted_message,
+          channel,
+          this.chatClientService.chatClient.user
+        );
       }
       if (this.isFormatMessageResponse(message)) {
-        return {
-          ...message,
-          readBy: isThreadMessage
-            ? []
-            : channel
-            ? getReadBy(message, channel)
-            : [],
-          translation: getMessageTranslation(
-            message,
-            channel,
-            this.chatClientService.chatClient.user
-          ),
-        };
+        message.readBy = isThreadMessage
+          ? []
+          : channel
+          ? getReadBy(message, channel)
+          : [];
+        message.translation = getMessageTranslation(
+          message,
+          channel,
+          this.chatClientService.chatClient.user
+        );
+
+        return message;
       } else {
-        const formatMessage = this.formatMessage(message);
-        return {
-          ...formatMessage,
-          readBy: isThreadMessage
-            ? []
-            : channel
-            ? getReadBy(formatMessage, channel)
-            : [],
-          translation: getMessageTranslation(
-            message,
-            channel,
-            this.chatClientService.chatClient.user
-          ),
-        };
+        message = this.formatMessage(message);
+        message.readBy = isThreadMessage
+          ? []
+          : channel
+          ? getReadBy(message, channel)
+          : [];
+        message.translation = getMessageTranslation(
+          message,
+          channel,
+          this.chatClientService.chatClient.user
+        );
+        return message;
       }
     }
   }
