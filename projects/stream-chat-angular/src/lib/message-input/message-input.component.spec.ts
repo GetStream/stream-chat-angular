@@ -177,6 +177,7 @@ describe('MessageInputComponent', () => {
     expect(textarea?.value).toEqual('Hi');
     expect(textarea?.areMentionsEnabled).toBeTrue();
     expect(textarea?.inputMode).toBe(component.inputMode);
+    expect(textarea?.autoFocus).toBe(component.autoFocus);
 
     textarea?.valueChange.next('Hi, how are you?');
     fixture.detectChanges();

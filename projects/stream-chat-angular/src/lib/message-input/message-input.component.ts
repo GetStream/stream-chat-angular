@@ -88,6 +88,10 @@ export class MessageInputComponent
    */
   @Input() inputMode: 'desktop' | 'mobile';
   /**
+   * Enables or disables auto focus on the textarea element
+   */
+  @Input() autoFocus = true;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{

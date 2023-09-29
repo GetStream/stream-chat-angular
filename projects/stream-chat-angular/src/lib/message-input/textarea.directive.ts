@@ -22,6 +22,7 @@ export class TextareaDirective implements OnChanges {
   @Input() inputMode!: 'mobile' | 'desktop';
   @Input() value = '';
   @Input() placeholder: string | undefined;
+  @Input() autoFocus!: boolean;
   @Output() readonly valueChange = new EventEmitter<string>();
   @Output() readonly send = new EventEmitter<void>();
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
@@ -59,6 +60,7 @@ export class TextareaDirective implements OnChanges {
         this.componentRef.instance.value = this.value;
         this.componentRef.instance.placeholder = this.placeholder;
         this.componentRef.instance.inputMode = this.inputMode;
+        this.componentRef.instance.autoFocus = this.autoFocus;
       }
     }
     if (changes.areMentionsEnabled) {
@@ -75,6 +77,9 @@ export class TextareaDirective implements OnChanges {
     }
     if (changes.inputMode) {
       this.componentRef.instance.inputMode = this.inputMode;
+    }
+    if (changes.autoFocus) {
+      this.componentRef.instance.autoFocus = this.autoFocus;
     }
     // ngOnChanges not called for dynamic components since we don't use template binding
     let changesToPropagate = {};
