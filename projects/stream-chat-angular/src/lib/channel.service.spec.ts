@@ -1247,6 +1247,24 @@ describe('ChannelService', () => {
     expect(mockChatClient.deleteMessage).toHaveBeenCalledWith(message.id);
   });
 
+  it(`should call #messageDeleteConfirmationHandler is that's provided`, async () => {
+    const spy = jasmine.createSpy();
+    const message = mockMessage();
+    service.messageDeleteConfirmationHandler = spy;
+    spy.and.resolveTo(false);
+    await service.deleteMessage(message);
+
+    expect(spy).toHaveBeenCalledWith(message);
+    expect(mockChatClient.deleteMessage).not.toHaveBeenCalledWith(message.id);
+
+    spy.and.resolveTo(true);
+    spy.calls.reset();
+    await service.deleteMessage(message);
+
+    expect(spy).toHaveBeenCalledWith(message);
+    expect(mockChatClient.deleteMessage).toHaveBeenCalledWith(message.id);
+  });
+
   it('should resend message', async () => {
     await init();
     let latestMessage!: StreamMessage;
