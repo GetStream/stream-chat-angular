@@ -10,4 +10,5 @@ export interface TextareaInterface extends OnChanges {
   mentionScope?: 'channel' | 'application';
   placeholder?: string;
   inputMode: 'mobile' | 'desktop';
+  autoFocus: boolean;
 }

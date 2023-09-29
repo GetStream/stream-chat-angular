@@ -18,6 +18,7 @@ describe('TextareaDirective', () => {
       mockComponent = {
         value: '',
         inputMode: 'desktop',
+        autoFocus: false,
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
         ngOnChanges: () => {},
@@ -59,6 +60,7 @@ describe('TextareaDirective', () => {
       mockComponent = {
         value: '',
         inputMode: 'desktop',
+        autoFocus: false,
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
         userMentions: new EventEmitter<UserResponse[]>(),
@@ -95,6 +97,17 @@ describe('TextareaDirective', () => {
       directive.ngOnChanges({ inputMode: {} as any as SimpleChange });
 
       expect(mockComponent.inputMode).toBe('mobile');
+      expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
+        jasmine.any(Object)
+      );
+    });
+
+    it('should pass on #autoFocus', () => {
+      directive.autoFocus = true;
+      spyOn(mockComponent, 'ngOnChanges');
+      directive.ngOnChanges({ autoFocus: {} as any as SimpleChange });
+
+      expect(mockComponent.autoFocus).toBe(true);
       expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
         jasmine.any(Object)
       );

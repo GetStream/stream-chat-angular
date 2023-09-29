@@ -63,6 +63,10 @@ export class AutocompleteTextareaComponent
    */
   @Input() mentionScope: 'channel' | 'application' = 'channel';
   /**
+   * Enables or disables auto focus on the textarea element
+   */
+  @Input() autoFocus = true;
+  /**
    * Emits the current value of the input element when a user types.
    */
   @Output() readonly valueChange = new EventEmitter<string>();
