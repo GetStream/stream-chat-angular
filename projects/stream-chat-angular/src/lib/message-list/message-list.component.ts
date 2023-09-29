@@ -56,6 +56,8 @@ export class MessageListComponent
     'message-row';
   /**
    * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar](https://github.com/GetStream/stream-chat-angular/issues/418)
+   *
+   * @deprecated This scroll issue has been resolved, no need to use this  workaround anymore.
    */
   @Input() hideJumpToLatestButtonDuringScroll = false;
   /**
