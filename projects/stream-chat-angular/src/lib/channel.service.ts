@@ -271,6 +271,12 @@ export class ChannelService<
     url: string,
     channel: Channel<T>
   ) => Promise<void>;
+  /**
+   * The provided method will be called before deleting a message. If the returned Promise resolves to `true` to deletion will go ahead. If `false` is returned, the message won't be deleted.
+   */
+  messageDeleteConfirmationHandler?: (
+    message: StreamMessage<T>
+  ) => Promise<boolean>;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -749,7 +755,14 @@ export class ChannelService<
    * @param message Message to be deleted
    */
   async deleteMessage(message: StreamMessage) {
-    await this.chatClientService.chatClient.deleteMessage(message.id);
+    if (this.messageDeleteConfirmationHandler) {
+      const result = await this.messageDeleteConfirmationHandler(message);
+      if (result) {
+        await this.chatClientService.chatClient.deleteMessage(message.id);
+      }
+    } else {
+      await this.chatClientService.chatClient.deleteMessage(message.id);
+    }
   }
 
   /**
