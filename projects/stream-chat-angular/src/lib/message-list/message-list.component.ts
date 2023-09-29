@@ -1,10 +1,12 @@
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostBinding,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -127,7 +129,8 @@ export class MessageListComponent
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
     private customTemplatesService: CustomTemplatesService,
-    private dateParser: DateParserService
+    private dateParser: DateParserService,
+    private ngZone: NgZone
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -235,6 +238,11 @@ export class MessageListComponent
   }
 
   ngAfterViewInit(): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.scrollContainer.nativeElement.addEventListener('scroll', () =>
+        this.scrolled()
+      );
+    });
     this.subscriptions.push(
       this.channelService.jumpToMessage$
         .pipe(filter((config) => !!config.id))
@@ -263,6 +271,7 @@ export class MessageListComponent
   }
 
   ngAfterViewChecked() {
+    // console.log('itt');
     if (this.highlightedMessageId) {
       // Turn off programatic scroll adjustments while jump to message is in progress
       this.hasNewMessages = false;
@@ -363,7 +372,9 @@ export class MessageListComponent
       clearTimeout(this.scrollEndTimeout);
     }
     this.scrollEndTimeout = setTimeout(() => {
-      this.isScrollInProgress = false;
+      this.ngZone.run(() => {
+        this.isScrollInProgress = false;
+      });
     }, 100);
     if (
       this.scrollContainer.nativeElement.scrollHeight ===
@@ -383,25 +394,29 @@ export class MessageListComponent
         ? scrollPosition !== 'bottom'
         : scrollPosition !== 'top') || !this.isLatestMessageInList;
     if (!this.isUserScrolled) {
-      this.unreadMessageCount = 0;
+      this.ngZone.run(() => {
+        this.unreadMessageCount = 0;
+      });
     }
     if (this.shouldLoadMoreMessages(scrollPosition)) {
-      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      let direction: 'newer' | 'older';
-      if (this.direction === 'top-to-bottom') {
-        direction = scrollPosition === 'top' ? 'newer' : 'older';
-      } else {
-        direction = scrollPosition === 'top' ? 'older' : 'newer';
-      }
-      this.mode === 'main'
-        ? void this.channelService.loadMoreMessages(direction)
-        : void this.channelService.loadMoreThreadReplies(direction);
-      this.chatClientService.chatClient?.logger?.(
-        'info',
-        `Displaying loading indicator`,
-        { tags: `message list ${this.mode}` }
-      );
-      this.isLoading = true;
+      this.ngZone.run(() => {
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+        let direction: 'newer' | 'older';
+        if (this.direction === 'top-to-bottom') {
+          direction = scrollPosition === 'top' ? 'newer' : 'older';
+        } else {
+          direction = scrollPosition === 'top' ? 'older' : 'newer';
+        }
+        this.mode === 'main'
+          ? void this.channelService.loadMoreMessages(direction)
+          : void this.channelService.loadMoreThreadReplies(direction);
+        this.chatClientService.chatClient?.logger?.(
+          'info',
+          `Displaying loading indicator`,
+          { tags: `message list ${this.mode}` }
+        );
+        this.isLoading = true;
+      });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
   }

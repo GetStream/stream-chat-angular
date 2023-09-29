@@ -16,7 +16,6 @@
     message?.status === 'failed' && message?.errorStatusCode !== 403
   "
   data-testid="message-container"
-  (mouseleave)="isActionBoxOpen = false"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
@@ -239,26 +238,31 @@
               <div data-testid="text">
                 <p>
                   <!-- eslint-disable-next-line @angular-eslint/template/use-track-by-function -->
-                  <ng-container *ngFor="let part of messageTextParts">
-                    <span
-                      *ngIf="part.type === 'text'; else mention"
-                      [innerHTML]="part.content"
-                    ></span>
-                    <ng-template #mention>
-                      <ng-template #defaultMention let-content="content">
-                        <span class="str-chat__message-mention">{{
-                          content
-                        }}</span>
+                  <ng-container *ngIf="messageTextParts; else defaultContent">
+                    <ng-container *ngFor="let part of messageTextParts">
+                      <span
+                        *ngIf="part.type === 'text'; else mention"
+                        [innerHTML]="part.content"
+                      ></span>
+                      <ng-template #mention>
+                        <ng-template #defaultMention let-content="content">
+                          <span class="str-chat__message-mention">{{
+                            content
+                          }}</span>
+                        </ng-template>
+                        <ng-container
+                          *ngTemplateOutlet="
+                            (customTemplatesService.mentionTemplate$ | async) ||
+                              defaultMention;
+                            context: getMentionContext(part)
+                          "
+                        ></ng-container>
                       </ng-template>
-                      <ng-container
-                        *ngTemplateOutlet="
-                          (customTemplatesService.mentionTemplate$ | async) ||
-                            defaultMention;
-                          context: getMentionContext(part)
-                        "
-                      ></ng-container>
-                    </ng-template>
+                    </ng-container>
                   </ng-container>
+                  <ng-template #defaultContent>
+                    {{ messageText || "" }}
+                  </ng-template>
                 </p>
               </div>
             </div>
