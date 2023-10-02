@@ -75,8 +75,7 @@
                 !isLast &&
                 direction === 'bottom-to-top' &&
                 !isSentByCurrentUser(messages[i + 1]) &&
-                (!displayDateSeparator ||
-                  !areOnSeparateDates(message, messages[i + 1]))) ||
+                (!displayDateSeparator || !isNextMessageOnSeparateDate[i])) ||
               (direction === 'top-to-bottom' &&
                 !isLast &&
                 !isSentByCurrentUser(message) &&
@@ -90,7 +89,7 @@
               "
             ></ng-container>
           </ng-container>
-          <ng-container *ngIf="areOnSeparateDates(message, messages[i + 1])">
+          <ng-container *ngIf="isNextMessageOnSeparateDate[i]">
             <ng-container
               *ngTemplateOutlet="
                 dateSeparator;
