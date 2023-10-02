@@ -5,6 +5,7 @@ import {
   ElementRef,
   HostBinding,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -93,6 +94,7 @@ export class MessageListComponent
   unreadMessageCount = 0;
   isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];
+  isNextMessageOnSeparateDate: boolean[] = [];
   lastSentMessageId: string | undefined;
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
@@ -122,12 +124,14 @@ export class MessageListComponent
   >;
   private isLatestMessageInList = true;
   private channelId?: string;
+  private parsedDates = new Map<Date, string>();
 
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
     private customTemplatesService: CustomTemplatesService,
-    private dateParser: DateParserService
+    private dateParser: DateParserService,
+    private ngZone: NgZone
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -142,6 +146,7 @@ export class MessageListComponent
             `new channel is different from prev channel, reseting scroll state`,
             { tags: `message list ${this.mode}` }
           );
+          this.parsedDates = new Map();
           this.resetScrollState();
           this.channelId = channel?.id;
           if (
@@ -235,6 +240,11 @@ export class MessageListComponent
   }
 
   ngAfterViewInit(): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.scrollContainer.nativeElement.addEventListener('scroll', () =>
+        this.scrolled()
+      );
+    });
     this.subscriptions.push(
       this.channelService.jumpToMessage$
         .pipe(filter((config) => !!config.id))
@@ -363,7 +373,9 @@ export class MessageListComponent
       clearTimeout(this.scrollEndTimeout);
     }
     this.scrollEndTimeout = setTimeout(() => {
-      this.isScrollInProgress = false;
+      this.ngZone.run(() => {
+        this.isScrollInProgress = false;
+      });
     }, 100);
     if (
       this.scrollContainer.nativeElement.scrollHeight ===
@@ -378,30 +390,41 @@ export class MessageListComponent
       { tags: `message list ${this.mode}` }
     );
 
-    this.isUserScrolled =
+    const isUserScrolled =
       (this.direction === 'bottom-to-top'
         ? scrollPosition !== 'bottom'
         : scrollPosition !== 'top') || !this.isLatestMessageInList;
-    if (!this.isUserScrolled) {
-      this.unreadMessageCount = 0;
+    if (this.isUserScrolled !== isUserScrolled) {
+      this.ngZone.run(() => {
+        this.isUserScrolled = isUserScrolled;
+        if (!this.isUserScrolled) {
+          this.unreadMessageCount = 0;
+        }
+      });
     }
+
     if (this.shouldLoadMoreMessages(scrollPosition)) {
-      this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      let direction: 'newer' | 'older';
-      if (this.direction === 'top-to-bottom') {
-        direction = scrollPosition === 'top' ? 'newer' : 'older';
-      } else {
-        direction = scrollPosition === 'top' ? 'older' : 'newer';
-      }
-      this.mode === 'main'
-        ? void this.channelService.loadMoreMessages(direction)
-        : void this.channelService.loadMoreThreadReplies(direction);
-      this.chatClientService.chatClient?.logger?.(
-        'info',
-        `Displaying loading indicator`,
-        { tags: `message list ${this.mode}` }
-      );
-      this.isLoading = true;
+      this.ngZone.run(() => {
+        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
+        let direction: 'newer' | 'older';
+        if (this.direction === 'top-to-bottom') {
+          direction = scrollPosition === 'top' ? 'newer' : 'older';
+        } else {
+          direction = scrollPosition === 'top' ? 'older' : 'newer';
+        }
+        const result =
+          this.mode === 'main'
+            ? this.channelService.loadMoreMessages(direction)
+            : this.channelService.loadMoreThreadReplies(direction);
+        if (result) {
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Displaying loading indicator`,
+            { tags: `message list ${this.mode}` }
+          );
+          this.isLoading = true;
+        }
+      });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
   }
@@ -418,22 +441,6 @@ export class MessageListComponent
     return text;
   }
 
-  areOnSeparateDates(message?: StreamMessage, nextMessage?: StreamMessage) {
-    if (!message || !nextMessage) {
-      return false;
-    }
-    if (message.created_at.getDate() !== nextMessage.created_at.getDate()) {
-      return true;
-    } else if (
-      message.created_at.getFullYear() !==
-        nextMessage.created_at.getFullYear() ||
-      message.created_at.getMonth() !== nextMessage.created_at.getMonth()
-    ) {
-      return true;
-    }
-    return false;
-  }
-
   isSentByCurrentUser(message?: StreamMessage) {
     if (!message) {
       return false;
@@ -442,7 +449,12 @@ export class MessageListComponent
   }
 
   parseDate(date: Date) {
-    return this.dateParser.parseDate(date);
+    if (this.parsedDates.has(date)) {
+      return this.parsedDates.get(date);
+    }
+    const parsedDate = this.dateParser.parseDate(date);
+    this.parsedDates.set(date, parsedDate);
+    return parsedDate;
   }
 
   get replyCountParam() {
@@ -564,6 +576,9 @@ export class MessageListComponent
         this.groupStyles = messages.map((m, i) =>
           getGroupStyles(m, messages[i - 1], messages[i + 1])
         );
+        this.isNextMessageOnSeparateDate = messages.map((m, i) =>
+          this.checkIfOnSeparateDates(m, messages[i + 1])
+        );
       })
     );
   }
@@ -636,5 +651,24 @@ export class MessageListComponent
         this.unreadMessageCount++;
       }
     }
+  }
+
+  private checkIfOnSeparateDates(
+    message?: StreamMessage,
+    nextMessage?: StreamMessage
+  ) {
+    if (!message || !nextMessage) {
+      return false;
+    }
+    if (message.created_at.getDate() !== nextMessage.created_at.getDate()) {
+      return true;
+    } else if (
+      message.created_at.getFullYear() !==
+        nextMessage.created_at.getFullYear() ||
+      message.created_at.getMonth() !== nextMessage.created_at.getMonth()
+    ) {
+      return true;
+    }
+    return false;
   }
 }

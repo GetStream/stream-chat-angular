@@ -9,6 +9,8 @@ import {
   OnInit,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
+  NgZone,
+  AfterViewInit,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -49,7 +51,9 @@ type MessagePart = {
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessageComponent implements OnInit, OnChanges, OnDestroy {
+export class MessageComponent
+  implements OnInit, OnChanges, OnDestroy, AfterViewInit
+{
   /**
    * The message to be displayed
    */
@@ -81,7 +85,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
   visibleMessageActionsCount = 0;
-  messageTextParts: MessagePart[] = [];
+  messageTextParts: MessagePart[] | undefined = [];
+  messageText?: string;
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
@@ -109,6 +114,9 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
     | undefined;
+  private readonly urlRegexp =
+    /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
+  private emojiRegexp = new RegExp(emojiRegex(), 'g');
 
   constructor(
     private chatClientService: ChatClientService,
@@ -116,7 +124,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     public customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
     themeService: ThemeService,
-    private dateParser: DateParserService
+    private dateParser: DateParserService,
+    private ngZone: NgZone
   ) {
     this.themeVersion = themeService.themeVersion;
   }
@@ -205,6 +214,14 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
           )
         : false;
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.container?.nativeElement.addEventListener('mouseleave', () =>
+        this.mouseLeft()
+      );
+    });
   }
 
   ngOnDestroy(): void {
@@ -323,64 +340,69 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
     this.createMessageParts(false);
   }
 
+  mouseLeft() {
+    if (this.isActionBoxOpen) {
+      this.ngZone.run(() => {
+        this.isActionBoxOpen = false;
+      });
+    }
+  }
+
   private createMessageParts(shouldTranslate = true) {
+    this.messageTextParts = undefined;
+    this.messageText = undefined;
     let content = this.getMessageContent(shouldTranslate);
+    if (
+      (!this.message!.mentioned_users ||
+        this.message!.mentioned_users.length === 0) &&
+      !content?.match(this.emojiRegexp) &&
+      !content?.match(this.urlRegexp)
+    ) {
+      this.messageTextParts = undefined;
+      this.messageText = content;
+      return;
+    }
     if (!content) {
-      this.messageTextParts = [];
+      return;
+    }
+    if (
+      !this.message!.mentioned_users ||
+      this.message!.mentioned_users.length === 0
+    ) {
+      content = this.fixEmojiDisplay(content);
+      content = this.wrapLinskWithAnchorTag(content);
+      this.messageTextParts = [{ content, type: 'text' }];
     } else {
-      let isHTML = false;
-      // Backend will wrap HTML content with <p></p>\n
-      if (content.startsWith('<p>')) {
-        content = content.replace('<p>', '');
-        isHTML = true;
-      }
-      if (content.endsWith('</p>\n')) {
-        content = content.replace('</p>\n', '');
-        isHTML = true;
-      }
-      if (
-        !this.message!.mentioned_users ||
-        this.message!.mentioned_users.length === 0
-      ) {
-        content = this.fixEmojiDisplay(content);
-        if (!isHTML) {
-          content = this.wrapLinskWithAnchorTag(content);
-        }
-        this.messageTextParts = [{ content, type: 'text' }];
-      } else {
-        this.messageTextParts = [];
-        let text = content;
-        this.message!.mentioned_users.forEach((user) => {
-          const mention = `@${user.name || user.id}`;
-          let precedingText = text.substring(0, text.indexOf(mention));
-          precedingText = this.fixEmojiDisplay(precedingText);
-          if (!isHTML) {
-            precedingText = this.wrapLinskWithAnchorTag(precedingText);
-          }
-          this.messageTextParts.push({
-            content: precedingText,
-            type: 'text',
-          });
-          this.messageTextParts.push({
-            content: mention,
-            type: 'mention',
-            user,
-          });
-          text = text.replace(precedingText + mention, '');
+      this.messageTextParts = [];
+      let text = content;
+      this.message!.mentioned_users.forEach((user) => {
+        const mention = `@${user.name || user.id}`;
+        const precedingText = text.substring(0, text.indexOf(mention));
+        let formattedPrecedingText = this.fixEmojiDisplay(precedingText);
+        formattedPrecedingText = this.wrapLinskWithAnchorTag(
+          formattedPrecedingText
+        );
+        this.messageTextParts!.push({
+          content: formattedPrecedingText,
+          type: 'text',
         });
-        if (text) {
-          text = this.fixEmojiDisplay(text);
-          if (!isHTML) {
-            text = this.wrapLinskWithAnchorTag(text);
-          }
-          this.messageTextParts.push({ content: text, type: 'text' });
-        }
+        this.messageTextParts!.push({
+          content: mention,
+          type: 'mention',
+          user,
+        });
+        text = text.replace(precedingText + mention, '');
+      });
+      if (text) {
+        text = this.fixEmojiDisplay(text);
+        text = this.wrapLinskWithAnchorTag(text);
+        this.messageTextParts.push({ content: text, type: 'text' });
       }
     }
   }
 
   private getMessageContent(shouldTranslate: boolean) {
-    const originalContent = this.message?.html || this.message?.text;
+    const originalContent = this.message?.text;
     if (shouldTranslate) {
       const translation = this.message?.translation;
       if (translation) {
@@ -396,14 +418,13 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
 
   private fixEmojiDisplay(content: string) {
     // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
-    const regex = new RegExp(emojiRegex(), 'g');
     // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
     /* eslint-disable @typescript-eslint/no-unsafe-member-access */
     const isChrome =
       !!(window as any).chrome && typeof (window as any).opr === 'undefined';
     /* eslint-enable @typescript-eslint/no-unsafe-member-access */
     content = content.replace(
-      regex,
+      this.emojiRegexp,
       (match) =>
         `<span ${
           isChrome ? 'class="str-chat__emoji-display-fix"' : ''
@@ -414,10 +435,8 @@ export class MessageComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private wrapLinskWithAnchorTag(content: string) {
-    const urlRegexp =
-      /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
     content = content.replace(
-      urlRegexp,
+      this.urlRegexp,
       (match) => `<a href="${match}" rel="nofollow">${match}</a>`
     );
 

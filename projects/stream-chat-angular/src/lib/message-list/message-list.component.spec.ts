@@ -482,12 +482,13 @@ describe('MessageListComponent', () => {
     const newerMessages = generateMockMessages();
     channelServiceMock.activeChannelMessages$.next(newerMessages);
     fixture.detectChanges();
-    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() =>
+    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() => {
       channelServiceMock.activeChannelMessages$.next([
         ...generateMockMessages(25, true),
         ...newerMessages,
-      ])
-    );
+      ]);
+      return Promise.resolve({ messages: [] });
+    });
 
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.scrollTo({ top: 0 });
@@ -923,6 +924,9 @@ describe('MessageListComponent', () => {
 
   it('should set isLoading flag', () => {
     expect(component.isLoading).toBeFalse();
+    spyOn(channelServiceMock, 'loadMoreMessages').and.resolveTo({
+      messages: [],
+    });
 
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.scrollTo({ top: 0 });
@@ -977,22 +981,28 @@ describe('MessageListComponent', () => {
     const nextMessage = messages[1];
     message.created_at = new Date();
 
-    expect(component.areOnSeparateDates(message, undefined)).toBe(false);
+    expect(component['checkIfOnSeparateDates'](message, undefined)).toBe(false);
 
     message.created_at = new Date(2023, 6, 26);
     nextMessage.created_at = new Date(2023, 6, 27);
 
-    expect(component.areOnSeparateDates(message, nextMessage)).toBe(true);
+    expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
+      true
+    );
 
     message.created_at = new Date();
     nextMessage.created_at = new Date();
 
-    expect(component.areOnSeparateDates(message, nextMessage)).toBe(false);
+    expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
+      false
+    );
 
     message.created_at = new Date(2023, 6, 26);
     nextMessage.created_at = new Date(2023, 7, 26);
 
-    expect(component.areOnSeparateDates(message, nextMessage)).toBe(true);
+    expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
+      true
+    );
   });
 
   it('should display date separators', () => {

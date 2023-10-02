@@ -364,26 +364,33 @@ export class ChannelService<
     private ngZone: NgZone,
     private notificationService: NotificationService
   ) {
-    this.channels$ = this.channelsSubject.asObservable();
-    this.activeChannel$ = this.activeChannelSubject.asObservable();
+    this.channels$ = this.channelsSubject.asObservable().pipe(shareReplay(1));
+    this.activeChannel$ = this.activeChannelSubject
+      .asObservable()
+      .pipe(shareReplay(1));
     this.activeChannelMessages$ = this.activeChannelMessagesSubject.pipe(
       map((messages) => {
         const channel = this.activeChannelSubject.getValue()!;
         return messages.map((message) =>
           this.transformToStreamMessage(message, channel)
         );
-      })
+      }),
+      shareReplay(1)
     );
-    this.hasMoreChannels$ = this.hasMoreChannelsSubject.asObservable();
-    this.activeParentMessageId$ =
-      this.activeParentMessageIdSubject.asObservable();
+    this.hasMoreChannels$ = this.hasMoreChannelsSubject
+      .asObservable()
+      .pipe(shareReplay(1));
+    this.activeParentMessageId$ = this.activeParentMessageIdSubject
+      .asObservable()
+      .pipe(shareReplay(1));
     this.activeThreadMessages$ = this.activeThreadMessagesSubject.pipe(
       map((messages) => {
         const channel = this.activeChannelSubject.getValue()!;
         return messages.map((message) =>
           this.transformToStreamMessage(message, channel)
         );
-      })
+      }),
+      shareReplay(1)
     );
     this.activeParentMessage$ = combineLatest([
       this.activeChannelMessages$,
@@ -407,19 +414,31 @@ export class ChannelService<
           }
         }
       ),
-      shareReplay()
+      shareReplay(1)
     );
-    this.messageToQuote$ = this.messageToQuoteSubject.asObservable();
-    this.jumpToMessage$ = this.jumpToMessageSubject.asObservable();
+    this.messageToQuote$ = this.messageToQuoteSubject
+      .asObservable()
+      .pipe(shareReplay(1));
+    this.jumpToMessage$ = this.jumpToMessageSubject
+      .asObservable()
+      .pipe(shareReplay(1));
 
-    this.usersTypingInChannel$ =
-      this.usersTypingInChannelSubject.asObservable();
-    this.usersTypingInThread$ = this.usersTypingInThreadSubject.asObservable();
+    this.usersTypingInChannel$ = this.usersTypingInChannelSubject
+      .asObservable()
+      .pipe(shareReplay(1));
+    this.usersTypingInThread$ = this.usersTypingInThreadSubject
+      .asObservable()
+      .pipe(shareReplay(1));
     this.latestMessageDateByUserByChannels$ =
-      this.latestMessageDateByUserByChannelsSubject.asObservable();
-    this.activeChannelPinnedMessages$ =
-      this.activeChannelPinnedMessagesSubject.asObservable();
-    this.channelQueryState$ = this.channelQueryStateSubject.asObservable();
+      this.latestMessageDateByUserByChannelsSubject
+        .asObservable()
+        .pipe(shareReplay(1));
+    this.activeChannelPinnedMessages$ = this.activeChannelPinnedMessagesSubject
+      .asObservable()
+      .pipe(shareReplay(1));
+    this.channelQueryState$ = this.channelQueryStateSubject
+      .asObservable()
+      .pipe(shareReplay(1));
   }
 
   /**
@@ -532,7 +551,7 @@ export class ChannelService<
    * Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
    * @param direction
    */
-  async loadMoreMessages(direction: 'older' | 'newer' = 'older') {
+  loadMoreMessages(direction: 'older' | 'newer' = 'older') {
     const activeChnannel = this.activeChannelSubject.getValue();
     const messages = this.activeChannelMessagesSubject.getValue();
     const lastMessageId =
@@ -542,24 +561,29 @@ export class ChannelService<
       activeChnannel?.state?.latestMessages === activeChnannel?.state?.messages
     ) {
       // If we are on latest message set, activeChannelMessages$ will be refreshed by WS events, no need for a request
-      return;
+      return false;
     }
-    await activeChnannel?.query({
-      messages: {
-        limit: this.options?.message_limit,
-        [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
-      },
-      members: { limit: 0 },
-      watchers: { limit: 0 },
-    });
-    if (
-      activeChnannel?.data?.id ===
-      this.activeChannelSubject.getValue()?.data?.id
-    ) {
-      this.activeChannelMessagesSubject.next([
-        ...activeChnannel!.state.messages,
-      ]);
-    }
+    return activeChnannel
+      ?.query({
+        messages: {
+          limit: this.options?.message_limit,
+          [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
+        },
+        members: { limit: 0 },
+        watchers: { limit: 0 },
+      })
+      .then((res) => {
+        if (
+          activeChnannel?.data?.id ===
+          this.activeChannelSubject.getValue()?.data?.id
+        ) {
+          this.activeChannelMessagesSubject.next([
+            ...activeChnannel.state.messages,
+          ]);
+        }
+
+        return res;
+      });
   }
 
   /**

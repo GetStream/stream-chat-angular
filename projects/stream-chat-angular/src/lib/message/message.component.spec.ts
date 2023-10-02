@@ -701,19 +701,6 @@ describe('MessageComponent', () => {
     expect(queryText()).toBeNull();
   });
 
-  it('should display HTML content', () => {
-    const htmlContent =
-      '<a href="https://getstream.io/">https://getstream.io/</a>';
-    component.message = {
-      ...component.message!,
-      ...{ html: `<p>${htmlContent}</p>\n` },
-    };
-    component.ngOnChanges({ message: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryText()?.innerHTML).toContain(htmlContent);
-  });
-
   it('should resend message, if sending is failed', () => {
     component.message = { ...component.message!, status: 'failed' };
     component.ngOnChanges({ message: {} as SimpleChange });
@@ -804,40 +791,38 @@ describe('MessageComponent', () => {
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts).toEqual([]);
+    expect(component.messageTextParts).toEqual(undefined);
+    expect(component.messageText).toEqual('');
 
     component.message = {
       text: 'This is a message without user mentions',
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts).toEqual([
-      { content: 'This is a message without user mentions', type: 'text' },
-    ]);
+    expect(component.messageTextParts).toEqual(undefined);
+    expect(component.messageText).toEqual(
+      'This is a message without user mentions'
+    );
 
     component.message = {
       text: 'This is just an email, not a mention test@test.com',
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts).toEqual([
-      {
-        content: 'This is just an email, not a mention test@test.com',
-        type: 'text',
-      },
-    ]);
+    expect(component.messageTextParts).toEqual(undefined);
+    expect(component.messageText).toEqual(
+      'This is just an email, not a mention test@test.com'
+    );
 
     component.message = {
-      html: '<p>This is just an email, not a mention test@test.com</p>\n',
+      text: 'This is just an email, not a mention test@test.com',
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts).toEqual([
-      {
-        content: 'This is just an email, not a mention test@test.com',
-        type: 'text',
-      },
-    ]);
+    expect(component.messageTextParts).toEqual(undefined);
+    expect(component.messageText).toEqual(
+      'This is just an email, not a mention test@test.com'
+    );
 
     component.message = {
       text: 'Hello @Jack',
@@ -896,7 +881,7 @@ describe('MessageComponent', () => {
     ]);
 
     component.message = {
-      html: `<p><a href="https://getstream.io/">https://getstream.io/</a> this is the link @sara</p>\n`,
+      text: 'https://getstream.io/ this is the link @sara',
       mentioned_users: [{ id: 'sara' }],
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
@@ -904,19 +889,20 @@ describe('MessageComponent', () => {
     expect(component.messageTextParts).toEqual([
       {
         content:
-          '<a href="https://getstream.io/">https://getstream.io/</a> this is the link ',
+          '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a> this is the link ',
         type: 'text',
       },
       { content: '@sara', type: 'mention', user: { id: 'sara' } },
     ]);
 
     component.message = {
+      text: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
       html: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
       mentioned_users: [],
     } as any as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    const content = component.messageTextParts[0].content;
+    const content = component.messageTextParts![0].content;
 
     expect(content).toContain('😂');
     expect(content).toContain('😜');
@@ -928,21 +914,23 @@ describe('MessageComponent', () => {
     (window as typeof window & { chrome: Object }).chrome =
       'the component now will think that this is a chrome browser';
     component.message = {
+      text: 'This message contains an emoji 🥑',
       html: 'This message contains an emoji 🥑',
     } as any as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts[0].content).toContain(
+    expect(component.messageTextParts![0].content).toContain(
       'class="str-chat__emoji-display-fix"'
     );
 
     component.message = {
+      text: '@sara what do you think about 🥑s? ',
       html: '@sara what do you think about 🥑s? ',
       mentioned_users: [{ id: 'sara' }],
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts[2].content).toContain(
+    expect(component.messageTextParts![2].content).toContain(
       'class="str-chat__emoji-display-fix"'
     );
 
@@ -952,7 +940,7 @@ describe('MessageComponent', () => {
 
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts[0].content).not.toContain(
+    expect(component.messageTextParts![0].content).not.toContain(
       'class="str-chat__emoji-display-fix"'
     );
 
@@ -967,14 +955,14 @@ describe('MessageComponent', () => {
     } as any as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts[0].content).toContain(
+    expect(component.messageTextParts![0].content).toContain(
       ' <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
     );
 
     component.message.html = undefined;
     component.ngOnChanges({ message: {} as SimpleChange });
 
-    expect(component.messageTextParts[0].content).toContain(
+    expect(component.messageTextParts![0].content).toContain(
       '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
     );
   });
@@ -1230,6 +1218,7 @@ describe('MessageComponent', () => {
 
     it('should display translation notifce and user should be able to change between translation and original', () => {
       component.message!.user!.id = component.message!.user!.id + 'not';
+      component.message!.text = 'How are you?';
       component.message!.html = '<p>How are you?</p>';
       component.message!.translation = 'Hogy vagy?';
       component.ngOnChanges({ message: {} as SimpleChange });
