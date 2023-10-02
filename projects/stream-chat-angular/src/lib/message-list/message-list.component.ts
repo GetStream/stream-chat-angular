@@ -453,7 +453,6 @@ export class MessageListComponent
     this.scrollContainer.nativeElement.scrollTop =
       (this.prevScrollTop || 0) +
       (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
-    this.forceRepaint();
   }
 
   private forceRepaint() {
