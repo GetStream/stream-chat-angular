@@ -168,9 +168,9 @@ export const generateMockChannels = (length = 25) => {
         },
       },
       query: () => {
-        return {
+        return Promise.resolve({
           messages: generateMockMessages(channel.state.messages.length),
-        };
+        });
       },
       sendReaction: () => {},
       deleteReaction: () => {},
@@ -214,7 +214,9 @@ export type MockChannelService = {
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
   channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
   activeChannelLastReadMessageId?: string;
-  loadMoreMessages: (d: 'older' | 'newer') => void;
+  loadMoreMessages: (
+    d: 'older' | 'newer'
+  ) => Promise<{ messages: StreamMessage[] }>;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
   setAsActiveParentMessage: (m: StreamMessage | undefined) => void;
@@ -261,6 +263,7 @@ export const mockChannelService = (): MockChannelService => {
       ...currentMessages,
     ];
     activeChannelMessages$.next(messages);
+    return Promise.resolve({ messages });
   };
 
   const loadMoreThreadReplies = () => {

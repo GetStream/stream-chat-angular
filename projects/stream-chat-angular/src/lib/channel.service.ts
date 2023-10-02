@@ -532,7 +532,7 @@ export class ChannelService<
    * Loads the next page of messages of the active channel. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
    * @param direction
    */
-  async loadMoreMessages(direction: 'older' | 'newer' = 'older') {
+  loadMoreMessages(direction: 'older' | 'newer' = 'older') {
     const activeChnannel = this.activeChannelSubject.getValue();
     const messages = this.activeChannelMessagesSubject.getValue();
     const lastMessageId =
@@ -542,24 +542,29 @@ export class ChannelService<
       activeChnannel?.state?.latestMessages === activeChnannel?.state?.messages
     ) {
       // If we are on latest message set, activeChannelMessages$ will be refreshed by WS events, no need for a request
-      return;
+      return false;
     }
-    await activeChnannel?.query({
-      messages: {
-        limit: this.options?.message_limit,
-        [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
-      },
-      members: { limit: 0 },
-      watchers: { limit: 0 },
-    });
-    if (
-      activeChnannel?.data?.id ===
-      this.activeChannelSubject.getValue()?.data?.id
-    ) {
-      this.activeChannelMessagesSubject.next([
-        ...activeChnannel!.state.messages,
-      ]);
-    }
+    return activeChnannel
+      ?.query({
+        messages: {
+          limit: this.options?.message_limit,
+          [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
+        },
+        members: { limit: 0 },
+        watchers: { limit: 0 },
+      })
+      .then((res) => {
+        if (
+          activeChnannel?.data?.id ===
+          this.activeChannelSubject.getValue()?.data?.id
+        ) {
+          this.activeChannelMessagesSubject.next([
+            ...activeChnannel!.state.messages,
+          ]);
+        }
+
+        return res;
+      });
   }
 
   /**

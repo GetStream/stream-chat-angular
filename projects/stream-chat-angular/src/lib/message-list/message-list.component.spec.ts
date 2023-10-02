@@ -482,12 +482,13 @@ describe('MessageListComponent', () => {
     const newerMessages = generateMockMessages();
     channelServiceMock.activeChannelMessages$.next(newerMessages);
     fixture.detectChanges();
-    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() =>
+    spyOn(channelServiceMock, 'loadMoreMessages').and.callFake(() => {
       channelServiceMock.activeChannelMessages$.next([
         ...generateMockMessages(25, true),
         ...newerMessages,
-      ])
-    );
+      ]);
+      return Promise.resolve({ messages: [] });
+    });
 
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.scrollTo({ top: 0 });
@@ -923,6 +924,9 @@ describe('MessageListComponent', () => {
 
   it('should set isLoading flag', () => {
     expect(component.isLoading).toBeFalse();
+    spyOn(channelServiceMock, 'loadMoreMessages').and.resolveTo({
+      messages: [],
+    });
 
     const scrollContainer = queryScrollContainer()!;
     scrollContainer.scrollTo({ top: 0 });

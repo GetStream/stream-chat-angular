@@ -1,7 +1,6 @@
 import {
   AfterViewChecked,
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostBinding,
@@ -413,15 +412,18 @@ export class MessageListComponent
         } else {
           direction = scrollPosition === 'top' ? 'older' : 'newer';
         }
-        this.mode === 'main'
-          ? void this.channelService.loadMoreMessages(direction)
-          : void this.channelService.loadMoreThreadReplies(direction);
-        this.chatClientService.chatClient?.logger?.(
-          'info',
-          `Displaying loading indicator`,
-          { tags: `message list ${this.mode}` }
-        );
-        this.isLoading = true;
+        const result =
+          this.mode === 'main'
+            ? this.channelService.loadMoreMessages(direction)
+            : this.channelService.loadMoreThreadReplies(direction);
+        if (!!result) {
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Displaying loading indicator`,
+            { tags: `message list ${this.mode}` }
+          );
+          this.isLoading = true;
+        }
       });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
