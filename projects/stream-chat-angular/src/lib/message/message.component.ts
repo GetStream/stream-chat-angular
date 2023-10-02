@@ -377,7 +377,7 @@ export class MessageComponent
       let text = content;
       this.message!.mentioned_users.forEach((user) => {
         const mention = `@${user.name || user.id}`;
-        let precedingText = text.substring(0, text.indexOf(mention));
+        const precedingText = text.substring(0, text.indexOf(mention));
         let formattedPrecedingText = this.fixEmojiDisplay(precedingText);
         formattedPrecedingText = this.wrapLinskWithAnchorTag(
           formattedPrecedingText

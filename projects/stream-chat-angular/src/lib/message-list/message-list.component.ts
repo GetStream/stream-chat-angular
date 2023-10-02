@@ -416,7 +416,7 @@ export class MessageListComponent
           this.mode === 'main'
             ? this.channelService.loadMoreMessages(direction)
             : this.channelService.loadMoreThreadReplies(direction);
-        if (!!result) {
+        if (result) {
           this.chatClientService.chatClient?.logger?.(
             'info',
             `Displaying loading indicator`,

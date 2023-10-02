@@ -578,7 +578,7 @@ export class ChannelService<
           this.activeChannelSubject.getValue()?.data?.id
         ) {
           this.activeChannelMessagesSubject.next([
-            ...activeChnannel!.state.messages,
+            ...activeChnannel.state.messages,
           ]);
         }
 
