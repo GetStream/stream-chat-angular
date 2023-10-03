@@ -14,8 +14,17 @@ import {
   CustomTemplatesService,
   ThemeService,
   AvatarContext,
+  DefaultStreamChatGenerics,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
+
+type MyStreamGenerics = DefaultStreamChatGenerics & {
+  messageType: {
+    custom: {
+      platform: 'mobile' | 'web';
+    };
+  };
+};
 
 @Component({
   selector: 'app-root',
@@ -34,7 +43,7 @@ export class AppComponent implements AfterViewInit {
 
   constructor(
     private chatService: ChatClientService,
-    private channelService: ChannelService,
+    private channelService: ChannelService<MyStreamGenerics>,
     private streamI18nService: StreamI18nService,
     private customTemplateService: CustomTemplatesService,
     themeService: ThemeService
@@ -44,6 +53,13 @@ export class AppComponent implements AfterViewInit {
       environment.userId,
       environment.userToken
     );
+    this.channelService.beforeSendMessage = (input) => {
+      input.customData = {
+        custom: { platform: Math.random() >= 0.5 ? 'mobile' : 'web' },
+      };
+
+      return input;
+    };
     void this.channelService.init({
       type: 'messaging',
       members: { $in: [environment.userId] },
