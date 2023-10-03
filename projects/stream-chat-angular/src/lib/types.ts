@@ -349,3 +349,14 @@ export type ChannelQueryState = {
   // No type def from stream-chat
   error?: unknown;
 };
+
+export type MessageInput<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  text: string;
+  attachments: Attachment<T>[];
+  mentionedUsers: UserResponse<T>[];
+  parentId: string | undefined;
+  quotedMessageId: string | undefined;
+  customData: undefined | Partial<T['messageType']>;
+};
