@@ -25,6 +25,7 @@ import { NotificationService } from './notification.service';
 import {
   AttachmentUpload,
   DefaultStreamChatGenerics,
+  MessageInput,
   StreamMessage,
 } from './types';
 
@@ -1181,6 +1182,59 @@ describe('ChannelService', () => {
     expect(messageCount).toEqual(prevMessageCount + 1);
   });
 
+  it('should send message - #beforeSendMessage hook is provided', async () => {
+    await init();
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.callThrough();
+    spyOn(channel.state, 'addMessageSorted').and.callThrough();
+    const text = 'Hi';
+    const attachments = [{ fallback: 'image.png', url: 'http://url/to/image' }];
+    const mentionedUsers = [{ id: 'sara', name: 'Sara' }];
+    const spy = jasmine.createSpy();
+    service.beforeSendMessage = spy;
+    spy.and.callFake((i: MessageInput) => {
+      i.customData = { custom: 'red' };
+      return i;
+    });
+    await service.sendMessage(text, attachments, mentionedUsers);
+
+    expect(channel.sendMessage).toHaveBeenCalledWith({
+      text,
+      attachments,
+      mentioned_users: ['sara'],
+      id: jasmine.any(String),
+      parent_id: undefined,
+      quoted_message_id: undefined,
+      custom: 'red',
+    });
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({ custom: 'red' }),
+      true
+    );
+
+    spy.and.callFake((i: MessageInput) => {
+      i.text = 'censored';
+      return Promise.resolve(i);
+    });
+    await service.sendMessage(text, attachments, mentionedUsers);
+
+    expect(channel.sendMessage).toHaveBeenCalledWith({
+      text: 'censored',
+      attachments,
+      mentioned_users: ['sara'],
+      id: jasmine.any(String),
+      parent_id: undefined,
+      quoted_message_id: undefined,
+    });
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({ text: 'censored' }),
+      true
+    );
+  });
+
   it('should send action', async () => {
     await init();
     let channel!: Channel<DefaultStreamChatGenerics>;
@@ -1228,6 +1282,22 @@ describe('ChannelService', () => {
     void service.updateMessage(message);
 
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('should update message - #beforeUpdateMessage is provided', async () => {
+    const message = mockMessage();
+    mockChatClient.updateMessage.and.resolveTo({ message });
+    const spy = jasmine.createSpy();
+    service.beforeUpdateMessage = spy;
+    spy.and.callFake((m: StreamMessage) => {
+      m.text = 'Testing beforeUpdateMessage hook';
+      return Promise.resolve(m);
+    });
+    await service.updateMessage(message);
+
+    expect(mockChatClient.updateMessage).toHaveBeenCalledWith(
+      jasmine.objectContaining({ text: 'Testing beforeUpdateMessage hook' })
+    );
   });
 
   it('should remove translation object before updating message', () => {

@@ -31,6 +31,7 @@ import {
   AttachmentUpload,
   ChannelQueryState,
   DefaultStreamChatGenerics,
+  MessageInput,
   MessageReactionType,
   StreamMessage,
 } from './types';
@@ -277,6 +278,18 @@ export class ChannelService<
   messageDeleteConfirmationHandler?: (
     message: StreamMessage<T>
   ) => Promise<boolean>;
+  /**
+   * The provided method will be called before a new message is sent to Stream's API. You can use this hook to tranfrom or enrich the message being sent.
+   */
+  beforeSendMessage?: (
+    input: MessageInput<T>
+  ) => MessageInput<T> | Promise<MessageInput<T>>;
+  /**
+   * The provided method will be called before a message is sent to Stream's API for update. You can use this hook to tranfrom or enrich the message being updated.
+   */
+  beforeUpdateMessage?: (
+    message: StreamMessage<T>
+  ) => StreamMessage<T> | Promise<StreamMessage<T>>;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -723,19 +736,30 @@ export class ChannelService<
     quotedMessageId: string | undefined = undefined,
     customData: undefined | Partial<T['messageType']> = undefined
   ) {
-    const preview = createMessagePreview(
-      this.chatClientService.chatClient.user!,
+    let input: MessageInput<T> = {
       text,
       attachments,
       mentionedUsers,
       parentId,
       quotedMessageId,
-      customData
+      customData,
+    };
+    if (this.beforeSendMessage) {
+      input = await this.beforeSendMessage(input);
+    }
+    const preview = createMessagePreview(
+      this.chatClientService.chatClient.user!,
+      input.text,
+      input.attachments,
+      input.mentionedUsers,
+      input.parentId,
+      input.quotedMessageId,
+      input.customData
     );
     const channel = this.activeChannelSubject.getValue()!;
     preview.readBy = [];
     channel.state.addMessageSorted(preview, true);
-    const response = await this.sendMessageRequest(preview, customData);
+    const response = await this.sendMessageRequest(preview, input.customData);
     return response;
   }
 
@@ -761,8 +785,11 @@ export class ChannelService<
    * @param message Mesage to be updated
    */
   async updateMessage(message: StreamMessage<T>) {
-    const messageToUpdate = { ...message };
+    let messageToUpdate = { ...message };
     delete messageToUpdate.i18n;
+    if (this.beforeUpdateMessage) {
+      messageToUpdate = await this.beforeUpdateMessage(messageToUpdate);
+    }
     const response = await this.chatClientService.chatClient.updateMessage(
       messageToUpdate as any as UpdatedMessage<T>
     );
