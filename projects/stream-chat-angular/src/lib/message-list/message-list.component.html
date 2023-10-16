@@ -153,10 +153,7 @@
 <div class="str-chat__jump-to-latest-message">
   <button
     data-testid="scroll-to-latest"
-    *ngIf="
-      isUserScrolled &&
-      (!isScrollInProgress || !hideJumpToLatestButtonDuringScroll)
-    "
+    *ngIf="isUserScrolled"
     class="
       str-chat__message-notification-scroll-to-latest
       str-chat__message-notification-scroll-to-latest-right

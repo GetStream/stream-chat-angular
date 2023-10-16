@@ -99,7 +99,6 @@ export class MessageListComponent
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
   isLoading = false;
-  isScrollInProgress = false;
   scrollEndTimeout: any;
   lastReadMessageId?: string;
   isJumpingToLatestUnreadMessage = false;
@@ -368,15 +367,6 @@ export class MessageListComponent
   }
 
   scrolled() {
-    this.isScrollInProgress = true;
-    if (this.scrollEndTimeout) {
-      clearTimeout(this.scrollEndTimeout);
-    }
-    this.scrollEndTimeout = setTimeout(() => {
-      this.ngZone.run(() => {
-        this.isScrollInProgress = false;
-      });
-    }, 100);
     if (
       this.scrollContainer.nativeElement.scrollHeight ===
       this.scrollContainer.nativeElement.clientHeight

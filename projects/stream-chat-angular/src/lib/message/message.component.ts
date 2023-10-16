@@ -110,6 +110,7 @@ export class MessageComponent
   canDisplayReadStatus = false;
   private quotedMessageAttachments: Attachment[] | undefined;
   user: UserResponse<DefaultStreamChatGenerics> | undefined;
+  optionsRenderTimeoutEnded = false;
   private subscriptions: Subscription[] = [];
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
@@ -222,6 +223,10 @@ export class MessageComponent
         this.mouseLeft()
       );
     });
+    setTimeout(() => {
+      this.optionsRenderTimeoutEnded = true;
+      this.cdRef.detectChanges();
+    }, 0);
   }
 
   ngOnDestroy(): void {

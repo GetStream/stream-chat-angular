@@ -145,6 +145,7 @@ describe('MessageComponent', () => {
     queryReplyInThreadIcon = () =>
       nativeElement.querySelector('[data-testid="reply-in-thread"]');
     message = mockMessage();
+    component.optionsRenderTimeoutEnded = true;
     component.message = message;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();

@@ -36,7 +36,7 @@
           class="str-chat__message-simple__actions str-chat__message-options"
           data-testid="message-options"
           [class.str-chat__message-edit-in-progress]="isEditing"
-          *ngIf="areOptionsVisible"
+          *ngIf="areOptionsVisible && optionsRenderTimeoutEnded"
         >
           <div
             data-testid="message-actions-container"

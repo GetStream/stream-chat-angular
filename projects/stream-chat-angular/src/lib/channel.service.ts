@@ -499,6 +499,12 @@ export class ChannelService<
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
+    const channelStateLength = channel.state.latestMessages.length;
+    if (channelStateLength > 2 * this.messagePageSize) {
+      channel.state.latestMessages = channel.state.latestMessages.slice(
+        channelStateLength - 2 * this.messagePageSize
+      );
+    }
     this.setChannelState(channel);
   }
 
