@@ -72,11 +72,12 @@ export class AvatarComponent implements OnChanges {
     private ngZone: NgZone
   ) {}
 
-  async ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes['channel']) {
       if (this.channel) {
         const otherMember = this.getOtherMemberIfOneToOneChannel();
         if (otherMember) {
+          this.isOnline = otherMember.online || false;
           this.isOnlineSubscription = this.chatClientService.events$
             .pipe(filter((e) => e.eventType === 'user.presence.changed'))
             .subscribe((event) => {
@@ -86,17 +87,6 @@ export class AvatarComponent implements OnChanges {
                 });
               }
             });
-          try {
-            const response = await this.chatClientService.chatClient.queryUsers(
-              {
-                id: { $eq: otherMember.id },
-              }
-            );
-            this.isOnline = response.users[0]?.online || false;
-          } catch (error) {
-            // Fallback if we can't query user -> for example due to permission problems
-            this.isOnline = otherMember.online || false;
-          }
         } else {
           this.isOnlineSubscription?.unsubscribe();
         }
