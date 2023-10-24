@@ -16,6 +16,7 @@ import {
   AvatarContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
+import { MessageResponse } from 'stream-chat';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,8 @@ export class AppComponent implements AfterViewInit {
   themeVersion: '1' | '2';
   theme$: Observable<string>;
   counter = 0;
+  messageResults: MessageResponse[] = [];
+  baseQuery = { type: 'messaging', members: { $in: [environment.userId] } };
 
   constructor(
     private chatService: ChatClientService,
@@ -44,10 +47,7 @@ export class AppComponent implements AfterViewInit {
       environment.userId,
       environment.userToken
     );
-    void this.channelService.init({
-      type: 'messaging',
-      members: { $in: [environment.userId] },
-    });
+    void this.channelService.init(this.baseQuery);
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
@@ -64,5 +64,42 @@ export class AppComponent implements AfterViewInit {
 
   closeMenu() {
     this.isMenuOpen = false;
+  }
+
+  async search(text: string) {
+    if (text.length === 0) {
+      this.channelService.reset();
+      this.channelService.init(this.baseQuery);
+    }
+    // search for channels
+    this.channelService.reset();
+    this.channelService.init({
+      ...this.baseQuery,
+      $or: [
+        { name: { $autocomplete: text } },
+        {
+          ['member.user.name']: {
+            $autocomplete: text,
+          },
+        },
+      ],
+    });
+
+    // search for messages
+    const response = await this.chatService.chatClient.search(
+      this.baseQuery,
+      text
+    );
+    this.messageResults = response.results.map((r) => r.message);
+  }
+
+  async openMessage(message: MessageResponse) {
+    const channel = this.chatService.chatClient.channel(
+      message.channel!.type,
+      message.channel!.id
+    );
+    await channel.watch();
+    this.channelService.setAsActiveChannel(channel);
+    this.channelService.jumpToMessage(message.id, message.parent_id);
   }
 }
