@@ -3,9 +3,28 @@
     class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
       isThreadOpen ? 'open' : 'close'
     }}"
-    (click)="closeMenu($event)"
-  ></stream-channel-list>
-  <stream-channel class="channel" (click)="closeMenu($event)">
+  >
+    <div channel-list-top>
+      <div>
+        <input placeholder="Search" #input (change)="search(input.value)" />
+        <button (click)="(input.value)">Search</button>
+      </div>
+      <ng-container *ngIf="messageResults">
+        <div>
+          <h3>Message results</h3>
+          <div
+            *ngFor="let message of messageResults"
+            (click)="openMessage(message)"
+          >
+            <span *ngIf="message?.parent_id">Thread reply: </span>
+            {{ message.text }}
+          </div>
+        </div>
+        <h3>Channel results</h3>
+      </ng-container>
+    </div>
+  </stream-channel-list>
+  <stream-channel class="channel" (click)="closeMenu()">
     <stream-channel-header>
       <button class="menu-button" (click)="isMenuOpen = !isMenuOpen">
         <svg
