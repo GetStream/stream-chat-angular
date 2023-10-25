@@ -82,8 +82,10 @@ export class AppComponent implements AfterViewInit {
 
   async search(text: string) {
     if (text.length === 0) {
+      this.messageResults = [];
       this.channelService.reset();
       this.channelService.init(this.baseQuery);
+      return;
     }
     // search for channels
     this.channelService.reset();

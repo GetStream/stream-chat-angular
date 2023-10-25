@@ -9,7 +9,7 @@
         <input placeholder="Search" #input (change)="search(input.value)" />
         <button (click)="(input.value)">Search</button>
       </div>
-      <ng-container *ngIf="messageResults">
+      <ng-container *ngIf="messageResults.length > 0">
         <div>
           <h3>Message results</h3>
           <div
