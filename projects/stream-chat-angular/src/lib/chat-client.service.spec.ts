@@ -373,4 +373,38 @@ describe('ChatClientService', () => {
 
     expect(invitesSpy).not.toHaveBeenCalled();
   });
+
+  it('should update total unread count', () => {
+    const spy = jasmine.createSpy();
+    service.user$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.objectContaining({ total_unread_count: 0 })
+    );
+
+    spy.calls.reset();
+
+    const event1 = {
+      id: 'mockevent',
+      type: 'notification.invite_accepted',
+      channel: { cid: 'what-i-ate-for-lunch' },
+      member: { user: mockChatClient.user },
+    } as any as Event;
+    mockChatClient.handleEvent(event1.type, event1);
+
+    expect(spy).not.toHaveBeenCalledWith();
+
+    const event2 = {
+      id: 'mockevent',
+      type: 'message.new',
+      channel: { cid: 'what-i-ate-for-lunch' },
+      member: { user: mockChatClient.user },
+      total_unread_count: 2,
+    } as any as Event;
+    mockChatClient.handleEvent(event2.type, event2);
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.objectContaining({ total_unread_count: 2 })
+    );
+  });
 });
