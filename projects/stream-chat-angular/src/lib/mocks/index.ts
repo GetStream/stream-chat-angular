@@ -19,6 +19,7 @@ export const mockCurrentUser = () =>
     id: 'currentUser',
     name: 'Bob',
     image: 'link/to/photo',
+    total_unread_count: 0,
   } as UserResponse<DefaultStreamChatGenerics>);
 
 export const mockMessage = (id?: number) =>

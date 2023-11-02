@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, take } from 'rxjs';
 import {
   Channel,
   ChannelFilters,
@@ -57,7 +57,7 @@ export class ChatClientService<
   /**
    * Emits the current chat user
    */
-  user$: Observable<UserResponse<T> | undefined>;
+  user$: Observable<OwnUserResponse<T> | UserResponse<T> | undefined>;
   private notificationSubject = new ReplaySubject<ClientEvent<T>>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
@@ -66,7 +66,9 @@ export class ChatClientService<
   private pendingInvitesSubject = new BehaviorSubject<
     (ChannelResponse<T> | Channel<T>)[]
   >([]);
-  private userSubject = new ReplaySubject<UserResponse<T> | undefined>(1);
+  private userSubject = new ReplaySubject<
+    OwnUserResponse<T> | UserResponse<T> | undefined
+  >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
 
   constructor(
@@ -137,6 +139,7 @@ export class ChatClientService<
     this.appSettingsSubject.next(undefined);
     this.subscriptions.push(
       this.chatClient.on((e) => {
+        this.updateUser(e);
         this.updatePendingInvites(e);
         this.notificationSubject.next({
           eventType: e.type,
@@ -231,6 +234,28 @@ export class ChatClientService<
           this.pendingInvitesSubject.next([...pendingInvites]);
         }
       }
+    }
+  }
+
+  private updateUser(e: Event<T>) {
+    if (typeof e.total_unread_count !== 'undefined') {
+      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      this.userSubject.pipe(take(1)).subscribe((u) => {
+        user = u;
+      });
+      if (user && user.total_unread_count !== e.total_unread_count) {
+        this.userSubject.next({
+          ...user,
+          total_unread_count: e.total_unread_count,
+        });
+      }
+    }
+    if (
+      e.type === 'user.updated' &&
+      this.chatClient.user &&
+      e.user?.id === this.chatClient.user.id
+    ) {
+      this.userSubject.next({ ...this.chatClient.user });
     }
   }
 }
