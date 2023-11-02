@@ -1174,6 +1174,43 @@ export class ChannelService<
             this.handleRemovedFromChannelNotification(clientEvent);
           }
         });
+        break;
+      }
+      case 'user.updated': {
+        this.ngZone.run(() => {
+          const updatedChannels = this.channelsSubject.getValue()?.map((c) => {
+            if (this.chatClientService.chatClient.activeChannels[c.cid]) {
+              return this.chatClientService.chatClient.activeChannels[c.cid];
+            } else {
+              return c;
+            }
+          });
+          this.channelsSubject.next(updatedChannels);
+          const activeChannel = this.activeChannelSubject.getValue();
+          if (activeChannel) {
+            this.activeChannelSubject.next(
+              this.chatClientService.chatClient.activeChannels[
+                activeChannel.cid
+              ] || activeChannel
+            );
+            this.activeChannelMessagesSubject.next(
+              activeChannel.state.messages.map((m) => {
+                m.readBy = getReadBy(m, activeChannel);
+                return { ...m };
+              })
+            );
+            const activeParentMessage =
+              this.activeParentMessageIdSubject.getValue();
+            if (activeParentMessage) {
+              const messages = activeChannel.state.threads[activeParentMessage];
+              this.activeThreadMessagesSubject.next([...messages]);
+            }
+            this.activeChannelPinnedMessagesSubject.next([
+              ...activeChannel.state.pinnedMessages,
+            ]);
+          }
+        });
+        break;
       }
     }
   }

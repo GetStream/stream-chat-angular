@@ -407,4 +407,25 @@ describe('ChatClientService', () => {
       jasmine.objectContaining({ total_unread_count: 2 })
     );
   });
+
+  it('should update user object on `user.updated` event', () => {
+    const spy = jasmine.createSpy();
+    service.user$.subscribe(spy);
+
+    const updatedName = mockCurrentUser().name! + ' updated';
+    const event = {
+      id: 'mockevent',
+      type: 'user.updated',
+      user: {
+        id: mockChatClient.user.id,
+        name: updatedName,
+      },
+    } as any as Event;
+    mockChatClient.user.name = updatedName;
+    mockChatClient.handleEvent(event.type, event);
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.objectContaining({ name: updatedName })
+    );
+  });
 });

@@ -120,7 +120,6 @@ export class ChatClientService<
         );
         throw error;
       }
-      console.log(this.chatClient.user);
       this.userSubject.next(
         this.chatClient.user ? { ...this.chatClient.user } : undefined
       );
@@ -250,6 +249,13 @@ export class ChatClientService<
           total_unread_count: e.total_unread_count,
         });
       }
+    }
+    if (
+      e.type === 'user.updated' &&
+      this.chatClient.user &&
+      e.user?.id === this.chatClient.user.id
+    ) {
+      this.userSubject.next({ ...this.chatClient.user });
     }
   }
 }

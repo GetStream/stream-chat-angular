@@ -2152,4 +2152,21 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(channel);
     expect(service.activeChannelLastReadMessageId).toBeUndefined();
   });
+
+  it('should update user references on `user.updated` event', async () => {
+    await init();
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
+    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.pipe(take(1)).subscribe((c) => (activeChannel = c!));
+    activeChannel.state.members['jack'].user!.name = 'John';
+    mockChatClient.activeChannels[activeChannel.cid] = activeChannel;
+    spy.calls.reset();
+    events$.next({ eventType: 'user.updated' } as ClientEvent);
+
+    const updatedChannel = spy.calls.mostRecent()
+      .args[0] as Channel<DefaultStreamChatGenerics>;
+
+    expect(updatedChannel.state.members['jack'].user!.name).toBe('John');
+  });
 });
