@@ -1,6 +1,7 @@
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostBinding,
@@ -87,10 +88,11 @@ export class MessageListComponent
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
   customnewMessagesIndicatorTemplate: TemplateRef<void> | undefined;
+  emptyMainMessageListTemplate: TemplateRef<void> | null = null;
+  emptyThreadMessageListTemplate: TemplateRef<void> | null = null;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
-  @HostBinding('class') private class =
-    'str-chat-angular__main-panel-inner str-chat-angular__message-list-host str-chat__main-panel-inner';
+  isEmpty = true;
   unreadMessageCount = 0;
   isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];
@@ -125,12 +127,20 @@ export class MessageListComponent
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
 
+  @HostBinding('class')
+  private get class() {
+    return `str-chat-angular__main-panel-inner str-chat-angular__message-list-host str-chat__main-panel-inner ${
+      this.isEmpty ? 'str-chat-angular__message-list-host--empty' : ''
+    }`;
+  }
+
   constructor(
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
     private customTemplatesService: CustomTemplatesService,
     private dateParser: DateParserService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -268,6 +278,28 @@ export class MessageListComponent
             }
           }
         })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyMainMessageListTemplate !== template;
+          this.emptyMainMessageListTemplate = template || null;
+          if (isChanged) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyThreadMessageListTemplate !== template;
+          this.emptyThreadMessageListTemplate = template || null;
+          if (isChanged) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
     );
   }
 
@@ -451,6 +483,12 @@ export class MessageListComponent
     return { replyCount: this.parentMessage?.reply_count };
   }
 
+  get emptyListTemplate() {
+    return this.mode === 'main'
+      ? this.emptyMainMessageListTemplate
+      : this.emptyThreadMessageListTemplate;
+  }
+
   private preserveScrollbarPosition() {
     this.scrollContainer.nativeElement.scrollTop =
       (this.prevScrollTop || 0) +
@@ -507,6 +545,10 @@ export class MessageListComponent
           );
           this.resetScrollState();
           return;
+        }
+        if (this.isEmpty) {
+          // cdRef.detectChanges() isn't enough here, test will fail
+          setTimeout(() => (this.isEmpty = false), 0);
         }
         this.chatClientService.chatClient?.logger?.(
           'info',
@@ -574,6 +616,7 @@ export class MessageListComponent
   }
 
   private resetScrollState() {
+    this.isEmpty = true;
     this.latestMessage = undefined;
     this.hasNewMessages = true;
     this.isUserScrolled = false;
