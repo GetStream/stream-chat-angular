@@ -250,6 +250,30 @@ export class ChatClientService<
         });
       }
     }
+    if (typeof e.unread_channels !== 'undefined') {
+      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      this.userSubject.pipe(take(1)).subscribe((u) => {
+        user = u;
+      });
+      if (user && user.unread_channels !== e.unread_channels) {
+        this.userSubject.next({
+          ...user,
+          unread_channels: e.unread_channels,
+        });
+      }
+    }
+    if (typeof e.unread_count !== 'undefined') {
+      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      this.userSubject.pipe(take(1)).subscribe((u) => {
+        user = u;
+      });
+      if (user && user.unread_count !== e.unread_count) {
+        this.userSubject.next({
+          ...user,
+          unread_count: e.unread_count,
+        });
+      }
+    }
     if (
       e.type === 'user.updated' &&
       this.chatClient.user &&
