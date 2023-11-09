@@ -27,3 +27,8 @@ body {
 .material-icons {
   font-family: "Material Icons" !important;
 }
+
+.str-chat__thread
+  .str-chat__main-panel-inner.str-chat-angular__message-list-host--empty {
+  height: 100%;
+}

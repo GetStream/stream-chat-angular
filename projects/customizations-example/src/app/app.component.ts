@@ -91,6 +91,10 @@ export class AppComponent implements AfterViewInit {
   private customAttachmentUploadTemplate!: TemplateRef<CustomAttachmentUploadContext>;
   @ViewChild('dateSeparator')
   private dateSeparatorTemplate!: TemplateRef<DateSeparatorContext>;
+  @ViewChild('emptyMainMessageList')
+  private emptyMainMessageListTemplate!: TemplateRef<void>;
+  @ViewChild('emptyThreadMessageList')
+  private emptyThreadMessageListTemplate!: TemplateRef<void>;
 
   constructor(
     private chatService: ChatClientService,
@@ -169,6 +173,12 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.dateSeparatorTemplate$.next(
       this.dateSeparatorTemplate
+    );
+    this.customTemplatesService.emptyMainMessageListPlaceholder$.next(
+      this.emptyMainMessageListTemplate
+    );
+    this.customTemplatesService.emptyThreadMessageListPlaceholder$.next(
+      this.emptyThreadMessageListTemplate
     );
   }
 
