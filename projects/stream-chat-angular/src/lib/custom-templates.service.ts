@@ -292,6 +292,18 @@ export class CustomTemplatesService {
   newMessagesIndicatorTemplate$ = new BehaviorSubject<
     TemplateRef<void> | undefined
   >(undefined);
+  /**
+   * The template to show if the main message list is empty
+   */
+  emptyMainMessageListPlaceholder$ = new BehaviorSubject<
+    TemplateRef<void> | undefined
+  >(undefined);
+  /**
+   * The template to show if the thread message list is empty
+   */
+  emptyThreadMessageListPlaceholder$ = new BehaviorSubject<
+    TemplateRef<void> | undefined
+  >(undefined);
 
   constructor() {}
 }

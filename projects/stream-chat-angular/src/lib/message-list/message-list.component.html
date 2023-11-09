@@ -4,6 +4,9 @@
   class="str-chat__list"
   style="overscroll-behavior: none"
 >
+  <ng-container *ngIf="mode === 'main' && isEmpty && emptyListTemplate">
+    <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
+  </ng-container>
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
     <ul
       class="str-chat__ul"
@@ -28,6 +31,9 @@
           replies' | translate:replyCountParam)}}
         </div>
       </li>
+      <ng-container *ngIf="mode === 'thread' && isEmpty && emptyListTemplate">
+        <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
+      </ng-container>
       <stream-loading-indicator
         data-testid="top-loading-indicator"
         *ngIf="
