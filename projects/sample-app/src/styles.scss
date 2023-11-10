@@ -98,6 +98,15 @@ body {
       }
     }
   }
+
+  @media only screen and (max-device-width: 768px) {
+    .str-chat__message-options {
+      --str-chat__message-options-button-size: 40px;
+      svg {
+        transform: scale(1.5);
+      }
+    }
+  }
 } @else {
   .menu-button {
     display: none;
