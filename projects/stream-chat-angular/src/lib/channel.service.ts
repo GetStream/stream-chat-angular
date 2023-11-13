@@ -1640,7 +1640,7 @@ export class ChannelService<
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeChannelsFromChannelList([event.channel!.cid], true);
+    this.removeChannelsFromChannelList([event.channel!.cid], false);
   }
 
   private handleChannelVisible(event: Event, channel: Channel<T>) {
