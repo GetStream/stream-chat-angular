@@ -74,7 +74,7 @@ export class ChannelService<
    *
    *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
    *
-   *  By default if an error occurs during channel load, the Observable will emit an error, which will close the stream. Users will reload the page to be able to reinitialize the `ChannelService`. If you don't want the streams to be closed, you can pass `options.keepAliveChannels$OnError = true` to the `init` method. In that case the `channelQueryState$` stream will emit the status of the latest channel load request.
+   *  By default if an error occurs during channel load, the Observable will emit an error, which will close the stream. Users will have to reload the page to be able to reinitialize the `ChannelService`. If you don't want the streams to be closed, you can pass `options.keepAliveChannels$OnError = true` to the `init` method. In that case the `channelQueryState$` stream will emit the status of the latest channel load request.
    */
   channels$: Observable<Channel<T>[] | undefined>;
   /**
