@@ -752,7 +752,7 @@ describe('ChannelService', () => {
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
-    expect(channel.stopWatching).toHaveBeenCalledWith();
+    expect(channel.stopWatching).not.toHaveBeenCalledWith();
   });
 
   it('should call #customChannelDeletedHandler, if channel is deleted and handler is provided', async () => {
