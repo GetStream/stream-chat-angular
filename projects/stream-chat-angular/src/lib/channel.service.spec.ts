@@ -800,6 +800,25 @@ describe('ChannelService', () => {
     expect(updatedChannel!.data!.hidden).toBeDefined();
   });
 
+  it('should emit changed channel if `capabilities.changed` dispatched', async () => {
+    await init();
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    channel.data!.own_capabilities = ['send-message'];
+    (channel as MockChannel).handleEvent('capabilities.changed', {
+      type: 'capabilities.changed',
+      cid: channel.cid,
+    });
+
+    const channels = spy.calls.mostRecent().args[0] as Channel[];
+
+    const updatedChannel = channels.find((c) => c.cid === channel.cid);
+
+    expect(updatedChannel!.data!.own_capabilities).toEqual(['send-message']);
+  });
+
   it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {
     await init();
     let channel!: Channel<DefaultStreamChatGenerics>;

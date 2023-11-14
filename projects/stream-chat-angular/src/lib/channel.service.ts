@@ -15,6 +15,7 @@ import {
   ChannelResponse,
   ChannelSort,
   Event,
+  EventTypes,
   FormatMessageResponse,
   Message,
   MessageResponse,
@@ -1521,7 +1522,9 @@ export class ChannelService<
 
   private watchForChannelEvents(channel: Channel<T>) {
     const unsubscribe = channel.on((event: Event<T>) => {
-      switch (event.type) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      const type = event.type as EventTypes | 'capabilities.changed';
+      switch (type) {
         case 'message.new': {
           this.ngZone.run(() => {
             if (this.customNewMessageHandler) {
@@ -1620,6 +1623,24 @@ export class ChannelService<
               );
             } else {
               this.handleChannelTruncate(event);
+            }
+          });
+          break;
+        }
+        case 'capabilities.changed': {
+          this.ngZone.run(() => {
+            const cid = event.cid;
+            if (cid) {
+              const currentChannels = this.channelsSubject.getValue();
+              const index = currentChannels?.findIndex((c) => c.cid === cid);
+              if (index !== -1 && index !== undefined) {
+                this.channelsSubject.next([...currentChannels!]);
+                if (cid === this.activeChannelSubject.getValue()?.cid) {
+                  this.activeChannelSubject.next(
+                    this.activeChannelSubject.getValue()
+                  );
+                }
+              }
             }
           });
           break;
