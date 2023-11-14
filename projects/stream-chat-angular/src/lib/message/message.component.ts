@@ -198,9 +198,7 @@ export class MessageComponent
     }
     if (changes.message || changes.enabledMessageActions || changes.mode) {
       this.shouldDisplayThreadLink =
-        !!this.message?.reply_count &&
-        this.mode !== 'thread' &&
-        this.enabledMessageActions.indexOf('send-reply') !== -1;
+        !!this.message?.reply_count && this.mode !== 'thread';
     }
     if (changes.message || changes.mode) {
       this.areOptionsVisible = this.message

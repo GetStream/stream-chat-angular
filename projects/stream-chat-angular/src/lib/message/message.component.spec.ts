@@ -991,18 +991,6 @@ describe('MessageComponent', () => {
     expect(setAsActiveParentMessageSpy).toHaveBeenCalledWith(component.message);
   });
 
-  it(`shouldn't display reply count for parent messages if user doesn't have the necessary capability`, () => {
-    component.message = { ...message, reply_count: 1 };
-    component.enabledMessageActions = [];
-    component.ngOnChanges({
-      message: {} as SimpleChange,
-      enabledMessageActions: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryReplyCountButton()).toBeNull();
-  });
-
   it('should display reply in thread icon, if user has the necessary capability', () => {
     expect(queryReplyInThreadIcon()).not.toBeNull();
 
