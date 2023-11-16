@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, ReplaySubject, take } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import {
   Channel,
   ChannelFilters,
@@ -14,6 +14,7 @@ import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
 import { DefaultStreamChatGenerics } from './types';
+import { take } from 'rxjs/operators';
 
 export type ClientEvent<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
