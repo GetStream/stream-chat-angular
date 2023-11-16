@@ -49,7 +49,10 @@ export const generateMockMessages = (offset = 0, isOlder = false) => {
 };
 
 export type MockChannel = Channel<DefaultStreamChatGenerics> & {
-  handleEvent: (name: EventTypes, payload?: any) => void;
+  handleEvent: (
+    name: EventTypes | 'capabilities.changed',
+    payload?: any
+  ) => void;
 };
 
 export const generateMockChannels = (length = 25) => {
