@@ -114,7 +114,7 @@ describe('ChannelService', () => {
   });
 
   it('should use provided options params', async () => {
-    const options: ChannelOptions = { offset: 5 };
+    const options: ChannelOptions = { limit: 5 };
     await init(undefined, undefined, options);
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
@@ -373,6 +373,10 @@ describe('ChannelService', () => {
 
   it('should load more channels and filter duplicates', async () => {
     await init();
+
+    // Check that offset is set properly after query
+    expect(service['options']?.offset).toEqual(service.channels.length);
+
     mockChatClient.queryChannels.calls.reset();
     const existingChannel = service.channels[0];
     const newChannel = generateMockChannels(1)[0];

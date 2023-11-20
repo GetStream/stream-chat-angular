@@ -696,7 +696,6 @@ export class ChannelService<
    * Loads the next page of channels. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
    */
   async loadMoreChannels() {
-    this.options!.offset = this.channels.length!;
     await this.queryChannels(false);
   }
 
@@ -1486,6 +1485,7 @@ export class ChannelService<
         this.sort || {},
         this.options
       );
+      this.options!.offset = channels.length!;
       channels.forEach((c) => this.watchForChannelEvents(c));
       const prevChannels = recoverState
         ? []
