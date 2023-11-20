@@ -1378,6 +1378,14 @@ export class ChannelService<
     await activeChannel?.stopTyping(parentId);
   }
 
+  get channels() {
+    return this.channelsSubject.getValue() || [];
+  }
+
+  get activeChannel() {
+    return this.activeChannelSubject.getValue() || undefined;
+  }
+
   private messageUpdated(event: Event<T>) {
     this.ngZone.run(() => {
       const isThreadReply = event.message && event.message.parent_id;
@@ -1482,19 +1490,25 @@ export class ChannelService<
       const prevChannels = recoverState
         ? []
         : this.channelsSubject.getValue() || [];
-      this.channelsSubject.next([...prevChannels, ...channels]);
+      const filteredChannels = channels.filter(
+        (channel) =>
+          !prevChannels.find(
+            (existingChannel) => existingChannel.cid === channel.cid
+          )
+      );
+      this.channelsSubject.next([...prevChannels, ...filteredChannels]);
       let currentActiveChannel = this.activeChannelSubject.getValue();
       if (
-        channels.length > 0 &&
+        filteredChannels.length > 0 &&
         !currentActiveChannel &&
         shouldSetActiveChannel
       ) {
-        this.setAsActiveChannel(channels[0]);
+        this.setAsActiveChannel(filteredChannels[0]);
         currentActiveChannel = this.activeChannelSubject.getValue();
       }
       if (
         recoverState &&
-        !channels.find((c) => c.cid === currentActiveChannel?.cid)
+        !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
       ) {
         this.deselectActiveChannel();
       }
@@ -1709,10 +1723,6 @@ export class ChannelService<
         this.activeThreadMessagesSubject.next([]);
       }
     }
-  }
-
-  private get channels() {
-    return this.channelsSubject.getValue() || [];
   }
 
   private get canSendReadEvents() {

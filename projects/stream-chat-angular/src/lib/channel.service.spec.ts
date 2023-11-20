@@ -371,9 +371,14 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(false);
   });
 
-  it('should load more channels', async () => {
+  it('should load more channels and filter duplicates', async () => {
     await init();
     mockChatClient.queryChannels.calls.reset();
+    const existingChannel = service.channels[0];
+    const newChannel = generateMockChannels(1)[0];
+    newChannel.cid = 'this-channel-is-not-yet-loaded';
+    mockChatClient.queryChannels.and.resolveTo([existingChannel, newChannel]);
+    const prevChannelCount = service.channels.length;
     await service.loadMoreChannels();
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
@@ -381,6 +386,7 @@ describe('ChannelService', () => {
       jasmine.any(Object),
       jasmine.any(Object)
     );
+    expect(service.channels.length).toEqual(prevChannelCount + 1);
   });
 
   it('should set active channel', async () => {
