@@ -245,6 +245,36 @@ describe('ChannelService', () => {
     /* eslint-enable  @typescript-eslint/no-unsafe-member-access */
   });
 
+  it('should set pagination options correctly if #customPaginator is provided', async () => {
+    service.customPaginator = (
+      channelQueryResult: Channel<DefaultStreamChatGenerics>[]
+    ) => {
+      const lastChannel = channelQueryResult[channelQueryResult.length - 1];
+      if (!lastChannel) {
+        return {
+          type: 'filter',
+          paginationFilter: {},
+        };
+      } else {
+        return {
+          type: 'filter',
+          paginationFilter: {
+            cid: { $gte: lastChannel.cid },
+          },
+        };
+      }
+    };
+
+    await init();
+
+    expect(service['nextPageConfiguration']).toEqual({
+      type: 'filter',
+      paginationFilter: {
+        cid: { $gte: jasmine.any(String) },
+      },
+    });
+  });
+
   it('should not set active channel if #shouldSetActiveChannel is false', async () => {
     const activeChannelSpy = jasmine.createSpy();
     service.activeChannel$.subscribe(activeChannelSpy);
@@ -375,7 +405,10 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
-    expect(service['options']?.offset).toEqual(service.channels.length);
+    expect(service['nextPageConfiguration']).toEqual({
+      type: 'offset',
+      offset: service.channels.length,
+    });
 
     mockChatClient.queryChannels.calls.reset();
     const existingChannel = service.channels[0];
@@ -390,6 +423,7 @@ describe('ChannelService', () => {
       jasmine.any(Object),
       jasmine.any(Object)
     );
+
     expect(service.channels.length).toEqual(prevChannelCount + 1);
   });
 
@@ -1952,14 +1986,14 @@ describe('ChannelService', () => {
   });
 
   it('should reset pagination options after reconnect', async () => {
-    await init(undefined, undefined, { offset: 20 });
+    await init(undefined, undefined, { limit: 20 });
     mockChatClient.queryChannels.calls.reset();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      jasmine.objectContaining({ offset: 0 })
+      { limit: 20, state: true, presence: true, watch: true, message_limit: 25 }
     );
   });
 
