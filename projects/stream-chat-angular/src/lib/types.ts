@@ -3,6 +3,7 @@ import { Observable, Subject } from 'rxjs';
 import type {
   Attachment,
   Channel,
+  ChannelFilters,
   ChannelMemberResponse,
   CommandResponse,
   Event,
@@ -360,3 +361,19 @@ export type MessageInput<
   quotedMessageId: string | undefined;
   customData: undefined | Partial<T['messageType']>;
 };
+
+export type OffsetNextPageConfiguration = {
+  type: 'offset';
+  offset: number;
+};
+
+export type FiltertNextPageConfiguration<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  type: 'filter';
+  paginationFilter: ChannelFilters<T>;
+};
+
+export type NextPageConfiguration =
+  | OffsetNextPageConfiguration
+  | FiltertNextPageConfiguration;

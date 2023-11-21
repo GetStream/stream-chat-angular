@@ -34,6 +34,7 @@ import {
   DefaultStreamChatGenerics,
   MessageInput,
   MessageReactionType,
+  NextPageConfiguration,
   StreamMessage,
 } from './types';
 
@@ -293,6 +294,10 @@ export class ChannelService<
   beforeUpdateMessage?: (
     message: StreamMessage<T>
   ) => StreamMessage<T> | Promise<StreamMessage<T>>;
+  /**
+   * By default the SDK uses an offset based pagination, you can change/extend this by providing your own custom paginator method. It will be called with the result of the latest channel query.
+   */
+  customPaginator?: (channelQueryResult: Channel<T>[]) => NextPageConfiguration;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -374,6 +379,7 @@ export class ChannelService<
     this.activeParentMessageIdSubject.next(message?.id);
   };
   private dismissErrorNotification?: Function;
+  private nextPageConfiguration?: NextPageConfiguration;
 
   constructor(
     private chatClientService: ChatClientService<T>,
@@ -650,7 +656,6 @@ export class ChannelService<
   ) {
     this.filters = filters;
     this.options = {
-      offset: 0,
       limit: 25,
       state: true,
       presence: true,
@@ -658,7 +663,7 @@ export class ChannelService<
       message_limit: this.messagePageSize,
       ...options,
     };
-    this.sort = sort || { last_message_at: -1, updated_at: -1 };
+    this.sort = sort || { last_message_at: -1 };
     this.shouldSetActiveChannel = shouldSetActiveChannel;
     this.clientEventsSubscription = this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
@@ -696,7 +701,6 @@ export class ChannelService<
    * Loads the next page of channels. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
    */
   async loadMoreChannels() {
-    this.options!.offset = this.channels.length!;
     await this.queryChannels(false);
   }
 
@@ -1108,9 +1112,7 @@ export class ChannelService<
           }
           this.isStateRecoveryInProgress = true;
           try {
-            if (this.options) {
-              this.options.offset = 0;
-            }
+            this.nextPageConfiguration = undefined;
             // If channel list is not inited, we set the active channel
             const shoulSetActiveChannel =
               this.shouldSetActiveChannel &&
@@ -1378,6 +1380,20 @@ export class ChannelService<
     await activeChannel?.stopTyping(parentId);
   }
 
+  /**
+   * The current list of channels
+   */
+  get channels() {
+    return this.channelsSubject.getValue() || [];
+  }
+
+  /**
+   * The current active channel
+   */
+  get activeChannel() {
+    return this.activeChannelSubject.getValue() || undefined;
+  }
+
   private messageUpdated(event: Event<T>) {
     this.ngZone.run(() => {
       const isThreadReply = event.message && event.message.parent_id;
@@ -1473,28 +1489,55 @@ export class ChannelService<
   ) {
     try {
       this.channelQueryStateSubject.next({ state: 'in-progress' });
+      let filters: ChannelFilters<T>;
+      let options: ChannelOptions;
+      if (this.nextPageConfiguration) {
+        if (this.nextPageConfiguration.type === 'filter') {
+          filters = {
+            ...this.filters!,
+            ...this.nextPageConfiguration.paginationFilter,
+          };
+          options = this.options as ChannelOptions;
+        } else {
+          options = {
+            ...this.options,
+            offset: this.nextPageConfiguration.offset,
+          };
+          filters = this.filters!;
+        }
+      } else {
+        filters = this.filters!;
+        options = this.options as ChannelOptions;
+      }
       const channels = await this.chatClientService.chatClient.queryChannels(
-        this.filters!,
+        filters,
         this.sort || {},
-        this.options
+        options
       );
+      this.setNextPageConfiguration(channels);
       channels.forEach((c) => this.watchForChannelEvents(c));
       const prevChannels = recoverState
         ? []
         : this.channelsSubject.getValue() || [];
-      this.channelsSubject.next([...prevChannels, ...channels]);
+      const filteredChannels = channels.filter(
+        (channel) =>
+          !prevChannels.find(
+            (existingChannel) => existingChannel.cid === channel.cid
+          )
+      );
+      this.channelsSubject.next([...prevChannels, ...filteredChannels]);
       let currentActiveChannel = this.activeChannelSubject.getValue();
       if (
-        channels.length > 0 &&
+        filteredChannels.length > 0 &&
         !currentActiveChannel &&
         shouldSetActiveChannel
       ) {
-        this.setAsActiveChannel(channels[0]);
+        this.setAsActiveChannel(filteredChannels[0]);
         currentActiveChannel = this.activeChannelSubject.getValue();
       }
       if (
         recoverState &&
-        !channels.find((c) => c.cid === currentActiveChannel?.cid)
+        !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
       ) {
         this.deselectActiveChannel();
       }
@@ -1711,10 +1754,6 @@ export class ChannelService<
     }
   }
 
-  private get channels() {
-    return this.channelsSubject.getValue() || [];
-  }
-
   private get canSendReadEvents() {
     const channel = this.activeChannelSubject.getValue();
     if (!channel) {
@@ -1886,6 +1925,20 @@ export class ChannelService<
   private markRead(channel: Channel<T>) {
     if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
       void channel.markRead();
+    }
+  }
+
+  private setNextPageConfiguration(channelQueryResult: Channel<T>[]) {
+    if (this.customPaginator) {
+      this.nextPageConfiguration = this.customPaginator(channelQueryResult);
+    } else {
+      this.nextPageConfiguration = {
+        type: 'offset',
+        offset:
+          (this.nextPageConfiguration?.type === 'offset'
+            ? this.nextPageConfiguration.offset
+            : 0) + channelQueryResult.length,
+      };
     }
   }
 }
