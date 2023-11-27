@@ -10,6 +10,7 @@ describe('AttachmentPreviewListComponent', () => {
   let fixture: ComponentFixture<AttachmentPreviewListComponent>;
   let attachmentUploads$: Subject<AttachmentUpload[]>;
   let queryImagePreviews: () => HTMLElement[];
+  let queryImageFallbacks: () => HTMLElement[];
   let queryLoadingIndicators: () => HTMLElement[];
   let queryPreviewImages: () => HTMLImageElement[];
   let queryPreviewFiles: () => HTMLElement[];
@@ -44,6 +45,12 @@ describe('AttachmentPreviewListComponent', () => {
       Array.from(
         nativeElement.querySelectorAll(
           '[data-testclass="attachment-file-preview"]'
+        )
+      );
+    queryImageFallbacks = () =>
+      Array.from(
+        nativeElement.querySelectorAll(
+          '[data-testclass="str-chat__image-fallback"]'
         )
       );
     component.attachmentUploads$ = attachmentUploads$;
@@ -188,12 +195,29 @@ describe('AttachmentPreviewListComponent', () => {
     const previewImage = queryPreviewImages()[0];
 
     expect(previewImage.src).toContain(previewUri);
+    expect(queryImageFallbacks().length).toBe(0);
 
     const url = 'http://url/to/img';
     attachmentUploads$.next([{ file, state: 'success', url, type: 'image' }]);
     fixture.detectChanges();
 
     expect(previewImage.src).toContain(url);
+  });
+
+  it(`should display image fallback if preview isn't working`, () => {
+    const file = { name: 'my_image.png', type: 'image/png' } as File;
+    const attachmentUpload = {
+      file,
+      state: 'success' as 'success',
+      url: 'http://url/to/img',
+      type: 'image' as 'image',
+    };
+    attachmentUploads$.next([attachmentUpload]);
+    component.imagePreviewErrors = [attachmentUpload];
+    fixture.detectChanges();
+
+    expect(queryPreviewImages().length).toBe(0);
+    expect(queryImageFallbacks().length).toBe(1);
   });
 
   it('should retry file upload', () => {

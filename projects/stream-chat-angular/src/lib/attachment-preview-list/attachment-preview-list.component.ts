@@ -1,7 +1,17 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
+import { Attachment } from 'stream-chat';
 
 /**
  * The `AttachmentPreviewList` component displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
@@ -11,7 +21,7 @@ import { AttachmentUpload } from '../types';
   templateUrl: './attachment-preview-list.component.html',
   styles: [],
 })
-export class AttachmentPreviewListComponent {
+export class AttachmentPreviewListComponent implements OnChanges, OnDestroy {
   /**
    * A stream that emits the current file uploads and their states
    */
@@ -25,9 +35,27 @@ export class AttachmentPreviewListComponent {
    */
   @Output() readonly deleteAttachment = new EventEmitter<AttachmentUpload>();
   themeVersion: '1' | '2';
+  imagePreviewErrors: Attachment[] = [];
+  private attachmentUploadsSubscription?: Subscription;
 
   constructor(themeService: ThemeService) {
     this.themeVersion = themeService.themeVersion;
+  }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.attachmentUploads$) {
+      this.attachmentUploadsSubscription?.unsubscribe();
+      this.attachmentUploadsSubscription = this.attachmentUploads$?.subscribe(
+        (attachments) => {
+          if (attachments.length === 0) {
+            this.imagePreviewErrors = [];
+          }
+        }
+      );
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.attachmentUploadsSubscription?.unsubscribe();
   }
 
   attachmentUploadRetried(file: File) {
