@@ -6,11 +6,13 @@ import { ChannelService } from '../channel.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
-import { DefaultStreamChatGenerics } from '../types';
+import {
+  DefaultStreamChatGenerics,
+  ImageAttachmentConfiguration,
+} from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { ThemeService } from '../theme.service';
 import { SimpleChange } from '@angular/core';
-import { ImageAttachmentConfiguration } from 'stream-chat-angular';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -149,7 +151,6 @@ describe('AttachmentListComponent', () => {
     ).toBeFalse();
 
     expect(queryImages().length).toBe(1);
-    console.log(queryFileLinks());
     expect(queryFileLinks().length).toBe(1);
     expect(queryCardImages().length).toBe(0);
     expect(queryActions().length).toBe(0);
@@ -986,6 +987,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
 
     expect(queryImages().length).toBe(0);
+
     expect(queryFallbackImages().length).toBe(1);
   });
 });

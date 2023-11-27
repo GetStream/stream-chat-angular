@@ -540,7 +540,10 @@
         fill="#080707"
       />
     </svg>
-    <div (click)="$event.stopPropagation()">
+    <div
+      (click)="$event.stopPropagation()"
+      (keyup.enter)="$event.stopPropagation()"
+    >
       <ng-container
         *ngTemplateOutlet="
           downloadIcon;
