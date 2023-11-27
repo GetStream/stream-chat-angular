@@ -22,7 +22,8 @@ export type Icon =
   | 'attach'
   | 'unspecified-filetype'
   | 'download'
-  | 'error';
+  | 'error'
+  | 'image-fallback';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).
