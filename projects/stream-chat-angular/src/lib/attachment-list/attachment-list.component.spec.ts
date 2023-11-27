@@ -10,6 +10,7 @@ import { DefaultStreamChatGenerics } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { ThemeService } from '../theme.service';
 import { SimpleChange } from '@angular/core';
+import { ImageAttachmentConfiguration } from 'stream-chat-angular';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -17,6 +18,7 @@ describe('AttachmentListComponent', () => {
   let nativeElement: HTMLElement;
   let queryAttachments: () => HTMLElement[];
   let queryImages: () => HTMLImageElement[];
+  let queryFallbackImages: () => HTMLElement[];
   let queryFileLinks: () => HTMLAnchorElement[];
   let queryFileNames: () => HTMLElement[];
   let queryUrlLinks: () => HTMLAnchorElement[];
@@ -58,6 +60,12 @@ describe('AttachmentListComponent', () => {
       );
     queryImages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="image"]'));
+    queryFallbackImages = () =>
+      Array.from(
+        nativeElement.querySelectorAll(
+          '[data-testclass="str-chat__image-fallback"]'
+        )
+      );
     queryFileLinks = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="file-link"]')
@@ -141,6 +149,7 @@ describe('AttachmentListComponent', () => {
     ).toBeFalse();
 
     expect(queryImages().length).toBe(1);
+    console.log(queryFileLinks());
     expect(queryFileLinks().length).toBe(1);
     expect(queryCardImages().length).toBe(0);
     expect(queryActions().length).toBe(0);
@@ -963,5 +972,20 @@ describe('AttachmentListComponent', () => {
 
     expect(videoElements[0].src).toContain(attachments[0].asset_url);
     expect(videoElements[0].poster).toContain(attachments[0].thumb_url);
+  });
+
+  it(`should display fallback image if image can't be displayed inline`, () => {
+    const attachment = { type: 'image', img_url: 'http://url1' };
+    component.attachments = [attachment];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    component.imageErrors = [attachment];
+    component['attachmentConfigurations'] = new Map();
+    component['attachmentConfigurations'].set(attachment, {
+      url: 'http://url1',
+    } as ImageAttachmentConfiguration);
+    fixture.detectChanges();
+
+    expect(queryImages().length).toBe(0);
+    expect(queryFallbackImages().length).toBe(1);
   });
 });

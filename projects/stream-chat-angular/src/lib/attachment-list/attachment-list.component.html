@@ -26,6 +26,7 @@
         ></ng-container>
         <ng-template #defaultImage let-attachmentContext="attachment">
           <img
+            *ngIf="!imageErrors.includes(attachmentContext)"
             #imgElement
             class="str-chat__message-attachment--img"
             data-testclass="image"
@@ -39,6 +40,7 @@
             [alt]="attachmentContext?.fallback"
             (click)="openImageModal([attachmentContext])"
             (keyup.enter)="openImageModal([attachmentContext])"
+            (error)="imageErrors.push(attachmentContext)"
             [style.--original-height]="
               getImageAttachmentConfiguration(
                 attachmentContext,
@@ -66,6 +68,12 @@
               ).width
             }"
           />
+          <ng-container
+            *ngTemplateOutlet="
+              fallbackImage;
+              context: { attachment: attachmentContext }
+            "
+          ></ng-container>
         </ng-template>
       </ng-container>
       <ng-container *ngIf="isGallery(attachment)">
@@ -106,6 +114,7 @@
                 "
               >
                 <img
+                  *ngIf="!imageErrors.includes(galleryImage)"
                   #imgElement
                   [src]="
                     getImageAttachmentConfiguration(
@@ -114,6 +123,7 @@
                       imgElement
                     ).url
                   "
+                  (error)="imageErrors.push(galleryImage)"
                   [alt]="galleryImage.fallback"
                   [style.--original-height]="
                     getImageAttachmentConfiguration(
@@ -142,6 +152,12 @@
                     ).width
                   }"
                 />
+                <ng-container
+                  *ngTemplateOutlet="
+                    fallbackImage;
+                    context: { attachment: galleryImage }
+                  "
+                ></ng-container>
               </button>
               <button
                 #element
@@ -286,19 +302,10 @@
                 >
                   {{ attachmentContext.title }}
                 </div>
-                <!-- Temporary disabled, will be fixed with this: https://github.com/GetStream/stream-chat-angular/issues/393  -->
-                <!-- <a
-              class="str-chat__message-attachment-file--item-download"
-              data-testclass="file-link"
-              download
-              href="{{ attachment.asset_url }}"
-              target="_blank"
-            >
-              <stream-icon-placeholder
-                class="str-chat__message-attachment-download-icon"
-                icon="download"
-              ></stream-icon-placeholder>
-            </a> -->
+                <stream-icon-placeholder
+                  class="str-chat__message-attachment-download-icon"
+                  icon="download"
+                ></stream-icon-placeholder>
               </div>
               <span
                 class="str-chat__message-attachment-file--item-size"
@@ -513,4 +520,48 @@
       <stream-icon-placeholder icon="arrow-right"></stream-icon-placeholder>
     </button>
   </div>
+</ng-template>
+
+<ng-template #fallbackImage let-attachment="attachment">
+  <div
+    *ngIf="imageErrors.includes(attachment)"
+    class="str-chat__image-fallback"
+    data-testclass="str-chat__image-fallback"
+    title="{{ attachment.fallback }}"
+  >
+    <svg
+      class="str-chat__image-fallback__icon"
+      fill="none"
+      viewBox="0 0 18 18"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 2V16H2V2H16ZM16 0H2C0.9 0 0 0.9 0 2V16C0 17.1 0.9 18 2 18H16C17.1 18 18 17.1 18 16V2C18 0.9 17.1 0 16 0ZM11.14 8.86L8.14 12.73L6 10.14L3 14H15L11.14 8.86Z"
+        fill="#080707"
+      />
+    </svg>
+    <div (click)="$event.stopPropagation()">
+      <ng-container
+        *ngTemplateOutlet="
+          downloadIcon;
+          context: { url: getImageAttachmentConfiguration(attachment).url }
+        "
+      ></ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #downloadIcon let-url="url">
+  <a
+    class="str-chat__message-attachment-file--item-download"
+    data-testclass="file-link"
+    download
+    href="{{ url }}"
+    target="_blank"
+  >
+    <stream-icon-placeholder
+      class="str-chat__message-attachment-download-icon"
+      icon="download"
+    ></stream-icon-placeholder>
+  </a>
 </ng-template>
