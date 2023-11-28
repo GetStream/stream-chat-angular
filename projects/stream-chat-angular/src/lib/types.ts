@@ -79,11 +79,18 @@ export type StreamMessage<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = FormatMessageResponse<T>;
 
+export type AttachmentUploadErrorReason =
+  | 'file-size'
+  | 'file-extension'
+  | 'unknown';
+
 export type AttachmentUpload<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = {
   file: File;
   state: 'error' | 'success' | 'uploading';
+  errorReason?: AttachmentUploadErrorReason;
+  errorExtraInfo?: { param: string }[];
   url?: string;
   type: 'image' | 'file' | 'video';
   previewUri?: string | ArrayBuffer;

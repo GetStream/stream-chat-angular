@@ -30,6 +30,7 @@ import { NotificationService } from './notification.service';
 import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
+  AttachmentUploadErrorReason,
   ChannelQueryState,
   DefaultStreamChatGenerics,
   MessageInput,
@@ -867,7 +868,33 @@ export class ChannelService<
           thumb_url: (uploadResult.value as any).thumb_url,
         });
       } else {
-        result.push({ file, type, state: 'error' });
+        let reason: AttachmentUploadErrorReason = 'unknown';
+        let extraData: { param: string } | undefined;
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+        const message: string | undefined =
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+          uploadResult.reason.response?.data?.message;
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+        const code: number | undefined =
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+          uploadResult.reason.response?.data?.code;
+        if (code === 22) {
+          reason = 'file-size';
+          extraData = { param: /\d+MB/.exec(message || '')?.[0] || '100MB' };
+        } else if (
+          code === 4 &&
+          message?.toLowerCase()?.includes('file extension')
+        ) {
+          reason = 'file-extension';
+          extraData = { param: /\.\w+/.exec(message)?.[0] || '' };
+        }
+        result.push({
+          file,
+          type,
+          state: 'error',
+          errorReason: reason,
+          errorExtraInfo: extraData ? [extraData] : undefined,
+        });
       }
     });
 

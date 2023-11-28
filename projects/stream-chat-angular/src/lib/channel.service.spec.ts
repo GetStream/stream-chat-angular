@@ -1551,7 +1551,15 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendImage').and.callFake((file: File) => {
       switch (file.name) {
         case 'file_error.jpg':
-          return Promise.reject(new Error());
+          return Promise.reject({
+            response: {
+              data: {
+                code: 4,
+                message:
+                  'UploadImage failed with error: "File extension .jpg is not supported"',
+              },
+            },
+          });
         default:
           return Promise.resolve({
             file: 'http://url/to/image',
@@ -1563,7 +1571,15 @@ describe('ChannelService', () => {
       (file: File, _: string, type: string) => {
         switch (file.name) {
           case 'file_error.pdf':
-            return Promise.reject(new Error());
+            return Promise.reject({
+              response: {
+                data: {
+                  code: 22,
+                  message:
+                    'UploadFile failed with error: "max upload size of 50MB exceeded"',
+                },
+              },
+            });
           default:
             return Promise.resolve({
               file: 'http://url/to/file',
@@ -1597,7 +1613,13 @@ describe('ChannelService', () => {
         type: 'image',
         thumb_url: undefined,
       },
-      { file: file2, state: 'error', type: 'image' },
+      {
+        file: file2,
+        state: 'error',
+        type: 'image',
+        errorReason: 'file-extension',
+        errorExtraInfo: [{ param: '.jpg' }],
+      },
       {
         file: file3,
         state: 'success',
@@ -1605,7 +1627,13 @@ describe('ChannelService', () => {
         type: 'file',
         thumb_url: undefined,
       },
-      { file: file4, state: 'error', type: 'file' },
+      {
+        file: file4,
+        state: 'error',
+        type: 'file',
+        errorReason: 'file-size',
+        errorExtraInfo: [{ param: '50MB' }],
+      },
       {
         file: file5,
         state: 'success',
@@ -1907,7 +1935,13 @@ describe('ChannelService', () => {
         type: 'image',
         thumb_url: undefined,
       },
-      { file: file2, state: 'error', type: 'image' },
+      {
+        file: file2,
+        state: 'error',
+        type: 'image',
+        errorReason: 'unknown',
+        errorExtraInfo: undefined,
+      },
       {
         file: file3,
         state: 'success',
@@ -1915,7 +1949,13 @@ describe('ChannelService', () => {
         type: 'file',
         thumb_url: undefined,
       },
-      { file: file4, state: 'error', type: 'file' },
+      {
+        file: file4,
+        state: 'error',
+        type: 'file',
+        errorReason: 'unknown',
+        errorExtraInfo: undefined,
+      },
     ];
 
     expect(channel.sendImage).not.toHaveBeenCalled();
