@@ -547,10 +547,10 @@ export class MessageInputComponent
         hasNotAllowedMimeType
       ) {
         this.notificationService.addTemporaryNotification(
-          'streamChat.Unsupported file type: {{type}}',
+          'streamChat.Error uploading file, extension not supported',
           undefined,
           undefined,
-          { type: f.type }
+          { name: f.name, ext: f.type }
         );
         isValid = false;
       }
