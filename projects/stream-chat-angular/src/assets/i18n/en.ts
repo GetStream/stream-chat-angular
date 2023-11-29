@@ -27,7 +27,7 @@ export const en = {
     'Error uploading file, maximum file size exceeded':
       'Error uploading "{{ name }}", maximum file size {{ limit }} exceeded',
     'Error uploading file, extension not supported':
-      'Error uploading "{{ name }}", extension {{ ext }} not supported',
+      'Error uploading "{{ name }}", type {{ ext }} not supported',
     'Error deleting attachment': 'Error deleting attachment',
     'Error · Unsent': "Message couldn't be sent",
     'Error: {{ errorMessage }}': 'Error: {{ errorMessage }}',
@@ -98,7 +98,6 @@ export const en = {
       "You can't send messages in this channel",
     "You can't send thread replies in this channel":
       "You can't send thread replies in this channel",
-    'Unsupported file type: {{type}}': 'Unsupported file type: {{type}}',
     'Message not found': 'Message not found',
     'No chats here yet…': 'No chats here yet…',
     'user is typing': '{{ user }} is typing',
