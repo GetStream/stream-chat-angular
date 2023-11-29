@@ -145,19 +145,37 @@ describe('AttachmentService', () => {
     const image = { name: 'my_image.png', type: 'image/png' } as File;
     const file = { name: 'user_guide.pdf', type: 'application/pdf' } as File;
     uploadAttachmentsSpy.and.resolveTo([
-      { file: image, state: 'error', type: 'image' },
-      { file, state: 'error', type: 'file' },
+      {
+        file: image,
+        state: 'error',
+        type: 'image',
+        errorReason: 'file-extension',
+        errorExtraInfo: [{ param: '.jpg' }],
+      },
+      {
+        file,
+        state: 'error',
+        type: 'file',
+        errorReason: 'file-size',
+        errorExtraInfo: [{ param: '50MB' }],
+      },
     ]);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
     await service.filesSelected([image, file] as any as FileList);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error uploading image'
+      'streamChat.Error uploading file, extension not supported',
+      'error',
+      undefined,
+      { name: image.name, ext: '.jpg' }
     );
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error uploading file'
+      'streamChat.Error uploading file, maximum file size exceeded',
+      'error',
+      undefined,
+      { name: file.name, limit: '50MB' }
     );
   });
 
@@ -181,6 +199,8 @@ describe('AttachmentService', () => {
         url: 'image/url',
         type: 'image',
         thumb_url: undefined,
+        errorReason: undefined,
+        errorExtraInfo: undefined,
       },
     ]);
   });

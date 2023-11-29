@@ -23,8 +23,11 @@ export const en = {
     'Error pinning message': 'Error pinning message',
     'Error removing message pin': 'Error removing message pin',
     'Error unmuting a user ...': 'Error unmuting a user ...',
-    'Error uploading file': 'Error uploading file',
-    'Error uploading image': 'Error uploading image',
+    'Error uploading file': 'Error uploading file "{{ name }}"',
+    'Error uploading file, maximum file size exceeded':
+      'Error uploading "{{ name }}", maximum file size {{ limit }} exceeded',
+    'Error uploading file, extension not supported':
+      'Error uploading "{{ name }}", extension {{ ext }} not supported',
     'Error deleting attachment': 'Error deleting attachment',
     'Error · Unsent': "Message couldn't be sent",
     'Error: {{ errorMessage }}': 'Error: {{ errorMessage }}',

@@ -258,10 +258,30 @@ export class AttachmentService<
       upload.url = r.url;
       upload.thumb_url = r.thumb_url;
       if (upload.state === 'error') {
+        upload.errorReason = r.errorReason;
+        upload.errorExtraInfo = r.errorExtraInfo;
+        let errorKey;
+        const translateParams: { name: string; ext?: string; limit?: string } =
+          { name: upload.file.name };
+        switch (upload.errorReason) {
+          case 'file-extension':
+            errorKey =
+              'streamChat.Error uploading file, extension not supported';
+            translateParams.ext = upload.errorExtraInfo?.[0]?.param;
+            break;
+          case 'file-size':
+            errorKey =
+              'streamChat.Error uploading file, maximum file size exceeded';
+            translateParams.limit = upload.errorExtraInfo?.[0]?.param;
+            break;
+          default:
+            errorKey = 'streamChat.Error uploading file';
+        }
         this.notificationService.addTemporaryNotification(
-          upload.type === 'image'
-            ? 'streamChat.Error uploading image'
-            : 'streamChat.Error uploading file'
+          errorKey,
+          'error',
+          undefined,
+          translateParams
         );
       }
     });
