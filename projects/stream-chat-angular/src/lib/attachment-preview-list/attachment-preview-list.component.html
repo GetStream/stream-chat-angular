@@ -167,7 +167,10 @@
           "
         ></ng-container>
         <img
-          *ngIf="attachmentUpload.url || attachmentUpload.previewUri"
+          *ngIf="
+            (attachmentUpload.url || attachmentUpload.previewUri) &&
+            !imagePreviewErrors.includes(attachmentUpload)
+          "
           src="{{
             attachmentUpload.url
               ? attachmentUpload.url
@@ -176,7 +179,20 @@
           alt="{{ attachmentUpload.file.name }}"
           class="str-chat__attachment-preview-thumbnail"
           data-testclass="attachment-image"
+          (error)="imagePreviewErrors.push(attachmentUpload)"
         />
+        <div
+          *ngIf="imagePreviewErrors.includes(attachmentUpload)"
+          class="str-chat__image-fallback"
+          data-testclass="str-chat__image-fallback"
+          title="{{ attachmentUpload.file.name }}"
+        >
+          <div class="str-chat__image-fallback__icon">
+            <stream-icon-placeholder
+              icon="image-fallback"
+            ></stream-icon-placeholder>
+          </div>
+        </div>
       </div>
       <div
         class="str-chat__attachment-preview-file"

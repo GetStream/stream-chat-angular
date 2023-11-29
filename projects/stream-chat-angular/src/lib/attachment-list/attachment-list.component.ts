@@ -57,6 +57,7 @@ export class AttachmentListComponent implements OnChanges {
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
   themeVersion: '1' | '2';
+  imageErrors: Attachment[] = [];
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
@@ -92,6 +93,7 @@ export class AttachmentListComponent implements OnChanges {
           ...this.attachments.filter((a) => this.isCard(a))
         );
       }
+      this.imageErrors = [];
     }
   }
 
@@ -202,12 +204,17 @@ export class AttachmentListComponent implements OnChanges {
 
   getImageAttachmentConfiguration(
     attachment: Attachment,
-    type: 'gallery' | 'single',
-    element: HTMLElement
+    type?: 'gallery' | 'single',
+    element?: HTMLElement
   ): ImageAttachmentConfiguration {
     const existingConfiguration = this.attachmentConfigurations.get(attachment);
     if (existingConfiguration) {
       return existingConfiguration as ImageAttachmentConfiguration;
+    }
+    if (!type || !element) {
+      throw new Error(
+        'Provide HTTML element and type to get image attachment configuration'
+      );
     }
     const configuration =
       this.attachmentConfigurationService.getImageAttachmentConfiguration(
