@@ -700,6 +700,7 @@ export class ChannelService<
       this.channelSubscriptions[cid]();
     });
     this.channelSubscriptions = {};
+    this.nextPageConfiguration = undefined;
   }
 
   /**
