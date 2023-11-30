@@ -328,4 +328,21 @@ describe('ChannelPreviewComponent', () => {
 
     expect(queryLatestMessage()?.textContent).toContain('Hogy vagy?');
   });
+
+  it('should respect #displayAs setting', () => {
+    const channel = generateMockChannels()[0];
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(nativeElement.querySelector('[data-testid="html-content"]')).toBe(
+      null
+    );
+
+    component.displayAs = 'html';
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="html-content"]')
+    ).not.toBe(null);
+  });
 });

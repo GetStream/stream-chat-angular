@@ -37,7 +37,15 @@
       data-testid="latest-message"
       class="str-chat__channel-preview-messenger--last-message"
     >
-      {{ latestMessage | translate }}
+      <ng-container *ngIf="displayAs === 'text'; else asHTML">
+        {{ latestMessage | translate }}
+      </ng-container>
+      <ng-template #asHTML>
+        <span
+          data-testid="html-content"
+          [innerHTML]="latestMessage | translate"
+        ></span>
+      </ng-template>
     </div>
   </div>
 </button>

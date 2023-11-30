@@ -14,6 +14,7 @@ import {
   CustomTemplatesService,
   ThemeService,
   AvatarContext,
+  MessageService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -37,8 +38,10 @@ export class AppComponent implements AfterViewInit {
     private channelService: ChannelService,
     private streamI18nService: StreamI18nService,
     private customTemplateService: CustomTemplatesService,
-    themeService: ThemeService
+    themeService: ThemeService,
+    messageService: MessageService
   ) {
+    messageService.displayAs = 'html';
     void this.chatService.init(
       environment.apiKey,
       environment.userId,
