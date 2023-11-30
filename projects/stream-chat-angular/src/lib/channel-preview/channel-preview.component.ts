@@ -11,6 +11,7 @@ import { getChannelDisplayText } from '../get-channel-display-text';
 import { DefaultStreamChatGenerics } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getMessageTranslation } from '../get-message-translation';
+import { MessageService } from '../message.service';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -29,14 +30,18 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   isUnread = false;
   unreadCount: number | undefined;
   latestMessage: string = 'streamChat.Nothing yet...';
+  displayAs: 'text' | 'html';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
 
   constructor(
     private channelService: ChannelService,
     private ngZone: NgZone,
-    private chatClientService: ChatClientService
-  ) {}
+    private chatClientService: ChatClientService,
+    messageService: MessageService
+  ) {
+    this.displayAs = messageService.displayAs;
+  }
 
   ngOnInit(): void {
     this.subscriptions.push(

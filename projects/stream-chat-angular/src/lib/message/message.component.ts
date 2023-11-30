@@ -35,6 +35,7 @@ import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
 import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 import { DateParserService } from '../date-parser.service';
+import { MessageService } from '../message.service';
 
 type MessagePart = {
   content: string;
@@ -96,6 +97,7 @@ export class MessageComponent
   shouldDisplayThreadLink = false;
   isSentByCurrentUser = false;
   readByText = '';
+  displayAs: 'text' | 'html';
   lastReadUser: UserResponse<DefaultStreamChatGenerics> | undefined = undefined;
   isOnlyReadByMe = false;
   isReadByMultipleUsers = false;
@@ -126,9 +128,11 @@ export class MessageComponent
     private cdRef: ChangeDetectorRef,
     themeService: ThemeService,
     private dateParser: DateParserService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private messageService: MessageService
   ) {
     this.themeVersion = themeService.themeVersion;
+    this.displayAs = this.messageService.displayAs;
   }
 
   ngOnInit(): void {

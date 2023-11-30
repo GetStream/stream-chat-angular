@@ -261,7 +261,15 @@
                     </ng-container>
                   </ng-container>
                   <ng-template #defaultContent>
-                    {{ messageText || "" }}
+                    <ng-container *ngIf="displayAs === 'text'; else asHTML">
+                      {{ messageText || "" }}
+                    </ng-container>
+                    <ng-template #asHTML
+                      ><span
+                        data-testid="html-content"
+                        [innerHTML]="messageText"
+                      ></span
+                    ></ng-template>
                   </ng-template>
                 </p>
               </div>

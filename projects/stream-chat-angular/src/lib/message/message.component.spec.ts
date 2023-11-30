@@ -13,7 +13,7 @@ import { ChatClientService } from '../chat-client.service';
 import { IconComponent } from '../icon/icon.component';
 import { MessageActionsBoxComponent } from '../message-actions-box/message-actions-box.component';
 import { By } from '@angular/platform-browser';
-import { mockCurrentUser, mockMessage } from '../mocks';
+import { generateMockMessages, mockCurrentUser, mockMessage } from '../mocks';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -1237,6 +1237,22 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(queryTranslationNotice()).toBeNull();
+    });
+
+    it('should respect #displayAs setting', () => {
+      component.message = generateMockMessages()[0];
+      fixture.detectChanges();
+
+      expect(nativeElement.querySelector('[data-testid="html-content"]')).toBe(
+        null
+      );
+
+      component.displayAs = 'html';
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('[data-testid="html-content"]')
+      ).not.toBe(null);
     });
   });
 });
