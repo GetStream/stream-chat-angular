@@ -1,6 +1,7 @@
 import {
   ComponentRef,
   EventEmitter,
+  OnChanges,
   SimpleChange,
   ViewContainerRef,
 } from '@angular/core';
@@ -9,7 +10,7 @@ import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
 
 describe('TextareaDirective', () => {
-  let mockComponent: TextareaInterface;
+  let mockComponent: TextareaInterface & OnChanges;
   let directive: TextareaDirective;
 
   describe('with textarea component', () => {
@@ -25,7 +26,7 @@ describe('TextareaDirective', () => {
       };
       directive.componentRef = {
         instance: mockComponent,
-      } as ComponentRef<TextareaInterface>;
+      } as ComponentRef<TextareaInterface & OnChanges>;
     });
 
     it('should pass on #value', () => {
@@ -68,7 +69,7 @@ describe('TextareaDirective', () => {
       };
       directive.componentRef = {
         instance: mockComponent,
-      } as ComponentRef<TextareaInterface>;
+      } as ComponentRef<TextareaInterface & OnChanges>;
     });
 
     it('should emit when component emits #userMentions', () => {

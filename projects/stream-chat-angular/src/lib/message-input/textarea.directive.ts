@@ -16,7 +16,9 @@ import { TextareaInterface } from './textarea.interface';
   selector: '[streamTextarea]',
 })
 export class TextareaDirective implements OnChanges {
-  @Input() componentRef: ComponentRef<TextareaInterface> | undefined;
+  @Input() componentRef:
+    | ComponentRef<TextareaInterface & Partial<OnChanges>>
+    | undefined;
   @Input() areMentionsEnabled: boolean | undefined;
   @Input() mentionScope?: 'channel' | 'application';
   @Input() inputMode!: 'mobile' | 'desktop';
@@ -87,7 +89,7 @@ export class TextareaDirective implements OnChanges {
       (c) => (changesToPropagate = { ...changesToPropagate, ...c })
     );
     // eslint-disable-next-line @angular-eslint/no-lifecycle-call
-    this.componentRef.instance.ngOnChanges(changesToPropagate);
+    this.componentRef.instance.ngOnChanges?.(changesToPropagate);
     this.unpropagatedChanges = [];
   }
 }
