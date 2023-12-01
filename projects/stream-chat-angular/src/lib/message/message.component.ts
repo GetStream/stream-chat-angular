@@ -442,6 +442,9 @@ export class MessageComponent
   }
 
   private wrapLinskWithAnchorTag(content: string) {
+    if (this.displayAs === 'html') {
+      return content;
+    }
     content = content.replace(
       this.urlRegexp,
       (match) => `<a href="${match}" rel="nofollow">${match}</a>`

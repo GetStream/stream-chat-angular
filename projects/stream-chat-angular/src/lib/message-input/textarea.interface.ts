@@ -1,7 +1,7 @@
-import { EventEmitter, OnChanges } from '@angular/core';
+import { EventEmitter } from '@angular/core';
 import { UserResponse } from 'stream-chat';
 
-export interface TextareaInterface extends OnChanges {
+export interface TextareaInterface {
   value: string;
   valueChange: EventEmitter<string>;
   send: EventEmitter<void>;
@@ -9,6 +9,6 @@ export interface TextareaInterface extends OnChanges {
   areMentionsEnabled?: boolean;
   mentionScope?: 'channel' | 'application';
   placeholder?: string;
-  inputMode: 'mobile' | 'desktop';
-  autoFocus: boolean;
+  inputMode?: 'mobile' | 'desktop';
+  autoFocus?: boolean;
 }

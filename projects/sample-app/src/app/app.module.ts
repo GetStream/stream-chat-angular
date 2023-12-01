@@ -5,8 +5,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AppComponent } from './app.component';
 import { CustomMessageComponent } from './custom-message/custom-message.component';
 import {
-  StreamChatModule,
   StreamAutocompleteTextareaModule,
+  StreamChatModule,
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
@@ -16,11 +16,10 @@ import { PickerModule } from '@ctrl/ngx-emoji-mart';
   imports: [
     BrowserModule,
     TranslateModule.forRoot(),
-    StreamAutocompleteTextareaModule,
     StreamChatModule,
     PickerModule,
+    StreamAutocompleteTextareaModule,
   ],
-  providers: [],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -104,7 +104,7 @@ export class MessageInputComponent
   attachmentUploads$: Observable<AttachmentUpload[]>;
   attachmentUploadInProgressCounter$: Observable<number>;
   textareaValue = '';
-  textareaRef: ComponentRef<TextareaInterface> | undefined;
+  textareaRef: ComponentRef<TextareaInterface & Partial<OnChanges>> | undefined;
   mentionedUsers: UserResponse[] = [];
   quotedMessage: undefined | StreamMessage;
   typingStart$ = new Subject<void>();
