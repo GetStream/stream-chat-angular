@@ -51,6 +51,12 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
+Run the following command if you are using **Angular 17**
+
+```shell
+npm install stream-chat-angular stream-chat @ngx-translate/core
+```
+
 Run the following command if you are using **Angular 16**:
 
 ```shell
@@ -60,7 +66,7 @@ npm install stream-chat-angular stream-chat @ngx-translate/core
 Run the following command if you are using **Angular 15**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14
+npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@15
 ```
 
 Run the following command if you are using **Angular 14**:
@@ -72,13 +78,13 @@ npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@
 Run the following command if you are using **Angular 13**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@13 angular-mentions@1.4.0 ngx-popperjs@13 --legacy-peer-deps
+npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@13 --legacy-peer-deps
 ```
 
 Run this command if you are using **Angular 12**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@13 angular-mentions@1.4.0 ngx-popperjs@12 --legacy-peer-deps
+npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@12 --legacy-peer-deps
 ```
 
 ## Sample App

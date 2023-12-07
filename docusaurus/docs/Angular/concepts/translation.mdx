@@ -24,9 +24,44 @@ imports: [TranslateModule.forRoot(), StreamChatModule];
 export class AppModule {}
 ```
 
+Or if you're using standalone components:
+
+```typescript
+import { ApplicationConfig, importProvidersFrom } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+
+export const appConfig: ApplicationConfig = {
+  providers: [importProvidersFrom(TranslateModule.forRoot())],
+};
+```
+
 :::important
 You should import the `TranslateModule.forRoot()` in a non-lazy loaded module (for example `AppModule`) even if the chat application is displayed from a lazy loaded module. If the translation isn't initialized properly the UI labels will be displayed as `"streamChat..."`.
 :::
+
+If you're using standalone components, make sure to also import the `TranslateModule` to the component that displays the chat UI:
+
+```typescript
+import { Component } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+import {
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+} from "stream-chat-angular";
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [
+    TranslateModule,
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent {}
+```
 
 ### Set up the translations
 
@@ -48,14 +83,7 @@ It's important to call the `setTranslation` in the constructor of the component 
 
 ### Module import
 
-If you are already using ngx-translate in your project, we suppose you already have it installed and the `TranslateModule` is configured and imported. You just have to import the `StreamChatModule`:
-
-```typescript
-import { StreamChatModule } from "stream-chat-angular";
-
-imports: [StreamChatModule];
-export class AppModule {}
-```
+If you are already using ngx-translate in your project, you already have the `TranslateModule` imported and configured in your project, so you **don't** need to import `TranslateModule.forRoot()`. However you still need to import `TranslateModule` (**without** the `forRoot`) to the module/standalone component that displays the chat UI to access the `translate` pipe.
 
 ### Register the translations
 

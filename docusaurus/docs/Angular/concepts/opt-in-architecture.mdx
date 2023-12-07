@@ -34,6 +34,30 @@ import {
 export class AppModule {}
 ```
 
+Or if you're using standalone components:
+
+```typescript showLineNumbers={true} highlightedLines=8
+import { Component } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+import {
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+} from "stream-chat-angular";
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [
+    TranslateModule,
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent {}
+```
+
 The chosen module decides what kind of `textarea` should be used in the message composer, you can choose between the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx) with mentions or the [`TextareaComponent`](../components/TextareaComponent.mdx) that doesn't support mentions, but has a smaller bundle size. Your final application bundle will only include either the `TextareaComponent` or the `AutocompleteTextareaComponent`.
 
 ## Opt-in features
