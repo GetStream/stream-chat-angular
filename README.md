@@ -119,7 +119,7 @@ STREAM_USER_TOKEN=<Your user token>
 
 Run `npm install` to install dependencies.
 
-Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
+Run `npm run start:customizations-example` and navigate to `http://localhost:4200/`.
 
 Preferred Node version: v16.
 
