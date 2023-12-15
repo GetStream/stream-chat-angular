@@ -1375,7 +1375,12 @@ export class ChannelService<
           if (!latestMessage || !e.user) {
             return;
           }
-          latestMessage.readBy = getReadBy(latestMessage, channel);
+          if (latestMessage.readBy) {
+            latestMessage.readBy.splice(0, latestMessage.readBy.length);
+          } else {
+            latestMessage.readBy = [];
+          }
+          latestMessage.readBy.push(...getReadBy(latestMessage, channel));
           messages[messages.length - 1] = { ...latestMessage };
 
           this.activeChannelMessagesSubject.next([...messages]);
