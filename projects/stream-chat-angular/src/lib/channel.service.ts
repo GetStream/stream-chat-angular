@@ -927,7 +927,7 @@ export class ChannelService<
     if (!activeChannel) {
       return [];
     }
-    if (Object.keys(activeChannel.state.members).length <= 100) {
+    if (Object.keys(activeChannel.state.members).length < 100) {
       return Object.values(activeChannel.state.members).filter(
         (m) => m.user?.id !== this.chatClientService.chatClient.userID!
       );
