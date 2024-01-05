@@ -102,6 +102,7 @@ export class ChatClientService<
     clientOptions?: StreamChatOptions
   ): ConnectAPIResponse<T> {
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
+    this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
     await this.ngZone.runOutsideAngular(async () => {

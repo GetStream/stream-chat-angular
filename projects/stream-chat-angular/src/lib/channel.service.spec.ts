@@ -2128,23 +2128,22 @@ describe('ChannelService', () => {
     );
   });
 
-  it('should deselect active channel if active channel is not present after state reconnect', fakeAsync(async () => {
+  it('should relaod active channel if active channel is not present after state reconnect', fakeAsync(async () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     let channels!: Channel<DefaultStreamChatGenerics>[];
     service.channels$.subscribe((c) => (channels = c!));
     channels = channels.filter((c) => c.id !== activeChannel.id);
-    const spy = jasmine.createSpy();
-    service.activeChannel$.subscribe(spy);
-    spy.calls.reset();
+    spyOn(activeChannel, 'watch');
     mockChatClient.queryChannels.and.resolveTo(channels);
-    spyOn(service, 'deselectActiveChannel').and.callThrough();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     tick();
+    const spy = jasmine.createSpy();
+    service.activeChannel$.subscribe(spy);
 
-    expect(spy).toHaveBeenCalledWith(undefined);
-    expect(service.deselectActiveChannel).toHaveBeenCalledWith();
+    expect(spy).toHaveBeenCalledWith(activeChannel);
+    expect(activeChannel.watch).toHaveBeenCalledWith();
   }));
 
   it(`shouldn't deselect active channel if active channel is present after state reconnect`, fakeAsync(async () => {

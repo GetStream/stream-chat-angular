@@ -1562,8 +1562,25 @@ export class ChannelService<
             (existingChannel) => existingChannel.cid === channel.cid
           )
       );
-      this.channelsSubject.next([...prevChannels, ...filteredChannels]);
       let currentActiveChannel = this.activeChannelSubject.getValue();
+      let isCurrentActiveChannelDeselected = false;
+      const nextChannels = [...prevChannels, ...filteredChannels];
+      if (
+        recoverState &&
+        currentActiveChannel &&
+        !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
+      ) {
+        try {
+          await currentActiveChannel.watch();
+          nextChannels.unshift(currentActiveChannel);
+        } catch (e) {
+          isCurrentActiveChannelDeselected = true;
+        }
+      }
+      this.channelsSubject.next(nextChannels);
+      if (isCurrentActiveChannelDeselected) {
+        this.deselectActiveChannel();
+      }
       if (
         filteredChannels.length > 0 &&
         !currentActiveChannel &&
@@ -1571,12 +1588,6 @@ export class ChannelService<
       ) {
         this.setAsActiveChannel(filteredChannels[0]);
         currentActiveChannel = this.activeChannelSubject.getValue();
-      }
-      if (
-        recoverState &&
-        !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
-      ) {
-        this.deselectActiveChannel();
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
       this.channelQueryStateSubject.next({ state: 'success' });
