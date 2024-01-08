@@ -23,7 +23,7 @@ import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../../channel.service';
 import { TextareaInterface } from '../textarea.interface';
 import { ChatClientService } from '../../chat-client.service';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
@@ -128,13 +128,11 @@ export class AutocompleteTextareaComponent
     private customTemplatesService: CustomTemplatesService,
     private themeService: ThemeService
   ) {
-    this.searchTerm$
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((searchTerm) => {
-        if (searchTerm.startsWith(this.mentionTriggerChar)) {
-          void this.updateMentionOptions(searchTerm);
-        }
-      });
+    this.searchTerm$.pipe(debounceTime(300)).subscribe((searchTerm) => {
+      if (searchTerm.startsWith(this.mentionTriggerChar)) {
+        void this.updateMentionOptions(searchTerm);
+      }
+    });
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         const commands = channel?.getConfig()?.commands || [];
