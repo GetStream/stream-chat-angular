@@ -390,7 +390,7 @@ export class MessageListComponent
 
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
-      this.scrollContainer.nativeElement.scrollHeight;
+      this.scrollContainer.nativeElement.scrollHeight + 0.1;
     this.forceRepaint();
   }
 

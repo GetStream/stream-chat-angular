@@ -14,6 +14,7 @@ import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { MessageReactionType } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
+import { ThemeService } from '../theme.service';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -38,6 +39,7 @@ describe('MessageReactionsComponent', () => {
     addReaction: (id: string, type: MessageReactionType) => {},
     // eslint-disable-next-line no-unused-vars
     removeReaction: (id: string, type: MessageReactionType) => {},
+    getMessageReactions: () => Promise.resolve([] as ReactionResponse[]),
   };
   const reactionsServiceMock = {
     reactions: {},
@@ -61,6 +63,7 @@ describe('MessageReactionsComponent', () => {
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: MessageReactionsService, useValue: reactionsServiceMock },
+        { provide: ThemeService, useValue: { themeVersion: '2' } },
       ],
     }).compileComponents();
   });
@@ -219,29 +222,82 @@ describe('MessageReactionsComponent', () => {
     expect(tooltip?.innerHTML).toContain('Sara, jackid');
   });
 
-  it('should display tooltip - list', () => {
+  it('should display reaction details', fakeAsync(() => {
     component.messageReactionCounts = {
       wow: 3,
       sad: 2,
     };
-    component.latestReactions = [
+    component.messageId = 'id';
+    component.latestReactions = [];
+    fixture.detectChanges();
+
+    const reactions = [
       { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
+      { type: 'wow', user: { id: 'benid', name: 'Ben' } },
       { type: 'wow', user: { id: 'jackid' } },
       { type: 'wow' },
       { type: 'sad', user: { id: 'jim' } },
       { type: 'sad', user: { id: 'ben', name: 'Ben' } },
     ] as ReactionResponse[];
-    component.isSelectorOpen = true;
-    fixture.detectChanges();
+    spyOn(channelServiceMock, 'getMessageReactions').and.resolveTo(reactions);
 
     const wowEmoji = queryEmojis()[0];
-    const wowTooltip = wowEmoji.querySelector('[data-testclass="tooltip"]');
-    const sadEmoji = queryEmojis()[1];
-    const sadTooltip = sadEmoji.querySelector('[data-testclass="tooltip"]');
+    wowEmoji.click();
 
-    expect(wowTooltip?.innerHTML).toContain('Sara, jackid');
-    expect(sadTooltip?.innerHTML).toContain('jim, Ben');
-  });
+    expect(component.selectedReactionType).toBe('wow');
+
+    fixture.detectChanges();
+
+    const container = nativeElement.querySelector(
+      '[data-testid="all-reacting-users"]'
+    );
+
+    expect(container).not.toBeNull();
+
+    tick();
+    fixture.detectChanges();
+
+    let users = nativeElement.querySelectorAll(
+      '[data-testclass="reaction-user-username"]'
+    );
+
+    expect(users.length).toBe(3);
+    expect(users[0].textContent).toBe('Ben');
+    expect(users[1].textContent).toBe('Sara');
+    expect(users[2].textContent).toBe('');
+
+    nativeElement
+      .querySelector<HTMLDivElement>(
+        '[data-testid="reaction-details-selector-sad"]'
+      )
+      ?.click();
+    fixture.detectChanges();
+    users = nativeElement.querySelectorAll(
+      '[data-testclass="reaction-user-username"]'
+    );
+
+    expect(users.length).toBe(2);
+  }));
+
+  it('should handle if message reaction details not loaded', fakeAsync(() => {
+    component.messageReactionCounts = {
+      wow: 3,
+      sad: 2,
+    };
+    component.messageId = 'id';
+    component.latestReactions = [];
+    fixture.detectChanges();
+
+    spyOn(channelServiceMock, 'getMessageReactions').and.rejectWith(
+      new Error('Failed to get reactions')
+    );
+
+    const wowEmoji = queryEmojis()[0];
+    wowEmoji.click();
+    tick();
+
+    expect(component.selectedReactionType).toBe(undefined);
+  }));
 
   it('should add reaction, if user has no reaction with the type', () => {
     spyOn(channelServiceMock, 'addReaction').and.callThrough();
