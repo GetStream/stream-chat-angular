@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { ChangeDetectorRef, SimpleChange } from '@angular/core';
 import {
   ComponentFixture,
   fakeAsync,
@@ -414,10 +414,11 @@ describe('MessageListComponent', () => {
       id: message.id,
       parentId: undefined,
     });
+    // fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(nativeElement.querySelector(`#${message.id}`)).toBeNull();
 
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(nativeElement.querySelector(`#${message.id}`)).not.toBeNull();
   });
@@ -814,20 +815,20 @@ describe('MessageListComponent', () => {
 
       component.mode = 'main';
       component.ngOnChanges({ mode: {} as SimpleChange });
-      fixture.detectChanges();
+      fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
       expect(queryParentMessage()).toBeUndefined();
     });
 
     it('should show reply count in thread', () => {
       component.parentMessage!.reply_count = 1;
-      fixture.detectChanges();
+      fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
       const replyCount = queryParentMessageReplyCount();
 
       expect(replyCount?.innerHTML).toContain('1 reply');
 
       component.parentMessage!.reply_count = 3;
-      fixture.detectChanges();
+      fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
       expect(replyCount?.innerHTML).toContain('3 replies');
     });
@@ -942,33 +943,33 @@ describe('MessageListComponent', () => {
 
   it('should display loading indicator', () => {
     component.isLoading = false;
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(queryLoadingIndicator('top')).toBeNull();
     expect(queryLoadingIndicator('bottom')).toBeNull();
 
     component.direction = 'top-to-bottom';
     component.isLoading = true;
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(queryLoadingIndicator('top')).toBeNull();
     expect(queryLoadingIndicator('bottom')).not.toBeNull();
 
     component.direction = 'bottom-to-top';
     component.isLoading = true;
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(queryLoadingIndicator('top')).not.toBeNull();
     expect(queryLoadingIndicator('bottom')).toBeNull();
   });
 
-  it('should add/rome CSS class based on #messageOptionsTrigger input', () => {
+  it('should add/remove CSS class based on #messageOptionsTrigger input', () => {
     expect(
       nativeElement.querySelector('.str-chat__message-options-in-bubble')
     ).toBeNull();
 
     component.messageOptionsTrigger = 'message-bubble';
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(
       nativeElement.querySelector('.str-chat__message-options-in-bubble')
@@ -1043,7 +1044,7 @@ describe('MessageListComponent', () => {
     expect(queryDateSeparators().length).toBe(2);
 
     component.displayDateSeparator = false;
-    fixture.detectChanges();
+    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
     expect(queryDateSeparators().length).toBe(0);
   });

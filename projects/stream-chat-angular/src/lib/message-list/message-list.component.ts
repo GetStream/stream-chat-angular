@@ -1,6 +1,7 @@
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -39,6 +40,7 @@ import { DateParserService } from '../date-parser.service';
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy, AfterViewInit
@@ -194,6 +196,7 @@ export class MessageListComponent
             });
           });
         }
+        this.cdRef.detectChanges();
       })
     );
     this.subscriptions.push(
@@ -207,26 +210,37 @@ export class MessageListComponent
           this.resetScrollState();
         }
         this.parentMessage = message;
+        this.cdRef.detectChanges();
       })
     );
     this.subscriptions.push(
-      this.customTemplatesService.messageTemplate$.subscribe(
-        (template) => (this.messageTemplate = template)
-      )
+      this.customTemplatesService.messageTemplate$.subscribe((template) => {
+        this.messageTemplate = template;
+        this.cdRef.detectChanges();
+      })
     );
     this.subscriptions.push(
       this.customTemplatesService.dateSeparatorTemplate$.subscribe(
-        (template) => (this.customDateSeparatorTemplate = template)
+        (template) => {
+          this.customDateSeparatorTemplate = template;
+          this.cdRef.detectChanges();
+        }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.newMessagesIndicatorTemplate$.subscribe(
-        (template) => (this.customnewMessagesIndicatorTemplate = template)
+        (template) => {
+          this.customnewMessagesIndicatorTemplate = template;
+          this.cdRef.detectChanges();
+        }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.typingIndicatorTemplate$.subscribe(
-        (template) => (this.typingIndicatorTemplate = template)
+        (template) => {
+          this.typingIndicatorTemplate = template;
+          this.cdRef.detectChanges();
+        }
       )
     );
     this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
@@ -272,6 +286,7 @@ export class MessageListComponent
           if (messageId) {
             if (messageId === 'latest') {
               this.scrollToLatestMessage();
+              this.cdRef.detectChanges();
             } else {
               this.scrollMessageIntoView(messageId);
               this.highlightedMessageId = messageId;
@@ -422,6 +437,7 @@ export class MessageListComponent
         if (!this.isUserScrolled) {
           this.unreadMessageCount = 0;
         }
+        this.cdRef.detectChanges();
       });
     }
 
@@ -446,6 +462,7 @@ export class MessageListComponent
           );
           this.isLoading = true;
         }
+        this.cdRef.detectChanges();
       });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
