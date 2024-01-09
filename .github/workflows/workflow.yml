@@ -6,7 +6,7 @@ on:
       - beta
       - test
       - theming-v2
-      - support-angular-17
+      - perf-message-list
   pull_request:
     branches:
       - master
