@@ -9,6 +9,7 @@ import {
   ChannelSort,
   Event,
   FormatMessageResponse,
+  ReactionResponse,
   SendMessageAPIResponse,
   UserResponse,
 } from 'stream-chat';
@@ -2270,5 +2271,79 @@ describe('ChannelService', () => {
       .args[0] as Channel<DefaultStreamChatGenerics>;
 
     expect(updatedChannel.state.members['jack'].user!.name).toBe('John');
+  });
+
+  it('should load message reactions', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+    const mockReactions = [
+      { type: 'wow', user: { id: 'jack' } },
+    ] as ReactionResponse[];
+    spyOn(activeChannel, 'getReactions').and.resolveTo({
+      reactions: mockReactions,
+      duration: '',
+    });
+    const reactions = await service.getMessageReactions(message.id);
+
+    expect(activeChannel.getReactions).toHaveBeenCalledWith(
+      message.id,
+      jasmine.anything()
+    );
+
+    expect(reactions).toEqual(mockReactions);
+  });
+
+  it('should load message reactions - multiple pages', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+    const mockReactionsFirstPage = new Array(300)
+      .fill(null)
+      .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
+    const mockReactionsSecondPage = new Array(1)
+      .fill(null)
+      .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
+    let counter = 0;
+    spyOn(activeChannel, 'getReactions').and.callFake(() => {
+      if (counter === 0) {
+        counter++;
+        return Promise.resolve({
+          reactions: mockReactionsFirstPage,
+          duration: '',
+        });
+      } else {
+        return Promise.resolve({
+          reactions: mockReactionsSecondPage,
+          duration: '',
+        });
+      }
+    });
+    const reactions = await service.getMessageReactions(message.id);
+
+    expect(reactions).toEqual([
+      ...mockReactionsFirstPage,
+      ...mockReactionsSecondPage,
+    ]);
+  });
+
+  it('should load message reactions - error', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+    const error = new Error('Reactions loading failed');
+    spyOn(activeChannel, 'getReactions').and.rejectWith(error);
+    const notificationService = TestBed.inject(NotificationService);
+    const notificationSpy = jasmine.createSpy();
+    notificationService.notifications$.subscribe(notificationSpy);
+    notificationSpy.calls.reset();
+
+    await expectAsync(service.getMessageReactions(message.id)).toBeRejectedWith(
+      error
+    );
+
+    expect(notificationSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({ text: 'Error loading reactions' }),
+    ]);
   });
 });

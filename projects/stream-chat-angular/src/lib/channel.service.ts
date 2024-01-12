@@ -19,6 +19,7 @@ import {
   FormatMessageResponse,
   Message,
   MessageResponse,
+  ReactionResponse,
   UpdatedMessage,
   UserFilters,
   UserResponse,
@@ -1429,6 +1430,44 @@ export class ChannelService<
    */
   get activeChannel() {
     return this.activeChannelSubject.getValue() || undefined;
+  }
+
+  /**
+   * The current active channel messages
+   */
+  get activeChannelMessages() {
+    return this.activeChannelMessagesSubject.getValue() || [];
+  }
+
+  /**
+   * Get all reactions of a message in the current active channel
+   * @param messageId
+   * @returns all reactions of a message
+   */
+  async getMessageReactions(messageId: string) {
+    const reactions: ReactionResponse<T>[] = [];
+    const limit = 300;
+    const offset = 0;
+    let lastPageSize = limit;
+
+    while (lastPageSize === limit) {
+      try {
+        const response = await this.activeChannel?.getReactions(messageId, {
+          offset,
+          limit,
+        });
+        lastPageSize = response?.reactions?.length || 0;
+        if (lastPageSize > 0) {
+          reactions.push(...response!.reactions);
+        }
+      } catch (e) {
+        this.notificationService.addTemporaryNotification(
+          'Error loading reactions'
+        );
+        throw e;
+      }
+    }
+    return reactions;
   }
 
   private messageUpdated(event: Event<T>) {
