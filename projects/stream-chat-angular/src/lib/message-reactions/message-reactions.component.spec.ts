@@ -279,6 +279,27 @@ describe('MessageReactionsComponent', () => {
     expect(users.length).toBe(2);
   }));
 
+  it(`should call custom reaction details handler if that's provided`, () => {
+    component.messageReactionCounts = {
+      wow: 3,
+      sad: 2,
+    };
+    component.messageId = 'id';
+    component.latestReactions = [];
+    fixture.detectChanges();
+    const messageReactionsService = TestBed.inject(MessageReactionsService);
+    const spy = jasmine.createSpy();
+    messageReactionsService.customReactionClickHandler = spy;
+
+    const wowEmoji = queryEmojis()[0];
+    wowEmoji.click();
+
+    expect(spy).toHaveBeenCalledWith({ messageId: 'id', reactionType: 'wow' });
+    expect(component.selectedReactionType).toBeUndefined();
+
+    messageReactionsService.customReactionClickHandler = undefined;
+  });
+
   it('should handle if message reaction details not loaded', fakeAsync(() => {
     component.messageReactionCounts = {
       wow: 3,

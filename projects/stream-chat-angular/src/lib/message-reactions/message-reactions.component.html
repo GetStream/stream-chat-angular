@@ -14,8 +14,8 @@
       "
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
       data-testclass="emoji"
-      (click)="reactionSelected($event, reactionType)"
-      (keyup.enter)="reactionSelected($event, reactionType)"
+      (click)="reactionSelected(reactionType)"
+      (keyup.enter)="reactionSelected(reactionType)"
     >
       <span class="emoji str-chat__message-reaction-emoji">
         {{ getEmojiByReaction(reactionType) }}&nbsp;
