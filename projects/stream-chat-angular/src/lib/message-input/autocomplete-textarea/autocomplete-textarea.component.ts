@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -126,7 +127,8 @@ export class AutocompleteTextareaComponent
     private transliterationService: TransliterationService,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private cdRef: ChangeDetectorRef
   ) {
     this.searchTerm$.pipe(debounceTime(300)).subscribe((searchTerm) => {
       if (searchTerm.startsWith(this.mentionTriggerChar)) {
@@ -293,6 +295,7 @@ export class AutocompleteTextareaComponent
       this.slashCommandConfig,
     ];
     this.autocompleteConfig = { ...this.autocompleteConfig };
+    this.cdRef.detectChanges();
   }
 
   private updateMentionedUsersFromText() {
