@@ -116,13 +116,22 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     return this.messageReactionsService.reactions[reactionType];
   }
 
-  reactionSelected(event: Event, reactionType: string) {
-    event.stopPropagation();
+  reactionSelected(reactionType: string) {
     if (this.themeService.themeVersion === '1') {
       return;
     }
-    this.selectedReactionType = reactionType;
-    void this.fetchAllReactions();
+    if (!this.messageId) {
+      return;
+    }
+    if (this.messageReactionsService.customReactionClickHandler) {
+      this.messageReactionsService.customReactionClickHandler({
+        messageId: this.messageId,
+        reactionType: reactionType,
+      });
+    } else {
+      this.selectedReactionType = reactionType;
+      void this.fetchAllReactions();
+    }
   }
 
   getUsersByReaction(reactionType: MessageReactionType) {

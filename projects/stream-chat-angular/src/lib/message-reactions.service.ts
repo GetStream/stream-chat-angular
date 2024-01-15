@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MessageReactionType } from './types';
+import { MessageReactionClickDetails, MessageReactionType } from './types';
 import { BehaviorSubject } from 'rxjs';
 
 /**
@@ -23,6 +23,12 @@ export class MessageReactionsService {
     wow: '😮',
     sad: '😞',
   });
+  /**
+   * By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
+   *
+   * The event handler can retrieve all reactions of a message inside the active channel using the [`channelService.getMessageReactions` method](../../services/ChannelService/#getmessagereactions)
+   */
+  customReactionClickHandler?: (details: MessageReactionClickDetails) => void;
 
   constructor() {}
 
