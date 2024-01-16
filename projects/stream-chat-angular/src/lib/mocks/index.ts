@@ -109,6 +109,7 @@ export const generateMockChannels = (length = 25) => {
           eventHandlers['on'](payload);
         }
       },
+      getReactions: () => {},
       state: {
         messages: generateMockMessages(),
         pinnedMessages: [],

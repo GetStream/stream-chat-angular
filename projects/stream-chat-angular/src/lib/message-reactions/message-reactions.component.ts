@@ -10,11 +10,13 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { ReactionResponse } from 'stream-chat';
+import { ReactionResponse, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
 import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 import { MessageReactionsService } from '../message-reactions.service';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { ThemeService } from '../theme.service';
 
 /**
  * The `MessageReactions` component displays the reactions of a message, the current user can add and remove reactions. You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
@@ -61,14 +63,19 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   currentTooltipTarget: HTMLElement | undefined;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
+  selectedReactionType: string | undefined;
+  isLoading = true;
+  reactions: ReactionResponse[] = [];
 
   constructor(
     private cdRef: ChangeDetectorRef,
     private channelService: ChannelService,
-    private messageReactionsService: MessageReactionsService
+    private messageReactionsService: MessageReactionsService,
+    public customTemplatesService: CustomTemplatesService,
+    private themeService: ThemeService
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes.isSelectorOpen) {
       this.isSelectorOpen
         ? setTimeout(() => this.watchForOutsideClicks()) // setTimeout: wait for current click to bubble up, and only watch for clicks after that
@@ -109,12 +116,68 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     return this.messageReactionsService.reactions[reactionType];
   }
 
+  reactionSelected(reactionType: string) {
+    if (this.themeService.themeVersion === '1') {
+      return;
+    }
+    if (!this.messageId) {
+      return;
+    }
+    if (this.messageReactionsService.customReactionClickHandler) {
+      this.messageReactionsService.customReactionClickHandler({
+        messageId: this.messageId,
+        reactionType: reactionType,
+      });
+    } else {
+      this.selectedReactionType = reactionType;
+      void this.fetchAllReactions();
+    }
+  }
+
   getUsersByReaction(reactionType: MessageReactionType) {
     return this.latestReactions
       .filter((r) => r.type === reactionType)
       .map((r) => r.user?.name || r.user?.id)
       .filter((i) => !!i)
       .join(', ');
+  }
+
+  getAllUsersByReaction(
+    reactionType?: MessageReactionType
+  ): UserResponse<DefaultStreamChatGenerics>[] {
+    if (!reactionType) {
+      return [];
+    }
+
+    const users = this.reactions
+      .filter((r) => r.type === reactionType)
+      .map((r) => r.user)
+      .filter((i) => !!i) as UserResponse[];
+
+    users.sort((u1, u2) => {
+      const name1 = u1.name?.toLowerCase();
+      const name2 = u2.name?.toLowerCase();
+
+      if (!name1) {
+        return 1;
+      }
+
+      if (!name2) {
+        return -1;
+      }
+
+      if (name1 === name2) {
+        return 0;
+      }
+
+      if (name1 < name2) {
+        return -1;
+      } else {
+        return 1;
+      }
+    });
+
+    return users;
   }
 
   showTooltip(event: Event, reactionType: MessageReactionType) {
@@ -132,6 +195,10 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     return item;
   }
 
+  trackByUserId(index: number, item: UserResponse) {
+    return item.id;
+  }
+
   react(type: MessageReactionType) {
     this.ownReactions.find((r) => r.type === type)
       ? void this.channelService.removeReaction(this.messageId!, type)
@@ -141,6 +208,10 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   isOwnReaction(reactionType: MessageReactionType) {
     return !!this.ownReactions.find((r) => r.type === reactionType);
   }
+
+  isOpenChange = (isOpen: boolean) => {
+    this.selectedReactionType = isOpen ? this.selectedReactionType : undefined;
+  };
 
   private eventHandler = (event: Event) => {
     if (!this.selectorContainer?.nativeElement.contains(event.target as Node)) {
@@ -177,5 +248,22 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
       tooltip: tooltipPosition,
       arrow: arrowPosition,
     };
+  }
+
+  private async fetchAllReactions() {
+    if (!this.messageId) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      this.reactions = await this.channelService.getMessageReactions(
+        this.messageId
+      );
+    } catch (error) {
+      this.selectedReactionType = undefined;
+    } finally {
+      this.isLoading = false;
+      this.cdRef.detectChanges();
+    }
   }
 }

@@ -19,6 +19,7 @@ export const en = {
     'Error connecting to chat, refresh the page to try again.':
       'Error connecting to chat, refresh the page to try again',
     'Error deleting message': 'Error deleting message',
+    'Error loading reactions': 'Error loading reactions',
     'Error muting a user ...': 'Error muting a user ...',
     'Error pinning message': 'Error pinning message',
     'Error removing message pin': 'Error removing message pin',
