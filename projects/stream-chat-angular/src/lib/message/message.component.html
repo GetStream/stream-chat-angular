@@ -64,20 +64,14 @@
                 let-isMine="isMine"
                 let-enabledActions="enabledActions"
                 let-messageInput="message"
-                let-displayedActionsCountChangeHandler="displayedActionsCountChangeHandler"
-                let-isEditingChangeHandler="isEditingChangeHandler"
                 let-customActions="customActions"
               >
                 <stream-message-actions-box
                   [isOpen]="isOpen"
                   [isMine]="isMine"
                   [enabledActions]="enabledActions"
-                  [message]="messageInput"
                   [customActions]="customActions"
-                  (displayedActionsCount)="
-                    displayedActionsCountChangeHandler($event)
-                  "
-                  (isEditing)="isEditingChangeHandler($event)"
+                  [message]="messageInput"
                 ></stream-message-actions-box>
               </ng-template>
               <ng-container
@@ -91,10 +85,10 @@
             </popper-content>
             <div
               class="str-chat__message-actions-box-button"
-              *ngIf="visibleMessageActionsCount > 0"
               data-testid="action-icon"
               (click)="isActionBoxOpen = !isActionBoxOpen"
               (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
+              *ngIf="visibleMessageActionsCount > 0"
             >
               <stream-icon-placeholder
                 icon="action-icon"

@@ -36,6 +36,7 @@ import {
   ThreadHeaderContext,
   CustomAttachmentUploadContext,
   DateSeparatorContext,
+  MessageActionsService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -100,8 +101,17 @@ export class AppComponent implements AfterViewInit {
     private chatService: ChatClientService,
     public channelService: ChannelService,
     private streamI18nService: StreamI18nService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private messageActionsService: MessageActionsService
   ) {
+    this.messageActionsService.customActions$.next([
+      {
+        actionName: 'forward',
+        actionLabelOrTranslationKey: 'Forward',
+        isVisible: this.isVisible,
+        actionHandler: this.actionHandler,
+      },
+    ]);
     void this.chatService.init(
       environment.apiKey,
       environment.userId,
@@ -210,5 +220,8 @@ export class AppComponent implements AfterViewInit {
     return true;
   }
 
-  actionHandler() {}
+  actionHandler() {
+    /* eslint-disable-next-line no-console */
+    console.log('forwarded');
+  }
 }

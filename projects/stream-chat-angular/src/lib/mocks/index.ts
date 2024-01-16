@@ -27,6 +27,7 @@ export const mockMessage = (id?: number) =>
     id: id === undefined ? 'id' : `id${id}`,
     text: 'Hello from Angular SDK',
     user: mockCurrentUser(),
+    user_id: mockCurrentUser().id,
     type: 'regular',
     status: 'received',
     created_at: new Date('2021-09-14T13:08:30.004112Z'),
