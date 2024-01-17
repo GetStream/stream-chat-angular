@@ -2327,6 +2327,22 @@ describe('ChannelService', () => {
     ]);
   });
 
+  it('should load message reactions - but no more than 1200', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+    const mockReactionsPage = new Array(300)
+      .fill(null)
+      .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
+    spyOn(activeChannel, 'getReactions').and.resolveTo({
+      reactions: mockReactionsPage,
+      duration: '',
+    });
+    const reactions = await service.getMessageReactions(message.id);
+
+    expect(reactions.length).toEqual(1200);
+  });
+
   it('should load message reactions - error', async () => {
     await init();
     const activeChannel = service.activeChannel!;

@@ -66,6 +66,7 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   selectedReactionType: string | undefined;
   isLoading = true;
   reactions: ReactionResponse[] = [];
+  shouldHandleReactionClick = true;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -80,6 +81,15 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
       this.isSelectorOpen
         ? setTimeout(() => this.watchForOutsideClicks()) // setTimeout: wait for current click to bubble up, and only watch for clicks after that
         : this.stopWatchForOutsideClicks();
+    }
+    if (changes.messageReactionCounts && this.messageReactionCounts) {
+      const reactionsCount = Object.keys(this.messageReactionCounts).reduce(
+        (acc, key) => acc + (this.messageReactionCounts[key] || 0),
+        0
+      );
+      this.shouldHandleReactionClick =
+        reactionsCount <= ChannelService.MAX_MESSAGE_REACTIONS_TO_FETCH ||
+        !!this.messageReactionsService.customReactionClickHandler;
     }
   }
 
@@ -117,6 +127,9 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   }
 
   reactionSelected(reactionType: string) {
+    if (!this.shouldHandleReactionClick) {
+      return;
+    }
     if (this.themeService.themeVersion === '1') {
       return;
     }
