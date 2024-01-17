@@ -279,17 +279,44 @@ describe('MessageReactionsComponent', () => {
     expect(users.length).toBe(2);
   }));
 
-  it(`should call custom reaction details handler if that's provided`, () => {
+  it(`shouldn't display reaction details if there are more than 1200 reactions`, () => {
     component.messageReactionCounts = {
       wow: 3,
+      sad: 1198,
+    };
+    component.messageId = 'id';
+    component.latestReactions = [];
+    component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
+    fixture.detectChanges();
+
+    const reactions = [
+      { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
+      { type: 'wow', user: { id: 'benid', name: 'Ben' } },
+      { type: 'wow', user: { id: 'jackid' } },
+      { type: 'wow' },
+      { type: 'sad', user: { id: 'jim' } },
+      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+    ] as ReactionResponse[];
+    spyOn(channelServiceMock, 'getMessageReactions').and.resolveTo(reactions);
+
+    const wowEmoji = queryEmojis()[0];
+    wowEmoji.click();
+
+    expect(component.selectedReactionType).toBe(undefined);
+  });
+
+  it(`should call custom reaction details handler if that's provided`, () => {
+    const messageReactionsService = TestBed.inject(MessageReactionsService);
+    const spy = jasmine.createSpy();
+    messageReactionsService.customReactionClickHandler = spy;
+    component.messageReactionCounts = {
+      wow: 1500,
       sad: 2,
     };
     component.messageId = 'id';
     component.latestReactions = [];
+    component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
     fixture.detectChanges();
-    const messageReactionsService = TestBed.inject(MessageReactionsService);
-    const spy = jasmine.createSpy();
-    messageReactionsService.customReactionClickHandler = spy;
 
     const wowEmoji = queryEmojis()[0];
     wowEmoji.click();

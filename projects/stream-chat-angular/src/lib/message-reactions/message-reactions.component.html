@@ -12,6 +12,7 @@
         let reactionType of existingReactions;
         trackBy: trackByMessageReaction
       "
+      [ngStyle]="{ cursor: shouldHandleReactionClick ? 'pointer' : 'default' }"
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
       data-testclass="emoji"
       (click)="reactionSelected(reactionType)"
@@ -155,6 +156,9 @@
             let reactionType of existingReactions;
             trackBy: trackByMessageReaction
           "
+          [ngStyle]="{
+            cursor: shouldHandleReactionClick ? 'pointer' : 'default'
+          }"
           attr.data-testid="reaction-details-selector-{{ reactionType }}"
           [class.str-chat__message-reactions-details-reaction-type--selected]="
             reactionType === selectedReactionType
