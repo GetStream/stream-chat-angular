@@ -1451,7 +1451,7 @@ export class ChannelService<
   async getMessageReactions(messageId: string) {
     const reactions: ReactionResponse<T>[] = [];
     const limit = 300;
-    const offset = 0;
+    let offset = 0;
     const reactionsLimit = ChannelService.MAX_MESSAGE_REACTIONS_TO_FETCH;
     let lastPageSize = limit;
 
@@ -1465,6 +1465,7 @@ export class ChannelService<
         if (lastPageSize > 0) {
           reactions.push(...response!.reactions);
         }
+        offset += lastPageSize;
       } catch (e) {
         this.notificationService.addTemporaryNotification(
           'Error loading reactions'
