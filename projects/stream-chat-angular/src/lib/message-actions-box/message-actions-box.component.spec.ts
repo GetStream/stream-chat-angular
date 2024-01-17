@@ -36,7 +36,7 @@ describe('MessageActionsBoxComponent', () => {
   let queryMuteAction: () => HTMLElement | null;
   let queryEditAction: () => HTMLElement | null;
   let queryDeleteAction: () => HTMLElement | null;
-  let queryEditModal: () => ModalComponent;
+  let queryEditModal: () => ModalComponent | undefined;
   let queryModalCancelButton: () => HTMLElement | null;
   let queryMessageInputComponent: () => MessageInputComponent;
   let message: StreamMessage;
@@ -88,7 +88,11 @@ describe('MessageActionsBoxComponent', () => {
     component = fixture.componentInstance;
     message = mockMessage();
     component.message = message;
-    component.ngOnChanges({ message: {} as SimpleChange });
+    component.isOpen = true;
+    component.ngOnChanges({
+      message: {} as SimpleChange,
+      isOpen: {} as SimpleChange,
+    });
     nativeElement = fixture.nativeElement as HTMLElement;
     queryQuoteAction = () =>
       nativeElement.querySelector('[data-testid="quote-action"]');
@@ -104,7 +108,7 @@ describe('MessageActionsBoxComponent', () => {
       nativeElement.querySelector('[data-testid="delete-action"]');
     queryEditModal = () =>
       fixture.debugElement.query(By.directive(ModalComponent))
-        .componentInstance as ModalComponent;
+        ?.componentInstance as ModalComponent | undefined;
     queryModalCancelButton = () =>
       nativeElement.querySelector('[data-testid="cancel-button"]');
     queryMessageInputComponent = () =>
@@ -400,7 +404,7 @@ describe('MessageActionsBoxComponent', () => {
     queryEditAction()?.click();
     fixture.detectChanges();
 
-    expect(queryEditModal().isOpen).toBeTrue();
+    expect(queryEditModal()?.isOpen).toBeTrue();
   });
 
   it('should display message input if user starts to edit', () => {
@@ -429,6 +433,7 @@ describe('MessageActionsBoxComponent', () => {
   it('should close modal with "Cancel" button', () => {
     component.enabledActions = ['update-own-message'];
     component.isMine = true;
+    component.isEditModalOpen = true;
     component.ngOnChanges({
       enabledActions: {} as SimpleChange,
       isMine: {} as SimpleChange,
@@ -441,7 +446,7 @@ describe('MessageActionsBoxComponent', () => {
     queryModalCancelButton()?.click();
     fixture.detectChanges();
 
-    expect(queryEditModal().isOpen).toBeFalse();
+    expect(queryEditModal()).toBeUndefined();
     expect(spy).toHaveBeenCalledWith(false);
   });
 
@@ -458,7 +463,7 @@ describe('MessageActionsBoxComponent', () => {
     component.isEditing.subscribe(spy);
     queryEditAction()?.click();
     fixture.detectChanges();
-    queryEditModal().close();
+    queryEditModal()?.close();
     fixture.detectChanges();
 
     expect(component.isEditModalOpen).toBeFalse();
@@ -482,7 +487,7 @@ describe('MessageActionsBoxComponent', () => {
     messageInputComponent.messageUpdate.emit();
     fixture.detectChanges();
 
-    expect(queryEditModal().isOpen).toBeFalse();
+    expect(queryEditModal()).toBeUndefined();
     expect(spy).toHaveBeenCalledWith(false);
   });
 

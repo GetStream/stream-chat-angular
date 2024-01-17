@@ -3,6 +3,7 @@
   data-testid="action-box"
   class="str-chat__message-actions-box str-chat__message-actions-box-angular"
   [class.str-chat__message-actions-box--open]="true"
+  *ngIf="isOpen"
 >
   <ul class="str-chat__message-actions-list">
     <ng-container
@@ -51,6 +52,7 @@
 >
   <stream-modal
     [isOpen]="isOpen"
+    *ngIf="isOpen"
     (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
   >
