@@ -1,4 +1,7 @@
-<div *ngIf="orderedAttachments.length > 0" class="str-chat__attachment-list">
+<div
+  *ngIf="isInited && orderedAttachments.length > 0"
+  class="str-chat__attachment-list"
+>
   <ng-container
     *ngFor="let attachment of orderedAttachments; trackBy: trackByUrl"
   >

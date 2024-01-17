@@ -144,6 +144,11 @@ export class MessageListComponent
     private ngZone: NgZone,
     private cdRef: ChangeDetectorRef
   ) {
+    this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
+    this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
+  }
+
+  ngOnInit(): void {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         this.chatClientService.chatClient?.logger?.(
@@ -243,11 +248,6 @@ export class MessageListComponent
         }
       )
     );
-    this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
-    this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
-  }
-
-  ngOnInit(): void {
     this.setMessages$();
   }
 

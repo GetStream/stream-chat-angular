@@ -1,4 +1,6 @@
 import {
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   HostBinding,
@@ -33,7 +35,7 @@ import { ThemeService } from '../theme.service';
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
-export class AttachmentListComponent implements OnChanges {
+export class AttachmentListComponent implements OnChanges, AfterViewInit {
   /**
    * The id of the message the attachments belong to
    */
@@ -56,6 +58,7 @@ export class AttachmentListComponent implements OnChanges {
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
+  isInited = false;
   themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
@@ -70,11 +73,11 @@ export class AttachmentListComponent implements OnChanges {
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
     private attachmentConfigurationService: AttachmentConfigurationService,
+    private cdRef: ChangeDetectorRef,
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
   }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {
       const images = this.attachments.filter(this.isImage);
@@ -93,6 +96,11 @@ export class AttachmentListComponent implements OnChanges {
         );
       }
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.isInited = true;
+    this.cdRef.detectChanges();
   }
 
   trackByUrl(_: number, attachment: Attachment) {
