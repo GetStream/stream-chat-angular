@@ -1,6 +1,5 @@
 import {
   AfterViewInit,
-  ChangeDetectorRef,
   Component,
   EventEmitter,
   HostBinding,
@@ -73,7 +72,6 @@ export class AttachmentListComponent implements OnChanges, AfterViewInit {
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
     private attachmentConfigurationService: AttachmentConfigurationService,
-    private cdRef: ChangeDetectorRef,
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
@@ -99,8 +97,10 @@ export class AttachmentListComponent implements OnChanges, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.isInited = true;
-    this.cdRef.detectChanges();
+    // Wait next tick to make sure CSS rules are properly applied
+    setTimeout(() => {
+      this.isInited = true;
+    }, 0);
   }
 
   trackByUrl(_: number, attachment: Attachment) {

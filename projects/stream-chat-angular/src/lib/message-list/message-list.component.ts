@@ -178,10 +178,16 @@ export class MessageListComponent
           } else {
             this.lastReadMessageId = undefined;
           }
+          this.cdRef.detectChanges();
         }
         const capabilites = channel?.data?.own_capabilities as string[];
-        if (capabilites) {
-          this.enabledMessageActions = capabilites;
+        const capabilitesString = [...(capabilites || [])].sort().join('');
+        const enabledActionsString = [...(this.enabledMessageActions || [])]
+          .sort()
+          .join('');
+        if (capabilitesString !== enabledActionsString) {
+          this.enabledMessageActions = capabilites || [];
+          this.cdRef.detectChanges();
         }
         this.newMessageSubscription?.unsubscribe();
         if (channel) {
@@ -201,7 +207,6 @@ export class MessageListComponent
             });
           });
         }
-        this.cdRef.detectChanges();
       })
     );
     this.subscriptions.push(
@@ -700,6 +705,7 @@ export class MessageListComponent
       if (this.isUserScrolled) {
         this.unreadMessageCount++;
       }
+      this.cdRef.detectChanges();
     }
   }
 
