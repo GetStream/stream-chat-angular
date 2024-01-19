@@ -217,6 +217,7 @@ export class MessageListComponent
       this.messageActionsService.customActions$.subscribe((actions) => {
         if (actions !== this.customMessageActions) {
           this.customMessageActions = actions;
+          this.cdRef.detectChanges();
         }
       })
     );

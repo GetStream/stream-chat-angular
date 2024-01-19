@@ -228,7 +228,7 @@ export class AttachmentConfigurationService<
       sizeRestriction = undefined;
       if (displayWarning) {
         console.warn(
-          `Invalid value set for height/max-height and/or max-width for HTML element, this can cause scrolling issues inside the message list, more info https://getstream.io/chat/docs/sdk/angular/components/AttachmentListComponent/#image-and-video-sizing, attachment URL: ${url}`
+          `Invalid value set for height/max-height and/or max-width for HTML element, this can cause scrolling issues inside the message list, more info https://getstream.io/chat/docs/sdk/angular/components/AttachmentListComponent/#image-and-video-sizing, attachment URL: ${url.toString()}`
         );
       }
     }

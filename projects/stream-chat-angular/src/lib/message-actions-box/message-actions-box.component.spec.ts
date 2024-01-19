@@ -434,8 +434,8 @@ describe('MessageActionsBoxComponent', () => {
     actionsService.messageToEdit$.subscribe(spy);
     queryEditAction()?.click();
     fixture.detectChanges();
-    queryEditModal()?.close();
     spy.calls.reset();
+    queryEditModal()?.close();
     fixture.detectChanges();
 
     expect(component.isEditModalOpen).toBeFalse();
