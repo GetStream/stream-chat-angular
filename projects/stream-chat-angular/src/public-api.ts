@@ -58,3 +58,4 @@ export * from './lib/message-reactions.service';
 export * from './lib/date-parser.service';
 export * from './lib/types';
 export * from './lib/message.service';
+export * from './lib/message-actions.service';

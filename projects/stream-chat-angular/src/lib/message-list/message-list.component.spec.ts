@@ -28,6 +28,7 @@ import { DefaultStreamChatGenerics } from '../types';
 import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
 import { take } from 'rxjs/operators';
+import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageListComponent', () => {
   let component: MessageListComponent;
@@ -121,6 +122,10 @@ describe('MessageListComponent', () => {
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     component.highlightedMessageId = messages[0].id;
     channelServiceMock.activeChannelMessages$.next([...messages]);
+    const spy = jasmine.createSpy();
+    const service = TestBed.inject(MessageActionsService);
+    service.customActions$.subscribe(spy);
+    spy.calls.reset();
     const customActions = [
       {
         actionName: 'forward',
@@ -139,6 +144,7 @@ describe('MessageListComponent', () => {
     const messageElements = queryMessages();
 
     expect(messagesComponents.length).toBe(messages.length);
+    expect(spy).toHaveBeenCalledWith(customActions);
     messagesComponents.forEach((m, i) => {
       expect(m.message).toBe(messages[i]);
       expect(m.isLastSentMessage).toBe(
@@ -154,6 +160,25 @@ describe('MessageListComponent', () => {
       );
 
       expect(messageElements[i].id).toBe(messages[i].id);
+      expect(m.customActions).toBe(customActions);
+    });
+  });
+
+  it('should listen for changes in messageActionsService.customActions$', () => {
+    const service = TestBed.inject(MessageActionsService);
+    const customActions = [
+      {
+        actionName: 'forward',
+        isVisible: () => true,
+        actionHandler: () => {},
+        actionLabelOrTranslationKey: 'Forward',
+      },
+    ];
+    service.customActions$.next(customActions);
+    fixture.detectChanges();
+
+    const messagesComponents = queryMessageComponents();
+    messagesComponents.forEach((m) => {
       expect(m.customActions).toBe(customActions);
     });
   });

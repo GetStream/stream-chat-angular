@@ -31,6 +31,7 @@ import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
+import { MessageActionsService } from '../message-actions.service';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -64,6 +65,8 @@ export class MessageListComponent
   @Input() hideJumpToLatestButtonDuringScroll = false;
   /**
    * A list of custom message actions to be displayed in the message action box
+   *
+   * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
    */
   @Input() customMessageActions: CustomMessageActionItem<any>[] = [];
   /**
@@ -140,7 +143,8 @@ export class MessageListComponent
     private customTemplatesService: CustomTemplatesService,
     private dateParser: DateParserService,
     private ngZone: NgZone,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private messageActionsService: MessageActionsService
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -234,6 +238,13 @@ export class MessageListComponent
   }
 
   ngOnInit(): void {
+    this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe((actions) => {
+        if (actions !== this.customMessageActions) {
+          this.customMessageActions = actions;
+        }
+      })
+    );
     this.setMessages$();
   }
 
@@ -245,6 +256,9 @@ export class MessageListComponent
       if (this.scrollContainer?.nativeElement) {
         this.jumpToLatestMessage();
       }
+    }
+    if (changes.customMessageActions) {
+      this.messageActionsService.customActions$.next(this.customMessageActions);
     }
   }
 
