@@ -114,10 +114,9 @@ export class MessageComponent
   };
   canDisplayReadStatus = false;
   private quotedMessageAttachments: Attachment[] | undefined;
-  user: UserResponse<DefaultStreamChatGenerics> | undefined;
-  optionsRenderTimeoutEnded = false;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
+  private userId?: string;
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
     | undefined;
@@ -143,11 +142,13 @@ export class MessageComponent
   ngOnInit(): void {
     this.subscriptions.push(
       this.chatClientService.user$.subscribe((u) => {
-        if (u !== this.user) {
-          this.user = u;
+        if (u?.id !== this.userId) {
+          this.userId = u?.id;
           this.setIsSentByCurrentUser();
           this.setLastReadUser();
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       })
     );
@@ -260,10 +261,6 @@ export class MessageComponent
         this.mouseLeft()
       );
     });
-    setTimeout(() => {
-      this.optionsRenderTimeoutEnded = true;
-      this.cdRef.detectChanges();
-    }, 0);
   }
 
   ngOnDestroy(): void {
@@ -489,12 +486,12 @@ export class MessageComponent
   }
 
   private setIsSentByCurrentUser() {
-    this.isSentByCurrentUser = this.message?.user?.id === this.user?.id;
+    this.isSentByCurrentUser = this.message?.user?.id === this.userId;
   }
 
   private setLastReadUser() {
     this.lastReadUser = this.message?.readBy?.filter(
-      (u) => u.id !== this.user?.id
+      (u) => u.id !== this.userId
     )[0];
   }
 }

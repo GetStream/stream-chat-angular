@@ -131,6 +131,7 @@ export class MessageListComponent
   private isLatestMessageInList = true;
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
+  private isViewInited = false;
 
   @HostBinding('class')
   private get class() {
@@ -182,7 +183,9 @@ export class MessageListComponent
           } else {
             this.lastReadMessageId = undefined;
           }
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
         const capabilites = channel?.data?.own_capabilities as string[];
         const capabilitesString = [...(capabilites || [])].sort().join('');
@@ -191,7 +194,9 @@ export class MessageListComponent
           .join('');
         if (capabilitesString !== enabledActionsString) {
           this.enabledMessageActions = capabilites || [];
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
         this.newMessageSubscription?.unsubscribe();
         if (channel) {
@@ -217,7 +222,9 @@ export class MessageListComponent
       this.messageActionsService.customActions$.subscribe((actions) => {
         if (actions !== this.customMessageActions) {
           this.customMessageActions = actions;
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       })
     );
@@ -232,36 +239,58 @@ export class MessageListComponent
           this.resetScrollState();
         }
         this.parentMessage = message;
-        this.cdRef.detectChanges();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
       })
     );
     this.subscriptions.push(
       this.customTemplatesService.messageTemplate$.subscribe((template) => {
+        if (this.messageTemplate === template) {
+          return;
+        }
         this.messageTemplate = template;
-        this.cdRef.detectChanges();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
       })
     );
     this.subscriptions.push(
       this.customTemplatesService.dateSeparatorTemplate$.subscribe(
         (template) => {
+          if (this.customDateSeparatorTemplate === template) {
+            return;
+          }
           this.customDateSeparatorTemplate = template;
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.newMessagesIndicatorTemplate$.subscribe(
         (template) => {
+          if (this.customnewMessagesIndicatorTemplate === template) {
+            return;
+          }
           this.customnewMessagesIndicatorTemplate = template;
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.typingIndicatorTemplate$.subscribe(
         (template) => {
+          if (this.typingIndicatorTemplate === template) {
+            return;
+          }
           this.typingIndicatorTemplate = template;
-          this.cdRef.detectChanges();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       )
     );
@@ -283,6 +312,7 @@ export class MessageListComponent
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer.nativeElement.addEventListener('scroll', () =>
         this.scrolled()
