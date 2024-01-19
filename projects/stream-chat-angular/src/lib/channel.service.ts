@@ -304,6 +304,10 @@ export class ChannelService<
    * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](https://getstream.io/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
   customPaginator?: (channelQueryResult: Channel<T>[]) => NextPageConfiguration;
+  /**
+   * internal
+   */
+  static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -1440,17 +1444,18 @@ export class ChannelService<
   }
 
   /**
-   * Get all reactions of a message in the current active channel
+   * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript#paginating-reactions).
    * @param messageId
    * @returns all reactions of a message
    */
   async getMessageReactions(messageId: string) {
     const reactions: ReactionResponse<T>[] = [];
     const limit = 300;
-    const offset = 0;
+    let offset = 0;
+    const reactionsLimit = ChannelService.MAX_MESSAGE_REACTIONS_TO_FETCH;
     let lastPageSize = limit;
 
-    while (lastPageSize === limit) {
+    while (lastPageSize === limit && reactions.length < reactionsLimit) {
       try {
         const response = await this.activeChannel?.getReactions(messageId, {
           offset,
@@ -1460,6 +1465,7 @@ export class ChannelService<
         if (lastPageSize > 0) {
           reactions.push(...response!.reactions);
         }
+        offset += lastPageSize;
       } catch (e) {
         this.notificationService.addTemporaryNotification(
           'Error loading reactions'

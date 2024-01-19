@@ -1,18 +1,19 @@
 import {
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { ChannelService } from '../channel.service';
-import { ChatClientService } from '../chat-client.service';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { NotificationService } from '../notification.service';
 import {
   CustomMessageActionItem,
   MessageActionBoxItemContext,
@@ -21,6 +22,7 @@ import {
   ModalContext,
   StreamMessage,
 } from '../types';
+import { MessageActionsService } from '../message-actions.service';
 /**
  * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](../concepts/message-interactions.mdx) in the message interaction guide.
  */
@@ -29,7 +31,9 @@ import {
   templateUrl: './message-actions-box.component.html',
   styles: [],
 })
-export class MessageActionsBoxComponent implements OnChanges {
+export class MessageActionsBoxComponent
+  implements OnInit, OnChanges, OnDestroy, AfterViewInit
+{
   /**
    * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
    * @deprecated No need for this since [theme-v2](../theming/introduction.mdx)
@@ -49,14 +53,26 @@ export class MessageActionsBoxComponent implements OnChanges {
   @Input() enabledActions: string[] = [];
   /**
    * A list of custom message actions to be displayed in the action box
+   *
+   * In the next major release this will be released with `messageReactionsService.customActions$`
+   *
+   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
   @Input() customActions: CustomMessageActionItem[] = [];
   /**
    * The number of authorized actions (it can be less or equal than the number of enabled actions)
+   *
+   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
+   *
+   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
   /**
    * An event which emits `true` if the edit message modal is open, and `false` when it is closed.
+   *
+   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
+   *
+   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
   @Output() readonly isEditing = new EventEmitter<boolean>();
   isEditModalOpen = false;
@@ -72,83 +88,33 @@ export class MessageActionsBoxComponent implements OnChanges {
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private sendMessageSubject = new Subject<void>();
+  private subscriptions: Subscription[] = [];
+  private isViewInited = false;
   constructor(
-    private chatClientService: ChatClientService,
-    private notificationService: NotificationService,
-    private channelService: ChannelService,
-    public readonly customTemplatesService: CustomTemplatesService
+    public readonly customTemplatesService: CustomTemplatesService,
+    private messageActionsService: MessageActionsService,
+    private cdRef: ChangeDetectorRef
   ) {
-    this.messageActionItems = [
-      {
-        actionName: 'quote',
-        actionLabelOrTranslationKey: 'streamChat.Reply',
-        actionHandler: (message: StreamMessage) =>
-          this.channelService.selectMessageToQuote(message),
-        isVisible: (enabledActions: string[]) =>
-          enabledActions.indexOf('quote-message') !== -1,
-      },
-      {
-        actionName: 'pin',
-        actionLabelOrTranslationKey: (message: StreamMessage) =>
-          message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-        actionHandler: (message: StreamMessage) =>
-          message.pinned
-            ? this.channelService.unpinMessage(message)
-            : this.channelService.pinMessage(message),
-        isVisible: (enabledActions: string[]) =>
-          enabledActions.indexOf('pin-message') !== -1,
-      },
-      {
-        actionName: 'flag',
-        actionLabelOrTranslationKey: 'streamChat.Flag',
-        actionHandler: async (message: StreamMessage) => {
-          try {
-            await this.chatClientService.flagMessage(message.id);
-            this.notificationService.addTemporaryNotification(
-              'streamChat.Message has been successfully flagged',
-              'success'
-            );
-          } catch (err) {
-            this.notificationService.addTemporaryNotification(
-              'streamChat.Error adding flag'
-            );
-          }
-        },
-        isVisible: (enabledActions: string[], isMine: boolean) =>
-          enabledActions.indexOf('flag-message') !== -1 && !isMine,
-      },
-      {
-        actionName: 'edit',
-        actionLabelOrTranslationKey: 'streamChat.Edit Message',
-        actionHandler: () => {
-          this.isEditing.emit(true);
-          this.isEditModalOpen = true;
-        },
-        isVisible: (enabledActions: string[], isMine: boolean) =>
-          (enabledActions.indexOf('update-own-message') !== -1 && isMine) ||
-          enabledActions.indexOf('update-any-message') !== -1,
-      },
-      {
-        actionName: 'delete',
-        actionLabelOrTranslationKey: 'streamChat.Delete',
-        actionHandler: async (message: StreamMessage) => {
-          try {
-            await this.channelService.deleteMessage(message);
-          } catch (error) {
-            this.notificationService.addTemporaryNotification(
-              'streamChat.Error deleting message'
-            );
-          }
-        },
-        isVisible: (enabledActions: string[], isMine: boolean) =>
-          ((enabledActions.indexOf('delete') !== -1 ||
-            enabledActions.indexOf('delete-own-message') !== -1) &&
-            isMine) ||
-          enabledActions.indexOf('delete-any') !== -1 ||
-          enabledActions.indexOf('delete-any-message') !== -1,
-      },
-    ];
+    this.messageActionItems = this.messageActionsService.defaultActions;
     this.sendMessage$ = this.sendMessageSubject.asObservable();
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.messageActionsService.messageToEdit$.subscribe((m) => {
+        let isEditModalOpen = false;
+        if (m && m.id === this.message?.id) {
+          isEditModalOpen = true;
+        }
+        if (isEditModalOpen !== this.isEditModalOpen) {
+          this.isEditModalOpen = isEditModalOpen;
+          this.isEditing.emit(this.isEditModalOpen);
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      })
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -158,14 +124,16 @@ export class MessageActionsBoxComponent implements OnChanges {
       changes.message ||
       changes.customActions
     ) {
-      this.visibleMessageActionItems = [
-        ...this.messageActionItems,
-        ...this.customActions,
-      ].filter((item) =>
-        item.isVisible(this.enabledActions, this.isMine, this.message!)
-      );
-      this.displayedActionsCount.emit(this.visibleMessageActionItems.length);
+      this.setVisibleActions();
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInited = true;
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   getActionLabel(
@@ -194,7 +162,7 @@ export class MessageActionsBoxComponent implements OnChanges {
 
   modalClosed = () => {
     this.isEditModalOpen = false;
-    this.isEditing.emit(false);
+    this.messageActionsService.messageToEdit$.next(undefined);
   };
 
   getMessageInputContext(): MessageInputContext {
@@ -228,5 +196,15 @@ export class MessageActionsBoxComponent implements OnChanges {
     item: MessageActionItem | CustomMessageActionItem
   ) {
     return item.actionName;
+  }
+
+  private setVisibleActions() {
+    this.visibleMessageActionItems = [
+      ...this.messageActionItems,
+      ...this.customActions,
+    ].filter((item) =>
+      item.isVisible(this.enabledActions, this.isMine, this.message!)
+    );
+    this.displayedActionsCount.emit(this.visibleMessageActionItems.length);
   }
 }

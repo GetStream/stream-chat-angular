@@ -36,6 +36,7 @@ import { ThemeService } from '../theme.service';
 import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
+import { MessageActionsService } from '../message-actions.service';
 
 type MessagePart = {
   content: string;
@@ -77,6 +78,8 @@ export class MessageComponent
   @Input() isHighlighted = false;
   /**
    * A list of custom message actions to be displayed in the action box
+   *
+   * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
    */
   @Input() customActions: CustomMessageActionItem[] = [];
   readonly themeVersion: '1' | '2';
@@ -114,6 +117,7 @@ export class MessageComponent
   user: UserResponse<DefaultStreamChatGenerics> | undefined;
   optionsRenderTimeoutEnded = false;
   private subscriptions: Subscription[] = [];
+  private isViewInited = false;
   @ViewChild('container') private container:
     | ElementRef<HTMLElement>
     | undefined;
@@ -129,7 +133,8 @@ export class MessageComponent
     themeService: ThemeService,
     private dateParser: DateParserService,
     private ngZone: NgZone,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private messageActionsService: MessageActionsService
   ) {
     this.themeVersion = themeService.themeVersion;
     this.displayAs = this.messageService.displayAs;
@@ -143,6 +148,20 @@ export class MessageComponent
           this.setIsSentByCurrentUser();
           this.setLastReadUser();
           this.cdRef.detectChanges();
+        }
+      })
+    );
+    this.subscriptions.push(
+      this.messageActionsService.messageToEdit$.subscribe((m) => {
+        let isEditing = false;
+        if (m && m.id === this.message?.id) {
+          isEditing = true;
+        }
+        if (isEditing !== this.isEditing) {
+          this.isEditing = isEditing;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
       })
     );
@@ -217,9 +236,25 @@ export class MessageComponent
           )
         : false;
     }
+    if (
+      changes.message ||
+      changes.enabledMessageActions ||
+      changes.customActions
+    ) {
+      if (this.message) {
+        this.visibleMessageActionsCount =
+          this.messageActionsService.getAuthorizedMessageActionsCount(
+            this.message,
+            this.enabledMessageActions
+          );
+      } else {
+        this.visibleMessageActionsCount = 0;
+      }
+    }
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     this.ngZone.runOutsideAngular(() => {
       this.container?.nativeElement.addEventListener('mouseleave', () =>
         this.mouseLeft()

@@ -3,7 +3,7 @@ import { MessageReactionClickDetails, MessageReactionType } from './types';
 import { BehaviorSubject } from 'rxjs';
 
 /**
- * The `MessageReactionsService` allows you to set which [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) are enabled and their associated emoji.
+ * The `MessageReactionsService` provides customization options to message [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript).
  *
  */
 @Injectable({

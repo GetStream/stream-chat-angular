@@ -26,6 +26,7 @@ import { NotificationService } from '../notification.service';
 import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
+import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageActionsBoxComponent', () => {
   let component: MessageActionsBoxComponent;
@@ -86,6 +87,7 @@ describe('MessageActionsBoxComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(MessageActionsBoxComponent);
     component = fixture.componentInstance;
+    component.ngOnInit();
     message = mockMessage();
     component.message = message;
     component.isOpen = true;
@@ -272,42 +274,6 @@ describe('MessageActionsBoxComponent', () => {
     );
   });
 
-  it('should emit the number of displayed actions', () => {
-    component.enabledActions = [
-      'pin-message',
-      'update-own-message',
-      'delete-own-message',
-      'flag-message',
-    ];
-    component.isMine = true;
-    const spy = jasmine.createSpy();
-    component.displayedActionsCount.subscribe(spy);
-    component.ngOnChanges({
-      isMine: {} as any as SimpleChange,
-      enabledActions: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(spy).toHaveBeenCalledWith(3);
-
-    spy.calls.reset();
-    component.enabledActions = [
-      'pin-message',
-      'update-any-message',
-      'delete',
-      'flag-message',
-      'quote-message',
-    ];
-    component.isMine = false;
-    component.ngOnChanges({
-      isMine: {} as any as SimpleChange,
-      enabledActions: {} as any as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(spy).toHaveBeenCalledWith(4);
-  });
-
   describe('should display edit action', () => {
     it('if #enabledActions contains "edit" and #isMine', () => {
       component.enabledActions = ['update-own-message'];
@@ -376,7 +342,9 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should emit #isEditing if user starts to edit', () => {
     const spy = jasmine.createSpy();
-    component.isEditing.subscribe(spy);
+    const actionsService = TestBed.inject(MessageActionsService);
+    actionsService.messageToEdit$.subscribe(spy);
+    spy.calls.reset();
     component.enabledActions = [
       'pin-message',
       'update-any-message',
@@ -390,7 +358,7 @@ describe('MessageActionsBoxComponent', () => {
     queryEditAction()?.click();
     fixture.detectChanges();
 
-    expect(spy).toHaveBeenCalledWith(true);
+    expect(spy).toHaveBeenCalledWith(component.message);
   });
 
   it('should open modal if user starts to edit', () => {
@@ -440,14 +408,16 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
-    component.isEditing.subscribe(spy);
+    const actionsService = TestBed.inject(MessageActionsService);
+    actionsService.messageToEdit$.subscribe(spy);
     queryEditAction()?.click();
     fixture.detectChanges();
+    spy.calls.reset();
     queryModalCancelButton()?.click();
     fixture.detectChanges();
 
     expect(queryEditModal()).toBeUndefined();
-    expect(spy).toHaveBeenCalledWith(false);
+    expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it('should update #isEditModalOpen if modal is closed', () => {
@@ -460,14 +430,16 @@ describe('MessageActionsBoxComponent', () => {
     });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
-    component.isEditing.subscribe(spy);
+    const actionsService = TestBed.inject(MessageActionsService);
+    actionsService.messageToEdit$.subscribe(spy);
     queryEditAction()?.click();
     fixture.detectChanges();
     queryEditModal()?.close();
+    spy.calls.reset();
     fixture.detectChanges();
 
     expect(component.isEditModalOpen).toBeFalse();
-    expect(spy).toHaveBeenCalledWith(false);
+    expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it('should close modal if message was updated successfully', () => {
@@ -481,14 +453,16 @@ describe('MessageActionsBoxComponent', () => {
     queryEditAction()?.click();
     fixture.detectChanges();
     const spy = jasmine.createSpy();
-    component.isEditing.subscribe(spy);
+    const actionsService = TestBed.inject(MessageActionsService);
+    actionsService.messageToEdit$.subscribe(spy);
+    spy.calls.reset();
     const messageInputComponent = queryMessageInputComponent();
 
     messageInputComponent.messageUpdate.emit();
     fixture.detectChanges();
 
     expect(queryEditModal()).toBeUndefined();
-    expect(spy).toHaveBeenCalledWith(false);
+    expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it('should delete message', () => {

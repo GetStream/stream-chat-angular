@@ -22,6 +22,7 @@ import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ThemeService } from '../theme.service';
 import { of } from 'rxjs';
+import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -778,12 +779,15 @@ describe('MessageComponent', () => {
   });
 
   it('should watch for #isEditing event', () => {
+    const service = TestBed.inject(MessageActionsService);
     component.isEditing = false;
-    fixture.detectChanges();
-    messageActionsBoxComponent.isEditing.emit(true);
-    fixture.detectChanges();
+    service.messageToEdit$.next(component.message);
 
     expect(component.isEditing).toBeTrue();
+
+    service.messageToEdit$.next(undefined);
+
+    expect(component.isEditing).toBeFalse();
   });
 
   it('should create message parts', () => {
@@ -1097,6 +1101,50 @@ describe('MessageComponent', () => {
     expect(
       nativeElement.querySelector('.str-chat__message--highlighted')
     ).not.toBeNull();
+  });
+
+  it('should set the number of visibe actions', () => {
+    component.enabledMessageActions = [
+      'pin-message',
+      'update-own-message',
+      'delete-own-message',
+      'flag-message',
+    ];
+    component.ngOnChanges({
+      enabledMessageActions: {} as any as SimpleChange,
+    });
+
+    expect(component.visibleMessageActionsCount).toBe(3);
+
+    component.enabledMessageActions = [
+      'pin-message',
+      'update-any-message',
+      'delete',
+      'flag-message',
+      'quote-message',
+    ];
+    component.message!.user_id = 'not' + currentUser.id;
+    component.ngOnChanges({
+      message: {} as any as SimpleChange,
+      enabledMessageActions: {} as any as SimpleChange,
+    });
+
+    expect(component.visibleMessageActionsCount).toBe(4);
+
+    const customActions = [
+      {
+        actionName: 'forward',
+        isVisible: () => true,
+        actionHandler: () => {},
+        actionLabelOrTranslationKey: 'Forward',
+      },
+    ];
+    component.customActions = customActions;
+    const service = TestBed.inject(MessageActionsService);
+    service.customActions$.next(customActions);
+    component.ngOnChanges({ customActions: {} as SimpleChange });
+
+    expect(component.visibleMessageActionsCount).toBe(5);
   });
 
   describe('quoted message', () => {
