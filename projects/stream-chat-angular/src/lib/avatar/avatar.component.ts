@@ -62,7 +62,6 @@ export class AvatarComponent implements OnChanges {
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
-  isLoaded = false;
   isError = false;
   isOnline = false;
   private isOnlineSubscription?: Subscription;

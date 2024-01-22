@@ -64,9 +64,6 @@ describe('AvatarComponent', () => {
     expect(img).not.toBeNull();
     expect(fallbackImg).toBeNull();
     expect(img!.src).toBe(imageUrl);
-    expect(
-      img!.classList.contains('str-chat__avatar-image--loaded')
-    ).toBeTrue();
   });
 
   it('should display image with the provided #size', () => {
