@@ -238,6 +238,9 @@ export class MessageListComponent
         ) {
           this.resetScrollState();
         }
+        if (this.parentMessage === message) {
+          return;
+        }
         this.parentMessage = message;
         if (this.isViewInited) {
           this.cdRef.detectChanges();
