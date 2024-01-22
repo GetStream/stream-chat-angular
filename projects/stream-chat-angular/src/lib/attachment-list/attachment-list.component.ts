@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   EventEmitter,
   HostBinding,
@@ -34,7 +33,7 @@ import { ThemeService } from '../theme.service';
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
-export class AttachmentListComponent implements OnChanges, AfterViewInit {
+export class AttachmentListComponent implements OnChanges {
   /**
    * The id of the message the attachments belong to
    */
@@ -57,7 +56,6 @@ export class AttachmentListComponent implements OnChanges, AfterViewInit {
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
-  isInited = false;
   themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
@@ -94,13 +92,6 @@ export class AttachmentListComponent implements OnChanges, AfterViewInit {
         );
       }
     }
-  }
-
-  ngAfterViewInit(): void {
-    // Wait next tick to make sure CSS rules are properly applied
-    setTimeout(() => {
-      this.isInited = true;
-    }, 0);
   }
 
   trackByUrl(_: number, attachment: Attachment) {
