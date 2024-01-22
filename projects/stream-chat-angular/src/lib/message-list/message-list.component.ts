@@ -297,6 +297,56 @@ export class MessageListComponent
         }
       )
     );
+    this.subscriptions.push(
+      this.channelService.jumpToMessage$
+        .pipe(filter((config) => !!config.id))
+        .subscribe((config) => {
+          let messageId: string | undefined = undefined;
+          if (this.mode === 'main') {
+            messageId = config.parentId || config.id;
+          } else if (config.parentId) {
+            messageId = config.id;
+          }
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Jumping to ${messageId || ''}`,
+            { tags: `message list ${this.mode}` }
+          );
+          if (messageId) {
+            if (messageId === 'latest') {
+              this.scrollToLatestMessage();
+              if (this.isViewInited) {
+                this.cdRef.detectChanges();
+              }
+            } else {
+              this.scrollMessageIntoView(messageId);
+              this.highlightedMessageId = messageId;
+            }
+          }
+        })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyMainMessageListTemplate !== template;
+          this.emptyMainMessageListTemplate = template || null;
+          if (isChanged && this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyThreadMessageListTemplate !== template;
+          this.emptyThreadMessageListTemplate = template || null;
+          if (isChanged && this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
+    );
     this.setMessages$();
   }
 
@@ -321,54 +371,6 @@ export class MessageListComponent
         this.scrolled()
       );
     });
-    this.subscriptions.push(
-      this.channelService.jumpToMessage$
-        .pipe(filter((config) => !!config.id))
-        .subscribe((config) => {
-          let messageId: string | undefined = undefined;
-          if (this.mode === 'main') {
-            messageId = config.parentId || config.id;
-          } else if (config.parentId) {
-            messageId = config.id;
-          }
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `Jumping to ${messageId || ''}`,
-            { tags: `message list ${this.mode}` }
-          );
-          if (messageId) {
-            if (messageId === 'latest') {
-              this.scrollToLatestMessage();
-              this.cdRef.detectChanges();
-            } else {
-              this.scrollMessageIntoView(messageId);
-              this.highlightedMessageId = messageId;
-            }
-          }
-        })
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
-        (template) => {
-          const isChanged = this.emptyMainMessageListTemplate !== template;
-          this.emptyMainMessageListTemplate = template || null;
-          if (isChanged) {
-            this.cdRef.detectChanges();
-          }
-        }
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
-        (template) => {
-          const isChanged = this.emptyThreadMessageListTemplate !== template;
-          this.emptyThreadMessageListTemplate = template || null;
-          if (isChanged) {
-            this.cdRef.detectChanges();
-          }
-        }
-      )
-    );
   }
 
   ngAfterViewChecked() {
