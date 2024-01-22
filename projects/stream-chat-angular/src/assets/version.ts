@@ -1,1 +1,1 @@
-export const version = '4.55.2-perf-message-list.1';
+export const version = '4.56.0-perf-message-list.1';
