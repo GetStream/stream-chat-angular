@@ -106,6 +106,8 @@
                 "
               >
                 <img
+                  fetchpriority="low"
+                  loading="lazy"
                   #imgElement
                   [src]="
                     getImageAttachmentConfiguration(
@@ -334,6 +336,8 @@
               class="str-chat__message-attachment-card--header"
             >
               <img
+                fetchpriority="low"
+                loading="lazy"
                 data-testclass="card-img"
                 alt="{{ attachmentConfiguration.url }}"
                 src="{{ attachmentConfiguration.url }}"
