@@ -15,6 +15,7 @@ import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeho
 import { MessageReactionType } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
 import { ThemeService } from '../theme.service';
+import { ModalComponent } from '../modal/modal.component';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -59,6 +60,7 @@ describe('MessageReactionsComponent', () => {
         MessageReactionsComponent,
         AvatarComponent,
         AvatarPlaceholderComponent,
+        ModalComponent,
       ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
