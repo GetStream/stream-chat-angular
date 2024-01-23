@@ -1,11 +1,14 @@
 import {
   AfterViewChecked,
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild,
@@ -17,6 +20,7 @@ import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 import { MessageReactionsService } from '../message-reactions.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { ThemeService } from '../theme.service';
+import { Subscription } from 'rxjs';
 
 /**
  * The `MessageReactions` component displays the reactions of a message, the current user can add and remove reactions. You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
@@ -26,7 +30,9 @@ import { ThemeService } from '../theme.service';
   templateUrl: './message-reactions.component.html',
   styles: ['.emoji {position: relative; display: inline-block; }'],
 })
-export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
+export class MessageReactionsComponent
+  implements AfterViewChecked, OnChanges, OnInit, AfterViewInit, OnDestroy
+{
   /**
    * The id of the message the reactions belong to
    */
@@ -67,6 +73,11 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
   isLoading = true;
   reactions: ReactionResponse[] = [];
   shouldHandleReactionClick = true;
+  existingReactions: string[] = [];
+  reactionsCount: number = 0;
+  reactionOptions: string[] = [];
+  private subscriptions: Subscription[] = [];
+  private isViewInited = false;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -76,11 +87,26 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     private themeService: ThemeService
   ) {}
 
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.messageReactionsService.reactions$.subscribe((reactions) => {
+        this.reactionOptions = Object.keys(reactions);
+        this.setExistingReactions();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+      })
+    );
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.isSelectorOpen) {
       this.isSelectorOpen
         ? setTimeout(() => this.watchForOutsideClicks()) // setTimeout: wait for current click to bubble up, and only watch for clicks after that
         : this.stopWatchForOutsideClicks();
+    }
+    if (changes.messageReactionCounts) {
+      this.setExistingReactions();
     }
     if (changes.messageReactionCounts && this.messageReactionCounts) {
       const reactionsCount = Object.keys(this.messageReactionCounts).reduce(
@@ -93,6 +119,10 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     }
   }
 
+  ngAfterViewInit(): void {
+    this.isViewInited = true;
+  }
+
   ngAfterViewChecked(): void {
     if (this.tooltipText && !this.tooltipPositions) {
       this.setTooltipPosition();
@@ -100,21 +130,8 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
     }
   }
 
-  get existingReactions(): MessageReactionType[] {
-    return Object.keys(this.messageReactionCounts)
-      .filter((k) => this.reactionOptions.indexOf(k) !== -1)
-      .filter((k) => this.messageReactionCounts[k]! > 0);
-  }
-
-  get reactionsCount() {
-    return this.existingReactions.reduce(
-      (total, reaction) => total + this.messageReactionCounts[reaction]!,
-      0
-    );
-  }
-
-  get reactionOptions(): MessageReactionType[] {
-    return Object.keys(this.messageReactionsService.reactions);
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   getLatestUserByReaction(reactionType: MessageReactionType) {
@@ -278,5 +295,15 @@ export class MessageReactionsComponent implements AfterViewChecked, OnChanges {
       this.isLoading = false;
       this.cdRef.detectChanges();
     }
+  }
+
+  private setExistingReactions() {
+    this.existingReactions = Object.keys(this.messageReactionCounts)
+      .filter((k) => this.reactionOptions.indexOf(k) !== -1)
+      .filter((k) => this.messageReactionCounts[k]! > 0);
+    this.reactionsCount = this.existingReactions.reduce(
+      (total, reaction) => total + this.messageReactionCounts[reaction]!,
+      0
+    );
   }
 }

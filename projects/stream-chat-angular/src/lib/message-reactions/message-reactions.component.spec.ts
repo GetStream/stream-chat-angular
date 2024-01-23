@@ -16,6 +16,7 @@ import { MessageReactionType } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
 import { ThemeService } from '../theme.service';
 import { ModalComponent } from '../modal/modal.component';
+import { BehaviorSubject } from 'rxjs';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -43,6 +44,7 @@ describe('MessageReactionsComponent', () => {
     getMessageReactions: () => Promise.resolve([] as ReactionResponse[]),
   };
   const reactionsServiceMock = {
+    reactions$: new BehaviorSubject({}),
     reactions: {},
   };
 
@@ -55,6 +57,9 @@ describe('MessageReactionsComponent', () => {
       wow: '😮',
       sad: '😞',
     };
+    reactionsServiceMock.reactions$ = new BehaviorSubject(
+      reactionsServiceMock.reactions
+    );
     await TestBed.configureTestingModule({
       declarations: [
         MessageReactionsComponent,
@@ -74,6 +79,9 @@ describe('MessageReactionsComponent', () => {
     fixture = TestBed.createComponent(MessageReactionsComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;
+    component.ngOnChanges({ messageReactionsCounts: {} as SimpleChange });
+    component.ngAfterViewInit();
+    fixture.detectChanges();
     queryReactionList = () =>
       nativeElement.querySelector('[data-testid="reaction-list"]');
     queryEmojis = () =>
@@ -110,6 +118,9 @@ describe('MessageReactionsComponent', () => {
       haha: 2,
       like: 1,
     };
+    component.ngOnChanges({
+      messageReactionCounts: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const reactionCounts = queryReactionCountsFromReactionList();
 
@@ -126,6 +137,9 @@ describe('MessageReactionsComponent', () => {
       wow: 1,
       sad: 3,
     };
+    component.ngOnChanges({
+      messageReactionCounts: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryReactionsCount()?.textContent?.replace(/ /g, '')).toBe('7');
@@ -139,6 +153,9 @@ describe('MessageReactionsComponent', () => {
     component.messageReactionCounts = {
       haha: 1,
     };
+    component.ngOnChanges({
+      messageReactionCounts: {} as SimpleChange,
+    });
 
     expect(queryReactionsSelector()).toBeNull();
     expect(
@@ -231,6 +248,7 @@ describe('MessageReactionsComponent', () => {
     };
     component.messageId = 'id';
     component.latestReactions = [];
+    component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
     fixture.detectChanges();
 
     const reactions = [
@@ -336,6 +354,11 @@ describe('MessageReactionsComponent', () => {
     };
     component.messageId = 'id';
     component.latestReactions = [];
+    component.ngOnChanges({
+      messageId: {} as SimpleChange,
+      messageReactionCounts: {} as SimpleChange,
+      latestReactions: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     spyOn(channelServiceMock, 'getMessageReactions').and.rejectWith(
@@ -460,6 +483,7 @@ describe('MessageReactionsComponent', () => {
     component.ownReactions = [
       { type: 'wow', user: { id: 'jackid' } },
     ] as ReactionResponse[];
+    component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
     fixture.detectChanges();
 
     const reactions = queryEmojis();
@@ -473,15 +497,18 @@ describe('MessageReactionsComponent', () => {
   });
 
   it('should filter not supported reactions', () => {
-    reactionsServiceMock.reactions = {
+    reactionsServiceMock.reactions$.next({
       angry: '😠',
       haha: '😂',
-    };
+    });
     component.messageReactionCounts = {
       angry: 1,
       haha: 2,
       like: 1,
     };
+    component.ngOnChanges({
+      messageReactionCounts: {} as SimpleChange,
+    });
     fixture.detectChanges();
     const reactionCounts = queryReactionCountsFromReactionList();
 

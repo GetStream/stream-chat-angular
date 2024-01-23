@@ -13,6 +13,7 @@ import {
   mockMessage,
 } from '../mocks';
 import { ChannelPreviewComponent } from './channel-preview.component';
+import { Observable, of } from 'rxjs';
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -21,6 +22,7 @@ describe('ChannelPreviewComponent', () => {
   let channelServiceMock: MockChannelService;
   let chatClientServiceMock: {
     chatClient: { user: UserResponse };
+    user$: Observable<{ id: string }>;
   };
   let queryContainer: () => HTMLElement | null;
   let queryAvatar: () => AvatarPlaceholderComponent;
@@ -32,6 +34,7 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock = mockChannelService();
     chatClientServiceMock = {
       chatClient: { user: { id: 'currentUser' } },
+      user$: of({ id: 'currentUser' }),
     };
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],

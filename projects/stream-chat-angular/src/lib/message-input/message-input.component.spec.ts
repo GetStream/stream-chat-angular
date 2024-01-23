@@ -9,7 +9,7 @@ import {
 } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, of } from 'rxjs';
 import { AppSettings, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
@@ -138,7 +138,12 @@ describe('MessageInputComponent', () => {
         },
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user }, appSettings$, getAppSettings },
+          useValue: {
+            user$: of(user),
+            chatClient: { user },
+            appSettings$,
+            getAppSettings,
+          },
         },
         {
           provide: ThemeService,
