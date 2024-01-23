@@ -130,7 +130,8 @@
         isOpen: !!selectedReactionType,
         messageId: messageId,
         reactionType: selectedReactionType,
-        isOpenChangeHandler: isOpenChange
+        isOpenChangeHandler: isOpenChange,
+        content: modalContent
       }
     "
   ></ng-container>
@@ -142,83 +143,88 @@
   let-messageId="messageId"
   let-reactionType="reactionType"
   let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
 >
   <stream-modal
     class="str-chat__message-reactions-details-modal"
     [isOpen]="isOpen"
     (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
   >
-    <div class="str-chat__message-reactions-details">
-      <div class="str-chat__message-reactions-details-reaction-types">
-        <div
-          class="str-chat__message-reactions-details-reaction-type"
-          *ngFor="
-            let reactionType of existingReactions;
-            trackBy: trackByMessageReaction
-          "
-          [ngStyle]="{
-            cursor: shouldHandleReactionClick ? 'pointer' : 'default'
-          }"
-          attr.data-testid="reaction-details-selector-{{ reactionType }}"
-          [class.str-chat__message-reactions-details-reaction-type--selected]="
-            reactionType === selectedReactionType
-          "
-          (click)="selectedReactionType = reactionType; allUsers.scrollTop = 0"
-          (keyup.enter)="
-            selectedReactionType = reactionType; allUsers.scrollTop = 0
-          "
-        >
-          <span class="emoji str-chat__message-reaction-emoji">
-            {{ getEmojiByReaction(reactionType) }}&nbsp;
-          </span>
-          <span class="str-chat__message-reaction-count">
-            {{ messageReactionCounts[reactionType] }}
-          </span>
-        </div>
-      </div>
+  </stream-modal>
+</ng-template>
+
+<ng-template #modalContent>
+  <div class="str-chat__message-reactions-details">
+    <div class="str-chat__message-reactions-details-reaction-types">
       <div
-        class="
-          emoji
-          str-chat__message-reaction-emoji str-chat__message-reaction-emoji-big
+        class="str-chat__message-reactions-details-reaction-type"
+        *ngFor="
+          let reactionType of existingReactions;
+          trackBy: trackByMessageReaction
+        "
+        [ngStyle]="{
+          cursor: shouldHandleReactionClick ? 'pointer' : 'default'
+        }"
+        attr.data-testid="reaction-details-selector-{{ reactionType }}"
+        [class.str-chat__message-reactions-details-reaction-type--selected]="
+          reactionType === selectedReactionType
+        "
+        (click)="selectedReactionType = reactionType; allUsers.scrollTop = 0"
+        (keyup.enter)="
+          selectedReactionType = reactionType; allUsers.scrollTop = 0
         "
       >
-        {{ getEmojiByReaction(selectedReactionType!) }}
-      </div>
-      <div
-        #allUsers
-        data-testid="all-reacting-users"
-        class="str-chat__message-reactions-details-reacting-users"
-      >
-        <stream-loading-indicator
-          *ngIf="isLoading; else reactions"
-        ></stream-loading-indicator>
-        <ng-template #reactions>
-          <div
-            class="str-chat__message-reactions-details-reacting-user"
-            *ngFor="
-              let user of getAllUsersByReaction(selectedReactionType);
-              trackBy: trackByUserId
-            "
-          >
-            <stream-avatar-placeholder
-              data-testclass="avatar"
-              class="str-chat__avatar str-chat__avatar--circle"
-              style="max-height: 100%; overflow-y: hidden"
-              [size]="30"
-              [imageUrl]="user.image"
-              [name]="user.name"
-              type="user"
-              location="reaction"
-              [user]="user"
-            ></stream-avatar-placeholder>
-            <span
-              data-testclass="reaction-user-username"
-              class="str-chat__user-item--name"
-              >{{ user.name }}</span
-            >
-          </div>
-        </ng-template>
+        <span class="emoji str-chat__message-reaction-emoji">
+          {{ getEmojiByReaction(reactionType) }}&nbsp;
+        </span>
+        <span class="str-chat__message-reaction-count">
+          {{ messageReactionCounts[reactionType] }}
+        </span>
       </div>
     </div>
-  </stream-modal>
+    <div
+      class="
+        emoji
+        str-chat__message-reaction-emoji str-chat__message-reaction-emoji-big
+      "
+    >
+      {{ getEmojiByReaction(selectedReactionType!) }}
+    </div>
+    <div
+      #allUsers
+      data-testid="all-reacting-users"
+      class="str-chat__message-reactions-details-reacting-users"
+    >
+      <stream-loading-indicator
+        *ngIf="isLoading; else reactions"
+      ></stream-loading-indicator>
+      <ng-template #reactions>
+        <div
+          class="str-chat__message-reactions-details-reacting-user"
+          *ngFor="
+            let user of getAllUsersByReaction(selectedReactionType);
+            trackBy: trackByUserId
+          "
+        >
+          <stream-avatar-placeholder
+            data-testclass="avatar"
+            class="str-chat__avatar str-chat__avatar--circle"
+            style="max-height: 100%; overflow-y: hidden"
+            [size]="30"
+            [imageUrl]="user.image"
+            [name]="user.name"
+            type="user"
+            location="reaction"
+            [user]="user"
+          ></stream-avatar-placeholder>
+          <span
+            data-testclass="reaction-user-username"
+            class="str-chat__user-item--name"
+            >{{ user.name }}</span
+          >
+        </div>
+      </ng-template>
+    </div>
+  </div>
 </ng-template>
