@@ -1,10 +1,26 @@
 <div id="root">
-  <stream-channel-list
-    (click)="closeMenu()"
-    class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
-      isThreadOpen ? 'open' : 'close'
-    }}"
-  ></stream-channel-list>
+  <div>
+    <div>
+      <button *ngFor="let tab of tabs" (click)="selectedTabChanged(tab)">
+        {{ tab }}
+      </button>
+    </div>
+    <div
+      (click)="closeMenu()"
+      class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
+        isThreadOpen ? 'open' : 'close'
+      }}"
+    >
+      <app-custom-channel-list
+        *ngIf="currentTab === '1:1 conversations'"
+        channelListType="1:1 conversations"
+      ></app-custom-channel-list>
+      <app-custom-channel-list
+        *ngIf="currentTab === 'Team conversations'"
+        channelListType="Team conversations"
+      ></app-custom-channel-list>
+    </div>
+  </div>
   <stream-channel class="channel" (click)="closeMenu()">
     <stream-channel-header>
       <button

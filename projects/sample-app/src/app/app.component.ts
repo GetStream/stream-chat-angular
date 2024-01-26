@@ -31,6 +31,8 @@ export class AppComponent implements AfterViewInit {
   themeVersion: '1' | '2';
   theme$: Observable<string>;
   counter = 0;
+  tabs = ['1:1 conversations', 'Team conversations'];
+  currentTab = this.tabs[0];
 
   constructor(
     private chatService: ChatClientService,
@@ -44,10 +46,6 @@ export class AppComponent implements AfterViewInit {
       environment.userId,
       environment.userToken
     );
-    void this.channelService.init({
-      type: 'messaging',
-      members: { $in: [environment.userId] },
-    });
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
@@ -64,5 +62,9 @@ export class AppComponent implements AfterViewInit {
 
   closeMenu() {
     this.isMenuOpen = false;
+  }
+
+  selectedTabChanged(tabName: string) {
+    this.currentTab = tabName;
   }
 }

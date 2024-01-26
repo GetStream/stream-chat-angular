@@ -10,9 +10,15 @@ import {
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { CustomChannelListComponent } from './custom-channel-list/custom-channel-list.component';
 
 @NgModule({
-  declarations: [AppComponent, CustomMessageComponent, EmojiPickerComponent],
+  declarations: [
+    AppComponent,
+    CustomMessageComponent,
+    EmojiPickerComponent,
+    CustomChannelListComponent,
+  ],
   imports: [
     BrowserModule,
     TranslateModule.forRoot(),
