@@ -87,8 +87,8 @@
             <div
               class="str-chat__message-actions-box-button"
               data-testid="action-icon"
-              (click)="isActionBoxOpen = !isActionBoxOpen"
-              (keyup.enter)="isActionBoxOpen = !isActionBoxOpen"
+              (click)="messageActionsClicked()"
+              (keyup.enter)="messageActionsClicked()"
               *ngIf="visibleMessageActionsCount > 0"
             >
               <stream-icon-placeholder

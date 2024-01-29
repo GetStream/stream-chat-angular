@@ -268,6 +268,22 @@ export class MessageComponent
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
+  messageActionsClicked() {
+    if (!this.message) {
+      return;
+    }
+    if (this.messageActionsService.customActionClickHandler) {
+      this.messageActionsService.customActionClickHandler({
+        message: this.message,
+        enabledActions: this.enabledMessageActions,
+        customActions: this.customActions,
+        isMine: this.isSentByCurrentUser,
+      });
+    } else {
+      this.isActionBoxOpen = !this.isActionBoxOpen;
+    }
+  }
+
   getAttachmentListContext(): AttachmentListContext {
     return {
       messageId: this.message?.id || '',

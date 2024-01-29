@@ -549,6 +549,24 @@ describe('MessageComponent', () => {
     expect(queryMessageActionsBoxComponent()?.isOpen).toBeTrue();
   });
 
+  it('should call custom message actions click handler', () => {
+    const service = TestBed.inject(MessageActionsService);
+    const spy = jasmine.createSpy();
+    service.customActionClickHandler = spy;
+    component.enabledMessageActions = ['update-own-message', 'flag-message'];
+    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+    fixture.detectChanges();
+
+    queryActionIcon()?.click();
+
+    expect(spy).toHaveBeenCalledWith({
+      message: component.message,
+      enabledActions: component.enabledMessageActions,
+      isMine: component.isSentByCurrentUser,
+      customActions: component.customActions,
+    });
+  });
+
   it('should close message actions box on mouseleave event', () => {
     component.enabledMessageActions = ['update-own-message', 'flag-message'];
     component.isActionBoxOpen = true;

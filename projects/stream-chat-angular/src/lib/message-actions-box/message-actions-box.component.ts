@@ -70,7 +70,7 @@ export class MessageActionsBoxComponent
   /**
    * An event which emits `true` if the edit message modal is open, and `false` when it is closed.
    *
-   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
+   * @deprecated components should use `messageReactionsService.messageToEdit$` Observable
    *
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */

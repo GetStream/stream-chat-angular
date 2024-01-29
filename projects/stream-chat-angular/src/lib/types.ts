@@ -410,3 +410,12 @@ export type MessageReactionClickDetails = {
   messageId: string;
   reactionType: string;
 };
+
+export type MessageActionsClickDetails<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  message: StreamMessage<T>;
+  enabledActions: string[];
+  isMine: boolean;
+  customActions: CustomMessageActionItem[];
+};
