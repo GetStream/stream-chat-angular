@@ -1,8 +1,11 @@
 import {
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   Input,
   NgZone,
   OnChanges,
+  OnInit,
   SimpleChanges,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -23,7 +26,9 @@ import {
   templateUrl: './avatar.component.html',
   styleUrls: ['./avatar.component.scss'],
 })
-export class AvatarComponent implements OnChanges {
+export class AvatarComponent
+  implements OnChanges, OnInit, OnChanges, AfterViewInit
+{
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -62,42 +67,66 @@ export class AvatarComponent implements OnChanges {
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
-  isLoaded = false;
   isError = false;
   isOnline = false;
   private isOnlineSubscription?: Subscription;
+  initials: string = '';
+  fallbackChannelImage: string | undefined;
+  private userId?: string;
+  private isViewInited = false;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private chatClientService: ChatClientService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef
   ) {}
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.chatClientService.user$.subscribe((u) => {
+        if (u?.id !== this.userId) {
+          this.userId = u?.id;
+          if (this.type || this.channel || this.name) {
+            this.setInitials();
+            this.setFallbackChannelImage();
+            this.updateIsOnlineSubscription();
+          }
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      })
+    );
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['channel']) {
-      if (this.channel) {
-        const otherMember = this.getOtherMemberIfOneToOneChannel();
-        if (otherMember) {
-          this.isOnline = otherMember.online || false;
-          this.isOnlineSubscription = this.chatClientService.events$
-            .pipe(filter((e) => e.eventType === 'user.presence.changed'))
-            .subscribe((event) => {
-              if (event.event.user?.id === otherMember.id) {
-                this.ngZone.run(() => {
-                  this.isOnline = event.event.user?.online || false;
-                });
-              }
-            });
-        } else {
-          this.isOnlineSubscription?.unsubscribe();
-        }
+      this.updateIsOnlineSubscription();
+    }
+    if (changes.type || changes.name || changes.channel) {
+      this.setInitials();
+    }
+
+    if (changes.type || changes.channel) {
+      this.setFallbackChannelImage();
+    }
+  }
+
+  private setFallbackChannelImage() {
+    if (this.type !== 'channel') {
+      this.fallbackChannelImage = undefined;
+    } else {
+      const otherMember = this.getOtherMemberIfOneToOneChannel();
+      if (otherMember) {
+        this.fallbackChannelImage = otherMember.image;
       } else {
-        this.isOnline = false;
-        this.isOnlineSubscription?.unsubscribe();
+        this.fallbackChannelImage = undefined;
       }
     }
   }
 
-  get initials() {
+  private setInitials() {
     let result: string = '';
     if (this.type === 'user') {
       result = this.name?.toString() || '';
@@ -121,26 +150,40 @@ export class AvatarComponent implements OnChanges {
     } else {
       initials = words[0].charAt(0) || '';
     }
-    return initials;
+    this.initials = initials;
   }
 
-  get fallbackChannelImage() {
-    if (this.type !== 'channel') {
-      return undefined;
-    } else {
+  private updateIsOnlineSubscription() {
+    if (this.channel) {
       const otherMember = this.getOtherMemberIfOneToOneChannel();
       if (otherMember) {
-        return otherMember.image;
+        this.isOnline = otherMember.online || false;
+        this.isOnlineSubscription = this.chatClientService.events$
+          .pipe(filter((e) => e.eventType === 'user.presence.changed'))
+          .subscribe((event) => {
+            if (event.event.user?.id === otherMember.id) {
+              this.ngZone.run(() => {
+                this.isOnline = event.event.user?.online || false;
+              });
+            }
+          });
       } else {
-        return undefined;
+        this.isOnlineSubscription?.unsubscribe();
       }
+    } else {
+      this.isOnline = false;
+      this.isOnlineSubscription?.unsubscribe();
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInited = true;
   }
 
   private getOtherMemberIfOneToOneChannel() {
     const otherMembers = Object.values(
       this.channel?.state?.members || {}
-    ).filter((m) => m.user_id !== this.chatClientService.chatClient.user?.id);
+    ).filter((m) => m.user_id !== this.userId);
     if (otherMembers.length === 1) {
       return otherMembers[0].user;
     } else {

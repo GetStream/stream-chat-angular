@@ -16,13 +16,10 @@
 >
   <img
     *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
-    class="str-chat__avatar-image str-chat__avatar-image{{
-      isLoaded ? ' str-chat__avatar-image--loaded' : ''
-    }}"
+    class="str-chat__avatar-image str-chat__avatar-image"
     src="{{ imageUrl || fallbackChannelImage }}"
     alt="{{ initials }}"
     data-testid="avatar-img"
-    (load)="isLoaded = true"
     (error)="isError = true"
     [style]="{
       flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
@@ -30,6 +27,7 @@
       objectFit: 'cover',
       width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
     }"
+    fetchpriority="high"
   />
   <ng-template #fallback>
     <div

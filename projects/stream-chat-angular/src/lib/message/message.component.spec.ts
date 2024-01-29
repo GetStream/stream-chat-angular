@@ -42,7 +42,9 @@ describe('MessageComponent', () => {
   let queryMessageOptions: () => HTMLElement | null;
   let queryActionIcon: () => HTMLElement | null;
   let queryText: () => HTMLElement | null;
-  let messageActionsBoxComponent: MessageActionsBoxComponent;
+  let queryMessageActionsBoxComponent: () =>
+    | MessageActionsBoxComponent
+    | undefined;
   let queryAttachmentComponent: () => AttachmentListComponent;
   let queryReactionIcon: () => HTMLElement | null;
   let queryMessageReactions: () => MessageReactionsComponent;
@@ -146,13 +148,13 @@ describe('MessageComponent', () => {
     queryReplyInThreadIcon = () =>
       nativeElement.querySelector('[data-testid="reply-in-thread"]');
     message = mockMessage();
-    component.optionsRenderTimeoutEnded = true;
     component.message = message;
     component.ngOnChanges({ message: {} as SimpleChange });
+    component.ngAfterViewInit();
     fixture.detectChanges();
-    messageActionsBoxComponent = fixture.debugElement.query(
-      By.directive(MessageActionsBoxComponent)
-    )?.componentInstance as MessageActionsBoxComponent;
+    queryMessageActionsBoxComponent = () =>
+      fixture.debugElement.query(By.directive(MessageActionsBoxComponent))
+        ?.componentInstance as MessageActionsBoxComponent;
     queryAttachmentComponent = () =>
       fixture.debugElement.query(By.directive(AttachmentListComponent))
         ?.componentInstance as AttachmentListComponent;
@@ -539,12 +541,12 @@ describe('MessageComponent', () => {
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
-    expect(messageActionsBoxComponent.isOpen).toBeFalse();
+    expect(queryMessageActionsBoxComponent()).toBeUndefined();
 
     queryActionIcon()?.click();
     fixture.detectChanges();
 
-    expect(messageActionsBoxComponent.isOpen).toBeTrue();
+    expect(queryMessageActionsBoxComponent()?.isOpen).toBeTrue();
   });
 
   it('should close message actions box on mouseleave event', () => {
@@ -560,12 +562,20 @@ describe('MessageComponent', () => {
   });
 
   it('should provide #enabledActions to message actions box', () => {
+    component.isActionBoxOpen = true;
+    fixture.detectChanges();
+    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
+
     expect(messageActionsBoxComponent.enabledActions).toBe(
       component.enabledMessageActions
     );
   });
 
   it('should provide #isMine to message actions box', () => {
+    component.isActionBoxOpen = true;
+    fixture.detectChanges();
+    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
+
     expect(messageActionsBoxComponent.isMine).toBeTrue();
 
     component.message = { ...message, ...{ user: { id: 'notcurrentuser' } } };
@@ -576,7 +586,9 @@ describe('MessageComponent', () => {
   });
 
   it('should provide #message to message actions box', () => {
+    component.isActionBoxOpen = true;
     fixture.detectChanges();
+    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
 
     expect(messageActionsBoxComponent.message).toBe(message);
   });
@@ -591,7 +603,9 @@ describe('MessageComponent', () => {
       },
     ];
     component.customActions = customActions;
+    component.isActionBoxOpen = true;
     fixture.detectChanges();
+    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
 
     expect(messageActionsBoxComponent.customActions).toBe(customActions);
   });

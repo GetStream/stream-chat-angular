@@ -1,6 +1,6 @@
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 import { ChatClientService, ClientEvent } from '../chat-client.service';
 import { generateMockChannels } from '../mocks';
 import { AvatarComponent } from './avatar.component';
@@ -18,6 +18,7 @@ describe('AvatarComponent', () => {
   let chatClientServiceMock: {
     chatClient: { user: { id: string } };
     events$: Subject<ClientEvent>;
+    user$: Observable<{ id: string }>;
   };
 
   beforeEach(() => {
@@ -25,6 +26,7 @@ describe('AvatarComponent', () => {
     chatClientServiceMock = {
       chatClient: { user: { id: 'current-user' } },
       events$,
+      user$: of({ id: 'current-user' }),
     };
     TestBed.configureTestingModule({
       declarations: [AvatarComponent],
@@ -64,9 +66,6 @@ describe('AvatarComponent', () => {
     expect(img).not.toBeNull();
     expect(fallbackImg).toBeNull();
     expect(img!.src).toBe(imageUrl);
-    expect(
-      img!.classList.contains('str-chat__avatar-image--loaded')
-    ).toBeTrue();
   });
 
   it('should display image with the provided #size', () => {
@@ -94,6 +93,7 @@ describe('AvatarComponent', () => {
   it(`should display fallback image if #imageUrl wasn't provided`, () => {
     component.name = 'John Doe';
     component.type = 'user';
+    component.ngOnChanges({ type: {} as SimpleChange });
     fixture.detectChanges();
     const img = queryImg();
     const fallbackImg = queryFallbackImg();
@@ -107,16 +107,28 @@ describe('AvatarComponent', () => {
   it('should display initials correctly', () => {
     component.type = 'user';
     component.name = 'John Doe';
+    component.ngOnChanges({
+      type: {} as SimpleChange,
+      name: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(component.initials).toBe('J');
 
     component.name = 'Johhny';
+    component.ngOnChanges({
+      name: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('J');
 
     component.name = undefined;
+    component.ngOnChanges({
+      name: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('');
@@ -125,6 +137,11 @@ describe('AvatarComponent', () => {
     channel.data!.name = undefined;
     component.channel = channel;
     component.type = 'channel';
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+      type: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('#');
@@ -143,6 +160,11 @@ describe('AvatarComponent', () => {
     };
     component.channel = channel;
     component.type = 'channel';
+    component.ngOnChanges({
+      type: {} as SimpleChange,
+      channel: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('T');
@@ -160,11 +182,18 @@ describe('AvatarComponent', () => {
       },
     };
     component.channel = channel;
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('J');
 
     delete channel.state.members['otheruser'].user!.name;
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+    });
 
     expect(component.initials).toBe('o');
 
@@ -179,6 +208,10 @@ describe('AvatarComponent', () => {
       },
     };
     component.channel = channel;
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+    });
+
     fixture.detectChanges();
 
     expect(component.initials).toBe('#');
@@ -199,6 +232,10 @@ describe('AvatarComponent', () => {
     component.imageUrl = undefined;
     component.channel = channel;
     component.type = 'channel';
+    component.ngOnChanges({
+      type: {} as SimpleChange,
+      channel: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryImg()?.src).toContain('url/to/img');
@@ -210,6 +247,9 @@ describe('AvatarComponent', () => {
 
     channel.state.members.otheruser.user!.image = undefined;
     component.imageUrl = undefined;
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryImg()).toBeNull();
@@ -218,6 +258,9 @@ describe('AvatarComponent', () => {
       user_id: 'thirduser',
       user: { id: 'thirduser', image: 'profile/img' },
     };
+    component.ngOnChanges({
+      channel: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryImg()).toBeNull();
@@ -373,6 +416,10 @@ describe('AvatarComponent', () => {
     component.type = 'user';
     component.initialsType = 'first-letter-of-each-word';
     component.name = 'John Doe';
+    component.ngOnChanges({
+      name: {} as SimpleChange,
+      type: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(component.initials).toBe('JD');

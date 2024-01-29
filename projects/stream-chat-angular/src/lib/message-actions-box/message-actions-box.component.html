@@ -51,6 +51,7 @@
 >
   <stream-modal
     [isOpen]="isOpen"
+    *ngIf="isOpen"
     (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
   >

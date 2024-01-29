@@ -1,6 +1,7 @@
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -40,6 +41,7 @@ import { MessageActionsService } from '../message-actions.service';
   selector: 'stream-message-list',
   templateUrl: './message-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy, AfterViewInit
@@ -129,6 +131,7 @@ export class MessageListComponent
   private isLatestMessageInList = true;
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
+  private isViewInited = false;
 
   @HostBinding('class')
   private get class() {
@@ -146,6 +149,11 @@ export class MessageListComponent
     private cdRef: ChangeDetectorRef,
     private messageActionsService: MessageActionsService
   ) {
+    this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
+    this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
+  }
+
+  ngOnInit(): void {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         this.chatClientService.chatClient?.logger?.(
@@ -175,10 +183,20 @@ export class MessageListComponent
           } else {
             this.lastReadMessageId = undefined;
           }
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
         const capabilites = channel?.data?.own_capabilities as string[];
-        if (capabilites) {
-          this.enabledMessageActions = capabilites;
+        const capabilitesString = [...(capabilites || [])].sort().join('');
+        const enabledActionsString = [...(this.enabledMessageActions || [])]
+          .sort()
+          .join('');
+        if (capabilitesString !== enabledActionsString) {
+          this.enabledMessageActions = capabilites || [];
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
         this.newMessageSubscription?.unsubscribe();
         if (channel) {
@@ -201,6 +219,16 @@ export class MessageListComponent
       })
     );
     this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe((actions) => {
+        if (actions !== this.customMessageActions) {
+          this.customMessageActions = actions;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      })
+    );
+    this.subscriptions.push(
       this.channelService.activeParentMessage$.subscribe((message) => {
         if (
           message &&
@@ -210,40 +238,114 @@ export class MessageListComponent
         ) {
           this.resetScrollState();
         }
+        if (this.parentMessage === message) {
+          return;
+        }
         this.parentMessage = message;
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
       })
     );
     this.subscriptions.push(
-      this.customTemplatesService.messageTemplate$.subscribe(
-        (template) => (this.messageTemplate = template)
-      )
+      this.customTemplatesService.messageTemplate$.subscribe((template) => {
+        if (this.messageTemplate === template) {
+          return;
+        }
+        this.messageTemplate = template;
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+      })
     );
     this.subscriptions.push(
       this.customTemplatesService.dateSeparatorTemplate$.subscribe(
-        (template) => (this.customDateSeparatorTemplate = template)
+        (template) => {
+          if (this.customDateSeparatorTemplate === template) {
+            return;
+          }
+          this.customDateSeparatorTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.newMessagesIndicatorTemplate$.subscribe(
-        (template) => (this.customnewMessagesIndicatorTemplate = template)
+        (template) => {
+          if (this.customnewMessagesIndicatorTemplate === template) {
+            return;
+          }
+          this.customnewMessagesIndicatorTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
       )
     );
     this.subscriptions.push(
       this.customTemplatesService.typingIndicatorTemplate$.subscribe(
-        (template) => (this.typingIndicatorTemplate = template)
+        (template) => {
+          if (this.typingIndicatorTemplate === template) {
+            return;
+          }
+          this.typingIndicatorTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
       )
     );
-    this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
-    this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
-  }
-
-  ngOnInit(): void {
     this.subscriptions.push(
-      this.messageActionsService.customActions$.subscribe((actions) => {
-        if (actions !== this.customMessageActions) {
-          this.customMessageActions = actions;
+      this.channelService.jumpToMessage$
+        .pipe(filter((config) => !!config.id))
+        .subscribe((config) => {
+          let messageId: string | undefined = undefined;
+          if (this.mode === 'main') {
+            messageId = config.parentId || config.id;
+          } else if (config.parentId) {
+            messageId = config.id;
+          }
+          this.chatClientService.chatClient?.logger?.(
+            'info',
+            `Jumping to ${messageId || ''}`,
+            { tags: `message list ${this.mode}` }
+          );
+          if (messageId) {
+            if (messageId === 'latest') {
+              this.scrollToLatestMessage();
+              if (this.isViewInited) {
+                this.cdRef.detectChanges();
+              }
+            } else {
+              this.scrollMessageIntoView(messageId);
+              this.highlightedMessageId = messageId;
+            }
+          }
+        })
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyMainMessageListTemplate !== template;
+          this.emptyMainMessageListTemplate = template || null;
+          if (isChanged && this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
         }
-      })
+      )
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
+        (template) => {
+          const isChanged = this.emptyThreadMessageListTemplate !== template;
+          this.emptyThreadMessageListTemplate = template || null;
+          if (isChanged && this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
     );
     this.setMessages$();
   }
@@ -263,58 +365,12 @@ export class MessageListComponent
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer.nativeElement.addEventListener('scroll', () =>
         this.scrolled()
       );
     });
-    this.subscriptions.push(
-      this.channelService.jumpToMessage$
-        .pipe(filter((config) => !!config.id))
-        .subscribe((config) => {
-          let messageId: string | undefined = undefined;
-          if (this.mode === 'main') {
-            messageId = config.parentId || config.id;
-          } else if (config.parentId) {
-            messageId = config.id;
-          }
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `Jumping to ${messageId || ''}`,
-            { tags: `message list ${this.mode}` }
-          );
-          if (messageId) {
-            if (messageId === 'latest') {
-              this.scrollToLatestMessage();
-            } else {
-              this.scrollMessageIntoView(messageId);
-              this.highlightedMessageId = messageId;
-            }
-          }
-        })
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
-        (template) => {
-          const isChanged = this.emptyMainMessageListTemplate !== template;
-          this.emptyMainMessageListTemplate = template || null;
-          if (isChanged) {
-            this.cdRef.detectChanges();
-          }
-        }
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
-        (template) => {
-          const isChanged = this.emptyThreadMessageListTemplate !== template;
-          this.emptyThreadMessageListTemplate = template || null;
-          if (isChanged) {
-            this.cdRef.detectChanges();
-          }
-        }
-      )
-    );
   }
 
   ngAfterViewChecked() {
@@ -436,6 +492,7 @@ export class MessageListComponent
         if (!this.isUserScrolled) {
           this.unreadMessageCount = 0;
         }
+        this.cdRef.detectChanges();
       });
     }
 
@@ -460,6 +517,7 @@ export class MessageListComponent
           );
           this.isLoading = true;
         }
+        this.cdRef.detectChanges();
       });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
@@ -697,6 +755,7 @@ export class MessageListComponent
       if (this.isUserScrolled) {
         this.unreadMessageCount++;
       }
+      this.cdRef.detectChanges();
     }
   }
 

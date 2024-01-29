@@ -74,7 +74,6 @@ export class AttachmentListComponent implements OnChanges {
   ) {
     this.themeVersion = themeService.themeVersion;
   }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {
       const images = this.attachments.filter(this.isImage);

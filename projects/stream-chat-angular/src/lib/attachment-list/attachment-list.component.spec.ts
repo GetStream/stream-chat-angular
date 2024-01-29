@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { ModalComponent } from '../modal/modal.component';
@@ -46,10 +51,12 @@ describe('AttachmentListComponent', () => {
     TestBed.inject(StreamI18nService).setTranslation();
   });
 
-  beforeEach(() => {
+  beforeEach(fakeAsync(() => {
     fixture = TestBed.createComponent(AttachmentListComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    tick();
     queryAttachments = () =>
       Array.from(
         nativeElement.querySelectorAll(
@@ -70,7 +77,6 @@ describe('AttachmentListComponent', () => {
       Array.from(nativeElement.querySelectorAll('[data-testclass="url-link"]'));
     queryCardImages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="card-img"]'));
-    fixture.detectChanges();
     queryActions = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="attachment-action"]')
@@ -102,7 +108,7 @@ describe('AttachmentListComponent', () => {
           '[data-testclass="video-attachment-parent"]'
         )
       );
-  });
+  }));
 
   it('should display received #attachments ordered', () => {
     component.attachments = [];
