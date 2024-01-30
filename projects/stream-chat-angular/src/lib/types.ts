@@ -339,6 +339,12 @@ export type SendingStatusContext = {
   message: StreamMessage;
 };
 
+export type CustomMetadataContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  message: StreamMessage<T>;
+};
+
 export type ReadStatusContext = {
   message: StreamMessage;
   readByText: string;

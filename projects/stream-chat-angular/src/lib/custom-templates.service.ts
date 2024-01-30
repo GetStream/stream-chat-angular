@@ -10,7 +10,9 @@ import {
   ChannelPreviewContext,
   CommandAutocompleteListItemContext,
   CustomAttachmentUploadContext,
+  CustomMetadataContext,
   DateSeparatorContext,
+  DefaultStreamChatGenerics,
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
@@ -39,7 +41,9 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class CustomTemplatesService {
+export class CustomTemplatesService<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> {
   /**
    * The autocomplete list item template for mentioning users (used in the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx))
    */
@@ -201,6 +205,8 @@ export class CustomTemplatesService {
   /**
    * The template used for displaying the delivered state of the message inside the [message component](../components/MessageComponent.mdx)
    *
+   * Displayed for the last message sent by the current user, if the message isn't yet read by anyone
+   *
    * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   deliveredStatusTemplate$ = new BehaviorSubject<
@@ -208,6 +214,8 @@ export class CustomTemplatesService {
   >(undefined);
   /**
    * The template used for displaying the sending state of the message inside the [message component](../components/MessageComponent.mdx)
+   *
+   * Displayed for the last message sent by the current user, if the message is currently being sent
    *
    * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
@@ -217,10 +225,20 @@ export class CustomTemplatesService {
   /**
    * The template used for displaying the sent state of the message inside the [message component](../components/MessageComponent.mdx)
    *
+   * Displayed for the last message sent by the current user, if the message is read at least by one user
+   *
    * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
    */
   readStatusTemplate$ = new BehaviorSubject<
     TemplateRef<ReadStatusContext> | undefined
+  >(undefined);
+  /**
+   * Template to display custom metadata inside [message component](../components/MessageComponent.mdx)
+   *
+   * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
+   */
+  customMessageMetadataTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomMetadataContext<T>> | undefined
   >(undefined);
   /**
    * The template used to display additional information about a channel under the channel name inside the [channel header component](../components/ChannelHeaderComponent.mdx)

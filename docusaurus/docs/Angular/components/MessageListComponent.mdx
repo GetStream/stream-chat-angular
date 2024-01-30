@@ -19,30 +19,7 @@ If you want to customize how messages are displayed in the list, head over to th
 
 ### Custom message list
 
-The message list contains a lot of low-level logic related to scrolling, we don't advise to create your own message list component, however it's possible: see [our customization guide](../concepts/customization.mdx) on how to provide your own message list component.
-
-:::note
-If you want to create your own message list, you can use the [`ChannelService`](../services/ChannelService.mdx) to receive the necessary messages and interact with the Stream API.
-
-Other building blocks, that you might find useful:
-
-### Message group styles
-
-Message group styles makes the message list more readable, by grouping messages from the same author on the same day together. The grouping assigns a CSS class to every message, if you want to take advantage of this functionality, you can use the [`getGroupStyles`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-list/group-styles.ts) utility function.
-
-**Example 1** - Messages with group styles
-
-<img src={MessagesWithGroupingsScreenhot} width="500" />
-
-**Example 2** - Messages without group styles
-
-<img src={MessagesWithoutGroupingsScreenhot} width="500" />
-
-:::
-
-**Example 2** - Using a custom message component
-
-If you only want to customize the messages (not the whole list), see the [message customization guide](./MessageComponent.mdx/#customization).
+The message list contains a lot of low-level logic related to scrolling, we don't advise to create your own message list component
 
 [//]: # "Start of generated content"
 [//]: # "End of generated content"
