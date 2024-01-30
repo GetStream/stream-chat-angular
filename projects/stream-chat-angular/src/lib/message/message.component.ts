@@ -27,6 +27,7 @@ import {
   ReadStatusContext,
   CustomMessageActionItem,
   SystemMessageContext,
+  CustomMetadataContext,
 } from '../types';
 import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
@@ -364,6 +365,12 @@ export class MessageComponent
     return {
       message: this.message!,
       readByText: this.readByText,
+    };
+  }
+
+  getMessageMetadataContext(): CustomMetadataContext {
+    return {
+      message: this.message!,
     };
   }
 

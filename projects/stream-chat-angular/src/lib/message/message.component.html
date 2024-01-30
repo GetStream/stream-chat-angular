@@ -440,6 +440,18 @@
         streamChat.See translation
       </button>
     </div>
+    <ng-container
+      *ngIf="customTemplatesService.customMessageMetadataTemplate$ | async"
+    >
+      <div class="str-chat__custom-message-metadata">
+        <ng-container
+          *ngTemplateOutlet="
+            (customTemplatesService.customMessageMetadataTemplate$ | async)!;
+            context: getMessageMetadataContext()
+          "
+        ></ng-container>
+      </div>
+    </ng-container>
     <div
       class="
         str-chat__message-data
