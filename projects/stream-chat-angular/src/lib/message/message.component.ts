@@ -161,6 +161,9 @@ export class MessageComponent
         }
         if (isEditing !== this.isEditing) {
           this.isEditing = isEditing;
+          if (!this.isEditing) {
+            this.isActionBoxOpen = false;
+          }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -257,11 +260,6 @@ export class MessageComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    this.ngZone.runOutsideAngular(() => {
-      this.container?.nativeElement.addEventListener('mouseleave', () =>
-        this.mouseLeft()
-      );
-    });
   }
 
   ngOnDestroy(): void {
@@ -400,14 +398,6 @@ export class MessageComponent
 
   displayOriginalMessage() {
     this.createMessageParts(false);
-  }
-
-  mouseLeft() {
-    if (this.isActionBoxOpen) {
-      this.ngZone.run(() => {
-        this.isActionBoxOpen = false;
-      });
-    }
   }
 
   private createMessageParts(shouldTranslate = true) {

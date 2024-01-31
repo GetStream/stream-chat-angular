@@ -35,6 +35,7 @@
         <div
           class="str-chat__message-simple__actions str-chat__message-options"
           data-testid="message-options"
+          [class.str-chat__message-actions-open]="isActionBoxOpen"
           [class.str-chat__message-edit-in-progress]="isEditing"
           *ngIf="areOptionsVisible"
         >
@@ -56,6 +57,7 @@
             [popperHideOnClickOutside]="true"
             [popperHideOnMouseLeave]="false"
             [popperDisableAnimation]="true"
+            (popperOnHidden)="isActionBoxOpen = false"
           >
             <popper-content #popperContent>
               <ng-template

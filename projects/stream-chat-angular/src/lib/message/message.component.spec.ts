@@ -567,18 +567,6 @@ describe('MessageComponent', () => {
     });
   });
 
-  it('should close message actions box on mouseleave event', () => {
-    component.enabledMessageActions = ['update-own-message', 'flag-message'];
-    component.isActionBoxOpen = true;
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    queryContainer()?.dispatchEvent(new Event('mouseleave'));
-    fixture.detectChanges();
-
-    expect(component.isActionBoxOpen).toBeFalse();
-  });
-
   it('should provide #enabledActions to message actions box', () => {
     component.isActionBoxOpen = true;
     fixture.detectChanges();
