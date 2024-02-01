@@ -161,6 +161,9 @@ export class MessageComponent
         }
         if (isEditing !== this.isEditing) {
           this.isEditing = isEditing;
+          if (!this.isEditing) {
+            this.isActionBoxOpen = false;
+          }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -257,15 +260,26 @@ export class MessageComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    this.ngZone.runOutsideAngular(() => {
-      this.container?.nativeElement.addEventListener('mouseleave', () =>
-        this.mouseLeft()
-      );
-    });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  messageActionsClicked() {
+    if (!this.message) {
+      return;
+    }
+    if (this.messageActionsService.customActionClickHandler) {
+      this.messageActionsService.customActionClickHandler({
+        message: this.message,
+        enabledActions: this.enabledMessageActions,
+        customActions: this.customActions,
+        isMine: this.isSentByCurrentUser,
+      });
+    } else {
+      this.isActionBoxOpen = !this.isActionBoxOpen;
+    }
   }
 
   getAttachmentListContext(): AttachmentListContext {
@@ -384,14 +398,6 @@ export class MessageComponent
 
   displayOriginalMessage() {
     this.createMessageParts(false);
-  }
-
-  mouseLeft() {
-    if (this.isActionBoxOpen) {
-      this.ngZone.run(() => {
-        this.isActionBoxOpen = false;
-      });
-    }
   }
 
   private createMessageParts(shouldTranslate = true) {

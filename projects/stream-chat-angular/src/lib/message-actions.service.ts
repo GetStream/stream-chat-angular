@@ -4,6 +4,7 @@ import {
   CustomMessageActionItem,
   DefaultStreamChatGenerics,
   MessageActionItem,
+  MessageActionsClickDetails,
   StreamMessage,
 } from './types';
 import { ChatClientService } from './chat-client.service';
@@ -99,6 +100,10 @@ export class MessageActionsService<
    * You can pass your own custom actions that will be displayed inside the built-in message actions component
    */
   customActions$ = new BehaviorSubject<CustomMessageActionItem[]>([]);
+  /**
+   * By default the [`MessageComponent`](../../components/MessageComponent) will display the [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent). You can override that behavior by providing your own event handler.
+   */
+  customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
 
   constructor(
     private chatClientService: ChatClientService,
