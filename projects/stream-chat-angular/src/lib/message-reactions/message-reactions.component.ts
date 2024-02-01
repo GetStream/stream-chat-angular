@@ -229,10 +229,11 @@ export class MessageReactionsComponent
     return item.id;
   }
 
-  react(type: MessageReactionType) {
+  async react(type: MessageReactionType) {
     this.ownReactions.find((r) => r.type === type)
-      ? void this.channelService.removeReaction(this.messageId!, type)
-      : void this.channelService.addReaction(this.messageId!, type);
+      ? await this.channelService.removeReaction(this.messageId!, type)
+      : await this.channelService.addReaction(this.messageId!, type);
+    this.isSelectorOpenChange.emit(false);
   }
 
   isOwnReaction(reactionType: MessageReactionType) {
