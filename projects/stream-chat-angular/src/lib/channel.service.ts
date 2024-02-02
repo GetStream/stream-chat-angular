@@ -801,7 +801,7 @@ export class ChannelService<
       },
       true
     );
-    await this.sendMessageRequest(message);
+    return this.sendMessageRequest(message, undefined, true);
   }
 
   /**
@@ -1009,7 +1009,8 @@ export class ChannelService<
 
   private async sendMessageRequest(
     preview: MessageResponse<T> | StreamMessage<T>,
-    customData?: Partial<T['messageType']>
+    customData?: Partial<T['messageType']>,
+    isResend = false
   ) {
     const channel = this.activeChannelSubject.getValue()!;
     const isThreadReply = !!preview.parent_id;
@@ -1046,17 +1047,32 @@ export class ChannelService<
         .subscribe((m) => (messages = m));
       const newMessage = messages[messages.length - 1]!;
       return newMessage;
-    } catch (error) {
+    } catch (error: any) {
       const stringError = JSON.stringify(error);
-      const parsedError: { status?: number } = stringError
-        ? (JSON.parse(stringError) as { status?: number })
-        : {};
+      const parsedError: {
+        status?: number;
+        code?: number;
+        response?: { data?: { message?: string } };
+      } = stringError ? (JSON.parse(stringError) as { status?: number }) : {};
+
+      let isAlreadyExists = false;
+      if (isResend) {
+        if (
+          parsedError.status === 400 &&
+          parsedError.code === 4 &&
+          parsedError?.response?.data?.message?.includes('already exists')
+        ) {
+          isAlreadyExists = true;
+        }
+      }
 
       channel.state.addMessageSorted(
         {
           ...(preview as MessageResponse<T>),
-          errorStatusCode: parsedError.status || undefined,
-          status: 'failed',
+          errorStatusCode: isAlreadyExists
+            ? undefined
+            : parsedError.status || undefined,
+          status: isAlreadyExists ? 'received' : 'failed',
         },
         true
       );

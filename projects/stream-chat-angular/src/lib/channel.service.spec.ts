@@ -1436,6 +1436,38 @@ describe('ChannelService', () => {
     expect(latestMessage.status).toBe('received');
   });
 
+  it('should ignore error if resend failed because message already exists', async () => {
+    await init();
+    let latestMessage!: StreamMessage;
+    service.activeChannelMessages$.subscribe((m) => {
+      latestMessage = m[m.length - 1];
+    });
+    latestMessage.status = 'failed';
+    let channel!: Channel<DefaultStreamChatGenerics>;
+    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    spyOn(channel, 'sendMessage').and.rejectWith({
+      code: 4,
+      status: 400,
+      response: {
+        data: {
+          message:
+            'SendMessage failed with error: "a message with ID zitaszuperagetstreamio-9005f6d8-aeb7-42a1-984c-921f94567759 already exists"',
+        },
+      },
+    });
+    spyOn(channel.state, 'addMessageSorted').and.callThrough();
+    await service.resendMessage(latestMessage);
+
+    expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        status: 'received',
+      }),
+      true
+    );
+
+    expect(latestMessage.status).toBe('received');
+  });
+
   it('should set message state while sending', async () => {
     await init();
     let channel!: Channel<DefaultStreamChatGenerics>;
