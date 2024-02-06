@@ -60,8 +60,8 @@
     <stream-avatar-placeholder
       data-testclass="avatar"
       class="str-chat__avatar str-chat__avatar--circle"
-      [style]="'height: ' + themeVersion === '2' ? 56 : 20 + 'px'"
-      [size]="themeVersion === '2' ? 56 : 20"
+      [style]="'height: ' + themeVersion === '2' ? 30 : 20 + 'px'"
+      [size]="themeVersion === '2' ? 30 : 20"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
       type="user"
@@ -71,6 +71,5 @@
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel
     }}</span>
-    <div *ngIf="themeVersion === '2'" class="str-chat__user-item-at">&#64;</div>
   </div>
 </ng-template>
