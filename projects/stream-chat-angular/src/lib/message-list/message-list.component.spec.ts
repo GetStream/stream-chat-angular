@@ -46,7 +46,7 @@ describe('MessageListComponent', () => {
   let queryLoadingIndicator: (pos: 'top' | 'bottom') => HTMLElement | null;
   let queryDateSeparators: () => HTMLElement[];
   let queryNewMessagesIndicator: () => HTMLElement | null;
-  let queryNewMessagesIndicatorInsideDateSeparator: () => HTMLElement | null;
+  let queryNewMessagesNotification: () => HTMLElement | null;
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
@@ -105,9 +105,9 @@ describe('MessageListComponent', () => {
       );
     queryNewMessagesIndicator = () =>
       nativeElement.querySelector('[data-testid="new-messages-indicator"]');
-    queryNewMessagesIndicatorInsideDateSeparator = () =>
+    queryNewMessagesNotification = () =>
       nativeElement.querySelector(
-        '[data-testid="new-messages-indicator-date-separator"]'
+        '[data-testid="unread-messages-notification"]'
       );
     TestBed.inject(StreamI18nService).setTranslation('en');
     fixture.detectChanges();
@@ -368,7 +368,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should handle channel change', () => {
-    component.unreadMessageCount = 3;
+    component.newMessageCountWhileBeingScrolled = 3;
     component.isUserScrolled = true;
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
@@ -377,7 +377,7 @@ describe('MessageListComponent', () => {
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 
-    expect(component.unreadMessageCount).toBe(0);
+    expect(component.newMessageCountWhileBeingScrolled).toBe(0);
     expect(component.isUserScrolled).toBeFalse();
     expect(queryMessageComponents().length).toBe(0);
   });
@@ -548,7 +548,7 @@ describe('MessageListComponent', () => {
       message: newMessageFromOtherUser,
     });
 
-    expect(component.unreadMessageCount).toBe(1);
+    expect(component.newMessageCountWhileBeingScrolled).toBe(1);
 
     spyOn(channelServiceMock, 'jumpToMessage').and.callThrough();
     const newMessageFromCurrentUser = mockMessage();
@@ -861,13 +861,13 @@ describe('MessageListComponent', () => {
     it('should reset scroll state after parent message changed', () => {
       const parentMessage = mockMessage();
       parentMessage.id = 'parentMessage2';
-      component.unreadMessageCount = 4;
+      component.newMessageCountWhileBeingScrolled = 4;
       component.isUserScrolled = true;
       channelServiceMock.activeParentMessage$.next(parentMessage);
       channelServiceMock.activeThreadMessages$.next([]);
       fixture.detectChanges();
 
-      expect(component.unreadMessageCount).toBe(0);
+      expect(component.newMessageCountWhileBeingScrolled).toBe(0);
       expect(component.isUserScrolled).toBeFalse();
       expect(queryMessageComponents().length).toBe(0);
     });
@@ -877,12 +877,12 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
       const parentMessage = mockMessage();
       parentMessage.id = 'parentMessage2';
-      component.unreadMessageCount = 4;
+      component.newMessageCountWhileBeingScrolled = 4;
       component.isUserScrolled = true;
       channelServiceMock.activeParentMessage$.next(parentMessage);
       fixture.detectChanges();
 
-      expect(component.unreadMessageCount).toBe(4);
+      expect(component.newMessageCountWhileBeingScrolled).toBe(4);
       expect(component.isUserScrolled).toBeTrue();
     });
 
@@ -1085,7 +1085,7 @@ describe('MessageListComponent', () => {
     expect(component['resetScrollState']).not.toHaveBeenCalled();
   });
 
-  it('should jump to latest unread message if openMessageListAt specifies', () => {
+  it('should jump to first unread message if openMessageListAt specifies', () => {
     component.openMessageListAt = 'last-read-message';
 
     const channel = generateMockChannels()[0];
@@ -1097,33 +1097,16 @@ describe('MessageListComponent', () => {
     channelServiceMock.activeChannelMessages$.next(messages);
 
     expect(component.lastReadMessageId).toBe(messages[messages.length - 2].id);
+
+    expect(component.firstUnreadMessageId).toBe(
+      messages[messages.length - 1].id
+    );
+
     expect(component.isJumpingToLatestUnreadMessage).toBeTrue();
   });
 
-  it('should display new message indicator - new mesage is the first on the given day, date separator visible', () => {
+  it('should display new message indicator - new mesage is the first on the given day', () => {
     component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = true;
-
-    const channel = generateMockChannels()[0];
-    const messages = generateMockMessages();
-    messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
-    );
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
-    channel.id = 'test-channel';
-    channelServiceMock.activeChannelLastReadMessageId =
-      messages[messages.length - 2].id;
-    channelServiceMock.activeChannel$.next(channel);
-    channelServiceMock.activeChannelMessages$.next(messages);
-    fixture.detectChanges();
-
-    expect(queryNewMessagesIndicator()).toBeNull();
-    expect(queryNewMessagesIndicatorInsideDateSeparator()).not.toBeNull();
-  });
-
-  it('should display new message indicator - new mesage is the first on the given day, date separator not visible', () => {
-    component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = false;
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
@@ -1139,12 +1122,29 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryNewMessagesIndicator()).not.toBeNull();
-    expect(queryNewMessagesIndicatorInsideDateSeparator()).toBeNull();
+  });
+
+  it('should display new message indicator', () => {
+    component.openMessageListAt = 'last-message';
+
+    const channel = generateMockChannels()[0];
+    const messages = generateMockMessages();
+    messages[messages.length - 2].created_at.setDate(
+      messages[messages.length - 2].created_at.getDate() + 1
+    );
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channel.id = 'test-channel';
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
+    channelServiceMock.activeChannel$.next(channel);
+    channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
+
+    expect(queryNewMessagesIndicator()).not.toBeNull();
   });
 
   it('should display new message indicator - new mesage is not the first on the given day', () => {
     component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = false;
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
@@ -1157,7 +1157,6 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryNewMessagesIndicator()).not.toBeNull();
-    expect(queryNewMessagesIndicatorInsideDateSeparator()).toBeNull();
   });
 
   it(`shouldn't highlight latest unread message`, () => {
@@ -1176,7 +1175,6 @@ describe('MessageListComponent', () => {
 
   it('should display new message indicator - new mesage is not the first on the given day, direction top-to-bottom', () => {
     component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = false;
     component.direction = 'top-to-bottom';
 
     const channel = generateMockChannels()[0];
@@ -1194,9 +1192,8 @@ describe('MessageListComponent', () => {
     ).toBeFalse();
   });
 
-  it('should display new message indicator - new mesage is the first on the given day, date separator visible, direction top-to-bottom', () => {
+  it('should display new message indicator - new mesage is the first on the given day, direction top-to-bottom', () => {
     component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = true;
     component.direction = 'top-to-bottom';
 
     const channel = generateMockChannels()[0];
@@ -1213,28 +1210,128 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryNewMessagesIndicator()).not.toBeNull();
-    expect(queryNewMessagesIndicatorInsideDateSeparator()).toBeNull();
   });
 
-  it('should display new message indicator - new mesage is the first on the given day, date separator not visible, direction top-to-bottom', () => {
-    component.openMessageListAt = 'last-read-message';
-    component.displayDateSeparator = false;
-    component.direction = 'top-to-bottom';
-
+  it('should display unread banner with correct text', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
-    );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
+    channelServiceMock.activeChannelUnreadCount = 2;
+    channelServiceMock.activeChannel$.next(channel);
+    fixture.detectChanges();
+
+    let newMessagesIndicator = queryNewMessagesIndicator();
+
+    expect(newMessagesIndicator?.innerHTML).toContain('2 unread messages');
+
+    channelServiceMock.activeChannelUnreadCount = 0;
+    channelServiceMock.activeChannel$.next(channel);
+    fixture.detectChanges();
+
+    newMessagesIndicator = queryNewMessagesIndicator();
+
+    expect(component.unreadCount).toBe(0);
+    expect(newMessagesIndicator?.innerHTML).toContain('Unread messages');
+  });
+
+  // it('should display unread notification with correct text', async () => {
+  //   const channel = generateMockChannels()[0];
+  //   const messages = generateMockMessages();
+  //   messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+  //   channel.id = 'test-channel';
+  //   channelServiceMock.activeChannelLastReadMessageId =
+  //     messages[messages.length - 2].id;
+  //   channelServiceMock.activeChannelUnreadCount = 2;
+  //   channelServiceMock.activeChannel$.next(channel);
+  //   fixture.detectChanges();
+  //   component.isUnreadNotificationVisible = true;
+  //   fixture.detectChanges();
+  //   await fixture.whenRenderingDone();
+  //   await fixture.whenStable();
+
+  //   let newMessagesIndicator = queryNewMessagesNotification();
+
+  //   expect(component.unreadCount).toBe(2);
+  //   expect(newMessagesIndicator?.innerHTML).toContain('2 unread messages');
+
+  //   channelServiceMock.activeChannelUnreadCount = 0;
+  //   channelServiceMock.activeChannel$.next(channel);
+  //   fixture.detectChanges();
+  //   component.isUnreadNotificationVisible = true;
+  //   fixture.detectChanges();
+
+  //   newMessagesIndicator = queryNewMessagesNotification();
+
+  //   expect(newMessagesIndicator?.innerHTML).toContain('Unread messages');
+  // });
+
+  it('should only display new messages notification if #openMessageListAt is last message', () => {
+    component.openMessageListAt = 'last-read-message';
+    const channel = generateMockChannels()[0];
+    const messages = generateMockMessages();
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channel.id = 'test-channel';
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
+    channelServiceMock.activeChannelUnreadCount = 2;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
 
-    expect(queryNewMessagesIndicator()).not.toBeNull();
-    expect(queryNewMessagesIndicatorInsideDateSeparator()).toBeNull();
+    expect(queryNewMessagesNotification()).toBeNull();
+  });
+
+  // it('should jump to message if notification is clicked', async () => {
+  //   const channel = generateMockChannels()[0];
+  //   const messages = generateMockMessages();
+  //   messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+  //   channel.id = 'test-channel';
+  //   channelServiceMock.activeChannelLastReadMessageId =
+  //     messages[messages.length - 2].id;
+  //   channelServiceMock.activeChannelUnreadCount = 2;
+  //   channelServiceMock.activeChannel$.next(channel);
+  //   channelServiceMock.activeChannelMessages$.next(messages);
+  //   fixture.detectChanges();
+  //   component.isUnreadNotificationVisible = true;
+  //   fixture.detectChanges();
+  //   await fixture.whenRenderingDone();
+  //   await fixture.whenStable();
+
+  //   const unreadNotification = queryNewMessagesNotification();
+  //   const jumpToButton = unreadNotification?.querySelector<HTMLButtonElement>(
+  //     '[data-testid="unread-messages-notification-jump-to-message"]'
+  //   );
+
+  //   spyOn(component, 'jumpToFirstUnreadMessage');
+
+  //   jumpToButton?.click();
+
+  //   expect(component.jumpToFirstUnreadMessage).toHaveBeenCalledWith();
+  // });
+
+  it('should dismiss unread message notification', () => {
+    const channel = generateMockChannels()[0];
+    const messages = generateMockMessages();
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channel.id = 'test-channel';
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
+    channelServiceMock.activeChannelUnreadCount = 2;
+    channelServiceMock.activeChannel$.next(channel);
+    channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
+
+    const unreadNotification = queryNewMessagesNotification();
+    const dismissButton = unreadNotification?.querySelector<HTMLButtonElement>(
+      '[data-testid="unread-messages-notification-dismiss"]'
+    );
+
+    dismissButton?.click();
+    fixture.detectChanges();
+
+    expect(queryNewMessagesNotification()).toBeNull();
   });
 });

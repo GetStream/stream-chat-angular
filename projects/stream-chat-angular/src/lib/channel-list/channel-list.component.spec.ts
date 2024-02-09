@@ -3,7 +3,7 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChannelPreviewComponent } from '../channel-preview/channel-preview.component';
 import { ChannelService } from '../channel.service';
-import { ChatClientService } from '../chat-client.service';
+import { ChatClientService, ClientEvent } from '../chat-client.service';
 import {
   generateMockChannels,
   mockChannelService,
@@ -12,6 +12,7 @@ import {
 import { ThemeService } from '../theme.service';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 import { ChannelListComponent } from './channel-list.component';
+import { Subject } from 'rxjs';
 
 describe('ChannelListComponent', () => {
   let channelServiceMock: MockChannelService;
@@ -34,7 +35,10 @@ describe('ChannelListComponent', () => {
         { provide: ChannelService, useValue: channelServiceMock },
         {
           provide: ChatClientService,
-          useValue: { chatClient: { user: { id: 'userid' } } },
+          useValue: {
+            chatClient: { user: { id: 'userid' } },
+            events$: new Subject<ClientEvent>(),
+          },
         },
         ThemeService,
       ],

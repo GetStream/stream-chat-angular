@@ -377,6 +377,7 @@ describe('ChannelService', () => {
     expect(typingUsersSpy).toHaveBeenCalledWith([]);
     expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
     expect(service.activeChannelLastReadMessageId).toBeUndefined();
+    expect(service.activeChannelUnreadCount).toBeUndefined();
 
     messagesSpy.calls.reset();
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
@@ -2111,7 +2112,7 @@ describe('ChannelService', () => {
     expect(jumpToMessageIdSpy).not.toHaveBeenCalled();
     expect(messagesSpy).not.toHaveBeenCalled();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Message not found'
+      'streamChat.Message not found'
     );
   });
 
@@ -2134,7 +2135,7 @@ describe('ChannelService', () => {
     await expectAsync(service.pinMessage(message)).toBeRejectedWith(error);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Error pinning message'
+      'streamChat.Error pinning message'
     );
   });
 
@@ -2157,7 +2158,7 @@ describe('ChannelService', () => {
     await expectAsync(service.unpinMessage(message)).toBeRejectedWith(error);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'Error removing message pin'
+      'streamChat.Error removing message pin'
     );
   });
 
@@ -2251,6 +2252,7 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(service.activeChannelLastReadMessageId).toBe('last-read-message-id');
+    expect(service.activeChannelUnreadCount).toBe(5);
   });
 
   it(`should set last read message id to undefined if it's the last message`, () => {
@@ -2259,7 +2261,7 @@ describe('ChannelService', () => {
     activeChannel.state.read[user.id] = {
       last_read: new Date(),
       last_read_message_id: 'last-read-message-id',
-      unread_messages: 5,
+      unread_messages: 0,
       user: user,
     };
     activeChannel.state.latestMessages = [
@@ -2271,6 +2273,7 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(service.activeChannelLastReadMessageId).toBe(undefined);
+    expect(service.activeChannelUnreadCount).toBe(0);
   });
 
   it('should be able to select empty channel as active channel', () => {
@@ -2286,6 +2289,7 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith(channel);
     expect(service.activeChannelLastReadMessageId).toBeUndefined();
+    expect(service.activeChannelUnreadCount).toBe(0);
   });
 
   it('should update user references on `user.updated` event', async () => {
@@ -2391,7 +2395,106 @@ describe('ChannelService', () => {
     );
 
     expect(notificationSpy).toHaveBeenCalledWith([
-      jasmine.objectContaining({ text: 'Error loading reactions' }),
+      jasmine.objectContaining({ text: 'streamChat.Error loading reactions' }),
     ]);
+  });
+
+  it('should mark message as unread', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+
+    spyOn(activeChannel, 'markUnread').and.resolveTo();
+    await service.markMessageUnread(message.id);
+
+    expect(activeChannel.markUnread).toHaveBeenCalledWith({
+      message_id: message.id,
+    });
+  });
+
+  it('should mark message as unread - error', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    const message = service.activeChannelMessages[0]!;
+
+    const error = {
+      response: {
+        data: { code: 4, StatusCode: 400, message: 'You made a mistake' },
+      },
+    };
+    spyOn(activeChannel, 'markUnread').and.rejectWith(error);
+    const spy = jasmine.createSpy();
+    const notificationService = TestBed.inject(NotificationService);
+    notificationService.notifications$.subscribe(spy);
+    await expectAsync(service.markMessageUnread(message.id)).toBeRejectedWith(
+      error
+    );
+
+    expect(spy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        text: 'streamChat.Error marking message as unread',
+        type: 'error',
+      }),
+    ]);
+
+    error.response.data.message =
+      'MarkUnread failed with error: "Either the message with ID "zitaszuperagetstreamio-c710c117-5a8e-4769-a43d-f6add79d8520" does not exist, or it is older than last 100 channel messages."';
+    spy.calls.reset();
+    await expectAsync(service.markMessageUnread(message.id)).toBeRejectedWith(
+      error
+    );
+
+    expect(spy).toHaveBeenCalledWith(
+      jasmine.arrayContaining([
+        jasmine.objectContaining({
+          text: 'streamChat.Error, only the first {{count}} message can be marked as unread',
+          type: 'error',
+          translateParams: { count: '100' },
+        }),
+      ])
+    );
+  });
+
+  it('should react to notification.mark_unread events', async () => {
+    await init();
+    events$.next({
+      eventType: 'notification.mark_unread',
+      event: {
+        channel_id: service.activeChannel?.id,
+        unread_count: 12,
+        last_read_message_id: 'last-read-message',
+      } as Event<DefaultStreamChatGenerics>,
+    });
+
+    expect(service.activeChannelLastReadMessageId).toBe('last-read-message');
+    expect(service.activeChannelUnreadCount).toBe(12);
+
+    events$.next({
+      eventType: 'notification.mark_unread',
+      event: {
+        channel_id: 'not-active-channel',
+        unread_count: 20,
+        last_read_message_id: 'different id',
+      } as Event<DefaultStreamChatGenerics>,
+    });
+
+    expect(service.activeChannelLastReadMessageId).toBe('last-read-message');
+    expect(service.activeChannelUnreadCount).toBe(12);
+  });
+
+  it('should halt marking the channel as read if an unread call was made in that session', async () => {
+    await init();
+    const activeChannel = service.activeChannel!;
+    spyOn(activeChannel, 'markRead');
+
+    await service.markMessageUnread('message-id');
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).not.toHaveBeenCalled();
+
+    service.deselectActiveChannel();
+    service.setAsActiveChannel(activeChannel);
+
+    expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 });

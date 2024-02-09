@@ -111,6 +111,7 @@ export const generateMockChannels = (length = 25) => {
         }
       },
       getReactions: () => {},
+      markUnread: () => {},
       state: {
         messages: generateMockMessages(),
         pinnedMessages: [],
@@ -220,6 +221,7 @@ export type MockChannelService = {
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
   channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
   activeChannelLastReadMessageId?: string;
+  activeChannelUnreadCount?: number;
   loadMoreMessages: (
     d: 'older' | 'newer'
   ) => Promise<{ messages: StreamMessage[] }>;

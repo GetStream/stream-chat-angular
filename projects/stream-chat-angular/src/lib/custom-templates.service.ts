@@ -31,6 +31,8 @@ import {
   SystemMessageContext,
   ThreadHeaderContext,
   TypingIndicatorContext,
+  UnreadMessagesIndicatorContext,
+  UnreadMessagesNotificationContext,
 } from './types';
 
 /**
@@ -305,10 +307,20 @@ export class CustomTemplatesService<
     TemplateRef<DateSeparatorContext> | undefined
   >(undefined);
   /**
-   * The template used to display the new messages indicator inside the [message list](../components/MessageListComponent.mdx)
+   * The template used to display unread messages indicator inside the [message list](../components/MessageListComponent.mdx) when the channel is opened
+   *
+   * This UI element is used to separate unread messages from read messages
    */
   newMessagesIndicatorTemplate$ = new BehaviorSubject<
-    TemplateRef<void> | undefined
+    TemplateRef<UnreadMessagesIndicatorContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display unread messages notification inside the [message list](../components/MessageListComponent.mdx) when the channel is opened
+   *
+   * Users can use this notification to jump to the first unread message when it's clicked
+   */
+  newMessagesNotificationTemplate$ = new BehaviorSubject<
+    TemplateRef<UnreadMessagesNotificationContext> | undefined
   >(undefined);
   /**
    * The template to show if the main message list is empty

@@ -25,6 +25,8 @@ import {
   TypingIndicatorContext,
   CustomMessageActionItem,
   DateSeparatorContext,
+  UnreadMessagesNotificationContext,
+  UnreadMessagesIndicatorContext,
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
@@ -77,7 +79,6 @@ export class MessageListComponent
   @Input() displayDateSeparator = true;
   /**
    * If date separators are displayed, you can set the horizontal position of the date text.
-   * If `openMessageListAt` is `last-read-message` it will also set the text position of the new messages indicator.
    */
   @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
   /**
@@ -86,19 +87,30 @@ export class MessageListComponent
   @Input() openMessageListAt: 'last-message' | 'last-read-message' =
     'last-message';
   /**
+   * If the user has unread messages when they open the channel the UI shows the unread indicator / notification which features the unread count by default. This count will be increased every time a user receives a new message. If you don't want to show the unread count, you can turn that off.
+   *
+   * This is only applicable for `main` mode, as threads doesn't have read infromation.
+   */
+  @Input() hideUnreadCountForNotificationAndIndicator = false;
+  /**
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
    */
   @Input() displayLoadingIndicator = true;
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
-  customnewMessagesIndicatorTemplate: TemplateRef<void> | undefined;
+  customnewMessagesIndicatorTemplate:
+    | TemplateRef<UnreadMessagesIndicatorContext>
+    | undefined;
+  customnewMessagesNotificationTemplate:
+    | TemplateRef<UnreadMessagesNotificationContext>
+    | undefined;
   emptyMainMessageListTemplate: TemplateRef<void> | null = null;
   emptyThreadMessageListTemplate: TemplateRef<void> | null = null;
   messages$!: Observable<StreamMessage[]>;
   enabledMessageActions: string[] = [];
   isEmpty = true;
-  unreadMessageCount = 0;
+  newMessageCountWhileBeingScrolled = 0;
   isUserScrolled: boolean | undefined;
   groupStyles: GroupStyle[] = [];
   isNextMessageOnSeparateDate: boolean[] = [];
@@ -108,6 +120,9 @@ export class MessageListComponent
   isLoading = false;
   scrollEndTimeout: any;
   lastReadMessageId?: string;
+  isUnreadNotificationVisible = true;
+  firstUnreadMessageId?: string;
+  unreadCount?: number;
   isJumpingToLatestUnreadMessage = false;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
@@ -132,6 +147,7 @@ export class MessageListComponent
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
   private isViewInited = false;
+  private checkIfUnreadNotificationIsVisibleTimeout?: any;
 
   @HostBinding('class')
   private get class() {
@@ -153,6 +169,15 @@ export class MessageListComponent
     this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
   }
 
+  messageNotificationJumpClicked = () => {
+    this.jumpToFirstUnreadMessage();
+    this.isUnreadNotificationVisible = false;
+  };
+
+  messageNotificationDismissClicked = () => {
+    this.isUnreadNotificationVisible = false;
+  };
+
   ngOnInit(): void {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -161,7 +186,13 @@ export class MessageListComponent
           `${channel?.cid || 'undefined'} selected`,
           { tags: `message list ${this.mode}` }
         );
+        let isNewChannel = false;
         if (this.channelId !== channel?.id) {
+          isNewChannel = true;
+          if (this.checkIfUnreadNotificationIsVisibleTimeout) {
+            clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
+          }
+          this.isUnreadNotificationVisible = false;
           this.chatClientService?.chatClient?.logger?.(
             'info',
             `new channel is different from prev channel, reseting scroll state`,
@@ -170,19 +201,51 @@ export class MessageListComponent
           this.parsedDates = new Map();
           this.resetScrollState();
           this.channelId = channel?.id;
-          if (
-            this.openMessageListAt === 'last-read-message' &&
-            this.mode === 'main'
-          ) {
-            this.lastReadMessageId =
-              this.channelService.activeChannelLastReadMessageId;
-            if (this.lastReadMessageId) {
-              this.isJumpingToLatestUnreadMessage = true;
-              void this.channelService.jumpToMessage(this.lastReadMessageId);
-            }
-          } else {
-            this.lastReadMessageId = undefined;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
           }
+        }
+        if (this.mode === 'main') {
+          const lastReadMessageId =
+            this.channelService.activeChannelLastReadMessageId;
+          const unreadCount = this.channelService.activeChannelUnreadCount;
+          if (
+            lastReadMessageId !== this.lastReadMessageId ||
+            unreadCount !== this.unreadCount
+          ) {
+            this.lastReadMessageId = lastReadMessageId;
+            this.unreadCount = unreadCount || 0;
+            if (isNewChannel && this.lastReadMessageId) {
+              if (this.openMessageListAt === 'last-read-message') {
+                this.jumpToFirstUnreadMessage();
+              } else {
+                // Wait till messages and the unread banner is rendered
+                // If unread banner isn't visible on the screen, we display the unread notificaion
+                setTimeout(() => {
+                  const bannerElement = document.getElementById(
+                    'stream-chat-new-message-indicator'
+                  );
+                  if (
+                    !bannerElement ||
+                    bannerElement?.offsetTop <
+                      this.scrollContainer?.nativeElement?.scrollHeight -
+                        this.scrollContainer?.nativeElement?.clientHeight
+                  ) {
+                    this.isUnreadNotificationVisible = true;
+                    if (this.isViewInited) {
+                      this.cdRef.detectChanges();
+                    }
+                  }
+                }, 100);
+              }
+            }
+            if (this.isViewInited) {
+              this.cdRef.detectChanges();
+            }
+          }
+        } else if (this.lastReadMessageId) {
+          this.lastReadMessageId = undefined;
+          this.unreadCount = 0;
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -285,6 +348,19 @@ export class MessageListComponent
       )
     );
     this.subscriptions.push(
+      this.customTemplatesService.newMessagesNotificationTemplate$.subscribe(
+        (template) => {
+          if (this.customnewMessagesNotificationTemplate === template) {
+            return;
+          }
+          this.customnewMessagesNotificationTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      )
+    );
+    this.subscriptions.push(
       this.customTemplatesService.typingIndicatorTemplate$.subscribe(
         (template) => {
           if (this.typingIndicatorTemplate === template) {
@@ -319,8 +395,16 @@ export class MessageListComponent
                 this.cdRef.detectChanges();
               }
             } else {
-              this.scrollMessageIntoView(messageId);
-              this.highlightedMessageId = messageId;
+              if (this.isJumpingToLatestUnreadMessage) {
+                this.scrollMessageIntoView(
+                  this.firstUnreadMessageId || messageId
+                );
+                this.highlightedMessageId =
+                  this.firstUnreadMessageId || messageId;
+              } else {
+                this.scrollMessageIntoView(messageId);
+                this.highlightedMessageId = messageId;
+              }
             }
           }
         })
@@ -490,7 +574,7 @@ export class MessageListComponent
       this.ngZone.run(() => {
         this.isUserScrolled = isUserScrolled;
         if (!this.isUserScrolled) {
-          this.unreadMessageCount = 0;
+          this.newMessageCountWhileBeingScrolled = 0;
         }
         this.cdRef.detectChanges();
       });
@@ -521,6 +605,14 @@ export class MessageListComponent
       });
     }
     this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
+  }
+
+  jumpToFirstUnreadMessage() {
+    if (!this.lastReadMessageId) {
+      return;
+    }
+    this.isJumpingToLatestUnreadMessage = true;
+    void this.channelService.jumpToMessage(this.lastReadMessageId);
   }
 
   getTypingIndicatorContext(): TypingIndicatorContext {
@@ -645,6 +737,19 @@ export class MessageListComponent
           this.olderMassagesLoaded = true;
         }
       }),
+      tap((messages) => {
+        if (
+          this.isJumpingToLatestUnreadMessage &&
+          !this.firstUnreadMessageId &&
+          this.lastReadMessageId
+        ) {
+          const lastReadIndex = messages.findIndex(
+            (m) => m.id === this.lastReadMessageId
+          );
+          this.firstUnreadMessageId =
+            messages[lastReadIndex + 1]?.id || this.lastReadMessageId;
+        }
+      }),
       tap(
         (messages) =>
           (this.lastSentMessageId = [...messages]
@@ -664,21 +769,18 @@ export class MessageListComponent
           this.isUserScrolled = true;
         }
       }),
-      tap(() => {
-        if (
-          this.isJumpingToLatestUnreadMessage &&
-          this.lastReadMessageId &&
-          this.lastReadMessageId === this.latestMessage?.id
-        ) {
-          this.lastReadMessageId = undefined;
-        }
-      }),
       map((messages) =>
         this.direction === 'bottom-to-top' ? messages : [...messages].reverse()
       ),
       tap((messages) => {
         this.groupStyles = messages.map((m, i) =>
-          getGroupStyles(m, messages[i - 1], messages[i + 1])
+          getGroupStyles(
+            m,
+            messages[i - 1],
+            messages[i + 1],
+            false,
+            this.lastReadMessageId
+          )
         );
         this.isNextMessageOnSeparateDate = messages.map((m, i) =>
           this.checkIfOnSeparateDates(m, messages[i + 1])
@@ -695,7 +797,7 @@ export class MessageListComponent
     this.containerHeight = undefined;
     this.olderMassagesLoaded = false;
     this.oldestMessage = undefined;
-    this.unreadMessageCount = 0;
+    this.newMessageCountWhileBeingScrolled = 0;
     this.prevScrollTop = undefined;
     this.isNewMessageSentByUser = undefined;
     this.isLatestMessageInList = true;
@@ -714,11 +816,13 @@ export class MessageListComponent
       setTimeout(() => this.scrollMessageIntoView(messageId, false));
     } else if (element) {
       element.scrollIntoView({
-        block: messageId === this.lastReadMessageId ? 'start' : 'center',
+        block: 'center',
       });
       setTimeout(() => {
         this.highlightedMessageId = undefined;
+        this.firstUnreadMessageId = undefined;
         this.isJumpingToLatestUnreadMessage = false;
+        this.cdRef.detectChanges();
       }, 1000);
     }
   }
@@ -748,12 +852,20 @@ export class MessageListComponent
         `Received new message`,
         { tags: `message list ${this.mode}` }
       );
+      const isNewChannel = !this.latestMessage;
       this.latestMessage = message;
       this.hasNewMessages = true;
       this.isNewMessageSentByUser =
         message.user?.id === this.chatClientService.chatClient?.user?.id;
       if (this.isUserScrolled) {
-        this.unreadMessageCount++;
+        this.newMessageCountWhileBeingScrolled++;
+      }
+      if (
+        !this.isNewMessageSentByUser &&
+        this.unreadCount !== undefined &&
+        !isNewChannel
+      ) {
+        this.unreadCount++;
       }
       this.cdRef.detectChanges();
     }

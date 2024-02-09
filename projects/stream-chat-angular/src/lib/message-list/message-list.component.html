@@ -1,3 +1,61 @@
+<ng-container
+  *ngIf="
+    lastReadMessageId &&
+    isUnreadNotificationVisible &&
+    openMessageListAt === 'last-message'
+  "
+>
+  <ng-container
+    *ngTemplateOutlet="
+      customnewMessagesNotificationTemplate ||
+        defaultUnreadMessagesNotification;
+      context: {
+        unreadCount: unreadCount,
+        onDismiss: messageNotificationDismissClicked,
+        onJump: messageNotificationJumpClicked
+      }
+    "
+  ></ng-container>
+</ng-container>
+<ng-template
+  #defaultUnreadMessagesNotification
+  let-unreadCount="unreadCount"
+  let-onDismiss="onDismiss"
+  let-onJump="onJump"
+>
+  <div
+    class="str-chat__unread-messages-notification"
+    data-testid="unread-messages-notification"
+  >
+    <button
+      data-testid="unread-messages-notification-jump-to-message"
+      (click)="onJump()"
+    >
+      <ng-container
+        *ngIf="
+          unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator;
+          else noUnreadCount
+        "
+      >
+        {{
+          (unreadCount === 1
+            ? "streamChat.\{\{count\}\} unread message"
+            : "streamChat.\{\{count\}\} unread messages"
+          ) | translate: { count: unreadCount }
+        }}
+      </ng-container>
+      <ng-template #noUnreadCount>
+        {{ "streamChat.Unread messages" | translate }}
+      </ng-template>
+    </button>
+    <button
+      data-testid="unread-messages-notification-dismiss"
+      (click)="onDismiss()"
+    >
+      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+    </button>
+  </div>
+</ng-template>
 <div
   #scrollContainer
   data-testid="scroll-container"
@@ -56,8 +114,7 @@
                 dateSeparator;
                 context: {
                   date: message.created_at,
-                  parsedDate: parseDate(message.created_at),
-                  isNewMessage: false
+                  parsedDate: parseDate(message.created_at)
                 }
               "
             ></ng-container>
@@ -77,23 +134,25 @@
           </li>
           <ng-container
             *ngIf="
-              (lastReadMessageId === message.id &&
-                !isLast &&
-                direction === 'bottom-to-top' &&
-                !isSentByCurrentUser(messages[i + 1]) &&
-                (!displayDateSeparator || !isNextMessageOnSeparateDate[i])) ||
+              (lastReadMessageId === message?.id &&
+                direction === 'bottom-to-top') ||
               (direction === 'top-to-bottom' &&
-                !isLast &&
-                !isSentByCurrentUser(message) &&
-                lastReadMessageId === messages[i + 1].id)
+                lastReadMessageId === messages[i + 1]?.id)
             "
           >
-            <ng-container
-              *ngTemplateOutlet="
-                customnewMessagesIndicatorTemplate ||
-                defaultNewMessagesIndicator
-              "
-            ></ng-container>
+            <li
+              id="stream-chat-new-message-indicator"
+              data-testid="new-messages-indicator"
+              class="str-chat__li str-chat__unread-messages-separator-wrapper"
+            >
+              <ng-container
+                *ngTemplateOutlet="
+                  customnewMessagesIndicatorTemplate ||
+                    defaultNewMessagesIndicator;
+                  context: { unreadCount: unreadCount }
+                "
+              ></ng-container>
+            </li>
           </ng-container>
           <ng-container *ngIf="isNextMessageOnSeparateDate[i]">
             <ng-container
@@ -101,12 +160,7 @@
                 dateSeparator;
                 context: {
                   date: messages[i + 1].created_at,
-                  parsedDate: parseDate(messages[i + 1].created_at),
-                  isNewMessage:
-                    (direction === 'bottom-to-top' &&
-                      message.id === lastReadMessageId &&
-                      !isSentByCurrentUser(messages[i + 1])) ||
-                    (direction === 'top-to-bottom' && false)
+                  parsedDate: parseDate(messages[i + 1].created_at)
                 }
               "
             ></ng-container>
@@ -173,14 +227,14 @@
       [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
     ></stream-icon>
     <div
-      *ngIf="unreadMessageCount > 0"
+      *ngIf="newMessageCountWhileBeingScrolled > 0"
       class="
         str-chat__message-notification
         str-chat__message-notification-scroll-to-latest-unread-count
         str-chat__jump-to-latest-unread-count
       "
     >
-      {{ unreadMessageCount }}
+      {{ newMessageCountWhileBeingScrolled }}
     </div>
   </button>
 </div>
@@ -214,29 +268,21 @@
         ),
         enabledMessageActions: enabledMessageActions,
         mode: mode,
-        isHighlighted:
-          message?.id === highlightedMessageId &&
-          !isJumpingToLatestUnreadMessage,
+        isHighlighted: message?.id === highlightedMessageId,
         customActions: customMessageActions
       }
     "
   ></ng-container>
 </ng-template>
 
-<ng-template
-  #dateSeparator
-  let-date="date"
-  let-parsedDate="parsedDate"
-  let-isNewMessage="isNewMessage"
->
+<ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
   <ng-container *ngIf="displayDateSeparator">
     <ng-container
       *ngTemplateOutlet="
         customDateSeparatorTemplate || defaultDateSeparator;
         context: {
           date: date,
-          parsedDate: parsedDate,
-          isNewMessage: isNewMessage
+          parsedDate: parsedDate
         }
       "
     ></ng-container>
@@ -246,7 +292,6 @@
     #defaultDateSeparator
     let-date="date"
     let-parsedDate="parsedDate"
-    let-isNewMessage="isNewMessage"
   >
     <div data-testid="date-separator" class="str-chat__date-separator">
       <hr
@@ -257,11 +302,6 @@
       />
       <div class="str-chat__date-separator-date">
         {{ parsedDate }}
-        <span
-          *ngIf="isNewMessage"
-          data-testid="new-messages-indicator-date-separator"
-          >• {{ "streamChat.New" | translate }}</span
-        >
       </div>
       <hr
         *ngIf="
@@ -273,20 +313,23 @@
   </ng-template>
 </ng-template>
 
-<ng-template #defaultNewMessagesIndicator>
-  <div data-testid="new-messages-indicator" class="str-chat__date-separator">
-    <hr
+<ng-template #defaultNewMessagesIndicator let-unreadCount="unreadCount">
+  <div class="str-chat__unread-messages-separator">
+    <ng-container
       *ngIf="
-        dateSeparatorTextPos === 'right' || dateSeparatorTextPos === 'center'
+        unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator;
+        else noUnreadCount
       "
-      class="str-chat__date-separator-line"
-    />
-    <div class="str-chat__date-separator-date" translate>streamChat.New</div>
-    <hr
-      *ngIf="
-        dateSeparatorTextPos === 'left' || dateSeparatorTextPos === 'center'
-      "
-      class="str-chat__date-separator-line"
-    />
+    >
+      {{
+        (unreadCount === 1
+          ? "streamChat.\{\{count\}\} unread message"
+          : "streamChat.\{\{count\}\} unread messages"
+        ) | translate: { count: unreadCount }
+      }}
+    </ng-container>
+    <ng-template #noUnreadCount>
+      {{ "streamChat.Unread messages" | translate }}
+    </ng-template>
   </div>
 </ng-template>

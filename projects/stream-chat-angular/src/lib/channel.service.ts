@@ -6,7 +6,7 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { first, map, shareReplay, take } from 'rxjs/operators';
+import { filter, first, map, shareReplay, take } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -136,9 +136,17 @@ export class ChannelService<
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
-   * The last read message id of the active channel, it's only set once, when a new active channel is set. It's used by the message list to jump to the latest read message
+   * The last read message id of the active channel, it's used by the message list component to display unread UI, and jump to latest read message
+   *
+   * This property isn't always updated, please use `channel.read` to display up-to-date read information
    */
   activeChannelLastReadMessageId?: string;
+  /**
+   * The unread count of the active channel, it's used by the message list component to display unread UI
+   *
+   * This property isn't always updated, please use `channel.read` to display up-to-date read information
+   */
+  activeChannelUnreadCount?: number;
   /**
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
    */
@@ -390,6 +398,7 @@ export class ChannelService<
   };
   private dismissErrorNotification?: Function;
   private nextPageConfiguration?: NextPageConfiguration;
+  private areReadEventsPaused = false;
 
   constructor(
     private chatClientService: ChatClientService<T>,
@@ -505,16 +514,17 @@ export class ChannelService<
       return;
     }
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
-    this.activeChannelLastReadMessageId =
-      channel.state.read[
-        this.chatClientService.chatClient.user?.id || ''
-      ]?.last_read_message_id;
+    this.areReadEventsPaused = false;
+    const readState =
+      channel.state.read[this.chatClientService.chatClient.user?.id || ''];
+    this.activeChannelLastReadMessageId = readState?.last_read_message_id;
     if (
       channel.state.latestMessages[channel.state.latestMessages.length - 1]
         ?.id === this.activeChannelLastReadMessageId
     ) {
       this.activeChannelLastReadMessageId = undefined;
     }
+    this.activeChannelUnreadCount = readState?.unread_messages || 0;
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
@@ -547,6 +557,8 @@ export class ChannelService<
     this.usersTypingInChannelSubject.next([]);
     this.usersTypingInThreadSubject.next([]);
     this.activeChannelLastReadMessageId = undefined;
+    this.activeChannelUnreadCount = undefined;
+    this.areReadEventsPaused = false;
   }
 
   /**
@@ -1113,7 +1125,9 @@ export class ChannelService<
         parentId: parentMessageId,
       });
     } catch (error) {
-      this.notificationService.addTemporaryNotification('Message not found');
+      this.notificationService.addTemporaryNotification(
+        'streamChat.Message not found'
+      );
       throw error;
     }
   }
@@ -1126,12 +1140,12 @@ export class ChannelService<
     try {
       await this.chatClientService.chatClient?.pinMessage(message);
       this.notificationService.addTemporaryNotification(
-        'Message pinned',
+        'streamChat.Message pinned',
         'success'
       );
     } catch (error) {
       this.notificationService.addTemporaryNotification(
-        'Error pinning message'
+        'streamChat.Error pinning message'
       );
       throw error;
     }
@@ -1145,12 +1159,12 @@ export class ChannelService<
     try {
       await this.chatClientService.chatClient?.unpinMessage(message);
       this.notificationService.addTemporaryNotification(
-        'Message unpinned',
+        'streamChat.Message unpinned',
         'success'
       );
     } catch (error) {
       this.notificationService.addTemporaryNotification(
-        'Error removing message pin'
+        'streamChat.Error removing message pin'
       );
       throw error;
     }
@@ -1409,6 +1423,24 @@ export class ChannelService<
       })
     );
     this.activeChannelSubscriptions.push(
+      this.chatClientService.events$
+        .pipe(
+          filter(
+            (e) =>
+              e.eventType === 'notification.mark_unread' &&
+              e.event.channel_id === channel.id
+          ),
+          map((e) => e.event)
+        )
+        .subscribe((e) => {
+          this.ngZone.run(() => {
+            this.activeChannelLastReadMessageId = e.last_read_message_id;
+            this.activeChannelUnreadCount = e.unread_count;
+            this.activeChannelSubject.next(this.activeChannel);
+          });
+        })
+    );
+    this.activeChannelSubscriptions.push(
       channel.on('typing.start', (e) =>
         this.ngZone.run(() => this.handleTypingStartEvent(e))
       )
@@ -1484,12 +1516,65 @@ export class ChannelService<
         offset += lastPageSize;
       } catch (e) {
         this.notificationService.addTemporaryNotification(
-          'Error loading reactions'
+          'streamChat.Error loading reactions'
         );
         throw e;
       }
     }
     return reactions;
+  }
+
+  /**
+   * Marks the channel from the given message as unread
+   * @param messageId
+   * @returns the result of the request
+   */
+  async markMessageUnread(messageId: string) {
+    if (!this.activeChannel) {
+      return;
+    }
+
+    try {
+      const response = await this.activeChannel.markUnread({
+        message_id: messageId,
+      });
+      this.areReadEventsPaused = true;
+      return response;
+    } catch (e: any) {
+      const error: {
+        response?: {
+          data?: { code?: number; message?: string; StatusCode?: number };
+        };
+      } = JSON.parse(JSON.stringify(e)) as {
+        response?: {
+          data?: { code?: number; message?: string; StatusCode?: number };
+        };
+      };
+      const data = error?.response?.data;
+      if (
+        data &&
+        data.code === 4 &&
+        data.StatusCode === 400 &&
+        data.message?.includes('it is older than last')
+      ) {
+        const count = /\d+ channel messages/
+          .exec(data.message)?.[0]
+          .match(/\d+/)?.[0];
+        if (count) {
+          this.notificationService.addTemporaryNotification(
+            'streamChat.Error, only the first {{count}} message can be marked as unread',
+            undefined,
+            undefined,
+            { count }
+          );
+          throw e;
+        }
+      }
+      this.notificationService.addTemporaryNotification(
+        'streamChat.Error marking message as unread'
+      );
+      throw e;
+    }
   }
 
   private messageUpdated(event: Event<T>) {
@@ -2032,7 +2117,11 @@ export class ChannelService<
   }
 
   private markRead(channel: Channel<T>) {
-    if (this.canSendReadEvents && this.shouldMarkActiveChannelAsRead) {
+    if (
+      this.canSendReadEvents &&
+      this.shouldMarkActiveChannelAsRead &&
+      !this.areReadEventsPaused
+    ) {
       void channel.markRead();
     }
   }

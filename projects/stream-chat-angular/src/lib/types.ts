@@ -273,7 +273,7 @@ type MessageActionItemBase<
 export type MessageActionItem<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = MessageActionItemBase<T> & {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
+  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | 'mark-unread';
 };
 
 export type CustomMessageActionItem<
@@ -370,8 +370,17 @@ export type SystemMessageContext = MessageContext & {
 export type DateSeparatorContext = {
   date: Date;
   parsedDate: string;
-  isNewMessage: boolean;
 };
+
+export type UnreadMessagesIndicatorContext = {
+  unreadCount: number;
+};
+
+export type UnreadMessagesNotificationContext =
+  UnreadMessagesIndicatorContext & {
+    onJump: Function;
+    onDismiss: Function;
+  };
 
 export type ChannelQueryState = {
   state: 'in-progress' | 'success' | 'error';

@@ -6,7 +6,8 @@ export const getGroupStyles = (
   message: StreamMessage,
   previousMessage?: StreamMessage,
   nextMessage?: StreamMessage,
-  noGroupByUser = false
+  noGroupByUser = false,
+  lastReadMessageId?: string
 ): GroupStyle => {
   if (
     noGroupByUser ||
@@ -23,6 +24,7 @@ export const getGroupStyles = (
     message.user?.id !== previousMessage.user?.id ||
     previousMessage.type === 'error' ||
     previousMessage.deleted_at ||
+    previousMessage.id === lastReadMessageId ||
     (message.reaction_counts &&
       Object.keys(message.reaction_counts).length > 0);
 
@@ -34,6 +36,7 @@ export const getGroupStyles = (
     message.user?.id !== nextMessage.user?.id ||
     nextMessage.type === 'error' ||
     nextMessage.deleted_at ||
+    message.id === lastReadMessageId ||
     (nextMessage.reaction_counts &&
       Object.keys(nextMessage.reaction_counts).length > 0);
 

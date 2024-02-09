@@ -1,5 +1,6 @@
 import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import {
   Channel,
   Event,
@@ -27,6 +28,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
    */
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   isActive = false;
+  isUnreadMessageWasCalled = false;
   isUnread = false;
   unreadCount: number | undefined;
   latestMessage: string = 'streamChat.Nothing yet...';
@@ -73,9 +75,26 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.channel!.on('message.read', () =>
         this.ngZone.run(() => {
+          this.isUnreadMessageWasCalled = false;
           this.updateUnreadState();
         })
       )
+    );
+    this.subscriptions.push(
+      this.chatClientService.events$
+        .pipe(
+          filter(
+            (e) =>
+              e.eventType === 'notification.mark_unread' &&
+              this.channel!.id === e.event?.channel_id
+          )
+        )
+        .subscribe(() => {
+          this.ngZone.run(() => {
+            this.isUnreadMessageWasCalled = true;
+            this.updateUnreadState();
+          });
+        })
     );
   }
 
@@ -140,7 +159,10 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private updateUnreadState() {
-    if (this.isActive || !this.canSendReadEvents) {
+    if (
+      (this.isActive && !this.isUnreadMessageWasCalled) ||
+      !this.canSendReadEvents
+    ) {
       this.unreadCount = 0;
       this.isUnread = false;
       return;

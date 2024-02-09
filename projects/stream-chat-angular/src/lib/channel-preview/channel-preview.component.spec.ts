@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-import { UserResponse } from 'stream-chat';
+import { Event, UserResponse } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
-import { ChatClientService } from '../chat-client.service';
+import { ChatClientService, ClientEvent } from '../chat-client.service';
 import {
   generateMockChannels,
   mockChannelService,
@@ -13,7 +13,8 @@ import {
   mockMessage,
 } from '../mocks';
 import { ChannelPreviewComponent } from './channel-preview.component';
-import { Observable, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
+import { DefaultStreamChatGenerics } from '../types';
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -22,6 +23,7 @@ describe('ChannelPreviewComponent', () => {
   let channelServiceMock: MockChannelService;
   let chatClientServiceMock: {
     chatClient: { user: UserResponse };
+    events$: Subject<ClientEvent>;
     user$: Observable<{ id: string }>;
   };
   let queryContainer: () => HTMLElement | null;
@@ -33,6 +35,7 @@ describe('ChannelPreviewComponent', () => {
   beforeEach(() => {
     channelServiceMock = mockChannelService();
     chatClientServiceMock = {
+      events$: new Subject(),
       chatClient: { user: { id: 'currentUser' } },
       user$: of({ id: 'currentUser' }),
     };
@@ -162,6 +165,30 @@ describe('ChannelPreviewComponent', () => {
 
     expect(component.isUnread).toBe(false);
     expect(component.unreadCount).toBe(0);
+  });
+
+  it('should set unread state based on `notification.mark_unread`', () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    const countUnreadSpy = spyOn(channel, 'countUnread');
+    countUnreadSpy.and.returnValue(1);
+    component.channel = channel;
+    channelServiceMock.activeChannel$.next(channel);
+    component.channel = channel;
+    component.ngOnInit();
+
+    expect(component.isUnread).toBe(false);
+    expect(component.unreadCount).toBe(0);
+
+    chatClientServiceMock.events$.next({
+      eventType: 'notification.mark_unread',
+      event: {
+        channel_id: channel.id,
+      } as Event<DefaultStreamChatGenerics>,
+    });
+
+    expect(component.isUnread).toBe(true);
+    expect(component.unreadCount).toBe(1);
   });
 
   it('should set channel as active', () => {
