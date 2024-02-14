@@ -69,6 +69,7 @@
                 let-customActions="customActions"
               >
                 <stream-message-actions-box
+                  (click)="messageActionsBoxClicked(popperContent)"
                   *ngIf="isOpen"
                   [isOpen]="isOpen"
                   [isMine]="isMine"
