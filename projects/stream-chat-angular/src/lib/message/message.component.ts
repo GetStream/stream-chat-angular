@@ -34,7 +34,11 @@ import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
-import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
+import {
+  NgxPopperjsTriggers,
+  NgxPopperjsPlacements,
+  NgxPopperjsContentComponent,
+} from 'ngx-popperjs';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
@@ -280,6 +284,14 @@ export class MessageComponent
     } else {
       this.isActionBoxOpen = !this.isActionBoxOpen;
     }
+  }
+
+  messageActionsBoxClicked(popperContent: NgxPopperjsContentComponent) {
+    if (this.isEditing) {
+      return;
+    }
+
+    popperContent.hide();
   }
 
   getAttachmentListContext(): AttachmentListContext {
