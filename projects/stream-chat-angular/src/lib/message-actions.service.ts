@@ -25,6 +25,17 @@ export class MessageActionsService<
    */
   readonly defaultActions: MessageActionItem<T>[] = [
     {
+      actionName: 'mark-unread',
+      actionLabelOrTranslationKey: 'streamChat.Mark as unread',
+      actionHandler: (message: StreamMessage<T>) =>
+        this.channelService.markMessageUnread(message.id),
+      isVisible: (
+        enabledActions: string[],
+        isMine: boolean,
+        message: StreamMessage<T>
+      ) => enabledActions.indexOf('read-events') !== -1 && !message.parent_id,
+    },
+    {
       actionName: 'quote',
       actionLabelOrTranslationKey: 'streamChat.Reply',
       actionHandler: (message: StreamMessage<T>) =>

@@ -7,11 +7,11 @@ describe('getGroupStyles', () => {
 
   beforeEach(() => {
     messages = [
-      mockMessage(),
-      mockMessage(),
-      mockMessage(),
-      mockMessage(),
-      mockMessage(),
+      mockMessage(1),
+      mockMessage(2),
+      mockMessage(3),
+      mockMessage(4),
+      mockMessage(5),
     ];
   });
 
@@ -106,5 +106,29 @@ describe('getGroupStyles', () => {
     expect(getGroupStyles(messages[0], undefined, messages[1])).toBe('single');
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe('top');
+  });
+
+  it('should start new group after last read message id', () => {
+    const lastReadMessageId = messages[0].id;
+
+    expect(
+      getGroupStyles(
+        messages[0],
+        undefined,
+        messages[1],
+        false,
+        lastReadMessageId
+      )
+    ).toBe('single');
+
+    expect(
+      getGroupStyles(
+        messages[1],
+        messages[0],
+        messages[2],
+        false,
+        lastReadMessageId
+      )
+    ).toBe('top');
   });
 });

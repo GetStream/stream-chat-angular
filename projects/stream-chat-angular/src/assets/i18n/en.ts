@@ -107,5 +107,12 @@ export const en = {
     'See original (automatically translated)':
       'See original (automatically translated)',
     'See translation': 'See translation',
+    'Mark as unread': 'Mark as unread',
+    'Error marking message as unread': 'Error marking message as unread',
+    'Error, only the first {{count}} message can be marked as unread':
+      'Error, only the first {{count}} message can be marked as unread',
+    'Unread messages': 'Unread messages',
+    '{{count}} unread messages': '{{count}} unread messages',
+    '{{count}} unread message': '{{count}} unread message',
   },
 };
