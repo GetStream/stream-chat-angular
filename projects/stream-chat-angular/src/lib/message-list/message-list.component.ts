@@ -62,9 +62,8 @@ export class MessageListComponent
   @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
     'message-row';
   /**
-   * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar](https://github.com/GetStream/stream-chat-angular/issues/418)
+   * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar webview](https://github.com/GetStream/stream-chat-angular/issues/418)
    *
-   * @deprecated This scroll issue has been resolved, no need to use this  workaround anymore.
    */
   @Input() hideJumpToLatestButtonDuringScroll = false;
   /**
@@ -124,6 +123,7 @@ export class MessageListComponent
   firstUnreadMessageId?: string;
   unreadCount?: number;
   isJumpingToLatestUnreadMessage = false;
+  isJumpToLatestButtonVisible = true;
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -148,6 +148,7 @@ export class MessageListComponent
   private parsedDates = new Map<Date, string>();
   private isViewInited = false;
   private checkIfUnreadNotificationIsVisibleTimeout?: any;
+  private jumpToLatestButtonVisibilityTimeout?: any;
 
   @HostBinding('class')
   private get class() {
@@ -525,6 +526,12 @@ export class MessageListComponent
     if (this.scrollEndTimeout) {
       clearTimeout(this.scrollEndTimeout);
     }
+    if (this.checkIfUnreadNotificationIsVisibleTimeout) {
+      clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
+    }
+    if (this.jumpToLatestButtonVisibilityTimeout) {
+      clearTimeout(this.jumpToLatestButtonVisibilityTimeout);
+    }
   }
 
   trackByMessageId(index: number, item: StreamMessage) {
@@ -578,6 +585,23 @@ export class MessageListComponent
         }
         this.cdRef.detectChanges();
       });
+    }
+
+    if (this.hideJumpToLatestButtonDuringScroll) {
+      if (this.isJumpToLatestButtonVisible) {
+        this.isJumpToLatestButtonVisible = false;
+        this.cdRef.detectChanges();
+      }
+      if (this.jumpToLatestButtonVisibilityTimeout) {
+        clearTimeout(this.jumpToLatestButtonVisibilityTimeout);
+      }
+      this.jumpToLatestButtonVisibilityTimeout = setTimeout(() => {
+        if (this.isUserScrolled) {
+          this.isJumpToLatestButtonVisible = true;
+          this.jumpToLatestButtonVisibilityTimeout = undefined;
+          this.cdRef.detectChanges();
+        }
+      }, 100);
     }
 
     if (this.shouldLoadMoreMessages(scrollPosition)) {
