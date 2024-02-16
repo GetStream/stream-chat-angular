@@ -1435,7 +1435,7 @@ export class ChannelService<
         .subscribe((e) => {
           this.ngZone.run(() => {
             this.activeChannelLastReadMessageId = e.last_read_message_id;
-            this.activeChannelUnreadCount = e.unread_count;
+            this.activeChannelUnreadCount = e.unread_messages;
             this.activeChannelSubject.next(this.activeChannel);
           });
         })
