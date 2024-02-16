@@ -2461,7 +2461,7 @@ describe('ChannelService', () => {
       eventType: 'notification.mark_unread',
       event: {
         channel_id: service.activeChannel?.id,
-        unread_count: 12,
+        unread_messages: 12,
         last_read_message_id: 'last-read-message',
       } as Event<DefaultStreamChatGenerics>,
     });
@@ -2473,7 +2473,7 @@ describe('ChannelService', () => {
       eventType: 'notification.mark_unread',
       event: {
         channel_id: 'not-active-channel',
-        unread_count: 20,
+        unread_messages: 20,
         last_read_message_id: 'different id',
       } as Event<DefaultStreamChatGenerics>,
     });
