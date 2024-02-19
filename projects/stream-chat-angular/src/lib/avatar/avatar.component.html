@@ -3,7 +3,7 @@
     location
   }}"
   title="{{ name }}"
-  [style]="{
+  [ngStyle]="{
     flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
     fontSize:
       initialsType === 'first-letter-of-first-word'
@@ -21,7 +21,7 @@
     alt="{{ initials }}"
     data-testid="avatar-img"
     (error)="isError = true"
-    [style]="{
+    [ngStyle]="{
       flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
       height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
       objectFit: 'cover',
@@ -30,11 +30,7 @@
     fetchpriority="high"
   />
   <ng-template #fallback>
-    <div
-      data-testid="fallback-img"
-      style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis"
-      class="str-chat__avatar-fallback"
-    >
+    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
       {{ initials }}
     </div>
   </ng-template>
