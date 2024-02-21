@@ -21,7 +21,7 @@ import { ChannelService } from '../channel.service';
 import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ThemeService } from '../theme.service';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageComponent', () => {
@@ -60,12 +60,14 @@ describe('MessageComponent', () => {
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
+  let bouncedMessage$: BehaviorSubject<StreamMessage | undefined>;
 
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
     setAsActiveParentMessageSpy = jasmine.createSpy(
       'setAsActiveParentMessageSpy'
     );
+    bouncedMessage$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
     jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
@@ -94,6 +96,7 @@ describe('MessageComponent', () => {
             resendMessage: resendMessageSpy,
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
             jumpToMessage: jumpToMessageSpy,
+            bouncedMessage$,
           },
         },
         {
@@ -443,6 +446,39 @@ describe('MessageComponent', () => {
 
       expect(clientErrorMessage).not.toBeNull();
       expect(clientErrorMessage!.textContent).toContain('Error · Unsent');
+    });
+
+    it('if message was not sent due to moderation error', () => {
+      expect(queryClientErrorMessage()).toBeNull();
+
+      component.message = {
+        ...message,
+        moderation_details: {
+          original_text: 'Ricciardo should retire',
+          action: 'MESSAGE_RESPONSE_ACTION_BOUNCE',
+          harms: [
+            {
+              name: 'hammurabi_filter',
+              phrase_list_ids: [139],
+            },
+          ],
+          error_msg: 'this message did not meet our content guidelines',
+        },
+        type: 'error',
+      };
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).not.toBeNull();
+
+      const spy = jasmine.createSpy();
+      bouncedMessage$.subscribe(spy);
+
+      queryMessageInner()!.click();
+
+      expect(spy).toHaveBeenCalledWith(component.message);
     });
   });
 

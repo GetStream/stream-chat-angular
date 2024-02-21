@@ -1334,4 +1334,23 @@ describe('MessageListComponent', () => {
 
     expect(queryNewMessagesNotification()).toBeNull();
   });
+
+  it('should handle if last message is hard deleted', () => {
+    const channel = generateMockChannels()[0];
+    const messages = generateMockMessages();
+    channel.state.latestMessages = messages;
+    channelServiceMock.activeChannel$.next(channel);
+    channelServiceMock.activeChannel = channel;
+    channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
+
+    expect(component['isLatestMessageInList']).toBeTrue();
+
+    messages.pop();
+    channel.state.latestMessages = messages;
+    channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
+
+    expect(component['isLatestMessageInList']).toBeTrue();
+  });
 });

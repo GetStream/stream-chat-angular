@@ -1,5 +1,6 @@
 import {
   Component,
+  HostBinding,
   OnDestroy,
   OnInit,
   TemplateRef,
@@ -21,6 +22,7 @@ import { MessageActionsService } from '../message-actions.service';
   styles: [],
 })
 export class EditMessageFormComponent implements OnInit, OnDestroy {
+  @HostBinding() class = 'str-chat-angular__edit-message-form';
   sendMessage$: Observable<void>;
   isModalOpen = false;
   message?: StreamMessage;

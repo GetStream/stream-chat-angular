@@ -745,8 +745,8 @@ export class MessageListComponent
             tags: `message list ${this.mode}`,
           }
         );
-        const currentLatestMessage = messages[messages.length - 1];
-        this.newMessageReceived(currentLatestMessage);
+        const currentLatestMessageInState = messages[messages.length - 1];
+        this.newMessageReceived(currentLatestMessageInState);
         const currentOldestMessage = messages[0];
         if (
           !this.oldestMessage ||
@@ -788,7 +788,8 @@ export class MessageListComponent
         this.isLatestMessageInList =
           !this.latestMessage ||
           messages.length === 0 ||
-          messages[messages.length - 1].id === this.latestMessage.id;
+          messages[messages.length - 1].id === this.latestMessage.id ||
+          this.mode === 'thread';
         if (!this.isLatestMessageInList) {
           this.isUserScrolled = true;
         }
@@ -867,9 +868,15 @@ export class MessageListComponent
     created_at: Date;
     user?: { id: string } | null;
   }) {
+    const latestMessages =
+      this.channelService.activeChannel?.state?.latestMessages;
     if (
       !this.latestMessage ||
-      this.latestMessage.created_at?.getTime() < message.created_at.getTime()
+      this.latestMessage.created_at?.getTime() < message.created_at.getTime() ||
+      (this.mode === 'main' &&
+        latestMessages &&
+        this.latestMessage &&
+        latestMessages[latestMessages.length - 1]?.id !== this.latestMessage.id)
     ) {
       this.chatClientService.chatClient?.logger?.(
         'info',

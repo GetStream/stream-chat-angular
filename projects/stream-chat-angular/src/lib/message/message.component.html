@@ -13,7 +13,8 @@
   [class.str-chat__message--highlighted]="isHighlighted"
   [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
   [class.str-chat__message-send-can-be-retried]="
-    message?.status === 'failed' && message?.errorStatusCode !== 403
+    (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
+    (message?.type === 'error' && message?.moderation_details)
   "
   data-testid="message-container"
 >
@@ -187,16 +188,8 @@
               [class.str-chat__message-light-text-inner--has-attachment]="
                 hasAttachment
               "
-              (click)="
-                message?.status === 'failed' && message?.errorStatusCode !== 403
-                  ? resendMessage()
-                  : undefined
-              "
-              (keyup.enter)="
-                message?.status === 'failed' && message?.errorStatusCode !== 403
-                  ? resendMessage()
-                  : undefined
-              "
+              (click)="unsentMessageClicked()"
+              (keyup.enter)="unsentMessageClicked()"
             >
               <ng-container *ngTemplateOutlet="quotedMessage"></ng-container>
               <ng-container *ngIf="hasAttachment && message?.quoted_message">
@@ -212,7 +205,9 @@
                   str-chat__message--error-message
                 "
               >
-                {{ "streamChat.Error · Unsent" | translate }}
+                <ng-container *ngIf="!message?.moderation_details">{{
+                  "streamChat.Error · Unsent" | translate
+                }}</ng-container>
               </div>
               <div
                 data-testid="error-message"

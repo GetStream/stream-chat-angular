@@ -314,6 +314,20 @@ export class MessageComponent
     };
   }
 
+  unsentMessageClicked() {
+    if (
+      this.message?.status === 'failed' &&
+      this.message?.errorStatusCode !== 403
+    ) {
+      this.resendMessage();
+    } else if (
+      this.message?.type === 'error' &&
+      this.message?.moderation_details
+    ) {
+      this.openMessageBouncePrompt();
+    }
+  }
+
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
   }
@@ -384,6 +398,10 @@ export class MessageComponent
 
   displayOriginalMessage() {
     this.createMessageParts(false);
+  }
+
+  openMessageBouncePrompt() {
+    this.channelService.bouncedMessage$.next(this.message);
   }
 
   private createMessageParts(shouldTranslate = true) {

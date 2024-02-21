@@ -832,4 +832,19 @@ describe('ChannelService - threads', () => {
       jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
     );
   });
+
+  it('should delete message - local', async () => {
+    await init();
+    const message = mockMessage();
+    message.parent_id = 'parent';
+    const channel = service.activeChannel;
+    spyOn(channel!.state, 'removeMessage');
+    void service.deleteMessage(message, true);
+
+    expect(mockChatClient.deleteMessage).not.toHaveBeenCalledWith();
+    expect(channel!.state.removeMessage).toHaveBeenCalledWith({
+      id: message.id,
+      parent_id: message.parent_id,
+    });
+  });
 });

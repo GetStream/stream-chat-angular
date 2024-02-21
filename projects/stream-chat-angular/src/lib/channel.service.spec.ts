@@ -9,6 +9,7 @@ import {
   ChannelSort,
   Event,
   FormatMessageResponse,
+  Message,
   ReactionResponse,
   SendMessageAPIResponse,
   UserResponse,
@@ -1349,6 +1350,28 @@ describe('ChannelService', () => {
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
   });
 
+  it('should resend instead of update if message was bounced', async () => {
+    await init();
+    const message = mockMessage();
+    const channel = service.activeChannel!;
+    spyOn(channel, 'sendMessage');
+    message.moderation_details = {
+      original_text: 'Ricciardo should retire',
+      action: 'MESSAGE_RESPONSE_ACTION_BOUNCE',
+      harms: [
+        {
+          name: 'hammurabi_filter',
+          phrase_list_ids: [139],
+        },
+      ],
+      error_msg: 'this message did not meet our content guidelines',
+    };
+    void service.updateMessage(message);
+
+    expect(mockChatClient.updateMessage).not.toHaveBeenCalledWith();
+    expect(channel.sendMessage).not.toHaveBeenCalledWith(message as Message);
+  });
+
   it('should update message - #beforeUpdateMessage is provided', async () => {
     const message = mockMessage();
     mockChatClient.updateMessage.and.resolveTo({ message });
@@ -1375,11 +1398,29 @@ describe('ChannelService', () => {
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
   });
 
-  it('should delete message', () => {
+  it('should delete message', async () => {
+    await init();
+    const channel = service.activeChannel;
+    spyOn(channel!.state, 'removeMessage');
     const message = mockMessage();
     void service.deleteMessage(message);
 
     expect(mockChatClient.deleteMessage).toHaveBeenCalledWith(message.id);
+    expect(channel!.state.removeMessage).not.toHaveBeenCalled();
+  });
+
+  it('should delete message - local', async () => {
+    await init();
+    const message = mockMessage();
+    const channel = service.activeChannel;
+    spyOn(channel!.state, 'removeMessage');
+    void service.deleteMessage(message, true);
+
+    expect(mockChatClient.deleteMessage).not.toHaveBeenCalledWith();
+    expect(channel!.state.removeMessage).toHaveBeenCalledWith({
+      id: message.id,
+      parent_id: undefined,
+    });
   });
 
   it(`should call #messageDeleteConfirmationHandler is that's provided`, async () => {
