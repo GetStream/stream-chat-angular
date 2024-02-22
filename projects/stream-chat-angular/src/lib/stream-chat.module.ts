@@ -23,6 +23,7 @@ import { ThreadComponent } from './thread/thread.component';
 import { IconPlaceholderComponent } from './icon-placeholder/icon-placeholder.component';
 import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeholder/loading-indicator-placeholder.component';
 import { NgxPopperjsModule } from 'ngx-popperjs';
+import { EditMessageFormComponent } from './edit-message-form/edit-message-form.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +47,7 @@ import { NgxPopperjsModule } from 'ngx-popperjs';
     ThreadComponent,
     IconPlaceholderComponent,
     LoadingIndicatorPlaceholderComponent,
+    EditMessageFormComponent,
   ],
   imports: [
     CommonModule,
@@ -74,6 +76,7 @@ import { NgxPopperjsModule } from 'ngx-popperjs';
     ThreadComponent,
     IconPlaceholderComponent,
     LoadingIndicatorPlaceholderComponent,
+    EditMessageFormComponent,
   ],
 })
 export class StreamChatModule {}

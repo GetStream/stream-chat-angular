@@ -5,7 +5,6 @@ import {
   TestBed,
   tick,
 } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Channel, MessageResponseBase } from 'stream-chat';
@@ -13,15 +12,12 @@ import { TextareaComponent } from '../message-input/textarea/textarea.component'
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { textareaInjectionToken } from '../injection-tokens';
-import { MessageInputComponent } from '../message-input/message-input.component';
-import { TextareaDirective } from '../message-input/textarea.directive';
 import {
   generateMockChannels,
   mockMessage,
   mockStreamChatClient,
   MockStreamChatClient,
 } from '../mocks';
-import { ModalComponent } from '../modal/modal.component';
 import { NotificationService } from '../notification.service';
 import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 
@@ -37,9 +33,6 @@ describe('MessageActionsBoxComponent', () => {
   let queryMuteAction: () => HTMLElement | null;
   let queryEditAction: () => HTMLElement | null;
   let queryDeleteAction: () => HTMLElement | null;
-  let queryEditModal: () => ModalComponent | undefined;
-  let queryModalCancelButton: () => HTMLElement | null;
-  let queryMessageInputComponent: () => MessageInputComponent;
   let message: StreamMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
@@ -66,13 +59,7 @@ describe('MessageActionsBoxComponent', () => {
     };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [
-        MessageActionsBoxComponent,
-        ModalComponent,
-        MessageInputComponent,
-        TextareaComponent,
-        TextareaDirective,
-      ],
+      declarations: [MessageActionsBoxComponent],
       providers: [
         { provide: ChatClientService, useValue: mockChatClient },
         { provide: ChannelService, useValue: channelService },
@@ -108,14 +95,6 @@ describe('MessageActionsBoxComponent', () => {
       nativeElement.querySelector('[data-testid="edit-action"]');
     queryDeleteAction = () =>
       nativeElement.querySelector('[data-testid="delete-action"]');
-    queryEditModal = () =>
-      fixture.debugElement.query(By.directive(ModalComponent))
-        ?.componentInstance as ModalComponent | undefined;
-    queryModalCancelButton = () =>
-      nativeElement.querySelector('[data-testid="cancel-button"]');
-    queryMessageInputComponent = () =>
-      fixture.debugElement.query(By.directive(MessageInputComponent))
-        .componentInstance as MessageInputComponent;
   });
 
   it('should only display the #enabledActions', () => {
@@ -306,6 +285,27 @@ describe('MessageActionsBoxComponent', () => {
     });
   });
 
+  it('should emit #isEditing if user starts to edit', () => {
+    const spy = jasmine.createSpy();
+    const actionsService = TestBed.inject(MessageActionsService);
+    actionsService.messageToEdit$.subscribe(spy);
+    spy.calls.reset();
+    component.enabledActions = [
+      'pin-message',
+      'update-any-message',
+      'delete',
+      'flag-message',
+    ];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+    queryEditAction()?.click();
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(component.message);
+  });
+
   describe('should display delete action', () => {
     it('if #enabledActions contains "delete" and #isMine', () => {
       component.enabledActions = ['delete'];
@@ -338,131 +338,6 @@ describe('MessageActionsBoxComponent', () => {
 
       expect(queryDeleteAction()).not.toBeNull();
     });
-  });
-
-  it('should emit #isEditing if user starts to edit', () => {
-    const spy = jasmine.createSpy();
-    const actionsService = TestBed.inject(MessageActionsService);
-    actionsService.messageToEdit$.subscribe(spy);
-    spy.calls.reset();
-    component.enabledActions = [
-      'pin-message',
-      'update-any-message',
-      'delete',
-      'flag-message',
-    ];
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    queryEditAction()?.click();
-    fixture.detectChanges();
-
-    expect(spy).toHaveBeenCalledWith(component.message);
-  });
-
-  it('should open modal if user starts to edit', () => {
-    component.enabledActions = ['update-own-message'];
-    component.isMine = true;
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-      isMine: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    queryEditAction()?.click();
-    fixture.detectChanges();
-
-    expect(queryEditModal()?.isOpen).toBeTrue();
-  });
-
-  it('should display message input if user starts to edit', () => {
-    component.enabledActions = ['update-any-message'];
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    queryEditAction()?.click();
-    fixture.detectChanges();
-
-    expect(queryMessageInputComponent().message).toBe(component.message);
-    expect(queryMessageInputComponent().sendMessage$).toBe(
-      component.sendMessage$
-    );
-  });
-
-  it('should trigger message if "Send" button is clicked', () => {
-    const spy = jasmine.createSpy();
-    component.sendMessage$.subscribe(spy);
-    component.sendClicked();
-
-    expect(spy).toHaveBeenCalledWith(undefined);
-  });
-
-  it('should close modal with "Cancel" button', () => {
-    component.enabledActions = ['update-own-message'];
-    component.isMine = true;
-    component.isEditModalOpen = true;
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-      isMine: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    const spy = jasmine.createSpy();
-    const actionsService = TestBed.inject(MessageActionsService);
-    actionsService.messageToEdit$.subscribe(spy);
-    queryEditAction()?.click();
-    fixture.detectChanges();
-    spy.calls.reset();
-    queryModalCancelButton()?.click();
-    fixture.detectChanges();
-
-    expect(queryEditModal()).toBeUndefined();
-    expect(spy).toHaveBeenCalledWith(undefined);
-  });
-
-  it('should update #isEditModalOpen if modal is closed', () => {
-    component.enabledActions = ['update-own-message'];
-    component.isMine = true;
-    component.isEditModalOpen = true;
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-      isMine: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    const spy = jasmine.createSpy();
-    const actionsService = TestBed.inject(MessageActionsService);
-    actionsService.messageToEdit$.subscribe(spy);
-    queryEditAction()?.click();
-    fixture.detectChanges();
-    spy.calls.reset();
-    queryEditModal()?.close();
-    fixture.detectChanges();
-
-    expect(component.isEditModalOpen).toBeFalse();
-    expect(spy).toHaveBeenCalledWith(undefined);
-  });
-
-  it('should close modal if message was updated successfully', () => {
-    component.enabledActions = ['update-own-message'];
-    component.isMine = true;
-    component.ngOnChanges({
-      enabledActions: {} as SimpleChange,
-      isMine: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-    queryEditAction()?.click();
-    fixture.detectChanges();
-    const spy = jasmine.createSpy();
-    const actionsService = TestBed.inject(MessageActionsService);
-    actionsService.messageToEdit$.subscribe(spy);
-    spy.calls.reset();
-    const messageInputComponent = queryMessageInputComponent();
-
-    messageInputComponent.messageUpdate.emit();
-    fixture.detectChanges();
-
-    expect(queryEditModal()).toBeUndefined();
-    expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it('should delete message', () => {

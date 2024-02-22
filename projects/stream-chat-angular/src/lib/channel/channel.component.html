@@ -12,6 +12,15 @@
       else noChannel
     "
   >
+    <ng-container
+      *ngTemplateOutlet="
+        (customTemplatesService.editMessageFormTemplate$ | async) ||
+        defaultEditMessageForm
+      "
+    ></ng-container>
+    <ng-template #defaultEditMessageForm>
+      <stream-edit-message-form></stream-edit-message-form>
+    </ng-template>
     <div class="str-chat__main-panel">
       <ng-content></ng-content>
     </div>

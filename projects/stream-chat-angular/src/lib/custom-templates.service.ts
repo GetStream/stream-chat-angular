@@ -334,6 +334,11 @@ export class CustomTemplatesService<
   emptyThreadMessageListPlaceholder$ = new BehaviorSubject<
     TemplateRef<void> | undefined
   >(undefined);
-
+  /**
+   * The template used to display the [edit message form](../components/EditMessageForm.mdx)
+   */
+  editMessageFormTemplate$ = new BehaviorSubject<TemplateRef<void> | undefined>(
+    undefined
+  );
   constructor() {}
 }

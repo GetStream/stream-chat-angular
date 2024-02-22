@@ -10,16 +10,14 @@ import {
   Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
 } from '@angular/core';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import {
   CustomMessageActionItem,
   MessageActionBoxItemContext,
   MessageActionItem,
   MessageInputContext,
-  ModalContext,
   StreamMessage,
 } from '../types';
 import { MessageActionsService } from '../message-actions.service';
@@ -75,19 +73,14 @@ export class MessageActionsBoxComponent
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
   @Output() readonly isEditing = new EventEmitter<boolean>();
-  isEditModalOpen = false;
   messageInputTemplate: TemplateRef<MessageInputContext> | undefined;
   messageActionItemTemplate:
     | TemplateRef<MessageActionBoxItemContext>
     | undefined;
-  modalTemplate: TemplateRef<ModalContext> | undefined;
   visibleMessageActionItems: (MessageActionItem | CustomMessageActionItem)[] =
     [];
-  sendMessage$: Observable<void>;
+  isEditModalOpen = false;
   private readonly messageActionItems: MessageActionItem[];
-  @ViewChild('modalContent', { static: true })
-  private modalContent!: TemplateRef<void>;
-  private sendMessageSubject = new Subject<void>();
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
   constructor(
@@ -96,7 +89,6 @@ export class MessageActionsBoxComponent
     private cdRef: ChangeDetectorRef
   ) {
     this.messageActionItems = this.messageActionsService.defaultActions;
-    this.sendMessage$ = this.sendMessageSubject.asObservable();
   }
 
   ngOnInit(): void {
@@ -153,41 +145,6 @@ export class MessageActionsBoxComponent
       actionName: item.actionName,
       message: this.message,
       actionLabelOrTranslationKey: item.actionLabelOrTranslationKey,
-    };
-  }
-
-  sendClicked() {
-    this.sendMessageSubject.next();
-  }
-
-  modalClosed = () => {
-    this.isEditModalOpen = false;
-    this.messageActionsService.messageToEdit$.next(undefined);
-  };
-
-  getMessageInputContext(): MessageInputContext {
-    return {
-      message: this.message,
-      messageUpdateHandler: this.modalClosed,
-      isFileUploadEnabled: undefined,
-      areMentionsEnabled: undefined,
-      isMultipleFileUploadEnabled: undefined,
-      mentionScope: undefined,
-      mode: undefined,
-      sendMessage$: this.sendMessage$,
-    };
-  }
-
-  getEditModalContext(): ModalContext {
-    return {
-      isOpen: this.isEditModalOpen,
-      isOpenChangeHandler: (isOpen) => {
-        this.isEditModalOpen = isOpen;
-        if (!this.isEditModalOpen) {
-          this.modalClosed();
-        }
-      },
-      content: this.modalContent,
     };
   }
 

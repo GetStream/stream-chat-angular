@@ -52,7 +52,6 @@ describe('MessageComponent', () => {
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
   let querySystemMessageContainer: () => HTMLElement | null;
-  let queryMessageActionsContainer: () => HTMLElement | null;
   let queryReplyCountButton: () => HTMLButtonElement | null;
   let queryReplyInThreadIcon: () => HTMLElement | null;
   let queryTranslationNotice: () => HTMLElement | null;
@@ -141,8 +140,6 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
       nativeElement.querySelector('[data-testid="loading-indicator"]');
-    queryMessageActionsContainer = () =>
-      nativeElement.querySelector('[data-testid="message-actions-container"]');
     queryReplyCountButton = () =>
       nativeElement.querySelector('[data-testid="reply-count-button"]');
     queryReplyInThreadIcon = () =>
@@ -783,31 +780,6 @@ describe('MessageComponent', () => {
     const systemMessage = querySystemMessageContainer();
 
     expect(systemMessage?.innerHTML).toContain(message.text);
-  });
-
-  it('should apply CSS class to actions if message is being edited', () => {
-    const cssClass =
-      'str-chat-angular__message-simple__actions__action--options--editing';
-    const container = queryMessageActionsContainer();
-
-    expect(container?.classList.contains(cssClass)).toBeFalse();
-
-    component.isEditing = true;
-    fixture.detectChanges();
-
-    expect(container?.classList.contains(cssClass)).toBeTrue();
-  });
-
-  it('should watch for #isEditing event', () => {
-    const service = TestBed.inject(MessageActionsService);
-    component.isEditing = false;
-    service.messageToEdit$.next(component.message);
-
-    expect(component.isEditing).toBeTrue();
-
-    service.messageToEdit$.next(undefined);
-
-    expect(component.isEditing).toBeFalse();
   });
 
   it('should create message parts', () => {

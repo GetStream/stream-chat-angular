@@ -24,6 +24,7 @@ export * from './lib/message/message.component';
 export * from './lib/parse-date';
 export * from './lib/list-users';
 export * from './lib/message-input/message-input.component';
+export * from './lib/edit-message-form/edit-message-form.component';
 export * from './lib/message-input/textarea/textarea.component';
 export * from './lib/message-input/autocomplete-textarea/autocomplete-textarea.component';
 export * from './lib/message-input/message-input-config.service';
