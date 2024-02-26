@@ -1051,8 +1051,8 @@ describe('MessageListComponent', () => {
 
     expect(dateSeparators.length).toBe(2);
 
-    expect(dateSeparators[0].textContent).toContain('26/07/2013');
-    expect(dateSeparators[1].textContent).toContain('27/07/2013');
+    expect(dateSeparators[0].textContent).toContain('07/26/2013');
+    expect(dateSeparators[1].textContent).toContain('07/27/2013');
   });
 
   it(`shoud hide date separator if it's turned off`, () => {
