@@ -1,0 +1,67 @@
+<ng-container
+  *ngTemplateOutlet="
+    (customTemplatesService.modalTemplate$ | async) || defaultModal;
+    context: {
+      message: message,
+      isOpen: isModalOpen,
+      isOpenChangeHandler: messageBounceModalOpenChanged,
+      content: modalContent
+    }
+  "
+></ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    [isOpen]="isOpen"
+    *ngIf="isOpen"
+    (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #modalContent>
+  <div
+    class="str-chat__message-bounce-prompt"
+    data-testid="message-bounce-prompt"
+  >
+    <div class="str-chat__message-bounce-prompt-header">
+      {{
+        "streamChat.This message did not meet our content guidelines"
+          | translate
+      }}
+    </div>
+    <div class="str-chat__message-bounce-actions">
+      <button
+        class="str-chat__message-bounce-edit"
+        data-testid="message-bounce-edit"
+        (click)="editMessage()"
+        (keyup.enter)="editMessage()"
+        type="button"
+      >
+        {{ "streamChat.Edit Message" | translate }}
+      </button>
+      <button
+        class="str-chat__message-bounce-send"
+        data-testid="message-bounce-send"
+        (click)="resendMessage()"
+        (keyup.enter)="resendMessage()"
+      >
+        {{ "streamChat.Send Anyway" | translate }}
+      </button>
+      <button
+        class="str-chat__message-bounce-delete"
+        data-testid="message-bounce-delete"
+        (click)="deleteMessage()"
+        (keyup.enter)="deleteMessage()"
+      >
+        {{ "streamChat.Delete" | translate }}
+      </button>
+    </div>
+  </div>
+</ng-template>

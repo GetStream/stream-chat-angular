@@ -21,7 +21,7 @@ import { ChannelService } from '../channel.service';
 import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { ThemeService } from '../theme.service';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageComponent', () => {
@@ -52,7 +52,6 @@ describe('MessageComponent', () => {
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
   let querySystemMessageContainer: () => HTMLElement | null;
-  let queryMessageActionsContainer: () => HTMLElement | null;
   let queryReplyCountButton: () => HTMLButtonElement | null;
   let queryReplyInThreadIcon: () => HTMLElement | null;
   let queryTranslationNotice: () => HTMLElement | null;
@@ -61,12 +60,14 @@ describe('MessageComponent', () => {
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
+  let bouncedMessage$: BehaviorSubject<StreamMessage | undefined>;
 
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
     setAsActiveParentMessageSpy = jasmine.createSpy(
       'setAsActiveParentMessageSpy'
     );
+    bouncedMessage$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
     jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
@@ -95,6 +96,7 @@ describe('MessageComponent', () => {
             resendMessage: resendMessageSpy,
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
             jumpToMessage: jumpToMessageSpy,
+            bouncedMessage$,
           },
         },
         {
@@ -141,8 +143,6 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
       nativeElement.querySelector('[data-testid="loading-indicator"]');
-    queryMessageActionsContainer = () =>
-      nativeElement.querySelector('[data-testid="message-actions-container"]');
     queryReplyCountButton = () =>
       nativeElement.querySelector('[data-testid="reply-count-button"]');
     queryReplyInThreadIcon = () =>
@@ -446,6 +446,39 @@ describe('MessageComponent', () => {
 
       expect(clientErrorMessage).not.toBeNull();
       expect(clientErrorMessage!.textContent).toContain('Error · Unsent');
+    });
+
+    it('if message was not sent due to moderation error', () => {
+      expect(queryClientErrorMessage()).toBeNull();
+
+      component.message = {
+        ...message,
+        moderation_details: {
+          original_text: 'Ricciardo should retire',
+          action: 'MESSAGE_RESPONSE_ACTION_BOUNCE',
+          harms: [
+            {
+              name: 'hammurabi_filter',
+              phrase_list_ids: [139],
+            },
+          ],
+          error_msg: 'this message did not meet our content guidelines',
+        },
+        type: 'error',
+      };
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+      ).not.toBeNull();
+
+      const spy = jasmine.createSpy();
+      bouncedMessage$.subscribe(spy);
+
+      queryMessageInner()!.click();
+
+      expect(spy).toHaveBeenCalledWith(component.message);
     });
   });
 
@@ -783,31 +816,6 @@ describe('MessageComponent', () => {
     const systemMessage = querySystemMessageContainer();
 
     expect(systemMessage?.innerHTML).toContain(message.text);
-  });
-
-  it('should apply CSS class to actions if message is being edited', () => {
-    const cssClass =
-      'str-chat-angular__message-simple__actions__action--options--editing';
-    const container = queryMessageActionsContainer();
-
-    expect(container?.classList.contains(cssClass)).toBeFalse();
-
-    component.isEditing = true;
-    fixture.detectChanges();
-
-    expect(container?.classList.contains(cssClass)).toBeTrue();
-  });
-
-  it('should watch for #isEditing event', () => {
-    const service = TestBed.inject(MessageActionsService);
-    component.isEditing = false;
-    service.messageToEdit$.next(component.message);
-
-    expect(component.isEditing).toBeTrue();
-
-    service.messageToEdit$.next(undefined);
-
-    expect(component.isEditing).toBeFalse();
   });
 
   it('should create message parts', () => {

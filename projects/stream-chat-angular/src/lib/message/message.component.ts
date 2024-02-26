@@ -90,7 +90,6 @@ export class MessageComponent
   readonly themeVersion: '1' | '2';
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
-  isEditing: boolean | undefined;
   isActionBoxOpen = false;
   isReactionSelectorOpen = false;
   visibleMessageActionsCount = 0;
@@ -151,23 +150,6 @@ export class MessageComponent
           this.userId = u?.id;
           this.setIsSentByCurrentUser();
           this.setLastReadUser();
-          if (this.isViewInited) {
-            this.cdRef.detectChanges();
-          }
-        }
-      })
-    );
-    this.subscriptions.push(
-      this.messageActionsService.messageToEdit$.subscribe((m) => {
-        let isEditing = false;
-        if (m && m.id === this.message?.id) {
-          isEditing = true;
-        }
-        if (isEditing !== this.isEditing) {
-          this.isEditing = isEditing;
-          if (!this.isEditing) {
-            this.isActionBoxOpen = false;
-          }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -287,10 +269,6 @@ export class MessageComponent
   }
 
   messageActionsBoxClicked(popperContent: NgxPopperjsContentComponent) {
-    if (this.isEditing) {
-      return;
-    }
-
     popperContent.hide();
   }
 
@@ -336,6 +314,20 @@ export class MessageComponent
     };
   }
 
+  unsentMessageClicked() {
+    if (
+      this.message?.status === 'failed' &&
+      this.message?.errorStatusCode !== 403
+    ) {
+      this.resendMessage();
+    } else if (
+      this.message?.type === 'error' &&
+      this.message?.moderation_details
+    ) {
+      this.openMessageBouncePrompt();
+    }
+  }
+
   resendMessage() {
     void this.channelService.resendMessage(this.message!);
   }
@@ -366,10 +358,6 @@ export class MessageComponent
         this.visibleMessageActionsCount = count;
         // message action box changes UI bindings in parent, so we'll have to rerun change detection
         this.cdRef.detectChanges();
-      },
-      isEditingChangeHandler: (isEditing) => {
-        this.isEditing = isEditing;
-        this.isActionBoxOpen = !this.isEditing;
       },
       customActions: this.customActions || [],
     };
@@ -410,6 +398,10 @@ export class MessageComponent
 
   displayOriginalMessage() {
     this.createMessageParts(false);
+  }
+
+  openMessageBouncePrompt() {
+    this.channelService.bouncedMessage$.next(this.message);
   }
 
   private createMessageParts(shouldTranslate = true) {

@@ -136,6 +136,12 @@ export class ChannelService<
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
+   * If you're using [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters) you can set up rules for bouncing messages.
+   *
+   * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](../../components/MessageBouncePromptComponent) will display the bounce option to the user if a bounced message is clicked.
+   */
+  bouncedMessage$: BehaviorSubject<StreamMessage<T> | undefined>;
+  /**
    * The last read message id of the active channel, it's used by the message list component to display unread UI, and jump to latest read message
    *
    * This property isn't always updated, please use `channel.read` to display up-to-date read information
@@ -417,6 +423,9 @@ export class ChannelService<
         );
       }),
       shareReplay(1)
+    );
+    this.bouncedMessage$ = new BehaviorSubject<StreamMessage<T> | undefined>(
+      undefined
     );
     this.hasMoreChannels$ = this.hasMoreChannelsSubject
       .asObservable()
@@ -826,6 +835,9 @@ export class ChannelService<
     if (this.beforeUpdateMessage) {
       messageToUpdate = await this.beforeUpdateMessage(messageToUpdate);
     }
+    if (message.moderation_details) {
+      return this.resendMessage(message);
+    }
     const response = await this.chatClientService.chatClient.updateMessage(
       messageToUpdate as any as UpdatedMessage<T>
     );
@@ -834,14 +846,41 @@ export class ChannelService<
       .getValue()
       ?.find((c) => c.cid === message.cid);
 
+    if (
+      response.message.type === 'error' &&
+      response.message.moderation_details
+    ) {
+      this.notificationService.addTemporaryNotification(
+        'streamChat.This message did not meet our content guidelines'
+      );
+      return message;
+    }
+
     return this.transformToStreamMessage(response.message, channel);
   }
 
   /**
    * Deletes the message from the active channel
    * @param message Message to be deleted
+   * @param isLocalDelete set this `true` if you want to delete a message that's only part of the local state, not yet saved on the backend
    */
-  async deleteMessage(message: StreamMessage) {
+  async deleteMessage(message: StreamMessage, isLocalDelete = false) {
+    if (isLocalDelete && this.activeChannel) {
+      const result = this.activeChannel.state.removeMessage({
+        id: message.id,
+        parent_id: message.parent_id,
+      });
+      if (result) {
+        message.parent_id
+          ? this.activeThreadMessagesSubject.next(
+              this.activeChannel.state.threads[message.parent_id]
+            )
+          : this.activeChannelMessagesSubject.next(
+              this.activeChannel.state.messages
+            );
+      }
+      return;
+    }
     if (this.messageDeleteConfirmationHandler) {
       const result = await this.messageDeleteConfirmationHandler(message);
       if (result) {

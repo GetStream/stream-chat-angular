@@ -222,6 +222,7 @@ export type MockChannelService = {
   channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
   activeChannelLastReadMessageId?: string;
   activeChannelUnreadCount?: number;
+  activeChannel?: Channel<DefaultStreamChatGenerics>;
   loadMoreMessages: (
     d: 'older' | 'newer'
   ) => Promise<{ messages: StreamMessage[] }>;

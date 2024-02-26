@@ -240,12 +240,6 @@ export type MessageActionsBoxContext = {
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
   displayedActionsCountChangeHandler: (count: number) => any;
-  /**
-   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  isEditingChangeHandler: (isEditing: boolean) => any;
 };
 
 export type MessageActionBoxItemContext<

@@ -1,0 +1,74 @@
+<ng-container
+  *ngTemplateOutlet="
+    (customTemplatesService.modalTemplate$ | async) || defaultModal;
+    context: getEditModalContext()
+  "
+></ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    [isOpen]="isOpen"
+    *ngIf="isOpen"
+    (isOpenChange)="isOpenChangeHandler($event)"
+    [content]="content"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #editMessageForm>
+  <div class="str-chat__edit-message-form">
+    <ng-template
+      #defaultInput
+      let-messageInput="message"
+      let-messageUpdateHandler="messageUpdateHandler"
+      let-sendMessage$Input="sendMessage$"
+    >
+      <stream-message-input
+        [message]="messageInput"
+        (messageUpdate)="messageUpdateHandler()"
+        [sendMessage$]="sendMessage$Input"
+      ></stream-message-input>
+    </ng-template>
+    <ng-container
+      *ngTemplateOutlet="
+        (customTemplatesService.messageInputTemplate$ | async) || defaultInput;
+        context: getMessageInputContext()
+      "
+    >
+    </ng-container>
+
+    <stream-notification-list></stream-notification-list>
+    <div
+      class="
+        str-chat__message-team-form-footer
+        str-chat__message-team-form-footer-angular
+      "
+    >
+      <div class="str-chat__edit-message-form-options">
+        <button
+          class="str-chat__edit-message-cancel"
+          translate
+          data-testid="cancel-button"
+          (click)="dismissed()"
+        >
+          streamChat.Cancel
+        </button>
+        <button
+          type="submit"
+          translate
+          class="str-chat__edit-message-send"
+          data-testid="send-button"
+          (click)="sendClicked()"
+          (keyup.enter)="sendClicked()"
+        >
+          streamChat.Send
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

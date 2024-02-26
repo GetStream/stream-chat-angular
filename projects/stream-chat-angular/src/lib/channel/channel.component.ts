@@ -3,6 +3,7 @@ import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChannelService } from '../channel.service';
 import { ThemeService } from '../theme.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `Channel` component is a container component that displays the [`ChannelHeader`](./ChannelHeaderComponent.mdx), [`MessageList`](./MessageListComponent.mdx), [`NotificationList`](./NotificationListComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components. You can also provide the [`Thread`](./ThreadComponent.mdx) component to use message [threads](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
@@ -22,7 +23,8 @@ export class ChannelComponent {
 
   constructor(
     private channelService: ChannelService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    readonly customTemplatesService: CustomTemplatesService
   ) {
     this.isError$ = combineLatest([
       this.channelService.channelQueryState$,

@@ -114,5 +114,8 @@ export const en = {
     'Unread messages': 'Unread messages',
     '{{count}} unread messages': '{{count}} unread messages',
     '{{count}} unread message': '{{count}} unread message',
+    'This message did not meet our content guidelines':
+      'This message did not meet our content guidelines',
+    'Send Anyway': 'Send Anyway',
   },
 };
