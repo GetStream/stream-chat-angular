@@ -7,9 +7,9 @@ By default this is displayed within the [`stream-channel` component](../../compo
 ```typescript
 constructor(private messageActionsService: MessageActionsService) {
   // Open the modal
-  this.messageActionsService.messageToEdit$(<stream message>);
+  this.messageActionsService.messageToEdit$.next(<stream message>);
   // Close the modal
-  this.messageActionsService.messageToEdit$(undefined);
+  this.messageActionsService.messageToEdit$.next(undefined);
 }
 ```
 

@@ -8,7 +8,7 @@ To bounce messages, you need to set up [semantic filters for moderation](https:/
 
 To bounce messages, you need to set up [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters).
 
-When a user tries to send a message that voilates the content guidelines set up by the semantic filter the `StreamMessage` object will have the following format:
+When a user tries to send a message that voilates the content guidelines set up by a semantic filter the `StreamMessage` object will have the following format:
 
 - `type` will be `error`
 - the `moderation_details` property will contain the details of the error
@@ -18,9 +18,9 @@ The built-in [message component](../../components/MessageComponent) will open th
 ```typescript
 constructor(private channelService: ChannelService) {
   // Open the modal
-  this.messageActionsService.bouncedMessage$(<stream message>);
+  this.messageActionsService.bouncedMessage$.next(<stream message>);
   // Close the modal
-  this.messageActionsService.bouncedMessage$(undefined);
+  this.messageActionsService.bouncedMessage$.next(undefined);
 }
 ```
 
