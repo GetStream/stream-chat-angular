@@ -983,7 +983,7 @@ describe('MessageComponent', () => {
 
   it('should replace URL links inside text content', () => {
     component.message = {
-      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="ugc nofollow">https://getstream.io/</a></p>\n',
+      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
       text: 'This is a message with a link https://getstream.io/',
     } as any as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
