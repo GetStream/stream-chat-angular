@@ -922,7 +922,7 @@ describe('MessageComponent', () => {
     expect(component.messageTextParts).toEqual([
       {
         content:
-          '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a> this is the link ',
+          '<a href="https://getstream.io/" rel="ugc nofollow">https://getstream.io/</a> this is the link ',
         type: 'text',
       },
       { content: '@sara', type: 'mention', user: { id: 'sara' } },
@@ -983,20 +983,20 @@ describe('MessageComponent', () => {
 
   it('should replace URL links inside text content', () => {
     component.message = {
-      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
+      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="ugc nofollow">https://getstream.io/</a></p>\n',
       text: 'This is a message with a link https://getstream.io/',
     } as any as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+      ' <a href="https://getstream.io/" rel="ugc nofollow">https://getstream.io/</a>'
     );
 
     component.message.html = undefined;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+      '<a href="https://getstream.io/" rel="ugc nofollow">https://getstream.io/</a>'
     );
   });
 
