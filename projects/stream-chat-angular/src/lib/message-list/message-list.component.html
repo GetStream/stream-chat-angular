@@ -56,12 +56,7 @@
     </button>
   </div>
 </ng-template>
-<div
-  #scrollContainer
-  data-testid="scroll-container"
-  class="str-chat__list"
-  style="overscroll-behavior: none"
->
+<div #scrollContainer data-testid="scroll-container" class="str-chat__list">
   <ng-container *ngIf="mode === 'main' && isEmpty && emptyListTemplate">
     <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
   </ng-container>

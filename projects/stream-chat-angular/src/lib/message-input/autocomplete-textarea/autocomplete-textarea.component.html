@@ -60,7 +60,7 @@
     <stream-avatar-placeholder
       data-testclass="avatar"
       class="str-chat__avatar str-chat__avatar--circle"
-      [style]="'height: ' + themeVersion === '2' ? 30 : 20 + 'px'"
+      [ngStyle]="{ height: themeVersion === '2' ? 30 : 20 + 'px' }"
       [size]="themeVersion === '2' ? 30 : 20"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"

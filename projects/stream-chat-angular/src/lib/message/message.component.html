@@ -160,15 +160,11 @@
             "
           ></ng-container>
         </div>
-        <!-- transform: translate3d(0, 0, 0) fixes scrolling issues on iOS, see: https://stackoverflow.com/questions/50105780/elements-disappear-when-scrolling-in-safari-webkit-transform-fix-only-works-t/50144295#50144295 -->
-        <!-- transform: none is required when image carousel is open in order for the modal to be correctly positioned, see how the transform property changes the behavior of fixed positioned elements https://developer.mozilla.org/en-US/docs/Web/CSS/position  -->
         <div
-          class="str-chat__message-bubble"
-          style="transform: {{
+          class="str-chat__message-bubble str-chat-angular__message-bubble"
+          [class.str-chat-angular__message-bubble--attachment-modal-open]="
             imageAttachmentModalState === 'opened'
-              ? 'none'
-              : 'translate3d(0, 0, 0)'
-          }}"
+          "
         >
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
             <ng-container

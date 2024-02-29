@@ -28,7 +28,6 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'stream-message-reactions',
   templateUrl: './message-reactions.component.html',
-  styles: ['.emoji {position: relative; display: inline-block; }'],
 })
 export class MessageReactionsComponent
   implements AfterViewChecked, OnChanges, OnInit, AfterViewInit, OnDestroy

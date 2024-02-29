@@ -1,7 +1,6 @@
 <div
   #container
   data-testid="channel-list-container"
-  style="max-width: unset"
   class="str-chat str-chat__channel-list str-chat-channel-list messaging str-chat__theme-{{
     theme$ | async
   }}"
@@ -14,10 +13,7 @@
     "
     class="str-chat__channel-list-messenger"
   >
-    <div
-      class="str-chat__channel-list-messenger__main"
-      style="display: flex; flex-direction: column"
-    >
+    <div class="str-chat__channel-list-messenger__main">
       <ng-content select="[channel-list-top]"></ng-content>
       <div
         class="str-chat__channel-list-empty"
