@@ -1,1 +1,1 @@
-export const version = '4.61.0-remove-style-attributes-from-templates.1';
+export const version = '4.60.1-remove-style-attributes-from-templates.1';
