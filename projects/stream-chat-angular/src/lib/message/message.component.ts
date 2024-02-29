@@ -426,7 +426,7 @@ export class MessageComponent
       this.message!.mentioned_users.length === 0
     ) {
       content = this.fixEmojiDisplay(content);
-      content = this.wrapLinskWithAnchorTag(content);
+      content = this.wrapLinksWithAnchorTag(content);
       this.messageTextParts = [{ content, type: 'text' }];
     } else {
       this.messageTextParts = [];
@@ -435,7 +435,7 @@ export class MessageComponent
         const mention = `@${user.name || user.id}`;
         const precedingText = text.substring(0, text.indexOf(mention));
         let formattedPrecedingText = this.fixEmojiDisplay(precedingText);
-        formattedPrecedingText = this.wrapLinskWithAnchorTag(
+        formattedPrecedingText = this.wrapLinksWithAnchorTag(
           formattedPrecedingText
         );
         this.messageTextParts!.push({
@@ -451,7 +451,7 @@ export class MessageComponent
       });
       if (text) {
         text = this.fixEmojiDisplay(text);
-        text = this.wrapLinskWithAnchorTag(text);
+        text = this.wrapLinksWithAnchorTag(text);
         this.messageTextParts.push({ content: text, type: 'text' });
       }
     }
@@ -490,7 +490,7 @@ export class MessageComponent
     return content;
   }
 
-  private wrapLinskWithAnchorTag(content: string) {
+  private wrapLinksWithAnchorTag(content: string) {
     if (this.displayAs === 'html') {
       return content;
     }
