@@ -922,7 +922,7 @@ describe('MessageComponent', () => {
     expect(component.messageTextParts).toEqual([
       {
         content:
-          '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a> this is the link ',
+          '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a> this is the link ',
         type: 'text',
       },
       { content: '@sara', type: 'mention', user: { id: 'sara' } },
@@ -989,14 +989,14 @@ describe('MessageComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+      ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
     );
 
     component.message.html = undefined;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a>'
+      '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
     );
   });
 
