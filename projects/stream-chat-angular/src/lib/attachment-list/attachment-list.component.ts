@@ -57,6 +57,7 @@ export class AttachmentListComponent implements OnChanges {
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
   themeVersion: '1' | '2';
+  defineOriginalDimensionCSSVariablesIn: 'ngStyle' | 'inlineStyle';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
@@ -73,6 +74,8 @@ export class AttachmentListComponent implements OnChanges {
     themeService: ThemeService
   ) {
     this.themeVersion = themeService.themeVersion;
+    this.defineOriginalDimensionCSSVariablesIn =
+      this.attachmentConfigurationService.defineOriginalDimensionCSSVariablesIn;
   }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {

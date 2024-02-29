@@ -47,6 +47,15 @@ export class AttachmentConfigurationService<
    * You can turn on/off thumbnail generation for video attachments
    */
   shouldGenerateVideoThumbnail = true;
+  /**
+   * For image and video attachments the SDK will define the `--original-height` and `--original-width` CSS variables which are necessary to have correct aspect ratio.
+   *
+   * By default the SDK defines these as inline style attributes, but that can cause problems with strict CSP settings.
+   *
+   * You can choose to define these in an [ngStyle](https://angular.io/api/common/NgStyle) attribute, but that only works with newer versions of Angular.
+   */
+  defineOriginalDimensionCSSVariablesIn: 'ngStyle' | 'inlineStyle' =
+    'inlineStyle';
 
   /**
    * Handles the configuration for image attachments, it's possible to provide your own function to override the default logic

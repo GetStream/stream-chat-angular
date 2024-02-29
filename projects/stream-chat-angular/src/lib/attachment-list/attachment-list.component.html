@@ -40,20 +40,34 @@
             (click)="openImageModal([attachmentContext])"
             (keyup.enter)="openImageModal([attachmentContext])"
             [style.--original-height]="
-              getImageAttachmentConfiguration(
-                attachmentContext,
-                'single',
-                imgElement
-              ).originalHeight
+              defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                ? getImageAttachmentConfiguration(
+                    attachmentContext,
+                    'single',
+                    imgElement
+                  ).originalHeight
+                : ''
             "
             [style.--original-width]="
-              getImageAttachmentConfiguration(
+              defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                ? getImageAttachmentConfiguration(
+                    attachmentContext,
+                    'single',
+                    imgElement
+                  ).originalWidth
+                : ''
+            "
+            [ngStyle]="{
+              '--original-width': getImageAttachmentConfiguration(
                 attachmentContext,
                 'single',
                 imgElement
-              ).originalWidth
-            "
-            [ngStyle]="{
+              ).originalWidth,
+              '--original-height': getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).originalHeight,
               height: getImageAttachmentConfiguration(
                 attachmentContext,
                 'single',
@@ -118,20 +132,34 @@
                   "
                   [alt]="galleryImage.fallback"
                   [style.--original-height]="
-                    getImageAttachmentConfiguration(
-                      galleryImage,
-                      'gallery',
-                      imgElement
-                    ).originalHeight
+                    defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                      ? getImageAttachmentConfiguration(
+                          galleryImage,
+                          'gallery',
+                          imgElement
+                        ).originalHeight
+                      : ''
                   "
                   [style.--original-width]="
-                    getImageAttachmentConfiguration(
+                    defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                      ? getImageAttachmentConfiguration(
+                          galleryImage,
+                          'gallery',
+                          imgElement
+                        ).originalWidth
+                      : ''
+                  "
+                  [ngStyle]="{
+                    '--original-height': getImageAttachmentConfiguration(
                       galleryImage,
                       'gallery',
                       imgElement
-                    ).originalWidth
-                  "
-                  [ngStyle]="{
+                    ).originalHeight,
+                    '--original-width': getImageAttachmentConfiguration(
+                      galleryImage,
+                      'gallery',
+                      imgElement
+                    ).originalWidth,
                     height: getImageAttachmentConfiguration(
                       galleryImage,
                       'gallery',
@@ -157,20 +185,34 @@
                   isSvg(galleryImage)
                 "
                 [style.--original-height]="
-                  getImageAttachmentConfiguration(
-                    galleryImage,
-                    'gallery',
-                    element
-                  ).originalHeight
+                  defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                    ? getImageAttachmentConfiguration(
+                        galleryImage,
+                        'gallery',
+                        element
+                      ).originalHeight
+                    : ''
                 "
                 [style.--original-width]="
-                  getImageAttachmentConfiguration(
+                  defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                    ? getImageAttachmentConfiguration(
+                        galleryImage,
+                        'gallery',
+                        element
+                      ).originalWidth
+                    : ''
+                "
+                [ngStyle]="{
+                  '--original-height': getImageAttachmentConfiguration(
                     galleryImage,
                     'gallery',
                     element
-                  ).originalWidth
-                "
-                [ngStyle]="{
+                  ).originalHeight,
+                  '--original-width': getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).originalWidth,
                   'background-image':
                     'url(' +
                     getImageAttachmentConfiguration(
@@ -216,14 +258,30 @@
             class="str-chat__player-wrapper"
             data-testclass="video-attachment-parent"
             [style.--original-height]="
-              getVideoAttachmentConfiguration(attachmentContext, videoElement)
-                .originalHeight
+              defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                ? getVideoAttachmentConfiguration(
+                    attachmentContext,
+                    videoElement
+                  ).originalHeight
+                : ''
             "
             [style.--original-width]="
-              getVideoAttachmentConfiguration(attachmentContext, videoElement)
-                .originalWidth
+              defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+                ? getVideoAttachmentConfiguration(
+                    attachmentContext,
+                    videoElement
+                  ).originalWidth
+                : ''
             "
             [ngStyle]="{
+              '--original-height': getVideoAttachmentConfiguration(
+                attachmentContext,
+                videoElement
+              ).originalHeight,
+              '--original-width': getVideoAttachmentConfiguration(
+                attachmentContext,
+                videoElement
+              ).originalWidth,
               height: getVideoAttachmentConfiguration(
                 attachmentContext,
                 videoElement
@@ -477,19 +535,31 @@
         ).url
       "
       [style.--original-height]="
-        getCarouselImageAttachmentConfiguration(
-          imagesToView[imagesToViewCurrentIndex],
-          imgElement
-        ).originalHeight
+        defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+          ? getCarouselImageAttachmentConfiguration(
+              imagesToView[imagesToViewCurrentIndex],
+              imgElement
+            ).originalHeight
+          : ''
       "
       [style.--original-width]="
-        getCarouselImageAttachmentConfiguration(
-          imagesToView[imagesToViewCurrentIndex],
-          imgElement
-        ).originalWidth
+        defineOriginalDimensionCSSVariablesIn === 'inlineStyle'
+          ? getCarouselImageAttachmentConfiguration(
+              imagesToView[imagesToViewCurrentIndex],
+              imgElement
+            ).originalWidth
+          : ''
       "
       [alt]="imagesToView[imagesToViewCurrentIndex].fallback"
       [ngStyle]="{
+        '--original-height': getCarouselImageAttachmentConfiguration(
+          imagesToView[imagesToViewCurrentIndex],
+          imgElement
+        ).originalHeight,
+        '--original-width': getCarouselImageAttachmentConfiguration(
+          imagesToView[imagesToViewCurrentIndex],
+          imgElement
+        ).originalWidth,
         width: getCarouselImageAttachmentConfiguration(
           imagesToView[imagesToViewCurrentIndex],
           imgElement
