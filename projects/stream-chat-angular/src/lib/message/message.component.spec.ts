@@ -23,6 +23,7 @@ import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeho
 import { ThemeService } from '../theme.service';
 import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
+import { MessageService } from '../message.service';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -1330,5 +1331,20 @@ describe('MessageComponent', () => {
         nativeElement.querySelector('[data-testid="html-content"]')
       ).not.toBe(null);
     });
+  });
+
+  it('should replace URL links inside text content - custom link renderer', () => {
+    const service = TestBed.inject(MessageService);
+    service.customLinkRenderer = (url) =>
+      `<a href="${url}" class="my-special-class">${url}</a>`;
+    component.message = {
+      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
+      text: 'This is a message with a link https://getstream.io/',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      ' <a href="https://getstream.io/" class="my-special-class">https://getstream.io/</a>'
+    );
   });
 });
