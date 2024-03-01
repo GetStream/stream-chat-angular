@@ -494,10 +494,10 @@ export class MessageComponent
     if (this.displayAs === 'html') {
       return content;
     }
-    content = content.replace(
-      this.urlRegexp,
-      (match) =>
-        `<a href="${match}" target="_blank" rel="nofollow">${match}</a>`
+    content = content.replace(this.urlRegexp, (match) =>
+      this.messageService.customLinkRenderer
+        ? this.messageService.customLinkRenderer(match)
+        : `<a href="${match}" target="_blank" rel="nofollow">${match}</a>`
     );
 
     return content;
