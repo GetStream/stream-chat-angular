@@ -1347,4 +1347,37 @@ describe('MessageComponent', () => {
       ' <a href="https://getstream.io/" class="my-special-class">https://getstream.io/</a>'
     );
   });
+
+  it(`shouldn't display edited flag if message wasn't edited`, () => {
+    expect(
+      nativeElement.querySelector('[data-testid="edited-flag"]')
+    ).toBeNull();
+  });
+
+  it(`should display edited flag if message was edited, edited info should be collapsed`, () => {
+    component.message!.message_text_updated_at = new Date().toISOString();
+    component.ngOnChanges({ message: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="edited-flag"]')
+    ).not.toBeNull();
+
+    expect(
+      nativeElement.querySelector('[data-testid="edited-timestamp"]')
+    ).not.toBeNull();
+  });
+
+  it(`should display edited flag if message was edited, display timestamp if clicked`, () => {
+    component.message!.message_text_updated_at = new Date().toISOString();
+    component.ngOnChanges({ message: {} as SimpleChange });
+    fixture.detectChanges();
+    queryMessageInner()?.click();
+    fixture.detectChanges();
+    const timestamp = nativeElement.querySelector(
+      '[data-testid="edited-timestamp"]'
+    );
+
+    expect(timestamp?.innerHTML).toContain(component.pasedEditedDate);
+  });
 });

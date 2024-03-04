@@ -117,5 +117,6 @@ export const en = {
     'This message did not meet our content guidelines':
       'This message did not meet our content guidelines',
     'Send Anyway': 'Send Anyway',
+    Edited: 'Edited',
   },
 };
