@@ -91,6 +91,7 @@ export class MessageComponent
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isActionBoxOpen = false;
+  isEditedFlagOpened = false;
   isReactionSelectorOpen = false;
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] | undefined = [];
@@ -110,6 +111,7 @@ export class MessageComponent
   isReadByMultipleUsers = false;
   isMessageDeliveredAndRead = false;
   parsedDate = '';
+  pasedEditedDate = '';
   areOptionsVisible = false;
   hasAttachment = false;
   hasReactions = false;
@@ -193,6 +195,13 @@ export class MessageComponent
         (this.message &&
           this.message.created_at &&
           this.dateParser.parseDateTime(this.message.created_at)) ||
+        '';
+      this.pasedEditedDate =
+        (this.message &&
+          this.message.message_text_updated_at &&
+          this.dateParser.parseDateTime(
+            new Date(this.message.message_text_updated_at)
+          )) ||
         '';
       this.hasAttachment =
         !!this.message?.attachments && !!this.message.attachments.length;
@@ -314,7 +323,7 @@ export class MessageComponent
     };
   }
 
-  unsentMessageClicked() {
+  messageClicked() {
     if (
       this.message?.status === 'failed' &&
       this.message?.errorStatusCode !== 403
@@ -325,6 +334,8 @@ export class MessageComponent
       this.message?.moderation_details
     ) {
       this.openMessageBouncePrompt();
+    } else {
+      this.isEditedFlagOpened = !this.isEditedFlagOpened;
     }
   }
 

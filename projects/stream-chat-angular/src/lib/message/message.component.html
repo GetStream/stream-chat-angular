@@ -175,6 +175,15 @@
             class="str-chat__message-text"
             tabindex="0"
             *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
+            [class.str-chat__message-text--pointer-cursor]="
+              (message?.status === 'failed' &&
+                message?.errorStatusCode !== 403) ||
+              (this.message?.type === 'error' &&
+                this.message?.moderation_details) ||
+              message?.message_text_updated_at
+            "
+            (click)="messageClicked()"
+            (keyup.enter)="messageClicked()"
           >
             <div
               data-testid="inner-message"
@@ -184,8 +193,6 @@
               [class.str-chat__message-light-text-inner--has-attachment]="
                 hasAttachment
               "
-              (click)="unsentMessageClicked()"
-              (keyup.enter)="unsentMessageClicked()"
             >
               <ng-container *ngTemplateOutlet="quotedMessage"></ng-container>
               <ng-container *ngIf="hasAttachment && message?.quoted_message">
@@ -459,9 +466,36 @@
       >
         {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
       </span>
-      <span data-testid="date" class="str-chat__message-simple-timestamp">
+      <span
+        data-testid="date"
+        class="str-chat__message-simple-timestamp str-chat__message-simple-time"
+      >
         {{ parsedDate }}
       </span>
+      <ng-container *ngIf="message?.message_text_updated_at">
+        <span
+          data-testid="edited-flag"
+          class="str-chat__mesage-simple-edited"
+          translate
+          >streamChat.Edited</span
+        >
+        <div
+          data-testid="edited-timestamp"
+          class="str-chat__message-edited-timestamp"
+          [ngClass]="{
+            'str-chat__message-edited-timestamp--open': isEditedFlagOpened,
+            'str-chat__message-edited-timestamp--collapsed': !isEditedFlagOpened
+          }"
+        >
+          <span translate>streamChat.Edited</span>
+          <time
+            dateTime="{{ message?.message_text_updated_at }}"
+            title="{{ message?.message_text_updated_at }}"
+          >
+            {{ pasedEditedDate }}
+          </time>
+        </div>
+      </ng-container>
     </div>
   </ng-container>
 </ng-template>

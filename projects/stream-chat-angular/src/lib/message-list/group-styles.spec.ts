@@ -131,4 +131,14 @@ describe('getGroupStyles', () => {
       )
     ).toBe('top');
   });
+
+  it('should end group if the message id edited', () => {
+    messages[1].message_text_updated_at = new Date().toISOString();
+
+    expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
+      'bottom'
+    );
+
+    expect(getGroupStyles(messages[2], messages[1], messages[3])).toBe('top');
+  });
 });

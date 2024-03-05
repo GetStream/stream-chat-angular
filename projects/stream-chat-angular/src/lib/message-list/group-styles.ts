@@ -25,6 +25,7 @@ export const getGroupStyles = (
     previousMessage.type === 'error' ||
     previousMessage.deleted_at ||
     previousMessage.id === lastReadMessageId ||
+    previousMessage.message_text_updated_at ||
     (message.reaction_counts &&
       Object.keys(message.reaction_counts).length > 0);
 
@@ -37,6 +38,7 @@ export const getGroupStyles = (
     nextMessage.type === 'error' ||
     nextMessage.deleted_at ||
     message.id === lastReadMessageId ||
+    message.message_text_updated_at ||
     (nextMessage.reaction_counts &&
       Object.keys(nextMessage.reaction_counts).length > 0);
 
