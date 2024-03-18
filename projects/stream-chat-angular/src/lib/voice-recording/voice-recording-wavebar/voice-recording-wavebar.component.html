@@ -1,0 +1,32 @@
+<div
+  class="str-chat__wave-progress-bar__track"
+  #container
+  data-testid="wave-progress-bar-track"
+  (mousedown)="isDragging = true"
+  (mouseup)="isDragging = false"
+  (mouseleave)="isDragging = false"
+  (mousemove)="isDragging ? seek($event) : null"
+  (click)="seek($event)"
+  (keyup.enter)="seek($event)"
+  role="progressbar"
+>
+  <div
+    *ngFor="
+      let dataPoint of resampledWaveFormData;
+      let i = index;
+      trackBy: trackByIndex
+    "
+    class="str-chat__wave-progress-bar__amplitude-bar"
+    [class.str-chat__wave-progress-bar__amplitude-bar--active]="
+      progress > i / resampledWaveFormData.length
+    "
+    [style.--str-chat__wave-progress-bar__amplitude-bar-height]="
+      dataPoint ? dataPoint * 100 + '%' : '0%'
+    "
+  ></div>
+  <div
+    class="str-chat__wave-progress-bar__progress-indicator"
+    data-testid="wave-progress-bar-progress-indicator"
+    [ngStyle]="{ 'inset-inline-start': progress * 100 + '%' }"
+  ></div>
+</div>

@@ -1,4 +1,5 @@
 import AttachmentsScreenshot from "../assets/attachments-screenshot.png";
+import VoiceRecordingScreenshot from "../assets/voice-recording-screenshot.png";
 import ImageSizingScreenshot1 from "../assets/image-sizing-screenshot-1.png";
 import ImageSizingScreenshot2 from "../assets/image-sizing-screenshot-2.png";
 import ImageSizingScreenshot3 from "../assets/image-sizing-screenshot-3.png";
@@ -8,12 +9,17 @@ The `AttachmentList` component displays the attachments of a message. The follow
 
 - Images (including GIFs) are displayed inline
 - Videos are displayed inline
+- Voice recordings are displayed inline (the Angular SDK doesn't support recording, only playback)
 - Other files can be downloaded
 - Links in a message are enriched with built-in open graph URL scraping
 
 **Example 1** - different type of attachments:
 
 <img src={AttachmentsScreenshot} width="500" />
+
+**Example 2** - voice recording:
+
+<img src={VoiceRecordingScreenshot} width="500" />
 
 ## Basic Usage
 
@@ -50,6 +56,7 @@ You can override attachment display by attachment types, here are the available 
 - [Gallery image](../services/CustomTemplatesService.mdx/#galleryattachmenttemplate): this template is used if a message has multiple image attachments, the template will receive all image attachments. Please note that your template is responsible for proper image sizing (see below).
 - [Video attachment](../services/CustomTemplatesService.mdx/#videoattachmenttemplate): this template is used to display video attachments. Please note that your template is responsible for proper image sizing (see below).
 - [File attachment](../services/CustomTemplatesService.mdx/#fileattachmenttemplate): this template is used to display file type attachments
+- [Voice recording](../services/CustomTemplatesService.mdx/#voicerecordingattachmenttemplate): this template is used to display voice recordings
 - [Card attachment](../services/CustomTemplatesService.mdx/#cardattachmenttemplate): this template is used to display GIFs or open graph URL data
 - [Attachment actions](../services/CustomTemplatesService.mdx/#attachmentactionstemplate): this template is used to display attachment actions
 

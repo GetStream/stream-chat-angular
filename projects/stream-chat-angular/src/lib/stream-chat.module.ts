@@ -25,6 +25,8 @@ import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeh
 import { NgxPopperjsModule } from 'ngx-popperjs';
 import { EditMessageFormComponent } from './edit-message-form/edit-message-form.component';
 import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bounce-prompt.component';
+import { VoiceRecordingComponent } from './voice-recording/voice-recording.component';
+import { VoiceRecordingWavebarComponent } from './voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';
 
 @NgModule({
   declarations: [
@@ -50,6 +52,8 @@ import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bo
     LoadingIndicatorPlaceholderComponent,
     EditMessageFormComponent,
     MessageBouncePromptComponent,
+    VoiceRecordingComponent,
+    VoiceRecordingWavebarComponent,
   ],
   imports: [
     CommonModule,
@@ -80,6 +84,8 @@ import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bo
     LoadingIndicatorPlaceholderComponent,
     EditMessageFormComponent,
     MessageBouncePromptComponent,
+    VoiceRecordingComponent,
+    VoiceRecordingWavebarComponent,
   ],
 })
 export class StreamChatModule {}

@@ -11,6 +11,9 @@
       [class.str-chat-angular__message-attachment-file-single]="
         isFile(attachment)
       "
+      [class.str-chat__message-attachment--voice-recording]="
+        isVoiceMessage(attachment)
+      "
       [class.str-chat__message-attachment-with-actions]="
         attachment.actions && attachment.actions.length > 0
       "
@@ -260,14 +263,11 @@
           "
         ></ng-container>
         <ng-template #defaultFile let-attachmentContext="attachment">
-          <a
+          <div
             class="
               str-chat__message-attachment-file--item
               str-chat-angular__message-attachment-file-single
             "
-            data-testclass="file-link"
-            href="{{ attachmentContext.asset_url }}"
-            target="_blank"
           >
             <stream-icon-placeholder
               *ngIf="themeVersion === '1'"
@@ -280,27 +280,23 @@
               [size]="30"
             ></stream-icon-placeholder>
             <div class="str-chat__message-attachment-file--item-text">
-              <div class="str-chat__message-attachment-file--item-first-row">
+              <a
+                class="str-chat__message-attachment-file--item-first-row"
+                data-testclass="file-link"
+                href="{{ attachmentContext.asset_url }}"
+                target="_blank"
+              >
                 <div
                   data-testclass="file-title"
                   class="str-chat__message-attachment-file--item-name"
                 >
                   {{ attachmentContext.title }}
                 </div>
-                <!-- Temporary disabled, will be fixed with this: https://github.com/GetStream/stream-chat-angular/issues/393  -->
-                <!-- <a
-              class="str-chat__message-attachment-file--item-download"
-              data-testclass="file-link"
-              download
-              href="{{ attachment.asset_url }}"
-              target="_blank"
-            >
-              <stream-icon-placeholder
-                class="str-chat__message-attachment-download-icon"
-                icon="download"
-              ></stream-icon-placeholder>
-            </a> -->
-              </div>
+                <stream-icon-placeholder
+                  class="str-chat__message-attachment-download-icon"
+                  icon="download"
+                ></stream-icon-placeholder>
+              </a>
               <span
                 class="str-chat__message-attachment-file--item-size"
                 data-testclass="size"
@@ -308,7 +304,22 @@
                 >{{ getFileSize(attachmentContext) }}</span
               >
             </div>
-          </a>
+          </div>
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="isVoiceMessage(attachment)">
+        <ng-container
+          *ngTemplateOutlet="
+            (customTemplatesService.voiceRecordingAttachmentTemplate$
+              | async) || defaultRecording;
+            context: getAttachmentContext(attachment)
+          "
+        ></ng-container>
+        <ng-template #defaultRecording>
+          <stream-voice-recording
+            data-testclass="voice-recording"
+            [attachment]="attachment"
+          ></stream-voice-recording>
         </ng-template>
       </ng-container>
       <ng-container

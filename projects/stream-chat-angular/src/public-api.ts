@@ -61,3 +61,5 @@ export * from './lib/date-parser.service';
 export * from './lib/types';
 export * from './lib/message.service';
 export * from './lib/message-actions.service';
+export * from './lib/voice-recording/voice-recording.component';
+export * from './lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';

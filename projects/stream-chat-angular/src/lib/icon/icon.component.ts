@@ -10,6 +10,7 @@ export type Icon =
   | 'retry'
   | 'close'
   | 'file'
+  | 'audio-file'
   | 'reply'
   | 'close-no-outline'
   | 'reply-in-thread'
@@ -22,7 +23,9 @@ export type Icon =
   | 'attach'
   | 'unspecified-filetype'
   | 'download'
-  | 'error';
+  | 'error'
+  | 'play'
+  | 'pause';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).

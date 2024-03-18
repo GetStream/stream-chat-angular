@@ -265,6 +265,12 @@ export class CustomTemplatesService<
     TemplateRef<AttachmentContext> | undefined
   >(undefined);
   /**
+   * The template that can be used to override how a voice recording attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx), by default the [voice recording component](../components/VoiceRecordingComponent.mdx) is used
+   */
+  voiceRecordingAttachmentTemplate$ = new BehaviorSubject<
+    TemplateRef<AttachmentContext> | undefined
+  >(undefined);
+  /**
    * The template that can be used to override how a video attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
    */
   videoAttachmentTemplate$ = new BehaviorSubject<
