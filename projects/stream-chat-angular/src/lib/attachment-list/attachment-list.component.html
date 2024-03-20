@@ -448,21 +448,6 @@
 
 <ng-template #modalContent>
   <div class="stream-chat-angular__image-modal str-chat__image-carousel">
-    <button
-      class="
-        stream-chat-angular__image-modal-stepper
-        str-chat__image-carousel-stepper
-      "
-      [ngStyle]="{
-        visibility: isImageModalPrevButtonVisible ? 'visible' : 'hidden'
-      }"
-      data-testid="image-modal-prev"
-      type="button"
-      (click)="stepImages(-1)"
-      (keyup.enter)="stepImages(-1)"
-    >
-      <stream-icon-placeholder icon="arrow-left"></stream-icon-placeholder>
-    </button>
     <img
       #imgElement
       class="
@@ -500,20 +485,37 @@
         ).height
       }"
     />
-    <button
-      class="
-        stream-chat-angular__image-modal-stepper
-        str-chat__image-carousel-stepper
-      "
-      type="button"
-      [ngStyle]="{
-        visibility: isImageModalNextButtonVisible ? 'visible' : 'hidden'
-      }"
-      data-testid="image-modal-next"
-      (click)="stepImages(1)"
-      (keyup.enter)="stepImages(1)"
-    >
-      <stream-icon-placeholder icon="arrow-right"></stream-icon-placeholder>
-    </button>
+    <div>
+      <button
+        class="
+          stream-chat-angular__image-modal-stepper
+          str-chat__image-carousel-stepper str-chat__image-carousel-stepper-prev
+        "
+        [ngStyle]="{
+          visibility: isImageModalPrevButtonVisible ? 'visible' : 'hidden'
+        }"
+        data-testid="image-modal-prev"
+        type="button"
+        (click)="stepImages(-1)"
+        (keyup.enter)="stepImages(-1)"
+      >
+        <stream-icon-placeholder icon="arrow-left"></stream-icon-placeholder>
+      </button>
+      <button
+        class="
+          stream-chat-angular__image-modal-stepper
+          str-chat__image-carousel-stepper str-chat__image-carousel-stepper-next
+        "
+        type="button"
+        [ngStyle]="{
+          visibility: isImageModalNextButtonVisible ? 'visible' : 'hidden'
+        }"
+        data-testid="image-modal-next"
+        (click)="stepImages(1)"
+        (keyup.enter)="stepImages(1)"
+      >
+        <stream-icon-placeholder icon="arrow-right"></stream-icon-placeholder>
+      </button>
+    </div>
   </div>
 </ng-template>
