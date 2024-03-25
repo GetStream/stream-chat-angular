@@ -15,6 +15,8 @@ import { DefaultStreamChatGenerics } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { ThemeService } from '../theme.service';
 import { SimpleChange } from '@angular/core';
+import { mockVoiceRecording } from '../mocks';
+import { VoiceRecordingComponent } from '../voice-recording/voice-recording.component';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -27,6 +29,7 @@ describe('AttachmentListComponent', () => {
   let queryUrlLinks: () => HTMLAnchorElement[];
   let queryCardImages: () => HTMLImageElement[];
   let queryActions: () => HTMLElement[];
+  let queryVoiceMessges: () => HTMLElement[];
   let queryImageModal: () => ModalComponent;
   let queryImageModalImage: () => HTMLImageElement | null;
   let queryImageModalPrevButton: () => HTMLButtonElement | null;
@@ -39,7 +42,11 @@ describe('AttachmentListComponent', () => {
   beforeEach(async () => {
     sendAction = jasmine.createSpy();
     await TestBed.configureTestingModule({
-      declarations: [AttachmentListComponent, ModalComponent],
+      declarations: [
+        AttachmentListComponent,
+        ModalComponent,
+        VoiceRecordingComponent,
+      ],
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
         { provide: ThemeService, useValue: { themeVersion: '2' } },
@@ -80,6 +87,10 @@ describe('AttachmentListComponent', () => {
     queryActions = () =>
       Array.from(
         nativeElement.querySelectorAll('[data-testclass="attachment-action"]')
+      );
+    queryVoiceMessges = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass="voice-recording"]')
       );
     queryImageModal = () =>
       fixture.debugElement.query(By.directive(ModalComponent))
@@ -124,12 +135,13 @@ describe('AttachmentListComponent', () => {
         type: 'video',
         asset_url: 'http://url6',
       },
+      mockVoiceRecording,
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
     const attachments = queryAttachments();
 
-    expect(attachments.length).toBe(3);
+    expect(attachments.length).toBe(4);
     expect(
       attachments[0].classList.contains('str-chat__message-attachment--image')
     ).toBeTrue();
@@ -139,22 +151,41 @@ describe('AttachmentListComponent', () => {
     ).toBeTrue();
 
     expect(
-      attachments[2].classList.contains('str-chat__message-attachment--file')
+      attachments[2].classList.contains(
+        'str-chat__message-attachment--voice-recording'
+      )
     ).toBeTrue();
 
     expect(
-      attachments[2].classList.contains('str-chat__message-attachment--image')
+      attachments[3].classList.contains('str-chat__message-attachment--file')
+    ).toBeTrue();
+
+    expect(
+      attachments[3].classList.contains('str-chat__message-attachment--image')
     ).toBeFalse();
 
     expect(queryImages().length).toBe(1);
     expect(queryFileLinks().length).toBe(1);
     expect(queryCardImages().length).toBe(0);
+    expect(queryVoiceMessges().length).toBe(1);
     expect(queryActions().length).toBe(0);
     expect(
       nativeElement.querySelector('.str-chat__message-attachment-with-actions')
     ).toBeNull();
 
     expect(queryVideos().length).toBe(1);
+  });
+
+  it('should display voice recording', () => {
+    component.attachments = [mockVoiceRecording];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    const voiceRecordingComponent = fixture.debugElement.query(
+      By.directive(VoiceRecordingComponent)
+    ).componentInstance as VoiceRecordingComponent;
+
+    expect(voiceRecordingComponent.attachment).toBe(mockVoiceRecording);
   });
 
   it('should create gallery', () => {

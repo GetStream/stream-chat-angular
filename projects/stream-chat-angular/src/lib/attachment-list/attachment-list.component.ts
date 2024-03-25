@@ -81,6 +81,7 @@ export class AttachmentListComponent implements OnChanges {
       this.orderedAttachments = [
         ...(containsGallery ? this.createGallery(images) : images),
         ...this.attachments.filter((a) => this.isVideo(a)),
+        ...this.attachments.filter((a) => this.isVoiceMessage(a)),
         ...this.attachments.filter((a) => this.isFile(a)),
       ];
       this.attachmentConfigurations = new Map();
@@ -134,6 +135,10 @@ export class AttachmentListComponent implements OnChanges {
       (attachment.type === 'image' && !this.isImage(attachment)) ||
       attachment.type === 'giphy'
     );
+  }
+
+  isVoiceMessage(attachment: Attachment) {
+    return attachment.type === 'voiceRecording';
   }
 
   hasFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {

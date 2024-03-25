@@ -118,5 +118,6 @@ export const en = {
       'This message did not meet our content guidelines',
     'Send Anyway': 'Send Anyway',
     Edited: 'Edited',
+    'Error playing audio': 'Error playing audio',
   },
 };
