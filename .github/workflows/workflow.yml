@@ -6,7 +6,7 @@ on:
       - beta
       - test
       - theming-v2
-      - remove-style-attributes-from-templates
+      - capture-for-file-input
   pull_request:
     branches:
       - master
