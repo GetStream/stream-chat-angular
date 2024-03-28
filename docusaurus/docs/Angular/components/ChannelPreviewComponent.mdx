@@ -1,20 +1,29 @@
+import ChannelPreview from "../assets/channel-preview.png";
+import ChannelPreviewInfo from "../assets/channel-preview-info.png";
+
 The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name (or list of members if name isn't defined) and latest message of the channel.
+
+<img src={ChannelPreview} width="500" />
+
+## Basic usage
+
+The `ChannelPreview` component is displayed inside the built-in [channel list component](../../components/ChannelListComponent). If you're building you own channel list, this is how you can use this component:
+
+```html
+<stream-channel-preview [channel]="channel"></stream-channel-preview>
+```
 
 ## Customization
 
-The channel list uses the `ChannelPreview` component to display channels, if you want to replace that with your own custom component you can use the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#channelpreviewtemplate).
+1. You can provide your own template for the channel preview info (marked with the red rectangle on the screenshot) by providing your own template for the [`customTemplatesService.channelPreviewInfoTemplate$`](../../services/CustomTemplatesService/#channelpreviewinfotemplate).
 
-The [`MessageService`](../services/MessageService.mdx) has additional customization options.
+<img src={ChannelPreviewInfo} width="500" />
 
-:::note
+2. If you want to customize the channel avatar, please refer to the [avatar customization section](../../components/AvatarComponent/#customization)
 
-If you want to build your own `ChannelPreview` component, you might find the following building blocks useful:
+3. You can replace the whole component by providing your own template for the [`customTemplatesService.channelPreviewInfoTemplate$`](../../services/CustomTemplatesService/#channelpreviewtemplate).
 
-### Avatar
-
-The `ChannelPreview` component uses the [`Avatar`](./AvatarComponent.mdx) component to display the channel's photo.
-
-:::
+4. The [`MessageService`](../services/MessageService.mdx) provides some customization options for message display the are applied to both the message and channel preview components
 
 [//]: # "Start of generated content"
 [//]: # "End of generated content"

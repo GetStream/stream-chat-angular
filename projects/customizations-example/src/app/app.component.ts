@@ -16,7 +16,6 @@ import {
   MentionAutcompleteListItemContext,
   CustomTemplatesService,
   CommandAutocompleteListItemContext,
-  ChannelPreviewContext,
   MessageInputContext,
   EmojiPickerContext,
   MentionTemplateContext,
@@ -37,6 +36,7 @@ import {
   CustomAttachmentUploadContext,
   DateSeparatorContext,
   MessageActionsService,
+  ChannelPreviewInfoContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -50,8 +50,8 @@ export class AppComponent implements AfterViewInit {
   private mentionAutocompleteItemTemplate!: TemplateRef<MentionAutcompleteListItemContext>;
   @ViewChild('commandAutocompleteItemTemplate')
   private commandAutocompleteItemTemplate!: TemplateRef<CommandAutocompleteListItemContext>;
-  @ViewChild('channelPreviewTemplate')
-  private channelPreviewTemplate!: TemplateRef<ChannelPreviewContext>;
+  @ViewChild('channelPreviewInfo')
+  private channelPreviewInfoTemplate!: TemplateRef<ChannelPreviewInfoContext>;
   @ViewChild('customMessageInputTemplate')
   private customMessageInputTemplate!: TemplateRef<MessageInputContext>;
   @ViewChild('mentionTemplate')
@@ -131,8 +131,8 @@ export class AppComponent implements AfterViewInit {
     this.customTemplatesService.commandAutocompleteItemTemplate$.next(
       this.commandAutocompleteItemTemplate
     );
-    this.customTemplatesService.channelPreviewTemplate$.next(
-      this.channelPreviewTemplate
+    this.customTemplatesService.channelPreviewInfoTemplate$.next(
+      this.channelPreviewInfoTemplate
     );
     this.customTemplatesService.messageInputTemplate$.next(
       this.customMessageInputTemplate

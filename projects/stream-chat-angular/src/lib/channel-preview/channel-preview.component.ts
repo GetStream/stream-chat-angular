@@ -9,10 +9,11 @@ import {
 } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import { DefaultStreamChatGenerics } from '../types';
+import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getMessageTranslation } from '../get-message-translation';
 import { MessageService } from '../message.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -31,7 +32,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   isUnreadMessageWasCalled = false;
   isUnread = false;
   unreadCount: number | undefined;
-  latestMessage: string = 'streamChat.Nothing yet...';
+  latestMessageText: string = 'streamChat.Nothing yet...';
+  latestMessage?: StreamMessage;
   displayAs: 'text' | 'html';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
@@ -40,7 +42,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     private channelService: ChannelService,
     private ngZone: NgZone,
     private chatClientService: ChatClientService,
-    messageService: MessageService
+    messageService: MessageService,
+    public customTemplatesService: CustomTemplatesService
   ) {
     this.displayAs = messageService.displayAs;
   }
@@ -127,7 +130,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   private handleMessageEvent(event: Event) {
     this.ngZone.run(() => {
       if (this.channel?.state.latestMessages.length === 0) {
-        this.latestMessage = 'streamChat.Nothing yet...';
+        this.latestMessage = undefined;
+        this.latestMessageText = 'streamChat.Nothing yet...';
         return;
       }
       if (
@@ -144,17 +148,18 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private setLatestMessage(message?: FormatMessageResponse | MessageResponse) {
+    this.latestMessage = message as StreamMessage;
     if (message?.deleted_at) {
-      this.latestMessage = 'streamChat.Message deleted';
+      this.latestMessageText = 'streamChat.Message deleted';
     } else if (message?.text) {
-      this.latestMessage =
+      this.latestMessageText =
         getMessageTranslation(
           message,
           this.channel,
           this.chatClientService.chatClient.user
         ) || message.text;
     } else if (message?.attachments && message.attachments.length) {
-      this.latestMessage = 'streamChat.🏙 Attachment...';
+      this.latestMessageText = 'streamChat.🏙 Attachment...';
     }
   }
 
