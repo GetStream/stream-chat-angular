@@ -135,6 +135,21 @@ export type ChannelPreviewContext<
   channel: Channel<T>;
 };
 
+export type ChannelPreviewInfoContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = ChannelPreviewContext & {
+  latestMessage?: StreamMessage<T>;
+  /**
+   * The text of the latest message, or some meta information (for example: "Nothing yet")
+   */
+  latestMessageText: string;
+  /**
+   * The title of the channel, or the name of the channel members
+   */
+  channelDisplayTitle: string;
+  unreadCount: number;
+};
+
 export type MessageInputContext = {
   isFileUploadEnabled: boolean | undefined;
   areMentionsEnabled: boolean | undefined;

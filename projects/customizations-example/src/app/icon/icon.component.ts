@@ -37,6 +37,9 @@ export class IconComponent {
       'arrow-up': 'keyboard_arrow_up',
       'arrow-down': 'keyboard_arrow_down',
       'chat-bubble': 'chat',
+      'audio-file': '',
+      play: '',
+      pause: '',
     };
 
     return map[this.icon!];

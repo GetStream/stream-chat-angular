@@ -23,7 +23,41 @@ export class CustomMessageComponent {
 
 ## Customization
 
-You can provide your own avatar component by the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx)
+You can provide your own avatar component using the [`CustomTemplatesService`](../services/CustomTemplatesService/#avatartemplate)
+
+This will override the avatar for all locations (for example: message sender, channel preview). In case you want to override it only for selected locations, you can create a custom template like this:
+
+```html
+<ng-template
+  #avatarTemplate
+  let-name="name"
+  let-imageUrl="imageUrl"
+  let-size="size"
+  let-type="type"
+  let-location="location"
+  let-user="user"
+  let-channel="channel"
+  let-initialsType="initialsType"
+  let-showOnlineIndicator="showOnlineIndicator"
+>
+  <my-custom-avatar
+    *ngIf="location === 'message-sender'; else defaultAvatar"
+  ></my-custom-avatar>
+  <ng-template #defaultAvatar>
+    <stream-avatar
+      [name]="name"
+      [imageUrl]="imageUrl"
+      [size]="size"
+      [type]="type"
+      [location]="location"
+      [user]="user"
+      [channel]="channel"
+      [initialsType]="initialsType"
+      [showOnlineIndicator]="showOnlineIndicator"
+    ></stream-avatar>
+  </ng-template>
+</ng-template>
+```
 
 [//]: # "Start of generated content"
 [//]: # "End of generated content"

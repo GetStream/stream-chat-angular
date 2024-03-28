@@ -19,15 +19,6 @@
   <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
 </ng-template>
 
-<ng-template #channelPreviewTemplate let-channel="channel">
-  <div
-    (click)="channelService.setAsActiveChannel(channel)"
-    (keyup.enter)="channelService.setAsActiveChannel(channel)"
-  >
-    {{ channel?.data?.name || channel?.data?.id }}
-  </div>
-</ng-template>
-
 <ng-template
   #messageTemplate
   let-message="message"
@@ -278,4 +269,19 @@
 
 <ng-template #emptyThreadMessageList>
   <div class="empty-list"><div>No thread replies yet</div></div>
+</ng-template>
+
+<ng-template
+  #channelPreviewInfo
+  let-channel="channel"
+  let-channelDisplayTitle="channelDisplayTitle"
+  let-unreadCount="unreadCount"
+  let-latestMessageText="latestMessageText"
+  let-latestMessage="latestMessage"
+>
+  <div>Channel title: {{ channel.title }}</div>
+  <div>Display title: {{ channelDisplayTitle }}</div>
+  <div>Unread count: {{ unreadCount }}</div>
+  <div>Latest message text: {{ latestMessageText }}</div>
+  <div>Latest message id: {{ latestMessage?.id }}</div>
 </ng-template>
