@@ -1,15 +1,10 @@
 import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import {
-  Channel,
-  Event,
-  FormatMessageResponse,
-  MessageResponse,
-} from 'stream-chat';
+import { Channel, Event, FormatMessageResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import { DefaultStreamChatGenerics, StreamMessage } from '../types';
+import { DefaultStreamChatGenerics } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getMessageTranslation } from '../get-message-translation';
 import { MessageService } from '../message.service';
@@ -33,7 +28,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   isUnread = false;
   unreadCount: number | undefined;
   latestMessageText: string = 'streamChat.Nothing yet...';
-  latestMessage?: StreamMessage;
+  latestMessage?: FormatMessageResponse;
   displayAs: 'text' | 'html';
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
@@ -134,21 +129,20 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         this.latestMessageText = 'streamChat.Nothing yet...';
         return;
       }
-      if (
-        !event.message ||
+      const latestMessage =
         this.channel?.state.latestMessages[
           this.channel?.state.latestMessages.length - 1
-        ].id !== event.message.id
-      ) {
+        ];
+      if (!event.message || latestMessage?.id !== event.message.id) {
         return;
       }
-      this.setLatestMessage(event.message);
+      this.setLatestMessage(latestMessage);
       this.updateUnreadState();
     });
   }
 
-  private setLatestMessage(message?: FormatMessageResponse | MessageResponse) {
-    this.latestMessage = message as StreamMessage;
+  private setLatestMessage(message?: FormatMessageResponse) {
+    this.latestMessage = message;
     if (message?.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';
     } else if (message?.text) {
