@@ -622,8 +622,11 @@ export class ChannelService<
       // If we are on latest message set, activeChannelMessages$ will be refreshed by WS events, no need for a request
       return false;
     }
+    if (!activeChnannel) {
+      return false;
+    }
     return activeChnannel
-      ?.query({
+      .query({
         messages: {
           limit: this.options?.message_limit,
           [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
@@ -649,26 +652,34 @@ export class ChannelService<
    * Loads the next page of messages of the active thread. The page size can be set in the [query option](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript#query-options) object.
    * @param direction
    */
-  async loadMoreThreadReplies(direction: 'older' | 'newer' = 'older') {
+  loadMoreThreadReplies(direction: 'older' | 'newer' = 'older') {
     if (direction === 'newer') {
       // Thread replies aren't broke into different message sets, activeThreadMessages$ will be refreshed by WS events, no need for a request
-      return;
+      return false;
     }
     const activeChnannel = this.activeChannelSubject.getValue();
     const parentMessageId = this.activeParentMessageIdSubject.getValue();
     if (!parentMessageId) {
-      return;
+      return false;
+    }
+    if (!activeChnannel) {
+      return false;
     }
     const threadMessages = this.activeThreadMessagesSubject.getValue();
     const lastMessageId =
       threadMessages[direction === 'older' ? 0 : threadMessages.length - 1]?.id;
-    await activeChnannel?.getReplies(parentMessageId, {
-      limit: this.options?.message_limit,
-      [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
-    });
-    this.activeThreadMessagesSubject.next(
-      activeChnannel?.state.threads[parentMessageId] || []
-    );
+    return activeChnannel
+      .getReplies(parentMessageId, {
+        limit: this.options?.message_limit,
+        [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
+      })
+      .then((response) => {
+        this.activeThreadMessagesSubject.next(
+          activeChnannel?.state.threads[parentMessageId] || []
+        );
+
+        return response;
+      });
   }
 
   /**

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DoCheck,
   ElementRef,
   HostBinding,
   Input,
@@ -75,7 +76,7 @@ export class MessageListComponent
   /**
    * If `true` date separators will be displayed
    */
-  @Input() displayDateSeparator = true;
+  @Input() displayDateSeparator = false;
   /**
    * If date separators are displayed, you can set the horizontal position of the date text.
    */
@@ -94,7 +95,7 @@ export class MessageListComponent
   /**
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
    */
-  @Input() displayLoadingIndicator = true;
+  @Input() displayLoadingIndicator = false;
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
@@ -144,6 +145,7 @@ export class MessageListComponent
     UserResponse<DefaultStreamChatGenerics>[]
   >;
   private isLatestMessageInList = true;
+  private isOldestMessageInList = false;
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
   private isViewInited = false;
@@ -459,6 +461,10 @@ export class MessageListComponent
   }
 
   ngAfterViewChecked() {
+    console.log('itt');
+    if (!this.isViewInited) {
+      return;
+    }
     if (this.highlightedMessageId) {
       // Turn off programatic scroll adjustments while jump to message is in progress
       this.hasNewMessages = false;
@@ -492,6 +498,7 @@ export class MessageListComponent
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       } else if (this.olderMassagesLoaded) {
+        console.log('older messages loaded');
         this.chatClientService.chatClient?.logger?.(
           'info',
           `Older messages are loaded, we preserve the scroll position`,
@@ -567,6 +574,14 @@ export class MessageListComponent
       return;
     }
     const scrollPosition = this.getScrollPosition();
+    console.log(
+      'scrolled',
+      scrollPosition,
+      this.scrollContainer?.nativeElement?.scrollHeight,
+      this.scrollContainer?.nativeElement?.scrollTop,
+      this.scrollContainer?.nativeElement?.clientHeight,
+      this.isLoading
+    );
     this.chatClientService.chatClient?.logger?.(
       'info',
       `Scrolled - scroll position: ${scrollPosition}, container height: ${this.scrollContainer.nativeElement.scrollHeight}`,
@@ -609,10 +624,11 @@ export class MessageListComponent
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
         let direction: 'newer' | 'older';
         if (this.direction === 'top-to-bottom') {
-          direction = scrollPosition === 'top' ? 'newer' : 'older';
+          direction = scrollPosition.includes('top') ? 'newer' : 'older';
         } else {
-          direction = scrollPosition === 'top' ? 'older' : 'newer';
+          direction = scrollPosition.includes('top') ? 'older' : 'newer';
         }
+        console.log('loading more messages');
         const result =
           this.mode === 'main'
             ? this.channelService.loadMoreMessages(direction)
@@ -624,6 +640,13 @@ export class MessageListComponent
             { tags: `message list ${this.mode}` }
           );
           this.isLoading = true;
+          result
+            .then((response) => {
+              if (response.messages.length === 0 && direction === 'older') {
+                this.isOldestMessageInList = true;
+              }
+            })
+            .finally(() => (this.isLoading = false));
         }
         this.cdRef.detectChanges();
       });
@@ -678,9 +701,19 @@ export class MessageListComponent
   }
 
   private preserveScrollbarPosition() {
-    this.scrollContainer.nativeElement.scrollTop =
-      (this.prevScrollTop || 0) +
-      (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
+    const currentScrollTop = this.scrollContainer.nativeElement?.scrollTop;
+    const nextScrollTop =
+      this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!;
+    if (
+      currentScrollTop !== nextScrollTop &&
+      this.scrollContainer.nativeElement
+    ) {
+      console.log('preserve scrollbar');
+      this.scrollContainer.nativeElement!.scrollTop = nextScrollTop;
+      if (this.isViewInited) {
+        this.cdRef.detectChanges();
+      }
+    }
   }
 
   private forceRepaint() {
@@ -690,8 +723,12 @@ export class MessageListComponent
     this.scrollContainer.nativeElement.style.display = '';
   }
 
-  private getScrollPosition(): 'top' | 'bottom' | 'middle' {
-    let position: 'top' | 'bottom' | 'middle' = 'middle';
+  private getScrollPosition():
+    | 'top'
+    | 'bottom'
+    | 'middle'
+    | 'near-top'
+    | 'near-bottom' {
     if (
       Math.floor(this.scrollContainer.nativeElement.scrollTop) <=
         (this.parentMessageElement?.nativeElement.clientHeight || 0) &&
@@ -699,20 +736,53 @@ export class MessageListComponent
         this.prevScrollTop >
           (this.parentMessageElement?.nativeElement.clientHeight || 0))
     ) {
-      position = 'top';
-    } else if (
+      return 'top';
+    }
+    if (
       Math.ceil(this.scrollContainer.nativeElement.scrollTop) +
         this.scrollContainer.nativeElement.clientHeight >=
       this.scrollContainer.nativeElement.scrollHeight
     ) {
-      position = 'bottom';
+      return 'bottom';
+    }
+    if (
+      this.scrollContainer.nativeElement?.scrollTop -
+        (this.parentMessageElement?.nativeElement.clientHeight || 0) <
+      this.scrollContainer.nativeElement?.clientHeight * 0.35
+    ) {
+      return 'near-top';
     }
 
-    return position;
+    return 'middle';
   }
 
-  private shouldLoadMoreMessages(scrollPosition: 'top' | 'bottom' | 'middle') {
-    return scrollPosition !== 'middle' && !this.highlightedMessageId;
+  private shouldLoadMoreMessages(
+    scrollPosition: 'top' | 'bottom' | 'middle' | 'near-top' | 'near-bottom'
+  ) {
+    if (this.highlightedMessageId) {
+      return false;
+    }
+    if (this.isLoading) {
+      return false;
+    }
+    if (scrollPosition === 'middle') {
+      return false;
+    }
+    const direction: 'newer' | 'older' =
+      this.direction === 'top-to-bottom'
+        ? scrollPosition.includes('top')
+          ? 'newer'
+          : 'older'
+        : scrollPosition.includes('bottom')
+        ? 'newer'
+        : 'older';
+    if (direction === 'newer' && this.isLatestMessageInList) {
+      return false;
+    } else if (direction === 'older' && this.isOldestMessageInList) {
+      return false;
+    }
+
+    return true;
   }
 
   private setMessages$() {
@@ -826,6 +896,7 @@ export class MessageListComponent
     this.prevScrollTop = undefined;
     this.isNewMessageSentByUser = undefined;
     this.isLatestMessageInList = true;
+    this.isOldestMessageInList = false;
   }
 
   private get usersTyping$() {
