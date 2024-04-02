@@ -1237,6 +1237,21 @@ describe('MessageListComponent', () => {
     expect(newMessagesIndicator?.innerHTML).toContain('Unread messages');
   });
 
+  it(`shouldn't display unread banner if #displayUnreadSeparator is false`, () => {
+    component.displayUnreadSeparator = false;
+    const channel = generateMockChannels()[0];
+    const messages = generateMockMessages();
+    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    channel.id = 'test-channel';
+    channelServiceMock.activeChannelLastReadMessageId =
+      messages[messages.length - 2].id;
+    channelServiceMock.activeChannelUnreadCount = 2;
+    channelServiceMock.activeChannel$.next(channel);
+    fixture.detectChanges();
+
+    expect(queryNewMessagesIndicator()).toBeNull();
+  });
+
   // it('should display unread notification with correct text', async () => {
   //   const channel = generateMockChannels()[0];
   //   const messages = generateMockMessages();

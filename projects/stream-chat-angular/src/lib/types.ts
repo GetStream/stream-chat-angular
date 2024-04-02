@@ -437,3 +437,9 @@ export type MessageActionsClickDetails<
   isMine: boolean;
   customActions: CustomMessageActionItem[];
 };
+
+export type GroupStyleOptions = {
+  noGroupByUser?: boolean;
+  lastReadMessageId?: string;
+  noGroupByReadState?: boolean;
+};

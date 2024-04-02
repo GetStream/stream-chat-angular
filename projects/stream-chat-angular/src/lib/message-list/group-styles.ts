@@ -1,4 +1,4 @@
-import { StreamMessage } from '../types';
+import { GroupStyleOptions, StreamMessage } from '../types';
 
 export type GroupStyle = '' | 'middle' | 'top' | 'bottom' | 'single';
 
@@ -6,11 +6,14 @@ export const getGroupStyles = (
   message: StreamMessage,
   previousMessage?: StreamMessage,
   nextMessage?: StreamMessage,
-  noGroupByUser = false,
-  lastReadMessageId?: string
+  options: GroupStyleOptions = {
+    noGroupByUser: false,
+    lastReadMessageId: undefined,
+    noGroupByReadState: false,
+  }
 ): GroupStyle => {
   if (
-    noGroupByUser ||
+    options.noGroupByUser ||
     (message.attachments && message.attachments.length !== 0)
   )
     return 'single';
@@ -24,7 +27,8 @@ export const getGroupStyles = (
     message.user?.id !== previousMessage.user?.id ||
     previousMessage.type === 'error' ||
     previousMessage.deleted_at ||
-    previousMessage.id === lastReadMessageId ||
+    (previousMessage.id === options.lastReadMessageId &&
+      !options.noGroupByReadState) ||
     previousMessage.message_text_updated_at ||
     (message.reaction_counts &&
       Object.keys(message.reaction_counts).length > 0);
@@ -37,7 +41,7 @@ export const getGroupStyles = (
     message.user?.id !== nextMessage.user?.id ||
     nextMessage.type === 'error' ||
     nextMessage.deleted_at ||
-    message.id === lastReadMessageId ||
+    (message.id === options.lastReadMessageId && !options.noGroupByReadState) ||
     message.message_text_updated_at ||
     (nextMessage.reaction_counts &&
       Object.keys(nextMessage.reaction_counts).length > 0);

@@ -2,7 +2,8 @@
   *ngIf="
     lastReadMessageId &&
     isUnreadNotificationVisible &&
-    openMessageListAt === 'last-message'
+    openMessageListAt === 'last-message' &&
+    displayUnreadSeparator
   "
 >
   <ng-container
@@ -136,6 +137,7 @@
             "
           >
             <li
+              *ngIf="displayUnreadSeparator"
               id="stream-chat-new-message-indicator"
               data-testid="new-messages-indicator"
               class="str-chat__li str-chat__unread-messages-separator-wrapper"

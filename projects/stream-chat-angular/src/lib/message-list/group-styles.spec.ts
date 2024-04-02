@@ -16,17 +16,23 @@ describe('getGroupStyles', () => {
   });
 
   it('should mark messages as "single", if grouping is turned off', () => {
-    expect(getGroupStyles(messages[0], undefined, messages[1], true)).toBe(
-      'single'
-    );
+    expect(
+      getGroupStyles(messages[0], undefined, messages[1], {
+        noGroupByUser: true,
+      })
+    ).toBe('single');
 
-    expect(getGroupStyles(messages[1], messages[0], messages[2], true)).toBe(
-      'single'
-    );
+    expect(
+      getGroupStyles(messages[1], messages[0], messages[2], {
+        noGroupByUser: true,
+      })
+    ).toBe('single');
 
-    expect(getGroupStyles(messages[2], messages[1], undefined, true)).toBe(
-      'single'
-    );
+    expect(
+      getGroupStyles(messages[2], messages[1], undefined, {
+        noGroupByUser: true,
+      })
+    ).toBe('single');
   });
 
   it('should mark error messages as "single"', () => {
@@ -112,24 +118,32 @@ describe('getGroupStyles', () => {
     const lastReadMessageId = messages[0].id;
 
     expect(
-      getGroupStyles(
-        messages[0],
-        undefined,
-        messages[1],
-        false,
-        lastReadMessageId
-      )
+      getGroupStyles(messages[0], undefined, messages[1], { lastReadMessageId })
     ).toBe('single');
 
     expect(
-      getGroupStyles(
-        messages[1],
-        messages[0],
-        messages[2],
-        false,
-        lastReadMessageId
-      )
+      getGroupStyles(messages[1], messages[0], messages[2], {
+        lastReadMessageId,
+      })
     ).toBe('top');
+  });
+
+  it(`shouldn't start new group after last read message id if #noGroupByReadState is true`, () => {
+    const lastReadMessageId = messages[0].id;
+
+    expect(
+      getGroupStyles(messages[0], undefined, messages[1], {
+        lastReadMessageId,
+        noGroupByReadState: true,
+      })
+    ).toBe('top');
+
+    expect(
+      getGroupStyles(messages[1], messages[0], messages[2], {
+        lastReadMessageId,
+        noGroupByReadState: true,
+      })
+    ).toBe('middle');
   });
 
   it('should end group if the message id edited', () => {
