@@ -77,6 +77,10 @@ export class MessageListComponent
    */
   @Input() displayDateSeparator = true;
   /**
+   * If `true` unread indicator will be displayed
+   */
+  @Input() displayUnreadSeparator = true;
+  /**
    * If date separators are displayed, you can set the horizontal position of the date text.
    */
   @Input() dateSeparatorTextPos: 'center' | 'right' | 'left' = 'center';
@@ -799,13 +803,9 @@ export class MessageListComponent
       ),
       tap((messages) => {
         this.groupStyles = messages.map((m, i) =>
-          getGroupStyles(
-            m,
-            messages[i - 1],
-            messages[i + 1],
-            false,
-            this.lastReadMessageId
-          )
+          getGroupStyles(m, messages[i - 1], messages[i + 1], {
+            lastReadMessageId: this.lastReadMessageId,
+          })
         );
         this.isNextMessageOnSeparateDate = messages.map((m, i) =>
           this.checkIfOnSeparateDates(m, messages[i + 1])
