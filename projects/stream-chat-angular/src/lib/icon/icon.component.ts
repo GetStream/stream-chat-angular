@@ -3,6 +3,7 @@ import { Component, Input } from '@angular/core';
 export type Icon =
   | 'action-icon'
   | 'delivered-icon'
+  | 'read-icon'
   | 'reaction-icon'
   | 'connection-error'
   | 'send'

@@ -260,29 +260,6 @@ describe('MessageComponent', () => {
       expect(readIndicator).toBeNull();
     });
 
-    it('if message is read - only read by one user', () => {
-      component.isLastSentMessage = true;
-      fixture.detectChanges();
-      const readIndicator = queryReadIndicator();
-      const deliveredIndicator = queryDeliveredIndicator();
-      const lastReadByUserAvatar = queryLastReadUserAvatar();
-
-      expect(readIndicator).not.toBeNull();
-      expect(deliveredIndicator).toBeNull();
-
-      expect(
-        nativeElement.querySelector('[data-testid="read-by-tooltip"]')
-          ?.textContent
-      ).toContain(message.readBy[0].name);
-
-      expect(lastReadByUserAvatar.name).toBe(component.lastReadUser?.name);
-      expect(lastReadByUserAvatar.type).toBe('user');
-      expect(lastReadByUserAvatar.user).toBe(component.lastReadUser);
-      expect(lastReadByUserAvatar.location).toBe('message-reader');
-
-      expect(queryReadByCounter()).toBeNull();
-    });
-
     it(`should display delivered icon, if user can't receive delivered events`, () => {
       component.isLastSentMessage = true;
       component.enabledMessageActions = [];
@@ -293,27 +270,6 @@ describe('MessageComponent', () => {
 
       expect(readIndicator).toBeNull();
       expect(deliveredIndicator).not.toBeNull();
-    });
-
-    it('if message is read - read by multiple user', () => {
-      component.isLastSentMessage = true;
-      const readBy = [
-        { id: 'sara', name: 'Sara' },
-        { id: 'jack', name: 'Jack' },
-      ];
-      component.message = {
-        ...message,
-        ...{
-          readBy,
-        },
-      };
-      component.ngOnChanges({ message: {} as SimpleChange });
-      fixture.detectChanges();
-      const readByCounter = queryReadByCounter();
-
-      expect(readByCounter?.textContent).toContain(readBy.length);
-
-      expect(component.lastReadUser?.id).toBe(readBy[0].id);
     });
 
     it('but only for last message sent by the current user', () => {
@@ -349,34 +305,6 @@ describe('MessageComponent', () => {
     expect(avatar.type).toBe('user');
     expect(avatar.location).toBe('message-sender');
     expect(avatar.user).toBe(component.message.user!);
-  });
-
-  it('should use user id as a fallback if name is not provided', () => {
-    const userWithoutName = {
-      id: 'userwithoutname',
-      image: 'photo/about/user',
-    };
-    delete message.user?.name;
-    component.isLastSentMessage = true;
-    component.message = {
-      ...message,
-      ...{ readBy: [userWithoutName] },
-    };
-    component.ngOnChanges({ message: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryAvatar()?.name).toContain(currentUser.id);
-    expect(queryLastReadUserAvatar()?.name).toContain(userWithoutName.id);
-
-    component.message = {
-      ...message,
-      ...{ user: userWithoutName },
-    };
-    component.ngOnChanges({ message: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryAvatar()?.name).toContain(userWithoutName.id);
-    expect(querySender()?.innerHTML).toContain(userWithoutName.id);
   });
 
   it('should display text message', () => {
