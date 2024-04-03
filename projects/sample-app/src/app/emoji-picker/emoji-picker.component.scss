@@ -18,6 +18,7 @@
     }
 
     svg {
+      display: flex;
       @if $stream-chat-theme-version == "2" {
         width: 24px;
         height: 24px;
