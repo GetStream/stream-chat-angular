@@ -461,7 +461,6 @@ export class MessageListComponent
   }
 
   ngAfterViewChecked() {
-    console.log('itt');
     if (!this.isViewInited) {
       return;
     }
@@ -498,7 +497,6 @@ export class MessageListComponent
         this.hasNewMessages = false;
         this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
       } else if (this.olderMassagesLoaded) {
-        console.log('older messages loaded');
         this.chatClientService.chatClient?.logger?.(
           'info',
           `Older messages are loaded, we preserve the scroll position`,
@@ -574,14 +572,6 @@ export class MessageListComponent
       return;
     }
     const scrollPosition = this.getScrollPosition();
-    console.log(
-      'scrolled',
-      scrollPosition,
-      this.scrollContainer?.nativeElement?.scrollHeight,
-      this.scrollContainer?.nativeElement?.scrollTop,
-      this.scrollContainer?.nativeElement?.clientHeight,
-      this.isLoading
-    );
     this.chatClientService.chatClient?.logger?.(
       'info',
       `Scrolled - scroll position: ${scrollPosition}, container height: ${this.scrollContainer.nativeElement.scrollHeight}`,
@@ -628,7 +618,6 @@ export class MessageListComponent
         } else {
           direction = scrollPosition.includes('top') ? 'older' : 'newer';
         }
-        console.log('loading more messages');
         const result =
           this.mode === 'main'
             ? this.channelService.loadMoreMessages(direction)
@@ -708,11 +697,10 @@ export class MessageListComponent
       currentScrollTop !== nextScrollTop &&
       this.scrollContainer.nativeElement
     ) {
-      console.log('preserve scrollbar');
       this.scrollContainer.nativeElement!.scrollTop = nextScrollTop;
-      if (this.isViewInited) {
-        this.cdRef.detectChanges();
-      }
+      // if (this.isViewInited) {
+      //   this.cdRef.detectChanges();
+      // }
     }
   }
 
