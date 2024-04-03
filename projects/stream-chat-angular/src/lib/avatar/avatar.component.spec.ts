@@ -424,4 +424,36 @@ describe('AvatarComponent', () => {
 
     expect(component.initials).toBe('JD');
   });
+
+  it('should handle channel switch properly', async () => {
+    const channel = generateMockChannels()[0];
+    channel.state.members = {
+      otheruser: {
+        user_id: 'otheruser',
+        user: {
+          id: 'otheruser',
+          name: 'Jack',
+          image: 'url/to/img',
+          online: true,
+        },
+      },
+      [chatClientServiceMock.chatClient.user.id]: {
+        user_id: chatClientServiceMock.chatClient.user.id,
+        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
+      },
+    };
+    component.channel = channel;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).not.toBeNull();
+
+    delete channel.state.members.otheruser;
+    void component.ngOnChanges({ channel: {} as SimpleChange });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(queryOnlineIndicator()).toBeNull();
+  });
 });

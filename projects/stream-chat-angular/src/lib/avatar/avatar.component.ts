@@ -168,6 +168,7 @@ export class AvatarComponent
             }
           });
       } else {
+        this.isOnline = false;
         this.isOnlineSubscription?.unsubscribe();
       }
     } else {
