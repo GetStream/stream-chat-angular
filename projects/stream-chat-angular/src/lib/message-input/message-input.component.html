@@ -313,19 +313,14 @@
             [autoFocus]="autoFocus"
             [placeholder]="textareaPlaceholder"
           ></ng-container>
-          <div class="str-chat__message-textarea-emoji-picker">
+          <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
             <ng-container
-              *ngIf="emojiPickerTemplate"
-              data-testid="emoji-picker"
-            >
-              <ng-container
-                *ngTemplateOutlet="
-                  emojiPickerTemplate;
-                  context: getEmojiPickerContext()
-                "
-              ></ng-container>
-            </ng-container>
-          </div>
+              *ngTemplateOutlet="
+                emojiPickerTemplate;
+                context: getEmojiPickerContext()
+              "
+            ></ng-container>
+          </ng-container>
         </div>
       </div>
       <button
