@@ -37,9 +37,7 @@ describe('MessageComponent', () => {
   let querySendingIndicator: () => HTMLElement | null;
   let queryDeliveredIndicator: () => HTMLElement | null;
   let queryReadIndicator: () => HTMLElement | null;
-  let queryReadByCounter: () => HTMLElement | null;
   let queryAvatar: () => AvatarPlaceholderComponent;
-  let queryLastReadUserAvatar: () => AvatarPlaceholderComponent;
   let queryMessageOptions: () => HTMLElement | null;
   let queryActionIcon: () => HTMLElement | null;
   let queryText: () => HTMLElement | null;
@@ -121,15 +119,9 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="delivered-indicator"]');
     queryReadIndicator = () =>
       nativeElement.querySelector('[data-testid="read-indicator"]');
-    queryReadByCounter = () =>
-      nativeElement.querySelector('[data-test-id="read-by-length"]');
     queryAvatar = () =>
       fixture.debugElement.query(By.css('[data-testid="avatar"]'))
         ?.componentInstance as AvatarPlaceholderComponent;
-    queryLastReadUserAvatar = () =>
-      fixture.debugElement.query(
-        By.css('[data-test-id="last-read-user-avatar"]')
-      ).componentInstance as AvatarPlaceholderComponent;
     queryMessageOptions = () =>
       nativeElement.querySelector('[data-testid=message-options]');
     queryActionIcon = () =>

@@ -9,6 +9,9 @@ import { ChatClientService } from '../chat-client.service';
 import { getMessageTranslation } from '../get-message-translation';
 import { MessageService } from '../message.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { getReadBy } from '../read-by';
+import { isOnSeparateDate } from '../is-on-separate-date';
+import { DateParserService } from '../date-parser.service';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -28,8 +31,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   isUnread = false;
   unreadCount: number | undefined;
   latestMessageText: string = 'streamChat.Nothing yet...';
-  latestMessage?: FormatMessageResponse;
+  latestMessageStatus?: 'delivered' | 'read';
+  latestMessageTime?: string;
+  latestMessage?: FormatMessageResponse<DefaultStreamChatGenerics>;
   displayAs: 'text' | 'html';
+  userId?: string;
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
 
@@ -38,12 +44,20 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private chatClientService: ChatClientService,
     messageService: MessageService,
-    public customTemplatesService: CustomTemplatesService
+    public customTemplatesService: CustomTemplatesService,
+    private dateParser: DateParserService
   ) {
     this.displayAs = messageService.displayAs;
   }
 
   ngOnInit(): void {
+    this.subscriptions.push(
+      this.chatClientService.user$.subscribe((user) => {
+        if (user?.id !== this.userId) {
+          this.userId = user?.id;
+        }
+      })
+    );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe(
         (activeChannel) =>
@@ -126,7 +140,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     this.ngZone.run(() => {
       if (this.channel?.state.latestMessages.length === 0) {
         this.latestMessage = undefined;
+        this.latestMessageStatus = undefined;
         this.latestMessageText = 'streamChat.Nothing yet...';
+        this.latestMessageTime = undefined;
         return;
       }
       const latestMessage =
@@ -141,7 +157,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setLatestMessage(message?: FormatMessageResponse) {
+  private setLatestMessage(
+    message?: FormatMessageResponse<DefaultStreamChatGenerics>
+  ) {
     this.latestMessage = message;
     if (message?.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';
@@ -155,9 +173,33 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     } else if (message?.attachments && message.attachments.length) {
       this.latestMessageText = 'streamChat.🏙 Attachment...';
     }
+    if (this.latestMessage && this.latestMessage.type === 'regular') {
+      this.latestMessageTime = isOnSeparateDate(
+        new Date(),
+        this.latestMessage.created_at
+      )
+        ? this.dateParser.parseDate(this.latestMessage.created_at)
+        : this.dateParser.parseTime(this.latestMessage.created_at);
+    } else {
+      this.latestMessageTime = undefined;
+    }
   }
 
   private updateUnreadState() {
+    if (
+      this.channel &&
+      this.latestMessage &&
+      this.latestMessage.user?.id === this.userId &&
+      this.latestMessage.status === 'received' &&
+      this.latestMessage.type === 'regular'
+    ) {
+      this.latestMessageStatus =
+        getReadBy(this.latestMessage, this.channel).length > 0
+          ? 'read'
+          : 'delivered';
+    } else {
+      this.latestMessageStatus = undefined;
+    }
     if (
       (this.isActive && !this.isUnreadMessageWasCalled) ||
       !this.canSendReadEvents

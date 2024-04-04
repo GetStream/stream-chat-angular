@@ -19,4 +19,12 @@ describe('parseDate', () => {
 
     expect(parseDate(olderDate)).toBe('09/14/2021');
   });
+
+  it('should parse time', () => {
+    const today = new Date();
+    today.setHours(16);
+    today.setMinutes(3);
+
+    expect(parseDate(today, 'time')).toEqual('4:03 PM');
+  });
 });

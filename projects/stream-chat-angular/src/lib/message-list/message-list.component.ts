@@ -35,6 +35,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
 import { MessageActionsService } from '../message-actions.service';
+import { isOnSeparateDate } from '../is-on-separate-date';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -909,15 +910,6 @@ export class MessageListComponent
     if (!message || !nextMessage) {
       return false;
     }
-    if (message.created_at.getDate() !== nextMessage.created_at.getDate()) {
-      return true;
-    } else if (
-      message.created_at.getFullYear() !==
-        nextMessage.created_at.getFullYear() ||
-      message.created_at.getMonth() !== nextMessage.created_at.getMonth()
-    ) {
-      return true;
-    }
-    return false;
+    return isOnSeparateDate(message.created_at, nextMessage.created_at);
   }
 }

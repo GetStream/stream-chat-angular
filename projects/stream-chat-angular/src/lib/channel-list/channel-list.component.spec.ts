@@ -12,7 +12,7 @@ import {
 import { ThemeService } from '../theme.service';
 import { ChannelListToggleService } from './channel-list-toggle.service';
 import { ChannelListComponent } from './channel-list.component';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 
 describe('ChannelListComponent', () => {
   let channelServiceMock: MockChannelService;
@@ -36,6 +36,7 @@ describe('ChannelListComponent', () => {
         {
           provide: ChatClientService,
           useValue: {
+            user$: of({ id: 'userid' }),
             chatClient: { user: { id: 'userid' } },
             events$: new Subject<ClientEvent>(),
           },

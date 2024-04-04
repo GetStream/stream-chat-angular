@@ -63,3 +63,4 @@ export * from './lib/message.service';
 export * from './lib/message-actions.service';
 export * from './lib/voice-recording/voice-recording.component';
 export * from './lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';
+export * from './lib/is-on-separate-date';

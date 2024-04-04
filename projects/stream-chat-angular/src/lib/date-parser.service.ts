@@ -9,6 +9,10 @@ import { parseDate } from './parse-date';
 })
 export class DateParserService {
   /**
+   * Custom parser to override `parseTime`
+   */
+  customTimeParser?: (date: Date) => string;
+  /**
    * Custom parser to override `parseDate`
    */
   customDateParser?: (date: Date) => string;
@@ -18,6 +22,18 @@ export class DateParserService {
   customDateTimeParser?: (date: Date) => string;
 
   constructor() {}
+
+  /**
+   * Return a user-friendly string representation of the time
+   * @param date
+   * @returns The parsed time
+   */
+  parseTime(date: Date) {
+    if (this.customTimeParser) {
+      return this.customTimeParser(date);
+    }
+    return parseDate(date, 'time');
+  }
 
   /**
    * Return a user-friendly string representation of the date (year, month and date)
