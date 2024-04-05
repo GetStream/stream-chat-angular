@@ -1,0 +1,49 @@
+The `ChannelList` component renders the list of channels.
+
+The `ChannelList` displays channels using pagination, new channels are loaded if the user clicks the "Load more" button.
+
+The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the [`ChannelHeader`](./ChannelHeaderComponent.mdx) component.
+
+## Customization
+
+**Example 1** - Using a custom channel list component
+
+See our [customization guide](../concepts/customization.mdx) on how to provide your own channel list component.
+
+:::note
+If you want to create your own channel list, you can use the [`ChannelService`](../services/ChannelService.mdx) to receive the channels and interact with the Stream API.
+
+Other building blocks, that you might find useful:
+
+### Toggle
+
+The channel list is always visible on desktop devices, on mobile devices, the list can be opened or closed controlled by a button in the `ChannelHeader` component. The open/close mechanism is implemented by the [`ChannelListToggleService`](../services/ChannelListToggleService.mdx).
+
+### Loading indicator
+
+The `ChannelList` component uses the [`LoadingIndicator`](./LoadingIndicatorComponent.mdx) component to display a spinner while more channels are being fetched.
+
+### Icons
+
+The `ChannelList` component uses the [`Icon`](./IconComponent.mdx) component to display icons.
+:::
+
+**Example 2** - Using a custom channel preview component
+
+If you only want to customize the channel preview items (not the whole list), see the [channel preview customization](./ChannelPreviewComponent.mdx/#customization) guide.
+
+**Example 3** - Content injection points
+
+It's possible to inject your own content to the top or to the bottom of the channel list:
+
+```html
+<stream-channel-list>
+  <input channel-list-top placeholder="Search" />
+  <button channel-list-bottom>Add new channel</button>
+</stream-channel-list>
+```
+
+Use the `channel-list-top` attribute to inject content at the top of the channel list, and the `channel-list-bottom` to display content at the bottom of the channel list.
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

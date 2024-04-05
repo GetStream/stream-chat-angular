@@ -1,0 +1,36 @@
+---
+id: customization
+title: Customization
+---
+
+Apart from customizing the [theming and CSS](../theming/introduction.mdx) of UI components it's also possible to provide your own template to completely override parts of the UI to further improve the flexibility of our SDK. This guide shows you the different custom templates you can provide.
+
+For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
+
+## Initial chat UI
+
+This is how our initial chat UI looks like:
+
+```html
+<stream-channel-list></stream-channel-list>
+<stream-channel>
+  <!-- Main messages in the channel -->
+  <stream-channel-header></stream-channel-header>
+  <stream-message-list></stream-message-list>
+  <stream-message-input></stream-message-input>
+  <!-- Main messages in the channel -->
+  <!-- Thread messages in the channel -->
+  <stream-thread name="thread">
+    <stream-message-list mode="thread"></stream-message-list>
+    <stream-message-input mode="thread"></stream-message-input>
+  </stream-thread>
+  <!-- Thread messages in the channel -->
+</stream-channel>
+<stream-notification-list></stream-notification-list>
+```
+
+This template lives in your application so you can freely replace any component with your own custom component, for example if you want to use your own channel header you can just replace `stream-channel-header` with your own component.
+
+## `CustomTemplatesService`
+
+However you might just want to override parts of these components, for example you want to use your own custom message component, but don't want to override the whole message list. In these instances you can use the `CustomTemplatesService`, the [full list of override-able parts](../services/CustomTemplatesService.mdx) can be found in the documentation page of the `CustomTemplatesService`.

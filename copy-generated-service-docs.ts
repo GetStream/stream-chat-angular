@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const sourcePath = 'temp-service-docs/classes';
-const serviceDocsTargetPath = 'docusaurus/docs/Angular/services';
+const serviceDocsTargetPath = process.argv[2];
 
 // remove docs from the source folder
 fs.readdir(serviceDocsTargetPath, (err: any, files: string[]) => {

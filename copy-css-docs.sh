@@ -12,7 +12,8 @@ main() {
   fi
 
   STREAM_CHAT_CSS_DOCS_PATH=$1;
-  cp -r "$STREAM_CHAT_CSS_DOCS_PATH"/* ./docusaurus/docs/Angular;
+  DESTINATION_PATH=$2;
+  cp -r "$STREAM_CHAT_CSS_DOCS_PATH"/* "$DESTINATION_PATH";
 }
 
 

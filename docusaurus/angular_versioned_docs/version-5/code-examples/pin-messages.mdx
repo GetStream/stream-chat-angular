@@ -1,0 +1,103 @@
+---
+id: pin-messages
+title: Pin messages
+---
+
+import PinActionScreenshot from "../assets/pin-action-screenshot.png";
+import PinnedMessageScreenshot from "../assets/pinned-message-screenshot.png";
+
+Pinning messages can be a useful feature inside your chat application, `stream-chat-angular` supports this feature, but you have to provide the UI template for the pinned messages. This guide shows you how you can set up this functionality.
+
+## Pin and unpin actions
+
+The default message action box contains the pin/unpin action, this action marks a message as pinned/unpinned.
+
+<img src={PinActionScreenshot} width="500" />
+
+:::note
+If you don't see the action, you might have [authorize the pin action](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript).
+:::
+
+## Pinned messages stream
+
+The [`activeChannelPinnedMessages$`](../services/ChannelService.mdx/#activechannelpinnedmessages) stream of the [`ChannelService`](../services/ChannelService.mdx) emits the list of currently pinned messages inside the active channel.
+
+```typescript
+this.channelService.activeChannelPinnedMessages$.subscribe(console.log);
+```
+
+- The initial value is retrieved from the [channel query response](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript&q=pin#channelstate-response)
+- After that, all pin and unpin actions are reflected in the emitted list
+
+## Pinned messages UI
+
+Once we know the list of pinned messages, we should display them somewhere users can easily spot them. You can display pinned messages anywhere you want to, however a common place could be the top/bottom of the message list, this example will display pinned messages at the bottom of the message list.
+
+You have to provide the template for the pinned messages:
+
+```html
+<stream-notification-list></stream-notification-list>
+<div
+  style="padding: 8px; background: #e1f5fe"
+  *ngFor="
+          let message of channelService.activeChannelPinnedMessages$ | async
+        "
+>
+  {{ message.text }}
+</div>
+<stream-message-input></stream-message-input>
+```
+
+The `message` variable has [`StreamMessage`](../types/stream-message.mdx) type, so you can access all fields defined there inside your template.
+
+<img src={PinnedMessageScreenshot} width="500" />
+
+## Jump to a pinned message
+
+Let's add a click event handler to the pinned message, and jump to the message (works for channel and thread messages as well):
+
+```typescript
+jumpToMessage(message: StreamMessage) {
+  this.channelService.jumpToMessage(message.id, message.parent_id);
+}
+```
+
+```html
+<div
+  style="padding: 8px; background: #e1f5fe"
+  *ngFor="
+          let message of channelService.activeChannelPinnedMessages$ | async
+        "
+  (click)="jumpToMessage(message)"
+>
+  {{ message.text }}
+</div>
+```
+
+## Unpin message
+
+Let's extend our example and add an Unpin button to remove the pin from a message.
+
+```typescript
+unpinMessage(message: StreamMessage<DefaultStreamChatGenerics>) {
+  this.channelService.unpinMessage(message);
+}
+```
+
+```html
+<div
+  style="padding: 8px; background: #e1f5fe"
+  *ngFor="
+        let message of channelService.activeChannelPinnedMessages$ | async
+      "
+  (click)="jumpToMessage(message)"
+>
+  {{ message.text }}
+  <button
+    style="border: none; background: none; padding: 0; margin: 0"
+    (click)="$event.stopPropagation(); unpinMessage(message)"
+  >
+    Unpin
+  </button>
+</div>
+```

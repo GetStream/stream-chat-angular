@@ -1,0 +1,119 @@
+---
+id: upgrade-v2
+title: Upgrade from v2
+---
+
+## About v3
+
+This version's main focus was to enhance the customizability of the SDK, the two main features are:
+
+- there are many new customization points where you can provide your own template to override the default UI - our [customization guide](../concepts/customization.mdx) covers this topic in detail
+- you can take advantage of TypeScript generics to define custom fields for messages, message reactions, attachments, commands, channels or events - our [generics guide](../concepts/generics.mdx) explain this topic in more details
+
+Below you can find the list of breaking changes and instructions on how to update your code.
+
+## Peer dependencies
+
+### stream-chat
+
+Upgrade to stream-chat `^6.4.0`.
+
+You might need to update your code if you created custom components/services that used `stream-chat` in your application.
+
+The biggest change is that generic parameters were refactored into a single generic parameter, this has two major implications:
+
+- If you used generic parameters for handling messages, message reactions, attachments, commands, channels or events you have to change those generic parameters, the SDK uses the [`DefaultStreamChatGenerics`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) parameter instead of the individual `DefaultAttachmentType`, `DefaultChannelType`, `DefaultCommandType`, `DefaultEventType` `DefaultMessageType`, `DefaultReactionType` and `DefaultUserType` parameters.
+- If you are interacting with the `ChannelService` or `ChatClientService` you'll have to provide the [`DefaultStreamChatGenerics`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) parameter (or a descended) for message reactions, attachments, commands, channels or events (you don't need to provide it for messages as it's already part of the [`StreamMessage`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) class)
+
+Our [generics guide](../concepts/generics.mdx) explains this topic in more details.
+
+You can find the full list of breaking changes in stream-chat [v5](https://github.com/GetStream/stream-chat-js/releases/tag/v5.0.0) and [v6](https://github.com/GetStream/stream-chat-js/releases/tag/v6.0.0) on GitHub.
+
+#### Angular 13
+
+Run the following command to upgrade if you're using Angular 13:
+
+```
+npm install stream-chat@6.4.0 stream-chat-angular
+```
+
+#### Angular 12
+
+Run the following command to upgrade if you're using Angular 12:
+
+```
+npm install stream-chat@6.4.0 stream-chat-angular@3 --legacy-peer-deps
+```
+
+### stream-chat-css
+
+You can drop the `@stream-io/stream-chat-css` dependency because going forward `stream-chat-angular` will encapsulate the library.
+
+Rewrite your stylesheet imports to this:
+
+`~stream-chat-angular/src/assets/styles/scss/index.scss`
+
+Or this if you were using CSS:
+
+`~stream-chat-angular/src/assets/styles/css/index.css`
+
+It's still possible to individually import stylesheets you just have to replace the `~@stream-io/stream-chat-css/dist` prefix with `~stream-chat-angular/src/assets/styles`.
+
+## Inputs removed in favor of channel capabilities
+
+The following inputs are removed:
+
+| Component/service                                                        | Input name                   | Replacement                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`MessageListComponent`](../components/MessageListComponent.mdx)         | `enabledMessageActionsInput` | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |
+| [`MessageListComponent`](../components/MessageListComponent.mdx)         | `areReactionsEnabled`        | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |
+| [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) | `acceptedFileTypes`          | Use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) to control the accepted file types                                                                                                                                   |
+| [`MessageInputComponent`](../components/MessageInputComponent.mdx)       | `acceptedFileTypes`          | Use [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript#file-uploads) to control the accepted file types                                                                                                                                   |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `areReactionsEnabled`        | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users. Please note that existing reactions of a message will be displayed, even if reacting is disabled. |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `canReactToMessage`          | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users. Please note that existing reactions of a message will be displayed, even if reacting is disabled. |
+| [`MessageComponent`](../components/MessageComponent.mdx)                 | `canReceiveReadEvents`       | Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control what actions are available to different users                                                                                                    |
+
+## Centralized customizations
+
+| Description                                                 | Old option                                                      | New option                                                                                          |
+| ----------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| The autocomplete list item template for mentioning users    | `AutocompleteTextareaComponent.mentionAutocompleteItemTemplate` | [`CustomTemplatesService.mentionAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| The autocomplete list item template for commands            | `AutocompleteTextareaComponent.commandAutocompleteItemTemplate` | [`CustomTemplatesService.commandAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| Item in the channel list                                    | `ChannelListComponent.customChannelPreviewTemplate`             | [`CustomTemplatesService.customChannelPreviewTemplate$`](../services/CustomTemplatesService.mdx)    |
+| The message input template used when editing a message      | `MessageActionsBoxComponent.messageInputTemplate`               | [`CustomTemplatesService.messageInputTemplate$`](../services/CustomTemplatesService.mdx)            |
+| The message input template used when editing a message      | `MessageComponent.messageInputTemplate`                         | [`CustomTemplatesService.messageInputTemplate$`](../services/CustomTemplatesService.mdx)            |
+| The template used for displaying a mention inside a message | `MessageComponent.mentionTemplate`                              | [`CustomTemplatesService.mentionTemplate$`](../services/CustomTemplatesService.mdx)                 |
+| The autocomplete list item template for mentioning users    | `MessageInputComponent.mentionAutocompleteItemTemplate`         | [`CustomTemplatesService.mentionAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| The autocomplete list item template for commands            | `MessageInputComponent.commandAutocompleteItemTemplate`         | [`CustomTemplatesService.commandAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| The template for emoji picker                               | `MessageInputComponent.emojiPickerTemplate$`                    | [`CustomTemplatesService.emojiPickerTemplate$`](../services/CustomTemplatesService.mdx)             |
+| The template used to display a message in the message list  | `MessageListComponent.messageTemplate`                          | [`CustomTemplatesService.messageTemplate$ `](../services/CustomTemplatesService.mdx)                |
+| The message input template used when editing a message      | `MessageListComponent.messageInputTemplate`                     | [`CustomTemplatesService.messageInputTemplate$`](../services/CustomTemplatesService.mdx)            |
+| The template used for displaying a mention inside a message | `MessageListComponent.mentionTemplate`                          | [`CustomTemplatesService.mentionTemplate$`](../services/CustomTemplatesService.mdx)                 |
+| The typing indicator template used in the message list      | `MessageListComponent.typingIndicatorTemplate`                  | [`CustomTemplatesService.typingIndicatorTemplate$`](../services/CustomTemplatesService.mdx)         |
+| The typing indicator template used in the message list      | `MessageReactionsComponent.typingIndicatorTemplate`             | [`CustomTemplatesService.typingIndicatorTemplate$`](../services/CustomTemplatesService.mdx)         |
+| The autocomplete list item template for commands            | `MessageInputConfigService.commandAutocompleteItemTemplate`     | [`CustomTemplatesService.commandAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| The autocomplete list item template for mentioning users    | `MessageInputConfigService.mentionAutocompleteItemTemplate`     | [`CustomTemplatesService.mentionAutocompleteItemTemplate$`](../services/CustomTemplatesService.mdx) |
+| The template for emoji picker                               | `MessageInputConfigService.emojiPickerTemplate`                 | [`CustomTemplatesService.emojiPickerTemplate$`](../services/CustomTemplatesService.mdx)             |
+| The template for channel actions                            | `ChannelHeaderComponent.channelActionsTemplate`                 | [`CustomTemplatesService.channelActionsTemplate$`](../services/CustomTemplatesService.mdx)          |
+
+## `ChatClient.notification$` renamed to `events$`
+
+The `notification$` stream on the [`ChatClientService`](../services/ChatClientService.mdx) was renamed to `events$` as it better represents what this Observable does.
+
+The `events$` stream emits the received [client, notification and user presence events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
+
+The payload of this Observable was renamed from `Notification` to `ClientEvent`.
+
+## Custom action names removed
+
+Use our [permission framework](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript&q=slow%20mode) to control the authorization of the following message actions:
+
+| Custom action name | Channel capability   | Comment                                      |
+| ------------------ | -------------------- | -------------------------------------------- |
+| `quote`            | `quote-message`      |                                              |
+| `pin`              | `pin-message`        | Currently turned off because not implemented |
+| `flag`             | `flag-message`       |                                              |
+| `edit`             | `update-own-message` |                                              |
+| `edit-any`         | `update-any-message` |                                              |
+
+The `mute` action is removed.

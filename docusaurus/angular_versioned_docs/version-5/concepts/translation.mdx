@@ -1,0 +1,169 @@
+---
+id: translation
+sidebar_position: 2
+title: Translation
+---
+
+The library uses [ngx-translate](https://github.com/ngx-translate/core) for internalization of the labels of the user interface. Currently, the library only supports English, but you can provide your own translations if you want to. If you use ngx-translate in your own project, you can still use our library's translations; for more information, see the [setup guide](./translation.mdx/#set-up-the-translations) below.
+
+## Setup
+
+You will always have to set up translations, even if you don't want to override the default translations.
+
+### Install ngx-translate
+
+`npm install @ngx-translate/core --save`
+
+### Import the `TranslateModule`
+
+```typescript
+import { TranslateModule } from "@ngx-translate/core";
+import { StreamChatModule } from "stream-chat-angular";
+
+imports: [TranslateModule.forRoot(), StreamChatModule];
+export class AppModule {}
+```
+
+Or if you're using standalone components:
+
+```typescript
+import { ApplicationConfig, importProvidersFrom } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+
+export const appConfig: ApplicationConfig = {
+  providers: [importProvidersFrom(TranslateModule.forRoot())],
+};
+```
+
+:::important
+You should import the `TranslateModule.forRoot()` in a non-lazy loaded module (for example `AppModule`) even if the chat application is displayed from a lazy loaded module. If the translation isn't initialized properly the UI labels will be displayed as `"streamChat..."`.
+:::
+
+If you're using standalone components, make sure to also import the `TranslateModule` to the component that displays the chat UI:
+
+```typescript
+import { Component } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+import {
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+} from "stream-chat-angular";
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [
+    TranslateModule,
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent {}
+```
+
+### Set up the translations
+
+Initialize the translation in the **constructor** of the component which displays the chat UI (for example `AppComponent`)
+
+```typescript
+import { StreamI18nService } from 'stream-chat-angular';
+
+constructor(private streamI18nService: StreamI18nService) {
+  this.streamI18nService.setTranslation();
+}
+```
+
+:::important
+It's important to call the `setTranslation` in the constructor of the component that displays the chat UI. If the translation isn't initialized properly the UI labels will be displayed as `"streamChat..."`.
+:::
+
+## Setup, if you're using ngx-translate in your project
+
+### Module import
+
+If you are already using ngx-translate in your project, you already have the `TranslateModule` imported and configured in your project, so you **don't** need to import `TranslateModule.forRoot()`. However you still need to import `TranslateModule` (**without** the `forRoot`) to the module/standalone component that displays the chat UI to access the `translate` pipe.
+
+### Register the translations
+
+Our library will use the same `TranslateService` as your project, and the library will register the translations through the `StreamI18nService`. Here is how to do it (typically, you will be doing it in your `AppComponent`
+):
+
+```typescript
+import { StreamI18nService } from 'stream-chat-angular';
+import { TranslateService } from '@ngx-translate/core';
+
+constructor(
+  private streamI18nService: StreamI18nService,
+  private translateService: TranslateService
+) {
+  this.translateService.getTranslation('en').subscribe(() => {
+    this.streamI18nService.setTranslation('en');
+  });
+}
+```
+
+:::important
+The HTTP loader will override all registered translations. If you use that, it is necessary to wait for the HTTP loader to finish and only register the library's translations afterward (the code snippet above shows that scenario). Ngx-translate already has a [GitHub issue](https://github.com/ngx-translate/http-loader/issues/6#issuecomment-372118792) open to solve that problem.
+:::
+
+:::important
+Our library uses the `streamChat` prefix for the translation keys, so you don't need to worry about translation keys clashing.
+:::
+
+### Provide a custom language key
+
+You can provide the language key for the translation registration:
+
+```typescript
+import { StreamI18nService } from 'stream-chat-angular';
+import { TranslateService } from '@ngx-translate/core';
+
+constructor(
+  private streamI18nService: StreamI18nService,
+  private translateService: TranslateService
+) {
+  this.translateService.getTranslation('de').subscribe(() => {
+    this.streamI18nService.setTranslation('de');
+  });
+}
+```
+
+However, it is important to note that since our library currently only supports English, the translations will always be the same. You can also provide [custom translations](./translation.mdx/#custom-translation) for each language key, if you want to.
+
+### Set the default language
+
+For the translations to work, it is necessary to set the default language. Here are two different ways to do that:
+
+```typescript
+TranslateModule.forRoot({
+  defaultLanguage: "en",
+});
+```
+
+or
+
+```typescript
+this.translateService.use("en");
+```
+
+## Custom translation
+
+You can entirely or partially override the library's [default translations](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/assets/i18n/en.ts).
+
+The `setTranslation` method of the `StreamI18nService` lets you to pass your own translations:
+
+```typescript
+import { StreamI18nService } from 'stream-chat-angular';
+
+const customTranslations = {'Nothing yet...': 'This channel is empty'};
+
+constructor(private streamI18nService: StreamI18nService) {
+  this.streamI18nService.setTranslation('en', customTranslations);
+}
+```
+
+You can see the list of translation keys [here](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/assets/i18n/en.ts).
+
+You can override the entire translation or just some keys.

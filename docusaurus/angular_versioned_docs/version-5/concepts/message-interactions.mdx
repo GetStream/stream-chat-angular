@@ -1,0 +1,20 @@
+---
+id: message-interactions
+sidebar_position: 5
+title: Message interactions
+---
+
+Users can interact with the messages in the message list. The following table provides a list of possible interactions together with the [necessary capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) and the corresponding components:
+
+| Description                                                                                          | Necessary channel capability             | Component                                                           |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| [Flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) the given message | flag-message                             | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Edits a message that belongs to the user                                                             | update-own-message or update-any-message | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Edits any message                                                                                    | update-any-message                       | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Deletes a message that belongs to the user                                                           | delete-own-message or delete-any-message | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Deletes any message                                                                                  | delete-any-message                       | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Send reaction to a message                                                                           | send-reaction                            | [`MessageReactions`](../components/MessageReactionsComponent.mdx)   |
+| Receive read events                                                                                  | read-events                              | [`Message`](../components/MessageComponent.mdx)                     |
+| Reply to a message in a thread                                                                       | send-reply                               | [`Message`](../components/MessageComponent.mdx)                     |
+| Quote reply to a message                                                                             | quote-message                            | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |
+| Mark a message as unread                                                                             | read-events                              | [`MessageActionsBox`](../components/MessageActionsBoxComponent.mdx) |

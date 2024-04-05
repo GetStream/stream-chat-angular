@@ -1,0 +1,16 @@
+---
+id: stream-message
+sidebar_position: 1
+title: Stream message
+---
+
+The [`StreamMessage`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) type represents a chat message.
+
+# Overview
+
+The class extends the base Stream [message](https://getstream.io/chat/docs/javascript/message_format/?language=javascript#open-graph-scraper) format with the following properties:
+
+| Name          | Type     | Description                                                                                                                                                                                    |
+| ------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `readBy`      | string[] | The list of users that read the message                                                                                                                                                        |
+| `translation` | string   | The message translation if message was translated with [auto-translation](https://getstream.io/chat/docs/javascript/translation/?language=javascript&q=auto%20trasnlate#automatic-translation) |

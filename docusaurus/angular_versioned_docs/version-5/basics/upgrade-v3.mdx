@@ -1,0 +1,48 @@
+---
+id: upgrade-v3
+title: Upgrade from v3
+---
+
+## About version 4
+
+Version 4 of `stream-chat-angular` brings a new and improved theming system. To use the new system please refer to our new [theming guide](../theming/introduction.mdx).
+
+## Theme-v1
+
+The old theme can still be used with the latest SDK versions however, you might need to update your custom CSS as some changes were introduced to theme-v1.
+
+Updating from theme-v1 to theme-v2 will require to rewrite your custom CSS code as the new theme has a new variable system, and all the components were restructured.
+
+Theme-v1 is now deprecated and will be removed in a future release.
+
+## Thread layout
+
+Previously you had to provide a selector for the message list and message input component projected inside the [thread component](../components/ThreadComponent.mdx).
+
+```html
+<stream-thread name="thread">
+  <stream-message-list
+    name="thread-message-list"
+    mode="thread"
+  ></stream-message-list>
+  <stream-message-input
+    mode="thread"
+    name="thread-message-input"
+  ></stream-message-input>
+</stream-thread>
+```
+
+You don't need to provide those selectors anymore, anything inside the content part of `stream-thread` HTML element will be projected inside the thread component:
+
+```html
+<stream-thread name="thread">
+  <stream-message-list mode="thread"></stream-message-list>
+  <stream-message-input mode="thread"></stream-message-input>
+</stream-thread>
+```
+
+Providing the selector won't cause a problem, but it's unnecessary.
+
+## `device-width` module was removed
+
+The `device-width` utility module was removed. If you rely on this code inside your chat application, you'll have to update your code.

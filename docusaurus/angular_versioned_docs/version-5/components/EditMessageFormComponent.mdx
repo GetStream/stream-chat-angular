@@ -1,0 +1,25 @@
+The edit message form displays a modal that's opened when a user edits a message. The component uses the [`MessageActionsService`](../../services/MessageActionsService) to know which message is being edited.
+
+By default this is displayed within the [`stream-channel` component](../../components/ChannelComponent).
+
+## Usage
+
+```typescript
+constructor(private messageActionsService: MessageActionsService) {
+  // Open the modal
+  this.messageActionsService.messageToEdit$.next(<stream message>);
+  // Close the modal
+  this.messageActionsService.messageToEdit$.next(undefined);
+}
+```
+
+```html
+<stream-edit-message-form></stream-edit-message-form>
+```
+
+## Customization
+
+You can provide your own custom component using the [`customTemplatesService.editMessageFormTemplate$` property](../../services/CustomTemplatesService/#editmessageformtemplate)
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

@@ -1,0 +1,40 @@
+import Screenshot from "../assets/message-bounce-screenshot.png";
+
+The component watches for the [`channelService.bouncedMessage$` stream](../../services/ChannelService/#bouncedmessage) and opens the bounce modal if a message is emitted.
+
+To bounce messages, you need to set up [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters).
+
+## Usage
+
+To bounce messages, you need to set up [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters).
+
+When a user tries to send a message that voilates the content guidelines set up by a semantic filter the `StreamMessage` object will have the following format:
+
+- `type` will be `error`
+- the `moderation_details` property will contain the details of the error
+
+The built-in [message component](../../components/MessageComponent) will open the bounce prompt when a bounced message is clicked. If you have a custom UI, this is how you can do that:
+
+```typescript
+constructor(private channelService: ChannelService) {
+  // Open the modal
+  this.messageActionsService.bouncedMessage$.next(<stream message>);
+  // Close the modal
+  this.messageActionsService.bouncedMessage$.next(undefined);
+}
+```
+
+The built-in [channel component](../../components/ChannelComponent) displays the `stream-message-bounce-prompt` component. If you have a custom UI, this is how you can do that:
+
+```html
+<stream-message-bounce-prompt></stream-message-bounce-prompt>
+```
+
+<img src={Screenshot} width="1000" />
+
+## Customization
+
+You can provide your own custom component using the [`customTemplatesService.messageBouncePromptTemplate$` property](../../services/CustomTemplatesService/#messagebounceprompttemplate)
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

@@ -1,0 +1,96 @@
+---
+id: generics
+title: Generics
+---
+
+The [`stream-chat-js`](https://github.com/GetStream/stream-chat-js) library takes advantage of [TypeScript generics](https://www.typescriptlang.org/docs/handbook/2/generics.html) to make it possible to define custom file ids on the following entities:
+
+1. [`Attachment`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+2. [`ChannelResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+3. [`CommandVariants`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+4. [`Event`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+5. [`MessageBase`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+6. [`Reaction`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+7. [`User`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts)
+
+Those 7 overrides are combined to a single generic parameter called [`DefaultGenerics`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts).
+
+The Angular SDK extends the `DefaultGenerics` with custom fields creating the [`DefaultStreamChatGenerics`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts) type.
+
+You can further extend the `DefaultStreamChatGenerics` type with your own custom fields, both the [`ChatClientService`](../services/ChatClientService.mdx) and [`ChannelService`](../services/ChannelService.mdx) accepts a generic parameter.
+
+Here is an example about custom fields with generics:
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+  DefaultStreamChatGenerics,
+} from "stream-chat-angular";
+import { environment } from "../environments/environment";
+
+type MyStreamGenerics = DefaultStreamChatGenerics & {
+  attachmentType: { lat?: string; lon?: string };
+  channelType: {
+    color: string;
+    topic: "gardening" | "cats" | "f1";
+  };
+  userType: {
+    nickname: string;
+  };
+  messageType: {
+    isSecret: boolean;
+  };
+  reactionType: {
+    onlyVisibleToSender: boolean;
+  };
+};
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements OnInit {
+  constructor(
+    private chatService: ChatClientService<MyStreamGenerics>,
+    private channelService: ChannelService<MyStreamGenerics>,
+    private streamI18nService: StreamI18nService
+  ) {
+    void this.chatService.init(
+      environment.apiKey,
+      { id: environment.userId, nickname: "Zizi" },
+      environment.userToken
+    );
+    this.streamI18nService.setTranslation();
+  }
+
+  async ngOnInit() {
+    await this.channelService.init({
+      type: "messaging",
+      topic: "cats",
+    });
+    const channel = this.chatService.chatClient.channel(
+      "messaging",
+      "cat-photos",
+      { color: "blue", topic: "cats", name: "The bes cat photos" }
+    );
+
+    await channel.create();
+    await this.channelService.sendMessage(
+      "This is a secret message",
+      [{ type: "geolocation", lat: "40.7128", lon: "74.0060" }],
+      [],
+      undefined,
+      undefined,
+      { isSecret: true }
+    );
+    const message = channel.state.messages[0];
+    this.channelService.addReaction(message.id, "like", {
+      onlyVisibleToSender: true,
+    });
+  }
+}
+```
