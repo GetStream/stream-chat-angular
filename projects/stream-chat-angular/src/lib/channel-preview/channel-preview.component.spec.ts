@@ -15,6 +15,8 @@ import {
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
 import { DefaultStreamChatGenerics } from '../types';
+import { IconPlaceholderComponent } from '../icon-placeholder/icon-placeholder.component';
+import { DateParserService } from '../date-parser.service';
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -45,6 +47,7 @@ describe('ChannelPreviewComponent', () => {
         ChannelPreviewComponent,
         AvatarComponent,
         AvatarPlaceholderComponent,
+        IconPlaceholderComponent,
       ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
@@ -374,5 +377,78 @@ describe('ChannelPreviewComponent', () => {
     expect(
       nativeElement.querySelector('[data-testid="html-content"]')
     ).not.toBe(null);
+  });
+
+  it('should display last message status', () => {
+    const channel = generateMockChannels()[0];
+    component.channel = channel;
+    fixture.detectChanges();
+    const iconComponent = fixture.debugElement.query(
+      By.directive(IconPlaceholderComponent)
+    )?.componentInstance as IconPlaceholderComponent;
+
+    expect(
+      nativeElement.querySelector('[data-testid="latest-message-status"]')
+    ).not.toBeNull();
+
+    expect(iconComponent.icon).toBe('delivered-icon');
+  });
+
+  it('should set last message status', () => {
+    const channel = generateMockChannels()[0];
+    const latestMessage =
+      channel.state.messages[channel.state.messages.length - 1];
+    component.channel = channel;
+    fixture.detectChanges();
+
+    expect(component.latestMessage).toBe(latestMessage);
+
+    expect(component.latestMessageStatus).toBe('delivered');
+
+    channel.state.read['otheruser'] = {
+      last_read: latestMessage.created_at,
+      unread_messages: 0,
+      user: { id: 'otheruser' },
+    };
+    channel.handleEvent('message.read', {
+      message: latestMessage,
+    });
+
+    expect(component.latestMessageStatus).toBe('read');
+
+    latestMessage.type = 'deleted';
+    channel.handleEvent('message.deleted', {
+      message: latestMessage,
+    });
+
+    expect(component.latestMessageStatus).toBe(undefined);
+
+    latestMessage.type = 'regular';
+    latestMessage.user!.id = 'other-user';
+    channel.handleEvent('message.updated', {
+      message: latestMessage,
+    });
+
+    expect(component.latestMessageStatus).toBe(undefined);
+  });
+
+  it('should set last message time', () => {
+    const dateParser = TestBed.inject(DateParserService);
+    spyOn(dateParser, 'parseDate');
+    spyOn(dateParser, 'parseTime');
+
+    const channel = generateMockChannels()[0];
+    const latestMessage =
+      channel.state.messages[channel.state.messages.length - 1];
+    latestMessage.created_at = new Date();
+    component.channel = channel;
+    component.ngOnInit();
+
+    expect(dateParser.parseTime).toHaveBeenCalledWith(latestMessage.created_at);
+
+    latestMessage.created_at = new Date('2024-04-02T03:24:00');
+    component.ngOnInit();
+
+    expect(dateParser.parseDate).toHaveBeenCalledWith(latestMessage.created_at);
   });
 });

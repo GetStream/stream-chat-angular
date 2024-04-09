@@ -147,6 +147,14 @@ export type ChannelPreviewInfoContext<
    * The title of the channel, or the name of the channel members
    */
   channelDisplayTitle: string;
+  /**
+   * The status of the last message (only available if the last message was sent by the current user)
+   */
+  latestMessageStatus?: 'delivered' | 'read';
+  /**
+   * The time of the last message (formatted to a user-friendly string)
+   */
+  latestMessageTime?: string;
   unreadCount: number;
 };
 

@@ -45,4 +45,24 @@ describe('DateParserService', () => {
 
     expect(spy).toHaveBeenCalledWith(date);
   });
+
+  it('should parse time', () => {
+    const date = new Date();
+    date.setHours(16);
+    date.setMinutes(3);
+
+    expect(service.parseTime(date)).toContain('4:03 PM');
+  });
+
+  it('should call custom time', () => {
+    const date = new Date();
+    date.setHours(16);
+    date.setMinutes(3);
+    const spy = jasmine.createSpy();
+    service.customTimeParser = spy;
+
+    service.parseTime(date);
+
+    expect(spy).toHaveBeenCalledWith(date);
+  });
 });
