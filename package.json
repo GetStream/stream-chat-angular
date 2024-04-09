@@ -55,7 +55,8 @@
       },
       {
         "name": "v5",
-        "prerelease": true
+        "prerelease": true,
+        "channel": "beta"
       },
       {
         "name": "remove-style-attributes-from-templates",
