@@ -1,0 +1,77 @@
+---
+id: change-detection
+sidebar_position: 4
+title: Change detection
+---
+
+For performance reasons, the Stream chat WebSocket connection is opened outside of the [Angular change detection zone](https://angular.io/guide/zone). This means that when we react to WebSocket events, Angular won't update the UI in response to these events. Furthermore, if a new component is created reacting to a WebSocket event (for example, if we receive a new message, and a new message component is created to display the new message), the new component will operate outside of the Angular change detection zone. To solve this problem, we need to reenter Angular's change detection zone.
+
+## Reentering Angular's change detection zone
+
+You can reenter Angular's change detection zone with the `run` method of the `NgZone` service. For example if you want to display a notification when a user is added to a channel, you can watch for the `notification.added_to_channel` event and return to the zone when that event is received:
+
+```typescript
+import { Component, NgZone, OnInit } from "@angular/core";
+import { filter } from "rxjs/operators";
+import { ChatClientService, NotificationService } from "stream-chat-angular";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements OnInit {
+  constructor(
+    private chatService: ChatClientService,
+    private notificationService: NotificationService,
+    private ngZone: NgZone
+  ) {}
+
+  ngOnInit(): void {
+    this.chatService.events$
+      .pipe(filter((n) => n.eventType === "notification.added_to_channel"))
+      .subscribe((notification) => {
+        // reenter Angular's change detection zone
+        this.ngZone.run(() => {
+          this.notificationService.addTemporaryNotification(
+            `You've been added to the ${notification.event.channel?.name} channel`,
+            "success"
+          );
+        });
+      });
+  }
+}
+```
+
+If you were to display the notification without reentering Angular's zone, the `addTemporaryNotification` would run outside of Angular's change detection zone, and the notification wouldn't disappear after the 5-second timeout.
+
+## When necessary to reenter the zone
+
+You need to reenter Angular's change detection zone when
+
+- you subscribe to events using the [`events$`](../services/ChatClientService.mdx/#notification) Observable of the `ChatClientService`
+- you subscribe to channel events
+
+For example the [`ChannelPreview`](../components/ChannelPreviewComponent.mdx) component needs to subscribe to the `message.read` channel events to know if the channel has unread messages and reenter Angular's zone when an event is received:
+
+```typescript
+this.channel.on("message.read", () =>
+  this.ngZone.run(() => {
+    this.isUnread = !!this.channel.countUnread() && this.canSendReadEvents;
+  })
+);
+```
+
+## When unnecessary to reenter the zone
+
+You **don't** need to reenter the zone when
+
+- you use the SDK's default components in your UI and don't watch for additional events
+- when you [override the default channel list behavior](../services/ChannelService.mdx/#channels)
+- when you subscribe to the [`connectionState$`](../services/ChatClientService.mdx/#connectionstate) Observable of the `ChatClientService`
+
+If you are unsure whether or not you are in Angular's zone, you can use the following function call to check:
+
+```typescript
+NgZone.isInAngularZone();
+```

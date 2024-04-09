@@ -1,0 +1,102 @@
+---
+id: themeing
+sidebar_position: 1
+title: Theming and CSS (deprecated)
+---
+
+import LightThemeScreenshot from "../assets/light-theme-screenshot.png";
+import DarkThemeScreenshot from "../assets/dark-theme-screenshot.png";
+import CustomLightThemeScreenshot from "../assets/custom-light-theme-screenshot.png";
+import CustomDarkThemeScreenshot from "../assets/custom-dark-theme-screenshot.png";
+
+:::caution
+This page contains information about the old theming system of the chat UI, this is now deprecated and will be removed in a future release. Please refer to our [new theming guide](../theming/introduction.mdx).
+:::
+
+## Overriding CSS
+
+To override pre-defined library styles, follow this simple process:
+
+- Import our bundled CSS into your root stylesheet. We maintain a separate repository, [stream-chat-css](https://github.com/GetStream/stream-chat-css), which houses all of the SCSS files for the components.
+
+- Use the browser inspector or view the library code and locate default styles you wish to override
+
+- Add selectors to your local CSS file to override our defaults.
+
+- Add your local CSS selectors after Stream's bundled CSS
+
+- Additionally you can override [the following CSS variables](https://github.com/GetStream/stream-chat-css/blob/main/src/styles/_variables.scss) to better customize the chat UI
+
+For example:
+
+```scss
+@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
+
+/* Your CSS here */
+```
+
+OR
+
+```css
+@import "~stream-chat-angular/src/assets/styles/css/index.css";
+
+/* Your CSS here */
+```
+
+## Importing SCSS Files
+
+As an alternative to importing our entire style sheet (perhaps, due to it's size), there's also the option to easily assemble only
+what you need by importing individual SCSS files. The imports should happen in your root stylesheet.
+
+:::note
+If not importing our entire bundled CSS, individually importing the SDK's SCSS files is the better alternative to copy and pasting
+our stylesheets and then customizing that code in your application. The CSS in the library does change occasionally, and you want
+to keep up to date with these to ensure no problems arise by falling behind in important styling updates.
+:::
+
+## Changing the theme
+
+Our library supports light and dark themes. You can change between the different themes using the `ThemeService`:
+
+```typescript
+import { ThemeService } from 'stream-chat-angular';
+
+constructor(themeService: ThemeService) {
+  themeService.theme$.next('dark');
+}
+```
+
+The default theme is `light`.
+
+**Example 1** - Light theme
+
+<img src={LightThemeScreenshot} width="900" />
+
+**Example 2** - Dark theme
+
+<img src={DarkThemeScreenshot} width="900" />
+
+## Customizing the theme
+
+You can customize the theme by overriding the CSS variables. The [complete list of CSS variables](https://github.com/GetStream/stream-chat-css/blob/main/src/styles/_variables.scss) can be found in the stream-chat-css repository.
+
+You can override the variables using the [`ThemeService`](../services/ThemeService.mdx). Here is an example:
+
+```typescript
+this.themeService.customLightThemeVariables = {
+  "--primary-color": "lightgreen",
+};
+this.themeService.customDarkThemeVariables = {
+  "--primary-color": "darkgreen",
+};
+```
+
+The result:
+
+**Example 1** - Custom light theme
+
+<img src={CustomLightThemeScreenshot} width="900" />
+
+**Example 2** - Custom dark theme
+
+<img src={CustomDarkThemeScreenshot} width="900" />

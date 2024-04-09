@@ -1,0 +1,191 @@
+---
+id: mention-actions
+sidebar_position: 1
+title: Mention actions
+---
+
+import Screenshot from "../assets/mention-screenshot.png";
+
+In this example, we will demonstrate how to create custom mention actions if a user clicks on or hovers over a mention in a message.
+
+## Custom mention template
+
+You can provide a custom message template to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx):
+
+Create the template (for example in your `AppComponent`):
+
+```html
+<ng-template #mentionTemplate let-user="user">
+  <b>@{{ user.name || user.id }}</b>
+</ng-template>
+```
+
+The `Message` component will provide the mentioned user in a variable called `user`, the object has a [`UserResponse`](https://github.com/GetStream/stream-chat-js/blob/master/src/types.ts) type and you can use it to display information about the user.
+
+This template looks and works like the default mention template, however you can add interactions to this element.
+
+Register the template in your TypeScript code (for example in your `AppComponent`).
+
+These are the necessary steps:
+
+- Create a reference to the custom template
+- Import the [CustomTemplatesService](../services/CustomTemplatesService.mdx)
+- Register your custom template
+
+Here is an example file:
+
+```typescript
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from "@angular/core";
+import {
+  ChatClientService,
+  ChannelService,
+  StreamI18nService,
+} from "stream-chat-angular";
+import {
+  CustomTemplatesService,
+  MentionTemplateContext,
+} from "stream-chat-angular";
+import { environment } from "../environments/environment";
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent implements AfterViewInit {
+  // Create a reference to the custom template
+  @ViewChild("mentionTemplate")
+  private mentionTemplate!: TemplateRef<MentionTemplateContext>;
+
+  constructor(
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private customTemplatesService: CustomTemplatesService // Import the customTemplatesService
+  ) {
+    void this.chatService.init(
+      environment.apiKey,
+      environment.userId,
+      environment.userToken
+    );
+    void this.channelService.init({
+      type: "messaging",
+      members: { $in: [environment.userId] },
+    });
+    this.streamI18nService.setTranslation();
+  }
+
+  ngAfterViewInit(): void {
+    // Register your custom template
+    this.customTemplatesService.mentionTemplate$.next(this.mentionTemplate);
+  }
+}
+```
+
+## Display user information on click
+
+In this step we will create a popover with additional user information that will be displayed if the user clicks on a mention. We are using the [`ngx-popperjs`](https://www.npmjs.com/package/ngx-popperjs) library for the popover, but you can use a different library as well.
+
+### Install `ngx-popperjs`
+
+Let's install the necessary dependencies:
+
+```bash
+npm install @popperjs/core ngx-popperjs --save
+```
+
+### Import the `NgxPopperjsModule` module
+
+```typescript
+import {NgxPopperjsModule} from 'ngx-popperjs';
+
+@NgModule({
+ // ...
+ imports: [
+   // ...
+   NgxPopperjsModule
+ ]
+})
+```
+
+### Import SCSS
+
+Add this to your `styles.scss`:
+
+```scss
+@import "~ngx-popperjs/scss/theme-white";
+```
+
+[CSS is also supported.](https://www.npmjs.com/package/ngx-popperjs)
+
+### Create the popover
+
+```html
+<ng-template #mentionTemplate let-user="user">
+  <span
+    style="cursor: pointer"
+    [popper]="popperContent"
+    [popperPositionFixed]="true"
+  >
+    <b>@{{ user.name || user.id }}</b>
+  </span>
+  <popper-content #popperContent style="display: inline">
+    <div style="display: flex; align-items: center">
+      <stream-avatar
+        [imageUrl]="user.image"
+        [name]="user.name || user.id"
+      ></stream-avatar>
+      <b>{{ user.name || user.id }}</b>
+      <span>&nbsp;{{ user.online ? "online" : "offline" }}</span>
+    </div>
+  </popper-content>
+</ng-template>
+```
+
+This is the popover that is displayed if we click on a mention in a message:
+
+<img src={Screenshot} width="500" />
+
+[`ngx-popperjs`](https://www.npmjs.com/package/ngx-popperjs) has a lot of other configuration options, feel free to explore those.
+
+## Display user information on hover
+
+Let's modify our solution and display the popover on hover instead of click:
+
+We need to add a variable to our component class:
+
+```typescript
+import { NgxPopperjsTriggers } from "ngx-popperjs";
+
+popoverTrigger = NgxPopperjsTriggers.hover;
+```
+
+And modify our template:
+
+```html
+<ng-template #mentionTemplate let-user="user">
+  <span
+    style="cursor: pointer"
+    [popper]="popperContent"
+    [popperPositionFixed]="true"
+    [popperTrigger]="popoverTrigger"
+  >
+    <b>@{{ user.name || user.id }}</b>
+  </span>
+  <popper-content #popperContent style="display: inline">
+    <div style="display: flex; align-items: center">
+      <stream-avatar
+        [imageUrl]="user.image"
+        [name]="user.name || user.id"
+      ></stream-avatar>
+      <b>{{ user.name || user.id }}</b>
+      <span>&nbsp;{{ user.online ? "online" : "offline" }}</span>
+    </div>
+  </popper-content>
+</ng-template>
+```

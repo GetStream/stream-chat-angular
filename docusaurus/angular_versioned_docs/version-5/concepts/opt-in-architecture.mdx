@@ -1,0 +1,74 @@
+---
+id: opt-in-architecture
+sidebar_position: 3
+title: Opt-in architecture
+---
+
+In an effort to keep our bundle size small in the long run our SDK uses an architecture where integrators can decide to opt-out of certain costly (in terms of bundle size) features.
+
+The decision to opt-in or opt-out happens at module import, you can choose between the `StreamAutocompleteTextareaModule` and the `StreamTextareaModule`:
+
+```typescript
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { TranslateModule } from "@ngx-translate/core";
+
+import { AppComponent } from "./app.component";
+import { CustomMessageComponent } from "./custom-message/custom-message.component";
+import {
+  StreamChatModule,
+  StreamAutocompleteTextareaModule,
+} from "stream-chat-angular";
+
+@NgModule({
+  declarations: [AppComponent, CustomMessageComponent],
+  imports: [
+    BrowserModule,
+    TranslateModule.forRoot(),
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+```
+
+Or if you're using standalone components:
+
+```typescript showLineNumbers={true} highlightedLines=8
+import { Component } from "@angular/core";
+import { TranslateModule } from "@ngx-translate/core";
+import {
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+} from "stream-chat-angular";
+
+@Component({
+  selector: "app-root",
+  standalone: true,
+  imports: [
+    TranslateModule,
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
+  ],
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
+})
+export class AppComponent {}
+```
+
+The chosen module decides what kind of `textarea` should be used in the message composer, you can choose between the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx) with mentions or the [`TextareaComponent`](../components/TextareaComponent.mdx) that doesn't support mentions, but has a smaller bundle size. Your final application bundle will only include either the `TextareaComponent` or the `AutocompleteTextareaComponent`.
+
+## Opt-in features
+
+The list of opt-in features can be found below:
+
+### `Textarea`
+
+For the `textarea` inside the [`MessageInputComponent`](../components/MessageInputComponent.mdx) you can choose between the [`TextareaComponent`](../components/TextareaComponent.mdx) or the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx) component. The table below provides a comparison between the two components:
+
+| Feature       | `TextareaComponent` | `AutocompleteTextareaComponent` |
+| ------------- | ------------------- | ------------------------------- |
+| User mentions | No                  | Yes                             |
+| Commands      | No                  | Yes                             |

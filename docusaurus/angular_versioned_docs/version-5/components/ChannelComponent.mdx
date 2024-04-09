@@ -1,0 +1,29 @@
+The `Channel` component is a container component that displays the [`ChannelHeader`](./ChannelHeaderComponent.mdx), [`MessageList`](./MessageListComponent.mdx), [`NotificationList`](./NotificationListComponent.mdx), [`EditMessageForm`](./EditMessageFormComponent.mdx), [`MessageBouncePrompt`](./MessageBouncePromptComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components. You can also provide the [`Thread`](./ThreadComponent.mdx) component to use message [threads](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+## Usage
+
+```html
+<div id="root">
+  <stream-channel-list></stream-channel-list>
+  <stream-channel>
+    <!-- Main messages in the channel -->
+    <stream-channel-header></stream-channel-header>
+    <stream-message-list></stream-message-list>
+    <stream-message-input></stream-message-input>
+    <!-- Main messages in the channel -->
+    <!-- Thread messages in the channel -->
+    <!-- The name attribute selects the slot for the thread component inside channel -->
+    <stream-thread name="thread">
+      <stream-message-list mode="thread"></stream-message-list>
+      <stream-message-input mode="thread"></stream-message-input>
+    </stream-thread>
+    <!-- Thread messages in the channel -->
+  </stream-channel>
+  <stream-notification-list></stream-notification-list>
+</div>
+```
+
+The `Channel` component doesn't do any settings, it's just displays its children components. The main purpose of this component is to provide the layout for the initial chat UI.
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

@@ -4,15 +4,10 @@ on:
     branches:
       - master
       - beta
-      - test
-      - theming-v2
-      - remove-style-attributes-from-templates
   pull_request:
     branches:
       - master
       - beta
-      - test
-      - theming-v2
 jobs:
   workflow:
     runs-on: ubuntu-latest
@@ -61,13 +56,13 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
       - name: Copy docs from stream-chat-css
-        run: npm run copy-css-docs
+        run: npm run ${{ (github.ref == 'refs/heads/beta' || contains(github.head_ref, 'beta')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
       - name: Generate docs
         run: |
-          npm run generate-docs
+          npm run ${{ (github.ref == 'refs/heads/beta' || contains(github.head_ref, 'beta')) && 'generate-docs:v5' || 'generate-docs' }}
       - name: Push to docusaurus
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+          target-branch: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta') && 'production' || 'staging' }}
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}

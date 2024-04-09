@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const componentDocsPath = 'docusaurus/docs/Angular/components';
+const componentDocsPath = process.argv[2];
 const startOfGeneratedContentMark = '[//]: # "Start of generated content"';
 const endOfGeneratedContentMark = '[//]: # "End of generated content"';
 
