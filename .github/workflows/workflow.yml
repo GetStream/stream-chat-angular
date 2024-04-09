@@ -4,10 +4,12 @@ on:
     branches:
       - master
       - beta
+      - v5
   pull_request:
     branches:
       - master
       - beta
+      - v5
 jobs:
   workflow:
     runs-on: ubuntu-latest
@@ -56,13 +58,13 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
       - name: Copy docs from stream-chat-css
-        run: npm run ${{ (github.ref == 'refs/heads/beta' || contains(github.head_ref, 'beta')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
+        run: npm run ${{ (github.ref == 'refs/heads/v5' || contains(github.head_ref, 'v5')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
       - name: Generate docs
         run: |
-          npm run ${{ (github.ref == 'refs/heads/beta' || contains(github.head_ref, 'beta')) && 'generate-docs:v5' || 'generate-docs' }}
+          npm run ${{ (github.ref == 'refs/heads/v5' || contains(github.head_ref, 'v5')) && 'generate-docs:v5' || 'generate-docs' }}
       - name: Push to docusaurus
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta') && 'production' || 'staging' }}
+          target-branch: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v5') && 'production' || 'staging' }}
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
