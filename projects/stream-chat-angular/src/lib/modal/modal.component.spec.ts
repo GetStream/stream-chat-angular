@@ -56,7 +56,7 @@ describe('ModalComponent', () => {
 
   it('close if esc is pressed', () => {
     component.isOpen = true;
-    component.ngOnChanges({ isOpen: {} as any as SimpleChange });
+    component.ngOnChanges({ isOpen: {} as unknown as SimpleChange });
     fixture.detectChanges();
     const event = new KeyboardEvent('keyup', { key: 'Escape' });
     window?.dispatchEvent(event);

@@ -1,9 +1,6 @@
 <textarea
-  [value]="value || ''"
-  [autofocus]="autoFocus"
-  data-testid="textarea"
   #input
-  placeholder="{{ placeholder | translate }}"
+  data-testid="textarea"
   class="
     rta__textarea
     str-chat__textarea__textarea
@@ -11,16 +8,19 @@
     str-chat__message-textarea
   "
   rows="1"
+  [value]="value || ''"
+  [autofocus]="autoFocus"
+  placeholder="{{ placeholder | translate }}"
+  [mentionConfig]="autocompleteConfig"
+  [mentionListTemplate]="autocompleteItem"
   (input)="inputChanged()"
   (keydown.enter)="enterHit($event)"
-  [mentionConfig]="autocompleteConfig"
   (searchTerm)="autcompleteSearchTermChanged($event)"
-  [mentionListTemplate]="autocompleteItem"
   (blur)="inputLeft()"
 ></textarea>
 <ng-template #autocompleteItem let-item="item">
   <div class="rta rta__item str-chat__emojisearch__item" [ngSwitch]="item.type">
-    <div class="rta__entity" *ngSwitchCase="'mention'">
+    <div *ngSwitchCase="'mention'" class="rta__entity">
       <ng-container
         *ngTemplateOutlet="
           mentionAutocompleteItemTemplate || defaultMentionTemplate;
@@ -28,7 +28,7 @@
         "
       ></ng-container>
     </div>
-    <div class="rta__entity" *ngSwitchCase="'command'">
+    <div *ngSwitchCase="'command'" class="rta__entity">
       <ng-container
         *ngTemplateOutlet="
           commandAutocompleteItemTemplate || defaultCommandTemplate;
@@ -60,12 +60,12 @@
     <stream-avatar-placeholder
       data-testclass="avatar"
       class="str-chat__avatar str-chat__avatar--circle"
+      type="user"
+      location="autocomplete-item"
       [ngStyle]="{ height: themeVersion === '2' ? 30 : 20 + 'px' }"
       [size]="themeVersion === '2' ? 30 : 20"
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
-      type="user"
-      location="autocomplete-item"
       [user]="item.user || item"
     ></stream-avatar-placeholder>
     <span data-testclass="username" class="str-chat__user-item--name">{{

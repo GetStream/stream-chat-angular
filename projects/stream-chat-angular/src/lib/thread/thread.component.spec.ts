@@ -51,7 +51,7 @@ describe('ThreadComponent', () => {
       (fixture.nativeElement as HTMLElement).querySelector(
         '[data-testid="channel-name"]'
       )!.innerHTML
-    ).toContain(channel.data?.name!);
+    ).toContain(channel.data!.name!);
   });
 
   it('should close thread', () => {

@@ -32,7 +32,7 @@ export class NotificationService {
     content: string | TemplateRef<T>,
     type: NotificationType = 'error',
     timeout: number = 5000,
-    translateParams?: Object,
+    translateParams?: object,
     templateContext?: T
   ) {
     const notification = this.createNotification<T>(
@@ -65,15 +65,10 @@ export class NotificationService {
    * @param templateContext The input of the notification template (for HTML notifications)
    * @returns A method to clear the notification.
    */
-  addPermanentNotification<
-    T = {
-      [key: string]: any;
-      dismissFn: () => {};
-    }
-  >(
+  addPermanentNotification<T = object>(
     content: string | TemplateRef<T>,
     type: NotificationType = 'error',
-    translateParams?: Object,
+    translateParams?: object,
     templateContext?: T
   ) {
     const notification = this.createNotification<T>(
@@ -93,7 +88,7 @@ export class NotificationService {
   private createNotification<T>(
     content: string | TemplateRef<T>,
     type: NotificationType,
-    translateParams?: Object,
+    translateParams?: object,
     templateContext?: T
   ) {
     const id = new Date().getTime().toString() + Math.random().toString();
@@ -102,7 +97,7 @@ export class NotificationService {
       [typeof content === 'string' ? 'text' : 'template']: content,
       type,
       translateParams,
-      templateContext,
+      templateContext: templateContext ?? {},
       dismissFn: () => this.removeNotification(id),
     };
   }

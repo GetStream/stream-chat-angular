@@ -82,7 +82,7 @@ export class VoiceRecordingWavebarComponent
     this.isViewInited = true;
   }
 
-  seek(event: any) {
+  seek(event: MouseEvent) {
     const containerWidth =
       this.container?.nativeElement?.getBoundingClientRect().width || 0;
     const containerStart =
@@ -223,7 +223,9 @@ export class VoiceRecordingWavebarComponent
 
     for (let i = 0; i < this.waveFormData.length; i++) {
       const extra = remainder && remainder-- ? 1 : 0;
-      result.push(...Array(bucketSize + extra).fill(this.waveFormData[i]));
+      result.push(
+        ...Array<number>(bucketSize + extra).fill(this.waveFormData[i])
+      );
     }
     return result;
   };

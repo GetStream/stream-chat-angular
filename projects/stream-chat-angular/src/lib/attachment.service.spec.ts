@@ -40,9 +40,9 @@ describe('AttachmentService', () => {
     const file = { name: 'myimage.jpg', type: 'image/jpg' } as any as File;
     const fileUpload = {
       file,
-      state: 'success' as 'success',
+      state: 'success' as const,
       url: 'http://url/to/image',
-      type: 'image' as 'image',
+      type: 'image' as const,
     };
     uploadAttachmentsSpy.and.resolveTo([fileUpload]);
     await service.filesSelected([file] as any as FileList);
@@ -56,9 +56,9 @@ describe('AttachmentService', () => {
     uploadAttachmentsSpy.and.resolveTo([
       {
         file,
-        state: 'success' as 'success',
+        state: 'success' as const,
         url: 'http://url/to/image',
-        type: 'image' as 'image',
+        type: 'image' as const,
       },
     ]);
     const attachmentUploadsSpy = jasmine.createSpy('attachmentUploadsSpy');
@@ -80,9 +80,9 @@ describe('AttachmentService', () => {
     uploadAttachmentsSpy.and.resolveTo([
       {
         file,
-        state: 'success' as 'success',
+        state: 'success' as const,
         url: 'http://url/to/image',
-        type: 'image' as 'image',
+        type: 'image' as const,
       },
     ]);
     await service.filesSelected([file] as any as FileList);
@@ -104,9 +104,9 @@ describe('AttachmentService', () => {
     const url = 'http://url/to/image';
     const fileUpload = {
       file,
-      state: 'success' as 'success',
+      state: 'success' as const,
       url,
-      type: 'image' as 'image',
+      type: 'image' as const,
     };
     uploadAttachmentsSpy.and.resolveTo([fileUpload]);
     void service.filesSelected([file] as any as FileList);

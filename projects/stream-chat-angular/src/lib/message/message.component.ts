@@ -83,7 +83,6 @@ export class MessageComponent
   @Input() isHighlighted = false;
   /**
    * A list of custom message actions to be displayed in the action box
-   *
    * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
    */
   @Input() customActions: CustomMessageActionItem[] = [];
@@ -486,10 +485,10 @@ export class MessageComponent
   private fixEmojiDisplay(content: string) {
     // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
     // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     const isChrome =
       !!(window as any).chrome && typeof (window as any).opr === 'undefined';
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     content = content.replace(
       this.emojiRegexp,
       (match) =>

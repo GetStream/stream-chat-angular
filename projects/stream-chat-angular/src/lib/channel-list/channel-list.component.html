@@ -16,8 +16,8 @@
     <div class="str-chat__channel-list-messenger__main">
       <ng-content select="[channel-list-top]"></ng-content>
       <div
-        class="str-chat__channel-list-empty"
         *ngIf="!(channels$ | async)?.length"
+        class="str-chat__channel-list-empty"
       >
         <stream-icon icon="chat-bubble"></stream-icon>
         <p data-testid="empty-channel-list-indicator">
@@ -52,9 +52,9 @@
       <div
         *ngIf="hasMoreChannels$ | async"
         class="str-chat__load-more-button"
+        data-testid="load-more"
         (click)="loadMoreChannels()"
         (keyup.enter)="loadMoreChannels()"
-        data-testid="load-more"
       >
         <button
           class="str-chat__load-more-button__button str-chat__cta-button"

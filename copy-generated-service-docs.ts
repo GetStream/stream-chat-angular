@@ -31,7 +31,10 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
       }
 
       // Remove the thre prefix from the title
-      const result = data.replace(/# Class:/g, '#').replace('<T\\>', '');
+      const result = data
+        .replace(/# Class:/g, '#')
+        .replace('<T\\>', '')
+        .replace('\\', '');
 
       fs.writeFile(`${sourcePath}/${file}`, result, 'utf8', (err: any) => {
         if (err) {

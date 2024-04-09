@@ -8,7 +8,7 @@
   "
   [class.str-chat__input-flat-quoted]="!!quotedMessage"
 >
-  <div class="quoted-message-preview" *ngIf="quotedMessage">
+  <div *ngIf="quotedMessage" class="quoted-message-preview">
     <div class="quoted-message-preview-header">
       <div>{{ "streamChat.Reply to Message" | translate }}</div>
       <button
@@ -26,12 +26,12 @@
       <stream-avatar-placeholder
         data-testid="qouted-message-avatar"
         class="str-chat-angular__avatar-host"
-        [imageUrl]="quotedMessage?.user?.image"
-        [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
-        [size]="20"
         type="user"
         location="quoted-message-sender"
-        [user]="quotedMessage?.user || undefined"
+        [imageUrl]="quotedMessage.user?.image"
+        [name]="quotedMessage.user?.name || quotedMessage.user?.id"
+        [size]="20"
+        [user]="quotedMessage.user || undefined"
       ></stream-avatar-placeholder>
       <div class="quoted-message-preview-content-inner">
         <stream-attachment-list
@@ -39,14 +39,14 @@
             quotedMessage?.attachments && quotedMessage?.attachments?.length
           "
           [attachments]="quotedMessageAttachments"
-          [messageId]="quotedMessage?.id"
+          [messageId]="quotedMessage.id"
         ></stream-attachment-list>
         <div
           data-testid="quoted-message-text"
           [innerHTML]="
             message?.quoted_message?.translation ||
-            quotedMessage?.html ||
-            quotedMessage?.text
+            quotedMessage.html ||
+            quotedMessage.text
           "
         ></div>
       </div>
@@ -67,10 +67,10 @@
         let-deleteUploadHandler="deleteUploadHandler"
       >
         <stream-attachment-preview-list
+          class="rfu-image-previewer-angular-host"
           [attachmentUploads$]="attachmentUploads$"
           (retryAttachmentUpload)="retryUploadHandler($event)"
           (deleteAttachment)="deleteUploadHandler($event)"
-          class="rfu-image-previewer-angular-host"
         ></stream-attachment-preview-list>
       </ng-template>
       <ng-container
@@ -98,25 +98,25 @@
         <ng-container *ngIf="canSendMessages; else disabledTextarea">
           <ng-container
             streamTextarea
-            [(value)]="textareaValue"
-            (valueChange)="typingStart$.next()"
-            (send)="messageSent()"
             [componentRef]="textareaRef"
-            (userMentions)="mentionedUsers = $event"
             [areMentionsEnabled]="areMentionsEnabled"
             [mentionScope]="mentionScope"
             [placeholder]="textareaPlaceholder"
             [inputMode]="inputMode"
             [autoFocus]="autoFocus"
+            [(value)]="textareaValue"
+            (valueChange)="typingStart$.next()"
+            (send)="messageSent()"
+            (userMentions)="mentionedUsers = $event"
           ></ng-container>
         </ng-container>
         <ng-template #disabledTextarea>
           <textarea
             disabled
             rows="1"
-            [value]="disabledTextareaText | translate"
             class="rta__textarea str-chat__textarea__textarea"
             data-testid="disabled-textarea"
+            [value]="disabledTextareaText | translate"
           ></textarea>
         </ng-template>
       </div>
@@ -171,8 +171,8 @@
       ></stream-icon-placeholder>
     </button>
     <div
-      class="str-chat__input-flat-cooldown"
       *ngIf="isCooldownInProgress"
+      class="str-chat__input-flat-cooldown"
       data-testid="cooldown-timer"
     >
       <div class="str-chat__message-input-cooldown-text">
@@ -228,8 +228,8 @@
               class="str-chat__file-input"
               data-testid="file-input"
               [multiple]="isMultipleFileUploadEnabled"
-              (change)="filesSelected(fileInput.files)"
               id="{{ fileInputId }}"
+              (change)="filesSelected(fileInput.files)"
             />
             <label class="str-chat__file-input-label" for="{{ fileInputId }}">
               <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
@@ -239,9 +239,9 @@
       </ng-container>
       <div class="str-chat__message-textarea-container">
         <div
+          *ngIf="quotedMessage"
           data-testid="quoted-message-container"
           class="str-chat__quoted-message-preview"
-          *ngIf="quotedMessage"
         >
           <stream-avatar-placeholder
             data-testid="qouted-message-avatar"
@@ -249,12 +249,12 @@
               str-chat-angular__avatar-host
               str-chat__message-sender-avatar
             "
-            [imageUrl]="quotedMessage?.user?.image"
-            [name]="quotedMessage?.user?.name || quotedMessage?.user?.id"
-            [size]="20"
             type="user"
             location="quoted-message-sender"
-            [user]="quotedMessage?.user || undefined"
+            [imageUrl]="quotedMessage.user?.image"
+            [name]="quotedMessage.user?.name || quotedMessage.user?.id"
+            [size]="20"
+            [user]="quotedMessage.user || undefined"
           ></stream-avatar-placeholder>
           <div
             class="
@@ -267,15 +267,15 @@
                 quotedMessage?.attachments && quotedMessage?.attachments?.length
               "
               [attachments]="quotedMessageAttachments"
-              [messageId]="quotedMessage?.id"
+              [messageId]="quotedMessage.id"
             ></stream-attachment-list>
             <div
               class="str-chat__quoted-message-text"
               data-testid="quoted-message-text"
               [innerHTML]="
-                quotedMessage?.translation ||
-                quotedMessage?.html ||
-                quotedMessage?.text
+                quotedMessage.translation ||
+                quotedMessage.html ||
+                quotedMessage.text
               "
             ></div>
           </div>
@@ -287,10 +287,10 @@
           let-deleteUploadHandler="deleteUploadHandler"
         >
           <stream-attachment-preview-list
+            class="str-chat__attachment-preview-list-angular-host"
             [attachmentUploads$]="attachmentUploads$"
             (retryAttachmentUpload)="retryUploadHandler($event)"
             (deleteAttachment)="deleteUploadHandler($event)"
-            class="str-chat__attachment-preview-list-angular-host"
           ></stream-attachment-preview-list>
         </ng-template>
         <ng-container
@@ -302,16 +302,16 @@
         <div class="str-chat__message-textarea-with-emoji-picker">
           <ng-container
             streamTextarea
-            [(value)]="textareaValue"
-            (valueChange)="typingStart$.next()"
-            (send)="messageSent()"
             [componentRef]="textareaRef"
-            (userMentions)="mentionedUsers = $event"
             [areMentionsEnabled]="areMentionsEnabled"
             [mentionScope]="mentionScope"
             [inputMode]="inputMode"
             [autoFocus]="autoFocus"
             [placeholder]="textareaPlaceholder"
+            [(value)]="textareaValue"
+            (valueChange)="typingStart$.next()"
+            (send)="messageSent()"
+            (userMentions)="mentionedUsers = $event"
           ></ng-container>
           <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
             <ng-container
@@ -325,20 +325,20 @@
       </div>
       <button
         *ngIf="canSendMessages && !isCooldownInProgress && !message"
+        data-testid="send-button"
+        class="str-chat__send-button"
         [disabled]="
           (attachmentUploadInProgressCounter$ | async)! > 0 ||
           (!textareaValue && (attachmentUploads$ | async)!.length === 0)
         "
-        data-testid="send-button"
-        class="str-chat__send-button"
         (click)="messageSent()"
         (keyup.enter)="messageSent()"
       >
         <stream-icon-placeholder icon="send"></stream-icon-placeholder>
       </button>
       <div
-        class="str-chat__message-input-cooldown"
         *ngIf="isCooldownInProgress"
+        class="str-chat__message-input-cooldown"
         data-testid="cooldown-timer"
       >
         {{ cooldown$ | async }}

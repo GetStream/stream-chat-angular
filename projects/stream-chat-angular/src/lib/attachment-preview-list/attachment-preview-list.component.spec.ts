@@ -142,13 +142,11 @@ describe('AttachmentPreviewListComponent', () => {
     const filePreviews = queryPreviewFiles();
 
     filePreviews.forEach((p) => {
-      /* eslint-disable jasmine/new-line-before-expect */
       expect(
         p.querySelector('.rfu-file-previewer__file--uploading')
       ).toBeNull();
       expect(p.innerHTML).toContain(url);
       expect(p.innerHTML).toContain(fileName);
-      /* eslint-enable jasmine/new-line-before-expect */
     });
   });
 

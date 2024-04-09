@@ -59,7 +59,6 @@ export class MessageActionsBoxComponent
   @Input() customActions: CustomMessageActionItem[] = [];
   /**
    * The number of authorized actions (it can be less or equal than the number of enabled actions)
-   *
    * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
    *
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
@@ -67,7 +66,6 @@ export class MessageActionsBoxComponent
   @Output() readonly displayedActionsCount = new EventEmitter<number>();
   /**
    * An event which emits `true` if the edit message modal is open, and `false` when it is closed.
-   *
    * @deprecated components should use `messageReactionsService.messageToEdit$` Observable
    *
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
@@ -138,12 +136,12 @@ export class MessageActionsBoxComponent
 
   getMessageActionTemplateContext(
     item: MessageActionItem | CustomMessageActionItem
-  ): MessageActionBoxItemContext<any> {
+  ): MessageActionBoxItemContext {
     return {
       actionHandler: item.actionHandler,
       isMine: this.isMine,
       actionName: item.actionName,
-      message: this.message,
+      message: this.message!,
       actionLabelOrTranslationKey: item.actionLabelOrTranslationKey,
     };
   }

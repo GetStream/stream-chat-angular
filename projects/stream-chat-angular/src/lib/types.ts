@@ -119,14 +119,14 @@ export type ComandAutocompleteListItem = CommandResponse & {
 
 export type NotificationType = 'success' | 'error' | 'info';
 
-export type NotificationPayload<T = {}> = {
+export type NotificationPayload<T = object> = {
   id: string;
   type: NotificationType;
   text?: string;
-  translateParams?: Object;
+  translateParams?: object;
   template?: TemplateRef<T>;
   templateContext?: T;
-  dismissFn: Function;
+  dismissFn: () => void;
 };
 
 export type ChannelPreviewContext<
@@ -165,7 +165,7 @@ export type MessageInputContext = {
   mode: 'thread' | 'main' | undefined;
   isMultipleFileUploadEnabled: boolean | undefined;
   message: StreamMessage | undefined;
-  messageUpdateHandler: Function | undefined;
+  messageUpdateHandler: () => void | undefined;
   sendMessage$: Observable<void>;
 };
 
@@ -199,7 +199,7 @@ export type AttachmentListContext = {
   messageId: string;
   attachments: Attachment<DefaultStreamChatGenerics>[];
   parentMessageId?: string;
-  imageModalStateChangeHandler?: (state: 'opened' | 'closed') => {};
+  imageModalStateChangeHandler?: (state: 'opened' | 'closed') => void;
 };
 
 export type AvatarType = 'channel' | 'user';
@@ -228,8 +228,8 @@ export type AvatarContext = {
 
 export type AttachmentPreviewListContext = {
   attachmentUploads$: Observable<AttachmentUpload[]> | undefined;
-  retryUploadHandler: (f: File) => any;
-  deleteUploadHandler: (u: AttachmentUpload) => any;
+  retryUploadHandler: (f: File) => void;
+  deleteUploadHandler: (u: AttachmentUpload) => void;
 };
 
 export type IconContext = {
@@ -256,23 +256,23 @@ export type MessageActionsBoxContext = {
   /**
    * @deprecated because the name contains typos, use the `displayedActionsCountChangeHandler` instead
    */
-  displayedActionsCountChaneHanler: (count: number) => any;
+  displayedActionsCountChaneHanler: (count: number) => void;
   /**
    * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
    *
    * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
    */
-  displayedActionsCountChangeHandler: (count: number) => any;
+  displayedActionsCountChangeHandler: (count: number) => void;
 };
 
 export type MessageActionBoxItemContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | string;
+  actionName: string;
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   message: StreamMessage<T>;
   isMine: boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
+  actionHandler: (message: StreamMessage<T>, isMine: boolean) => void;
 };
 
 type MessageActionItemBase<
@@ -284,7 +284,7 @@ type MessageActionItemBase<
     isMine: boolean,
     message: StreamMessage<T>
   ) => boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
+  actionHandler: (message: StreamMessage<T>, isMine: boolean) => void;
 };
 
 export type MessageActionItem<
@@ -305,12 +305,12 @@ export type MessageReactionsContext = {
   isSelectorOpen: boolean;
   latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
-  isSelectorOpenChangeHandler: (isOpen: boolean) => any;
+  isSelectorOpenChangeHandler: (isOpen: boolean) => void;
 };
 
 export type ModalContext = {
   isOpen: boolean;
-  isOpenChangeHandler: (isOpen: boolean) => any;
+  isOpenChangeHandler: (isOpen: boolean) => void;
   content: TemplateRef<void>;
 };
 
@@ -321,17 +321,10 @@ export type NotificationContext = {
 
 export type ThreadHeaderContext = {
   parentMessage: StreamMessage | undefined;
-  closeThreadHandler: Function;
+  closeThreadHandler: () => void;
 };
 
-export type MessageReactionType =
-  | 'angry'
-  | 'haha'
-  | 'like'
-  | 'love'
-  | 'sad'
-  | 'wow'
-  | string;
+export type MessageReactionType = string;
 
 export type AttachmentConfigration = {
   url: string;
@@ -395,8 +388,8 @@ export type UnreadMessagesIndicatorContext = {
 
 export type UnreadMessagesNotificationContext =
   UnreadMessagesIndicatorContext & {
-    onJump: Function;
-    onDismiss: Function;
+    onJump: () => void;
+    onDismiss: () => void;
   };
 
 export type ChannelQueryState = {

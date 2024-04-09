@@ -1,5 +1,6 @@
 <div
   #container
+  data-testid="message-container"
   class="str-chat__message-simple str-chat__message str-chat__message--{{
     message?.type
   }} str-chat__message--{{ message?.status }} {{
@@ -16,7 +17,6 @@
     (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
     (message?.type === 'error' && message?.moderation_details)
   "
-  data-testid="message-container"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
@@ -26,22 +26,22 @@
       <stream-avatar-placeholder
         data-testid="avatar"
         class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
-        [imageUrl]="message?.user?.image"
-        [name]="message?.user?.name || message?.user?.id"
         type="user"
         location="message-sender"
+        [imageUrl]="message?.user?.image"
+        [name]="message?.user?.name || message?.user?.id"
         [user]="message?.user || undefined"
       ></stream-avatar-placeholder>
       <div class="str-chat__message-inner">
         <div
+          *ngIf="areOptionsVisible"
           class="str-chat__message-simple__actions str-chat__message-options"
           data-testid="message-options"
           [class.str-chat__message-actions-open]="isActionBoxOpen"
-          *ngIf="areOptionsVisible"
         >
           <div
-            data-testid="message-actions-container"
             #messageActionsToggle
+            data-testid="message-actions-container"
             class="
               str-chat__message-actions-container
               str-chat__message-simple__actions__action
@@ -66,13 +66,13 @@
                 let-customActions="customActions"
               >
                 <stream-message-actions-box
-                  (click)="messageActionsBoxClicked(popperContent)"
                   *ngIf="isOpen"
                   [isOpen]="isOpen"
                   [isMine]="isMine"
                   [enabledActions]="enabledActions"
                   [customActions]="customActions"
                   [message]="messageInput"
+                  (click)="messageActionsBoxClicked(popperContent)"
                 ></stream-message-actions-box>
               </ng-template>
               <ng-container
@@ -85,11 +85,11 @@
               </ng-container>
             </popper-content>
             <div
+              *ngIf="visibleMessageActionsCount > 0"
               class="str-chat__message-actions-box-button"
               data-testid="action-icon"
               (click)="messageActionsClicked()"
               (keyup.enter)="messageActionsClicked()"
-              *ngIf="visibleMessageActionsCount > 0"
             >
               <stream-icon-placeholder
                 icon="action-icon"
@@ -147,9 +147,9 @@
               [messageReactionCounts]="messageReactionCounts"
               [latestReactions]="latestReactions"
               [isSelectorOpen]="isSelectorOpen"
-              (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
               [messageId]="messageId"
               [ownReactions]="ownReactions"
+              (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
             ></stream-message-reactions>
           </ng-template>
           <ng-container
@@ -172,9 +172,9 @@
             ></ng-container>
           </ng-container>
           <div
+            *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
             class="str-chat__message-text"
             tabindex="0"
-            *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
             [class.str-chat__message-text--pointer-cursor]="
               (message?.status === 'failed' &&
                 message?.errorStatusCode !== 403) ||
@@ -201,8 +201,8 @@
                 ></ng-container>
               </ng-container>
               <div
-                data-testid="client-error-message"
                 *ngIf="message?.type === 'error'"
+                data-testid="client-error-message"
                 class="
                   str-chat__simple-message--error-message
                   str-chat__message--error-message
@@ -213,8 +213,8 @@
                 }}</ng-container>
               </div>
               <div
-                data-testid="error-message"
                 *ngIf="message?.status === 'failed'"
+                data-testid="error-message"
                 class="
                   str-chat__simple-message--error-message
                   str-chat__message--error-message
@@ -355,13 +355,13 @@
     <stream-avatar-placeholder
       data-testid="qouted-message-avatar"
       class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
+      type="user"
+      location="quoted-message-sender"
       [imageUrl]="message?.quoted_message?.user?.image"
       [name]="
         message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
       "
       [size]="20"
-      type="user"
-      location="quoted-message-sender"
       [user]="message?.quoted_message?.user || undefined"
     ></stream-avatar-placeholder>
     <div class="quoted-message-inner str-chat__quoted-message-bubble">
@@ -414,25 +414,25 @@
     "
   >
     <div
-      class="str-chat__translation-notice"
       *ngIf="shouldDisplayTranslationNotice"
+      class="str-chat__translation-notice"
       data-testid="translation-notice"
     >
       <button
-        data-testid="see-original"
         *ngIf="displayedMessageTextContent === 'translation'"
+        data-testid="see-original"
+        translate
         (click)="displayOriginalMessage()"
         (keyup.enter)="displayOriginalMessage()"
-        translate
       >
         streamChat.See original (automatically translated)
       </button>
       <button
-        data-testid="see-translation"
         *ngIf="displayedMessageTextContent === 'original'"
+        data-testid="see-translation"
+        translate
         (click)="displayTranslatedMessage()"
         (keyup.enter)="displayTranslatedMessage()"
-        translate
       >
         streamChat.See translation
       </button>
@@ -460,8 +460,8 @@
         <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
       </ng-container>
       <span
-        data-testid="sender"
         *ngIf="!isSentByCurrentUser"
+        data-testid="sender"
         class="str-chat__message-simple-name str-chat__message-sender-name"
       >
         {{ message?.user?.name ? message?.user?.name : message?.user?.id }}

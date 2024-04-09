@@ -58,8 +58,8 @@
     [mentionScope]="mentionScope"
     [mode]="mode"
     [isMultipleFileUploadEnabled]="isMultipleFileUploadEnabled"
-    (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
     [sendMessage$]="sendMessage$"
+    (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
   ></stream-message-input>
 </ng-template>
 
@@ -114,10 +114,10 @@
   let-deleteUploadHandler="deleteUploadHandler"
 >
   <stream-attachment-preview-list
+    class="rfu-image-previewer-angular-host"
     [attachmentUploads$]="attachmentUploads$"
     (retryAttachmentUpload)="retryUploadHandler($event)"
     (deleteAttachment)="deleteUploadHandler($event)"
-    class="rfu-image-previewer-angular-host"
   ></stream-attachment-preview-list>
 </ng-template>
 
@@ -152,8 +152,8 @@
 
 <ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
   <stream-loading-indicator
-    [size]="size"
     color="#F1F8E9"
+    [size]="size"
   ></stream-loading-indicator>
 </ng-template>
 
@@ -202,9 +202,9 @@
     [messageReactionCounts]="messageReactionCounts"
     [latestReactions]="latestReactions"
     [isSelectorOpen]="isSelectorOpen"
-    (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
     [messageId]="messageId"
     [ownReactions]="ownReactions"
+    (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
   ></stream-message-reactions>
 </ng-template>
 
@@ -216,8 +216,8 @@
 >
   <stream-modal
     [isOpen]="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>

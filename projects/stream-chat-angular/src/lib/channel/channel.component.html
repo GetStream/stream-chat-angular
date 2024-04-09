@@ -4,13 +4,13 @@
   }}"
 >
   <div
-    class="str-chat__container"
     *ngIf="
       (isError$ | async) === false &&
         (isInitializing$ | async) === false &&
         (isActiveChannel$ | async) === true;
       else noChannel
     "
+    class="str-chat__container"
   >
     <ng-container
       *ngTemplateOutlet="
@@ -40,11 +40,11 @@
   </div>
   <ng-template #noChannel>
     <div
-      class="str-chat__empty-channel"
       *ngIf="
         (isInitializing$ | async) === false &&
         ((isError$ | async) === true || (isActiveChannel$ | async) === false)
       "
+      class="str-chat__empty-channel"
     >
       <stream-icon icon="chat-bubble"></stream-icon>
       <p class="str-chat__empty-channel-text">

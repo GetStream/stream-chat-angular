@@ -8,10 +8,10 @@
   </div>
   <ng-content></ng-content>
   <stream-avatar-placeholder
-    imageUrl="{{ activeChannel?.data?.image }}"
-    name="{{ avatarName }}"
     type="channel"
     location="channel-header"
+    imageUrl="{{ activeChannel?.data?.image }}"
+    name="{{ avatarName }}"
     [channel]="activeChannel"
     [size]="40"
   ></stream-avatar-placeholder>

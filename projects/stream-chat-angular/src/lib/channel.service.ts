@@ -19,6 +19,7 @@ import {
   FormatMessageResponse,
   Message,
   MessageResponse,
+  QueryChannelAPIResponse,
   ReactionResponse,
   UpdatedMessage,
   UserFilters,
@@ -402,7 +403,7 @@ export class ChannelService<
   private parentMessageSetter = (message: StreamMessage<T> | undefined) => {
     this.activeParentMessageIdSubject.next(message?.id);
   };
-  private dismissErrorNotification?: Function;
+  private dismissErrorNotification?: () => void;
   private nextPageConfiguration?: NextPageConfiguration;
   private areReadEventsPaused = false;
 
@@ -514,7 +515,6 @@ export class ChannelService<
   /**
    * Sets the given `channel` as active and marks it as read.
    * If the channel wasn't previously part of the channel, it will be added to the beginning of the list.
-   *
    * @param channel
    */
   setAsActiveChannel(channel: Channel<T>) {
@@ -816,7 +816,7 @@ export class ChannelService<
     const channel = this.activeChannelSubject.getValue()!;
     channel.state.addMessageSorted(
       {
-        ...(message as any as MessageResponse<T>),
+        ...(message as unknown as MessageResponse<T>),
         errorStatusCode: undefined,
         status: 'sending',
       },
@@ -839,7 +839,7 @@ export class ChannelService<
       return this.resendMessage(message);
     }
     const response = await this.chatClientService.chatClient.updateMessage(
-      messageToUpdate as any as UpdatedMessage<T>
+      messageToUpdate as unknown as UpdatedMessage<T>
     );
 
     const channel = this.channelsSubject
@@ -921,7 +921,7 @@ export class ChannelService<
           type,
           state: 'success',
           url: uploadResult.value.file,
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
           thumb_url: (uploadResult.value as any).thumb_url,
         });
       } else {
@@ -1096,8 +1096,9 @@ export class ChannelService<
       (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
         .pipe(take(1))
         .subscribe((m) => (messages = m));
-      const newMessage = messages[messages.length - 1]!;
+      const newMessage = messages[messages.length - 1];
       return newMessage;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const stringError = JSON.stringify(error);
       const parsedError: {
@@ -1136,7 +1137,7 @@ export class ChannelService<
       (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
         .pipe(take(1))
         .subscribe((m) => (messages = m));
-      const newMessage = messages[messages.length - 1]!;
+      const newMessage = messages[messages.length - 1];
       return newMessage;
     }
   }
@@ -1347,7 +1348,7 @@ export class ChannelService<
     channelResponses: ChannelResponse<T>[]
   ) {
     let newChannels: Channel<T>[] = [];
-    const watchRequests: Promise<any>[] = [];
+    const watchRequests: Promise<QueryChannelAPIResponse<T>>[] = [];
     channelResponses.forEach((channelResponse) => {
       const channel = this.chatClientService.chatClient.channel(
         channelResponse.type,
@@ -1579,6 +1580,7 @@ export class ChannelService<
       });
       this.areReadEventsPaused = true;
       return response;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const error: {
         response?: {
@@ -1672,7 +1674,7 @@ export class ChannelService<
   }
 
   private formatMessage(message: MessageResponse<T>) {
-    const m = message as any as FormatMessageResponse<T>;
+    const m = message as unknown as FormatMessageResponse<T>;
     m.pinned_at = message.pinned_at ? new Date(message.pinned_at) : null;
     m.created_at = message.created_at
       ? new Date(message.created_at)
