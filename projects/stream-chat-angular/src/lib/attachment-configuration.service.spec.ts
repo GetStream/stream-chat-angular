@@ -345,4 +345,17 @@ describe('AttachmentConfigurationService', () => {
     expect(url).toContain('h=600');
     expect(url).toContain('w=600');
   });
+
+  it('should handle if image attachments have invalid or missing urls', () => {
+    const attachment: Attachment = {};
+    const htmlElement = {
+      'max-width': '300px',
+      'max-height': '300px',
+      height: '',
+    } as any as HTMLElement;
+
+    expect(() =>
+      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+    ).not.toThrow(jasmine.any(Error));
+  });
 });
