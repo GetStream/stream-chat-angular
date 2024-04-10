@@ -67,20 +67,31 @@ export class AttachmentConfigurationService<
       );
     }
 
-    const url = new URL(
-      (attachment.img_url ||
-        attachment.thumb_url ||
-        attachment.image_url ||
-        '') as string
-    );
+    const defaultOriginalDimension = 1000000;
+    const urlString = (attachment.img_url ||
+      attachment.thumb_url ||
+      attachment.image_url ||
+      '') as string;
+    let url: URL;
+    try {
+      url = new URL(urlString);
+    } catch (error) {
+      return {
+        url: urlString,
+        width: '', // Not set to respect responsive width
+        height: '', // Set from CSS
+        originalHeight: defaultOriginalDimension,
+        originalWidth: defaultOriginalDimension,
+      };
+    }
     const originalHeight =
       Number(url.searchParams.get('oh')) > 1
         ? Number(url.searchParams.get('oh'))
-        : 1000000;
+        : defaultOriginalDimension;
     const originalWidth =
       Number(url.searchParams.get('ow')) > 1
         ? Number(url.searchParams.get('ow'))
-        : 1000000;
+        : defaultOriginalDimension;
     const displayWarning = location === 'gallery' || location === 'single';
     const sizeRestriction = this.getSizingRestrictions(
       url,
@@ -120,32 +131,37 @@ export class AttachmentConfigurationService<
       );
     }
 
-    let thumbUrl = undefined;
+    let thumbUrl: string | undefined = undefined;
     let originalHeight = 1000000;
     let originalWidth = 1000000;
     if (attachment.thumb_url && this.shouldGenerateVideoThumbnail) {
-      const url = new URL(attachment.thumb_url);
-      originalHeight =
-        Number(url.searchParams.get('oh')) > 1
-          ? Number(url.searchParams.get('oh'))
-          : originalHeight;
-      originalWidth =
-        Number(url.searchParams.get('ow')) > 1
-          ? Number(url.searchParams.get('ow'))
-          : originalWidth;
-      const displayWarning = true;
-      const sizeRestriction = this.getSizingRestrictions(
-        url,
-        element,
-        displayWarning
-      );
+      let url: URL;
+      try {
+        url = new URL(attachment.thumb_url);
 
-      if (sizeRestriction) {
-        sizeRestriction.height *= 2;
-        sizeRestriction.width *= 2;
-        this.addResizingParamsToUrl(sizeRestriction, url);
+        originalHeight =
+          Number(url.searchParams.get('oh')) > 1
+            ? Number(url.searchParams.get('oh'))
+            : originalHeight;
+        originalWidth =
+          Number(url.searchParams.get('ow')) > 1
+            ? Number(url.searchParams.get('ow'))
+            : originalWidth;
+        const displayWarning = true;
+        const sizeRestriction = this.getSizingRestrictions(
+          url,
+          element,
+          displayWarning
+        );
+        if (sizeRestriction) {
+          sizeRestriction.height *= 2;
+          sizeRestriction.width *= 2;
+          this.addResizingParamsToUrl(sizeRestriction, url);
+        }
+        thumbUrl = url.href;
+      } catch {
+        thumbUrl = attachment.thumb_url;
       }
-      thumbUrl = url.href;
     }
     return {
       url: attachment.asset_url || '',
