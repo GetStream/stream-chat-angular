@@ -20,9 +20,6 @@
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
-      <ng-container *ngIf="themeVersion === '1'">
-        <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
-      </ng-container>
       <stream-avatar-placeholder
         data-testid="avatar"
         class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
@@ -58,15 +55,12 @@
             <float-ui-content #floatingContent>
               <ng-template
                 #defaultMessageActionsBox
-                let-isOpen="isOpen"
                 let-isMine="isMine"
                 let-enabledActions="enabledActions"
                 let-messageInput="message"
                 let-customActions="customActions"
               >
                 <stream-message-actions-box
-                  *ngIf="isOpen"
-                  [isOpen]="isOpen"
                   [isMine]="isMine"
                   [enabledActions]="enabledActions"
                   [customActions]="customActions"
@@ -74,13 +68,15 @@
                   (click)="messageActionsBoxClicked(floatingContent)"
                 ></stream-message-actions-box>
               </ng-template>
-              <ng-container
-                *ngTemplateOutlet="
-                  (customTemplatesService.messageActionsBoxTemplate$ | async) ||
-                    defaultMessageActionsBox;
-                  context: getMessageActionsBoxContext()
-                "
-              >
+              <ng-container *ngIf="isActionBoxOpen">
+                <ng-container
+                  *ngTemplateOutlet="
+                    (customTemplatesService.messageActionsBoxTemplate$
+                      | async) || defaultMessageActionsBox;
+                    context: getMessageActionsBoxContext()
+                  "
+                >
+                </ng-container>
               </ng-container>
             </float-ui-content>
             <div
@@ -267,37 +263,16 @@
             </div>
           </div>
           <stream-icon-placeholder
-            *ngIf="themeVersion === '2'"
             class="str-chat__message-error-icon"
             icon="error"
           ></stream-icon-placeholder>
         </div>
-        <ng-container
-          *ngTemplateOutlet="
-            replyCountButton;
-            context: { position: 'inside-message-bubble' }
-          "
-        ></ng-container>
-        <ng-container
-          *ngTemplateOutlet="
-            messageDateAndSender;
-            context: { position: 'inside-message-bubble' }
-          "
-        ></ng-container>
       </div>
       <ng-container
-        *ngTemplateOutlet="
-          replyCountButton;
-          context: { position: 'outside-message-bubble', message: message }
-        "
+        *ngTemplateOutlet="replyCountButton; context: { message: message }"
       ></ng-container>
 
-      <ng-container
-        *ngTemplateOutlet="
-          messageDateAndSender;
-          context: { position: 'outside-message-bubble' }
-        "
-      ></ng-container>
+      <ng-container *ngTemplateOutlet="messageDateAndSender"></ng-container>
     </ng-container>
   </ng-container>
 </div>
@@ -404,14 +379,8 @@
   </div>
 </ng-template>
 
-<!-- We need these markups in slightly different positions in theme-v1 and theme-v2, this soultion makes that possible without duplicating the code -->
-<ng-template #messageDateAndSender let-position="position">
-  <ng-container
-    *ngIf="
-      (position === 'inside-message-bubble' && themeVersion === '1') ||
-      (position === 'outside-message-bubble' && themeVersion === '2')
-    "
-  >
+<ng-template #messageDateAndSender>
+  <ng-container>
     <div
       *ngIf="shouldDisplayTranslationNotice"
       class="str-chat__translation-notice"
@@ -455,9 +424,8 @@
         str-chat__message-metadata
       "
     >
-      <ng-container *ngIf="themeVersion === '2'">
-        <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
-      </ng-container>
+      <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
+
       <span
         *ngIf="!isSentByCurrentUser"
         data-testid="sender"
@@ -628,12 +596,8 @@
   </ng-container>
 </ng-template>
 
-<ng-template #replyCountButton let-position="position">
+<ng-template #replyCountButton>
   <div
-    *ngIf="
-      (position === 'inside-message-bubble' && themeVersion === '1') ||
-      (position === 'outside-message-bubble' && themeVersion === '2')
-    "
     class="
       str-chat__message-simple-reply-button
       str-chat__message-replies-count-button-wrapper
@@ -645,11 +609,6 @@
       data-testid="reply-count-button"
       (click)="setAsActiveParentMessage()"
     >
-      <stream-icon-placeholder
-        *ngIf="themeVersion === '1'"
-        stream-icon-placeholder
-        icon="reply"
-      ></stream-icon-placeholder>
       {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
       replies' | translate:replyCountParam)}}
     </button>

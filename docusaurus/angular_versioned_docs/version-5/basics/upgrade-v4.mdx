@@ -9,6 +9,31 @@ title: Upgrade from v4
 
 Angular versions 12-14 are no longer supported. You can use the [Angular update guide](https://update.angular.io/) to update your application.
 
+### Theme v1 is removed
+
+Theme-v1 was deprecated in version 4. Most customers already use theme-v2 which used to be imported from this path:
+
+```scss
+@import "stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+```
+
+From version 5 this path should be used:
+
+```scss
+@import "stream-chat-angular/src/assets/styles/scss/index.scss";
+
+// or if you're using CSS
+@import "stream-chat-angular/src/assets/styles/css/index.css";
+```
+
+No futher action is required for customers who were already using theme-v2.
+
+Customers who used to use theme-v1 now need to use theme-v2. Updating from theme-v1 to theme-v2 will require to rewrite your custom CSS code as the new theme has a new variable system, and all the components were restructured. To help you get started please refer our [theming guide](../theming/introduction.mdx).
+
+### Removed deprecated features
+
+- The [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent) no longer accepts the `isOpen` input, the same is true for the [`messageActionsBoxTemplate$`](../../services/CustomTemplatesService/#messageactionsboxtemplate). The `Message` component will take care of hiding/showing the action box component.
+
 ### Type changes
 
 - Event handlers with `Function` type are changed to `() => void`

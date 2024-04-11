@@ -28,7 +28,6 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('emojiPickerTemplate')
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
-  themeVersion: '1' | '2';
   theme$: Observable<string>;
   counter = 0;
 
@@ -52,7 +51,6 @@ export class AppComponent implements AfterViewInit {
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
-    this.themeVersion = themeService.themeVersion;
     this.theme$ = themeService.theme$;
   }
 

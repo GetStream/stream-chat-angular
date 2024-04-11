@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
 
 /**
@@ -24,11 +23,8 @@ export class AttachmentPreviewListComponent {
    * An output to notify the parent component if the user wants to delete a file
    */
   @Output() readonly deleteAttachment = new EventEmitter<AttachmentUpload>();
-  themeVersion: '1' | '2';
 
-  constructor(themeService: ThemeService) {
-    this.themeVersion = themeService.themeVersion;
-  }
+  constructor() {}
 
   attachmentUploadRetried(file: File) {
     this.retryAttachmentUpload.emit(file);

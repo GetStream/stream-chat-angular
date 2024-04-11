@@ -103,9 +103,7 @@ export class TextareaComponent
   }
 
   private adjustTextareaHeight() {
-    if (this.themeService.themeVersion === '2') {
-      this.messageInput.nativeElement.style.height = '';
-      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-    }
+    this.messageInput.nativeElement.style.height = '';
+    this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
   }
 }

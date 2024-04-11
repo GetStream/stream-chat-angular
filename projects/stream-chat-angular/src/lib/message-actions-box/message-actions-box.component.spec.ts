@@ -77,7 +77,6 @@ describe('MessageActionsBoxComponent', () => {
     component.ngOnInit();
     message = mockMessage();
     component.message = message;
-    component.isOpen = true;
     component.ngOnChanges({
       message: {} as SimpleChange,
       isOpen: {} as SimpleChange,

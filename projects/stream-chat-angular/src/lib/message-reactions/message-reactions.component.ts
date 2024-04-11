@@ -18,7 +18,6 @@ import { ChannelService } from '../channel.service';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { ThemeService } from '../theme.service';
 import { Subscription } from 'rxjs';
 
 /**
@@ -79,8 +78,7 @@ export class MessageReactionsComponent
     private cdRef: ChangeDetectorRef,
     private channelService: ChannelService,
     private messageReactionsService: MessageReactionsService,
-    public customTemplatesService: CustomTemplatesService,
-    private themeService: ThemeService
+    public customTemplatesService: CustomTemplatesService
   ) {}
 
   ngOnInit(): void {
@@ -141,9 +139,6 @@ export class MessageReactionsComponent
 
   reactionSelected(reactionType: string) {
     if (!this.shouldHandleReactionClick) {
-      return;
-    }
-    if (this.themeService.themeVersion === '1') {
       return;
     }
     if (!this.messageId) {

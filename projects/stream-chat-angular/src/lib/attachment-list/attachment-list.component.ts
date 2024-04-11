@@ -23,7 +23,6 @@ import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
-import { ThemeService } from '../theme.service';
 
 /**
  * The `AttachmentList` component displays the attachments of a message
@@ -56,7 +55,6 @@ export class AttachmentListComponent implements OnChanges {
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
-  themeVersion: '1' | '2';
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
@@ -69,11 +67,9 @@ export class AttachmentListComponent implements OnChanges {
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
-    private attachmentConfigurationService: AttachmentConfigurationService,
-    themeService: ThemeService
-  ) {
-    this.themeVersion = themeService.themeVersion;
-  }
+    private attachmentConfigurationService: AttachmentConfigurationService
+  ) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {
       const images = this.attachments.filter(this.isImage);

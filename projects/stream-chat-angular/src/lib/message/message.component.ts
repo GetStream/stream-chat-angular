@@ -9,7 +9,6 @@ import {
   OnInit,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
-  NgZone,
   AfterViewInit,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
@@ -33,7 +32,6 @@ import emojiRegex from 'emoji-regex';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
-import { ThemeService } from '../theme.service';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
@@ -82,7 +80,6 @@ export class MessageComponent
    * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
    */
   @Input() customActions: CustomMessageActionItem[] = [];
-  readonly themeVersion: '1' | '2';
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isActionBoxOpen = false;
@@ -127,13 +124,10 @@ export class MessageComponent
     private channelService: ChannelService,
     public customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    themeService: ThemeService,
     private dateParser: DateParserService,
-    private ngZone: NgZone,
     private messageService: MessageService,
     private messageActionsService: MessageActionsService
   ) {
-    this.themeVersion = themeService.themeVersion;
     this.displayAs = this.messageService.displayAs;
   }
 
@@ -348,7 +342,6 @@ export class MessageComponent
 
   getMessageActionsBoxContext(): MessageActionsBoxContext {
     return {
-      isOpen: this.isActionBoxOpen,
       isMine: this.isSentByCurrentUser,
       enabledActions: this.enabledMessageActions,
       message: this.message,

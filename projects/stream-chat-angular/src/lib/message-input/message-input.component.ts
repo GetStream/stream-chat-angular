@@ -40,7 +40,6 @@ import { TextareaInterface } from './textarea.interface';
 import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
 import { CustomTemplatesService } from '../custom-templates.service';
-import { ThemeService } from '../theme.service';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -118,7 +117,6 @@ export class MessageInputComponent
     | TemplateRef<AttachmentPreviewListContext>
     | undefined;
   textareaPlaceholder: string;
-  themeVersion: '1' | '2';
   fileInputId = uuidv4();
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
@@ -142,10 +140,8 @@ export class MessageInputComponent
     private cdRef: ChangeDetectorRef,
     private chatClient: ChatClientService,
     private emojiInputService: EmojiInputService,
-    private customTemplatesService: CustomTemplatesService,
-    themeService: ThemeService
+    private customTemplatesService: CustomTemplatesService
   ) {
-    this.themeVersion = themeService.themeVersion;
     this.textareaPlaceholder = this.defaultTextareaPlaceholder;
     this.subscriptions.push(
       this.attachmentService.attachmentUploadInProgressCounter$.subscribe(
