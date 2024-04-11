@@ -732,11 +732,9 @@ describe('MessageListComponent', () => {
   it('should apply group styles', () => {
     const messagesElements = queryMessages();
 
-    /* eslint-disable jasmine/new-line-before-expect */
     messagesElements.forEach((m) =>
       expect(m.classList.toString()).toMatch(/middle|top|bottom|single/)
     );
-    /* eslint-enable jasmine/new-line-before-expect */
   });
 
   it('should display typing indicator', () => {
@@ -1077,8 +1075,9 @@ describe('MessageListComponent', () => {
   it(`shouldn't reset the scroll state if active channel is updated`, () => {
     spyOn<any>(component, 'resetScrollState');
     channelServiceMock.activeChannel$.next(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       (
-        channelServiceMock.activeChannel$ as any as BehaviorSubject<any>
+        channelServiceMock.activeChannel$ as unknown as BehaviorSubject<any>
       ).getValue()
     );
 

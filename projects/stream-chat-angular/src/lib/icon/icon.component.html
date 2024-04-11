@@ -1,6 +1,6 @@
 <svg
-  data-testid="action-icon"
   *ngIf="icon === 'action-icon'"
+  data-testid="action-icon"
   height="4"
   viewBox="0 0 11 4"
   width="11"
@@ -46,8 +46,8 @@
   </g>
 </svg>
 <svg
-  data-testid="connection-error"
   *ngIf="icon === 'connection-error'"
+  data-testid="connection-error"
   width="78px"
   height="78px"
   viewBox="0 0 78 78"
@@ -147,10 +147,10 @@
   *ngIf="icon === 'file'"
   data-testid="file"
   className="rfu-file-icon--small fa-file-fallback"
-  [attr.height]="size || 20"
-  [attr.width]="size || 20"
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 384 512"
+  [attr.height]="size || 20"
+  [attr.width]="size || 20"
 >
   <path
     d="M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zM332.1 128H256V51.9l76.1 76.1zM48 464V48h160v104c0 13.3 10.7 24 24 24h104v288H48z"
@@ -216,8 +216,8 @@
   />
 </svg>
 <svg
-  data-testid="close-no-outline"
   *ngIf="icon === 'close-no-outline'"
+  data-testid="close-no-outline"
   viewBox="0 0 24 24"
   width="24"
   height="24"
@@ -230,11 +230,11 @@
   />
 </svg>
 <svg
+  *ngIf="icon === 'reply-in-thread'"
   height="10"
   width="14"
   xmlns="http://www.w3.org/2000/svg"
   data-testid="reply-in-thread"
-  *ngIf="icon === 'reply-in-thread'"
 >
   <path
     d="M8.516 3c4.78 0 4.972 6.5 4.972 6.5-1.6-2.906-2.847-3.184-4.972-3.184v2.872L3.772 4.994 8.516.5V3zM.484 5l4.5-4.237v1.78L2.416 5l2.568 2.125v1.828L.484 5z"
@@ -288,8 +288,8 @@
 </svg>
 
 <svg
-  data-testid="arrow-up"
   *ngIf="icon === 'arrow-up'"
+  data-testid="arrow-up"
   width="24"
   height="24"
   viewBox="0 0 24 24"
@@ -302,8 +302,8 @@
   />
 </svg>
 <svg
-  data-testid="arrow-down"
   *ngIf="icon === 'arrow-down'"
+  data-testid="arrow-down"
   width="24"
   height="24"
   viewBox="0 0 24 24"
@@ -316,8 +316,8 @@
   />
 </svg>
 <svg
-  data-testid="chat-bubble"
   *ngIf="icon === 'chat-bubble'"
+  data-testid="chat-bubble"
   viewBox="0 0 136 136"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
@@ -365,11 +365,11 @@
 <svg
   *ngIf="icon === 'error'"
   data-testid="error"
-  [attr.width]="size ?? 24"
-  [attr.height]="size ?? 24"
   viewBox="0 0 24 24"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
+  [attr.width]="size ?? 24"
+  [attr.height]="size ?? 24"
 >
   <path
     id="background"
@@ -399,10 +399,10 @@
   *ngIf="icon === 'audio-file'"
   class="rfu-file-audio"
   fill="none"
-  [attr.height]="size || 20"
-  [attr.width]="size || 20"
   viewBox="0 0 34 40"
   xmlns="http://www.w3.org/2000/svg"
+  [attr.height]="size || 20"
+  [attr.width]="size || 20"
 >
   <path
     clip-rule="evenodd"

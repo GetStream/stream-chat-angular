@@ -40,6 +40,7 @@ export class IconComponent {
       'audio-file': '',
       play: '',
       pause: '',
+      'read-icon': '',
     };
 
     return map[this.icon!];

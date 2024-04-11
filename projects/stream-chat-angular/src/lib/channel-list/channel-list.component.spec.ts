@@ -77,11 +77,9 @@ describe('ChannelListComponent', () => {
     const channelsComponents = queryChannels();
 
     expect(channelsComponents.length).toBe(channels.length);
-    /* eslint-disable jasmine/new-line-before-expect */
     channels.forEach((c, index) =>
       expect(channelsComponents[index].channel).toBe(c)
     );
-    /* eslint-enable jasmine/new-line-before-expect */
   });
 
   it('should display error indicator, if error happened', () => {

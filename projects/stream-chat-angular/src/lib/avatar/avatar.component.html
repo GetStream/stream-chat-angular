@@ -17,17 +17,17 @@
   <img
     *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
     class="str-chat__avatar-image str-chat__avatar-image"
+    data-testid="avatar-img"
+    fetchpriority="high"
     src="{{ imageUrl || fallbackChannelImage }}"
     alt="{{ initials }}"
-    data-testid="avatar-img"
-    (error)="isError = true"
     [ngStyle]="{
       flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
       height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
       objectFit: 'cover',
       width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
     }"
-    fetchpriority="high"
+    (error)="isError = true"
   />
   <ng-template #fallback>
     <div data-testid="fallback-img" class="str-chat__avatar-fallback">
@@ -35,8 +35,8 @@
     </div>
   </ng-template>
   <div
-    data-testid="online-indicator"
     *ngIf="isOnline && showOnlineIndicator"
+    data-testid="online-indicator"
     class="str-chat__avatar--online-indicator"
   ></div>
 </div>

@@ -69,10 +69,10 @@ export class MessageListComponent
   @Input() hideJumpToLatestButtonDuringScroll = false;
   /**
    * A list of custom message actions to be displayed in the message action box
-   *
    * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
    */
-  @Input() customMessageActions: CustomMessageActionItem<any>[] = [];
+  @Input()
+  customMessageActions: CustomMessageActionItem<DefaultStreamChatGenerics>[] = [];
   /**
    * If `true` date separators will be displayed
    */
@@ -122,7 +122,7 @@ export class MessageListComponent
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
   isLoading = false;
-  scrollEndTimeout: any;
+  scrollEndTimeout?: ReturnType<typeof setTimeout>;
   lastReadMessageId?: string;
   isUnreadNotificationVisible = true;
   firstUnreadMessageId?: string;
@@ -152,8 +152,10 @@ export class MessageListComponent
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
   private isViewInited = false;
-  private checkIfUnreadNotificationIsVisibleTimeout?: any;
-  private jumpToLatestButtonVisibilityTimeout?: any;
+  private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
+    typeof setTimeout
+  >;
+  private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
 
   @HostBinding('class')
   private get class() {

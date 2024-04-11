@@ -17,10 +17,10 @@
   let-content="content"
 >
   <stream-modal
-    [isOpen]="isOpen"
     *ngIf="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
+    [isOpen]="isOpen"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>
@@ -40,9 +40,9 @@
       <button
         class="str-chat__message-bounce-edit"
         data-testid="message-bounce-edit"
+        type="button"
         (click)="editMessage()"
         (keyup.enter)="editMessage()"
-        type="button"
       >
         {{ "streamChat.Edit Message" | translate }}
       </button>

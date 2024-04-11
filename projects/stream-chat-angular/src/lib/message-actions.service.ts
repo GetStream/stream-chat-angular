@@ -27,8 +27,9 @@ export class MessageActionsService<
     {
       actionName: 'mark-unread',
       actionLabelOrTranslationKey: 'streamChat.Mark as unread',
-      actionHandler: (message: StreamMessage<T>) =>
-        this.channelService.markMessageUnread(message.id),
+      actionHandler: (message: StreamMessage<T>) => {
+        void this.channelService.markMessageUnread(message.id);
+      },
       isVisible: (
         enabledActions: string[],
         isMine: boolean,
@@ -38,8 +39,9 @@ export class MessageActionsService<
     {
       actionName: 'quote',
       actionLabelOrTranslationKey: 'streamChat.Reply',
-      actionHandler: (message: StreamMessage<T>) =>
-        this.channelService.selectMessageToQuote(message),
+      actionHandler: (message: StreamMessage<T>) => {
+        this.channelService.selectMessageToQuote(message);
+      },
       isVisible: (enabledActions: string[]) =>
         enabledActions.indexOf('quote-message') !== -1,
     },
@@ -47,16 +49,18 @@ export class MessageActionsService<
       actionName: 'pin',
       actionLabelOrTranslationKey: (message: StreamMessage<T>) =>
         message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-      actionHandler: (message: StreamMessage<T>) =>
+      actionHandler: (message: StreamMessage<T>) => {
         message.pinned
-          ? this.channelService.unpinMessage(message)
-          : this.channelService.pinMessage(message),
+          ? void this.channelService.unpinMessage(message)
+          : void this.channelService.pinMessage(message);
+      },
       isVisible: (enabledActions: string[]) =>
         enabledActions.indexOf('pin-message') !== -1,
     },
     {
       actionName: 'flag',
       actionLabelOrTranslationKey: 'streamChat.Flag',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       actionHandler: async (message: StreamMessage<T>) => {
         try {
           await this.chatClientService.flagMessage(message.id);
@@ -86,6 +90,7 @@ export class MessageActionsService<
     {
       actionName: 'delete',
       actionLabelOrTranslationKey: 'streamChat.Delete',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       actionHandler: async (message: StreamMessage<T>) => {
         try {
           await this.channelService.deleteMessage(message);
@@ -124,7 +129,6 @@ export class MessageActionsService<
 
   /**
    * This method returns how many authorized actions are available to the given message
-   *
    * @param message
    * @param enabledActions
    * @returns the count

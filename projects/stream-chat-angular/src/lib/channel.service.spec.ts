@@ -485,11 +485,9 @@ describe('ChannelService', () => {
 
   it('should add readBy field to messages', async () => {
     await init();
-    /* eslint-disable jasmine/new-line-before-expect */
     service.activeChannelMessages$.subscribe((messages) => {
       messages.forEach((m) => expect(m.readBy).not.toBeUndefined());
     });
-    /* eslint-enable jasmine/new-line-before-expect */
   });
 
   it('should load more older messages', async () => {
@@ -2353,7 +2351,7 @@ describe('ChannelService', () => {
   it('should load message reactions', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactions = [
       { type: 'wow', user: { id: 'jack' } },
     ] as ReactionResponse[];
@@ -2374,7 +2372,7 @@ describe('ChannelService', () => {
   it('should load message reactions - multiple pages', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactionsFirstPage = new Array(300)
       .fill(null)
       .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
@@ -2407,7 +2405,7 @@ describe('ChannelService', () => {
   it('should load message reactions - but no more than 1200', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactionsPage = new Array(300)
       .fill(null)
       .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
@@ -2423,7 +2421,7 @@ describe('ChannelService', () => {
   it('should load message reactions - error', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const error = new Error('Reactions loading failed');
     spyOn(activeChannel, 'getReactions').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
@@ -2443,7 +2441,7 @@ describe('ChannelService', () => {
   it('should mark message as unread', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
 
     spyOn(activeChannel, 'markUnread').and.resolveTo();
     await service.markMessageUnread(message.id);
@@ -2456,7 +2454,7 @@ describe('ChannelService', () => {
   it('should mark message as unread - error', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
 
     const error = {
       response: {

@@ -64,7 +64,7 @@ describe('NotificationService', () => {
   });
 
   it('should add HTML notification - temporary notification', () => {
-    const template = { template: 'template' } as any as TemplateRef<any>;
+    const template = { template: 'template' } as unknown as TemplateRef<object>;
     const templateContext = { channelName: 'gardening' };
     service.addTemporaryNotification(
       template,
@@ -80,7 +80,7 @@ describe('NotificationService', () => {
   });
 
   it('should add HTML notification - permanent notification', () => {
-    const template = { template: 'template' } as any as TemplateRef<any>;
+    const template = { template: 'template' } as unknown as TemplateRef<object>;
     const templateContext = { channelName: 'gardening' };
     service.addPermanentNotification(
       template,

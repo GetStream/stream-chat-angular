@@ -15,12 +15,13 @@
   </button>
 
   <emoji-mart
+    *ngIf="isOpened"
     class="picker"
     color="var(--str-chat__primary-color)"
-    *ngIf="isOpened"
     title="Pick your emoji…"
     emoji="point_up"
-    (emojiSelect)="emojiSelected($event)"
     [darkMode]="(theme$ | async) === 'dark'"
+    [isNative]="true"
+    (emojiSelect)="emojiSelected($event)"
   ></emoji-mart>
 </div>

@@ -13,7 +13,7 @@ export class MessageActionComponent {
     | string;
   @Input() message!: StreamMessage<DefaultStreamChatGenerics>;
   @Input() isMine!: boolean;
-  @Input() actionHandler!: (message: StreamMessage, isMine: boolean) => any;
+  @Input() actionHandler!: (message: StreamMessage, isMine: boolean) => void;
 
   constructor() {}
 

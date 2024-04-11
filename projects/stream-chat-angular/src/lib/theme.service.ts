@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type Theme = 'light' | 'dark';
-
 /**
  * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [theming guide](../theming/introduction.mdx) gives a complete overview about the topic.
  */
@@ -11,9 +9,9 @@ export type Theme = 'light' | 'dark';
 })
 export class ThemeService {
   /**
-   * A Subject that can be used to get or set the currently active theme.
+   * A Subject that can be used to get or set the currently active theme. By default light and dark themes are supported.
    */
-  theme$ = new BehaviorSubject<Theme | string>('light');
+  theme$ = new BehaviorSubject<string>('light');
   /**
    * Stream chat theme version - this is used internally by some UI components of the SDK, integrators shouldn't need to use this variable
    */

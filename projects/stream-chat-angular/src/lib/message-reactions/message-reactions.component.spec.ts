@@ -37,9 +37,9 @@ describe('MessageReactionsComponent', () => {
   let querySelectorTooltip: () => HTMLElement | null;
   let queryReactionCountsFromReactionList: () => HTMLElement[];
   const channelServiceMock = {
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addReaction: (id: string, type: MessageReactionType) => {},
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removeReaction: (id: string, type: MessageReactionType) => {},
     getMessageReactions: () => Promise.resolve([] as ReactionResponse[]),
   };
@@ -459,13 +459,11 @@ describe('MessageReactionsComponent', () => {
     expect(likeEmojiOption.classList).toContain(
       'str-chat__message-reactions-option-selected'
     );
-    /* eslint-disable jasmine/new-line-before-expect */
     otherEmojiOptions.forEach((o) =>
       expect(o.classList).not.toContain(
         'str-chat__message-reactions-option-selected'
       )
     );
-    /* eslint-enable jasmine/new-line-before-expect */
   });
 
   it('should mark reaction types of current user - list', () => {
@@ -488,12 +486,10 @@ describe('MessageReactionsComponent', () => {
 
     const reactions = queryEmojis();
 
-    /* eslint-disable jasmine/new-line-before-expect */
     expect(reactions[0].classList).toContain('str-chat__message-reaction-own');
     expect(reactions[1].classList).not.toContain(
       'str-chat__message-reaction-own'
     );
-    /* eslint-disable jasmine/new-line-before-expect */
   });
 
   it('should filter not supported reactions', () => {

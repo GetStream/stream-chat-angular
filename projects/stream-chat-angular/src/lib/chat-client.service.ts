@@ -98,7 +98,7 @@ export class ChatClientService<
   async init(
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
-    userTokenOrProvider: TokenOrProvider | 'anonymous' | 'guest',
+    userTokenOrProvider: TokenOrProvider,
     clientOptions?: StreamChatOptions
   ): ConnectAPIResponse<T> {
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
@@ -134,7 +134,7 @@ export class ChatClientService<
       }
     });
     const channels = await this.chatClient.queryChannels(
-      { invite: 'pending' } as any as ChannelFilters<T>, // TODO: find out why we need this typecast
+      { invite: 'pending' } as unknown as ChannelFilters<T>, // TODO: find out why we need this typecast
       {},
       { user_id: this.chatClient.user?.id }
     );
@@ -150,7 +150,7 @@ export class ChatClientService<
         });
       })
     );
-    let removeNotification: undefined | Function;
+    let removeNotification: undefined | (() => void);
     this.subscriptions.push(
       this.chatClient.on('connection.changed', (e) => {
         this.ngZone.run(() => {

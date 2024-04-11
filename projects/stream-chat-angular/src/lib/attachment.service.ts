@@ -72,18 +72,18 @@ export class AttachmentService<
     const newUploads = [
       ...imageFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'image' as 'image',
+        state: 'uploading' as const,
+        type: 'image' as const,
       })),
       ...videoFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'video' as 'video',
+        state: 'uploading' as const,
+        type: 'video' as const,
       })),
       ...dataFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'file' as 'file',
+        state: 'uploading' as const,
+        type: 'file' as const,
       })),
     ];
     this.attachmentUploadsSubject.next([
@@ -97,7 +97,6 @@ export class AttachmentService<
    * You can add custom `image`, `video` and `file` attachments using this method.
    *
    * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](./ChannelService.mdx)
-   *
    * @param attachment
    */
   addAttachment(attachment: Attachment<T>) {

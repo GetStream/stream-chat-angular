@@ -124,7 +124,7 @@ export class MessageInputComponent
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
   private subscriptions: Subscription[] = [];
-  private hideNotification: Function | undefined;
+  private hideNotification: (() => void) | undefined;
   private isViewInited = false;
   private appSettings: AppSettings | undefined;
   private channel: Channel<DefaultStreamChatGenerics> | undefined;
@@ -480,7 +480,7 @@ export class MessageInputComponent
     const componentFactory =
       this.componentFactoryResolver.resolveComponentFactory(this.textareaType);
     this.textareaRef =
-      this.textareaAnchor.viewContainerRef.createComponent<any>(
+      this.textareaAnchor.viewContainerRef.createComponent<TextareaInterface>(
         componentFactory
       );
     this.cdRef.detectChanges();

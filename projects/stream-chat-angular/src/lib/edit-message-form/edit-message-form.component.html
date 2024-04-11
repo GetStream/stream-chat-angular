@@ -12,10 +12,10 @@
   let-content="content"
 >
   <stream-modal
-    [isOpen]="isOpen"
     *ngIf="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
+    [isOpen]="isOpen"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>
@@ -30,8 +30,8 @@
     >
       <stream-message-input
         [message]="messageInput"
-        (messageUpdate)="messageUpdateHandler()"
         [sendMessage$]="sendMessage$Input"
+        (messageUpdate)="messageUpdateHandler()"
       ></stream-message-input>
     </ng-template>
     <ng-container

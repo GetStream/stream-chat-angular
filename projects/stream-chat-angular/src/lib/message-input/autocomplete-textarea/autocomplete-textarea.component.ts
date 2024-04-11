@@ -105,7 +105,10 @@ export class AutocompleteTextareaComponent
       items: { autocompleteLabel: string }[]
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
-      this.itemSelectedFromAutocompleteList(item, triggerChar),
+      this.itemSelectedFromAutocompleteList(
+        item as MentionAutcompleteListItem,
+        triggerChar
+      ),
   };
   private slashCommandConfig: Mentions = {
     triggerChar: this.commandTriggerChar,
@@ -117,7 +120,10 @@ export class AutocompleteTextareaComponent
       items: { autocompleteLabel: string }[]
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
-      this.itemSelectedFromAutocompleteList(item, triggerChar),
+      this.itemSelectedFromAutocompleteList(
+        item as MentionAutcompleteListItem,
+        triggerChar
+      ),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
 

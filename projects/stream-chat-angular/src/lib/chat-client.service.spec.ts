@@ -145,7 +145,8 @@ describe('ChatClientService', () => {
     const options = { timeout: 5000 };
     await service.init(apiKey, user, userToken, options);
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options as any);
+    // @ts-expect-error don't know what's wrong here
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options);
   });
 
   it('should init with token provider', async () => {
