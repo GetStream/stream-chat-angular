@@ -21,6 +21,7 @@
     title="Pick your emoji…"
     emoji="point_up"
     [darkMode]="(theme$ | async) === 'dark'"
+    [isNative]="true"
     (emojiSelect)="emojiSelected($event)"
   ></emoji-mart>
 </div>
