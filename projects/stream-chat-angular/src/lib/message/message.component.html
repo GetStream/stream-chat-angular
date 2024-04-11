@@ -47,16 +47,15 @@
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--options
             "
-            [popper]="popperContent"
-            [popperTrigger]="popperTriggerClick"
-            [popperPlacement]="popperPlacementAuto"
-            [popperHideOnScroll]="false"
-            [popperHideOnClickOutside]="true"
-            [popperHideOnMouseLeave]="false"
-            [popperDisableAnimation]="true"
-            (popperOnHidden)="isActionBoxOpen = false"
+            [floatUi]="floatingContent"
+            looseTrigger="click"
+            [hideOnScroll]="false"
+            [hideOnClickOutside]="true"
+            [hideOnMouseLeave]="false"
+            [disableAnimation]="true"
+            (onHidden)="isActionBoxOpen = false"
           >
-            <popper-content #popperContent>
+            <float-ui-content #floatingContent>
               <ng-template
                 #defaultMessageActionsBox
                 let-isOpen="isOpen"
@@ -72,7 +71,7 @@
                   [enabledActions]="enabledActions"
                   [customActions]="customActions"
                   [message]="messageInput"
-                  (click)="messageActionsBoxClicked(popperContent)"
+                  (click)="messageActionsBoxClicked(floatingContent)"
                 ></stream-message-actions-box>
               </ng-template>
               <ng-container
@@ -83,7 +82,7 @@
                 "
               >
               </ng-container>
-            </popper-content>
+            </float-ui-content>
             <div
               *ngIf="visibleMessageActionsCount > 0"
               class="str-chat__message-actions-box-button"
@@ -540,18 +539,17 @@
         "
         data-testid="delivered-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
+        [floatUi]="floatingContent"
+        looseTrigger="click"
+        [hideOnScroll]="false"
+        [hideOnClickOutside]="false"
         (hover)="$event.stopPropagation()"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
             {{ "streamChat.Delivered" | translate }}
           </div>
-        </popper-content>
+        </float-ui-content>
         <stream-icon-placeholder
           data-testid="delivered-icon"
           icon="delivered-icon"
@@ -576,18 +574,17 @@
         "
         data-testid="sending-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
+        [floatUi]="floatingContent"
+        looseTrigger="'hover'"
+        [hideOnScroll]="false"
+        [hideOnClickOutside]="false"
         (hover)="$event.stopPropagation()"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
             {{ "streamChat.Sending..." | translate }}
           </div>
-        </popper-content>
+        </float-ui-content>
         <stream-loading-indicator-placeholder
           data-testid="loading-indicator"
         ></stream-loading-indicator-placeholder>
@@ -611,21 +608,20 @@
         "
         data-testid="read-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementAuto"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
+        [floatUi]="floatingContent"
+        looseTrigger="'hover'"
+        [hideOnScroll]="false"
+        [hideOnClickOutside]="false"
         (hover)="$event.stopPropagation()"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div
             class="str-chat__tooltip str-chat__tooltip-angular"
             data-testid="read-by-tooltip"
           >
             {{ readByText }}
           </div>
-        </popper-content>
+        </float-ui-content>
         <stream-icon-placeholder icon="read-icon"></stream-icon-placeholder>
       </span>
     </ng-template>

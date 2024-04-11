@@ -16,7 +16,6 @@ import {
 import { ReactionResponse, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
-import { NgxPopperjsTriggers, NgxPopperjsPlacements } from 'ngx-popperjs';
 import { MessageReactionsService } from '../message-reactions.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { ThemeService } from '../theme.service';
@@ -66,8 +65,6 @@ export class MessageReactionsComponent
     | ElementRef<HTMLElement>
     | undefined;
   currentTooltipTarget: HTMLElement | undefined;
-  popperTriggerHover = NgxPopperjsTriggers.hover;
-  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   selectedReactionType: string | undefined;
   isLoading = true;
   reactions: ReactionResponse[] = [];
