@@ -59,7 +59,8 @@
         "@angular-eslint/template/no-interpolation-in-attributes": "off",
         "@angular-eslint/template/button-has-type": "off",
         "@angular-eslint/template/no-inline-styles": "off",
-        "@angular-eslint/template/accessibility-interactive-supports-focus": "off"
+        "@angular-eslint/template/accessibility-interactive-supports-focus": "off",
+        "@angular-eslint/template/attributes-order": "off"
       }
     }
   ]

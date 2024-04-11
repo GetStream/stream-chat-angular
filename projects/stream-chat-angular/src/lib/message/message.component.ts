@@ -34,14 +34,10 @@ import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { ThemeService } from '../theme.service';
-import {
-  NgxPopperjsTriggers,
-  NgxPopperjsPlacements,
-  NgxPopperjsContentComponent,
-} from 'ngx-popperjs';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
+import { NgxFloatUiContentComponent } from 'ngx-float-ui';
 
 type MessagePart = {
   content: string;
@@ -95,9 +91,6 @@ export class MessageComponent
   visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
-  popperTriggerClick = NgxPopperjsTriggers.click;
-  popperTriggerHover = NgxPopperjsTriggers.hover;
-  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
   imageAttachmentModalState: 'opened' | 'closed' = 'closed';
@@ -276,8 +269,8 @@ export class MessageComponent
     }
   }
 
-  messageActionsBoxClicked(popperContent: NgxPopperjsContentComponent) {
-    popperContent.hide();
+  messageActionsBoxClicked(floatingContent: NgxFloatUiContentComponent) {
+    floatingContent.hide();
   }
 
   getAttachmentListContext(): AttachmentListContext {
