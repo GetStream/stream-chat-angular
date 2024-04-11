@@ -1,0 +1,19 @@
+---
+id: upgrade-v4
+title: Upgrade from v4
+---
+
+## About version 5
+
+This version takes care of some important housekeeping tasks that help provide better maintainability on the long run.
+
+## Breaking changes
+
+### Angular version support
+
+Angular versions 12-14 are no longer supported. You can use the (Angular update guide)[https://update.angular.io/] to update your application.
+
+## Type changes
+
+- Event handlers with `Function` type are changed to `() => void`
+- Event handlers with `any` return types are changed to `void` return type
