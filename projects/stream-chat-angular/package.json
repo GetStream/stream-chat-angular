@@ -11,16 +11,17 @@
   "peerDependencies": {
     "@angular/common": "^15.0.0 || ^16.0.0 || ^17.0.0",
     "@angular/core": "^15.0.0 || ^16.0.0 || ^17.0.0",
+    "@floating-ui/dom": "^1.6.3",
     "@ngx-translate/core": "^14.0.0 || ^15.0.0",
+    "angular-mentions": "^1.4.0",
+    "ngx-float-ui": "^15.0.0|| ^16.0.0 || ^17.0.0",
+    "rxjs": "^7.4.0",
     "stream-chat": "^8.24.0"
   },
   "dependencies": {
-    "angular-mentions": "^1.4.0",
     "@stream-io/transliterate": "^1.5.2",
-    "@popperjs/core": "^2.11.5",
     "dayjs": "^1.11.10",
     "emoji-regex": "^10.3.0",
-    "ngx-popperjs": "^15.2.4 || ^16.0.7 || ^17.0.0",
     "pretty-bytes": "^6.1.1",
     "tslib": "^2.3.0",
     "uuidv4": "^6.2.13"
