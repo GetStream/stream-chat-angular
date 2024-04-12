@@ -29,7 +29,6 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
-import { ThemeService } from '../theme.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -144,10 +143,6 @@ describe('MessageInputComponent', () => {
             appSettings$,
             getAppSettings,
           },
-        },
-        {
-          provide: ThemeService,
-          useValue: { themeVersion: '2' },
         },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

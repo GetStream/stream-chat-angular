@@ -14,7 +14,6 @@ import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { MessageReactionType } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
-import { ThemeService } from '../theme.service';
 import { ModalComponent } from '../modal/modal.component';
 import { BehaviorSubject } from 'rxjs';
 
@@ -70,7 +69,6 @@ describe('MessageReactionsComponent', () => {
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: MessageReactionsService, useValue: reactionsServiceMock },
-        { provide: ThemeService, useValue: { themeVersion: '2' } },
       ],
     }).compileComponents();
   });

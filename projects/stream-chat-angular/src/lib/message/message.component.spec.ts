@@ -20,7 +20,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ChannelService } from '../channel.service';
 import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
-import { ThemeService } from '../theme.service';
 import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
 import { MessageService } from '../message.service';
@@ -97,10 +96,6 @@ describe('MessageComponent', () => {
             jumpToMessage: jumpToMessageSpy,
             bouncedMessage$,
           },
-        },
-        {
-          provide: ThemeService,
-          useValue: { themeVersion: '2' },
         },
       ],
     }).overrideComponent(MessageComponent, {
@@ -495,12 +490,12 @@ describe('MessageComponent', () => {
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
-    expect(queryMessageActionsBoxComponent()).toBeUndefined();
+    expect(component.isActionBoxOpen).toBe(false);
 
     queryActionIcon()?.click();
     fixture.detectChanges();
 
-    expect(queryMessageActionsBoxComponent()?.isOpen).toBeTrue();
+    expect(component.isActionBoxOpen).toBe(true);
   });
 
   it('should call custom message actions click handler', () => {

@@ -1,5 +1,3 @@
-@import "../../variables";
-
 .emoji-picker-container {
   position: relative;
 
@@ -9,23 +7,13 @@
     cursor: pointer;
     padding: 0;
     margin: 0;
-    @if $stream-chat-theme-version == "2" {
-      width: 24px;
-      height: 24px;
-    } @else {
-      width: 20px;
-      height: 20px;
-    }
+    width: 24px;
+    height: 24px;
 
     svg {
       display: flex;
-      @if $stream-chat-theme-version == "2" {
-        width: 24px;
-        height: 24px;
-      } @else {
-        width: 20px;
-        height: 20px;
-      }
+      width: 24px;
+      height: 24px;
 
       path {
         fill: var(--str-chat__message-input-tools-color);
@@ -33,25 +21,13 @@
     }
   }
 
-  @if $stream-chat-theme-version == "2" {
-    .emoji-picker-container {
+  .emoji-picker-container {
+    width: 24px;
+    height: 24px;
+
+    svg {
       width: 24px;
       height: 24px;
-
-      svg {
-        width: 24px;
-        height: 24px;
-      }
-    }
-  } @else {
-    .emoji-picker-container {
-      width: 20px;
-      height: 20px;
-
-      svg {
-        width: 20px;
-        height: 20px;
-      }
     }
   }
 
@@ -60,13 +36,8 @@
     position: absolute;
     bottom: 100%;
     transform: scale(0.8);
-    @if $stream-chat-theme-version == "2" {
-      right: 0;
-      transform-origin: bottom right;
-    } @else {
-      left: 0;
-      transform-origin: bottom left;
-    }
+    right: 0;
+    transform-origin: bottom right;
   }
 
   @media only screen and (min-device-width: 1024px) {

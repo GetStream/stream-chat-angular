@@ -243,7 +243,6 @@ export type LoadingIndicatorContext = {
 };
 
 export type MessageActionsBoxContext = {
-  isOpen: boolean;
   isMine: boolean;
   message: StreamMessage | undefined;
   enabledActions: string[];

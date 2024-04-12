@@ -85,7 +85,6 @@ export class AutocompleteTextareaComponent
   commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
-  themeVersion: '1' | '2';
   private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
   private readonly commandTriggerChar = '/';
@@ -180,7 +179,6 @@ export class AutocompleteTextareaComponent
       this.userMentionConfig,
       this.slashCommandConfig,
     ];
-    this.themeVersion = this.themeService.themeVersion;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -260,10 +258,8 @@ export class AutocompleteTextareaComponent
   }
 
   private adjustTextareaHeight() {
-    if (this.themeVersion === '2') {
-      this.messageInput.nativeElement.style.height = '';
-      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-    }
+    this.messageInput.nativeElement.style.height = '';
+    this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
   }
 
   private transliterate(s: string) {

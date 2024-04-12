@@ -66,7 +66,7 @@ The following section details how the width and height of images and videos uplo
 
 #### Maximum size
 
-You can control the maximum size of images and videos with the [`--str-chat__attachment-max-width`](../theming/component-variables.mdx) CSS variable (available only in [theme-v2](../theming/introduction.mdx)). The value of this variable must be a value that can be computed to a valid pixel value using the [`getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle) method (for example: `300px`, `10rem`, `calc(300px - var(--margin))`, but not `100%`). If you provide an invalid value, the image and video sizing can break, which can lead to scrolling issues inside the message list (for example the message list isn't scrolled to the bottom when you open a channel).
+You can control the maximum size of images and videos with the [`--str-chat__attachment-max-width`](../theming/component-variables.mdx) CSS variable. The value of this variable must be a value that can be computed to a valid pixel value using the [`getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle) method (for example: `300px`, `10rem`, `calc(300px - var(--margin))`, but not `100%`). If you provide an invalid value, the image and video sizing can break, which can lead to scrolling issues inside the message list (for example the message list isn't scrolled to the bottom when you open a channel).
 
 If you set an invalid value to the variable, you'll see a warning on the browser's console:
 
@@ -122,7 +122,7 @@ The id of the message the attachments belong to
 
 #### Defined in
 
-[lib/attachment-list/attachment-list.component.ts:40](https://github.com/GetStream/stream-chat-angular/blob/f9a1611/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L40)
+[projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts:39](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L39)
 
 ---
 
@@ -134,30 +134,30 @@ The parent id of the message the attachments belong to
 
 #### Defined in
 
-[lib/attachment-list/attachment-list.component.ts:44](https://github.com/GetStream/stream-chat-angular/blob/f9a1611/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L44)
+[projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts:43](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L43)
 
 ---
 
 ### attachments
 
-• **attachments**: `Attachment`<`DefaultStreamChatGenerics`\>[] = `[]`
+• **attachments**: `Attachment`\<`DefaultStreamChatGenerics`\>[] = `[]`
 
 The attachments to display
 
 #### Defined in
 
-[lib/attachment-list/attachment-list.component.ts:48](https://github.com/GetStream/stream-chat-angular/blob/f9a1611/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L48)
+[projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts:47](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L47)
 
 ---
 
 ### imageModalStateChange
 
-• `Readonly` **imageModalStateChange**: `EventEmitter`<`"opened"` \| `"closed"`\>
+• `Readonly` **imageModalStateChange**: `EventEmitter`\<`"closed"` \| `"opened"`\>
 
 Emits the state of the image carousel window
 
 #### Defined in
 
-[lib/attachment-list/attachment-list.component.ts:52](https://github.com/GetStream/stream-chat-angular/blob/f9a1611/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L52)
+[projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts:51](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L51)
 
 [//]: # "End of generated content"

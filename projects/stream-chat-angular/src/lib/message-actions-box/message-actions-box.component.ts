@@ -33,11 +33,6 @@ export class MessageActionsBoxComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
-   * Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
-   * @deprecated No need for this since [theme-v2](../theming/introduction.mdx)
-   */
-  @Input() isOpen = false;
-  /**
    * Indicates if the message actions are belonging to a message that was sent by the current user or not.
    */
   @Input() isMine = false;

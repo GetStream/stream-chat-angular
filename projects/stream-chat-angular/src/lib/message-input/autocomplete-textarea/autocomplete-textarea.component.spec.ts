@@ -15,7 +15,6 @@ import { AutocompleteTextareaComponent } from './autocomplete-textarea.component
 import { Subject } from 'rxjs';
 import { EmojiInputService } from '../emoji-input.service';
 import { DefaultStreamChatGenerics } from '../../types';
-import { ThemeService } from '../../theme.service';
 
 describe('AutocompleteTextareaComponent', () => {
   let component: AutocompleteTextareaComponent;
@@ -50,10 +49,6 @@ describe('AutocompleteTextareaComponent', () => {
         {
           provide: EmojiInputService,
           useValue: { emojiInput$ },
-        },
-        {
-          provide: ThemeService,
-          useValue: { themeVersion: '2' },
         },
       ],
     }).compileComponents();

@@ -15,7 +15,6 @@ import { NotificationPayload } from '../types';
 })
 export class NotificationListComponent {
   notifications$: Observable<NotificationPayload[]>;
-  themeVersion: '1' | '2';
   theme$: Observable<string>;
 
   constructor(
@@ -25,7 +24,6 @@ export class NotificationListComponent {
   ) {
     this.notifications$ = this.notificationService.notifications$;
     this.theme$ = this.themeService.theme$;
-    this.themeVersion = this.themeService.themeVersion;
   }
 
   trackById(_: number, item: NotificationPayload) {

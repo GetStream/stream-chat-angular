@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
@@ -18,7 +17,6 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$ = new BehaviorSubject<AttachmentUpload[]>([]);
     await TestBed.configureTestingModule({
       declarations: [AttachmentPreviewListComponent],
-      providers: [{ provide: ThemeService, useValue: { themeVersion: '2' } }],
     }).compileComponents();
   });
 
