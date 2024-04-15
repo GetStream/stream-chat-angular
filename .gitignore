@@ -43,9 +43,6 @@ testem.log
 # Generated docs
 temp-service-docs
 temp-component-docs
-docusaurus/**/services/*.mdx
-docusaurus/**/theming/*
-docusaurus/**/assets/stream-chat-css*
 
 # System Files
 .DS_Store
