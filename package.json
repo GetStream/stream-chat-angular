@@ -128,7 +128,7 @@
     "ngx-float-ui": "^15.0.0",
     "pretty-bytes": "^6.1.1",
     "rxjs": "~7.4.0",
-    "stream-chat": "^8.25.1",
+    "stream-chat": "^8.26.0",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "uuidv4": "^6.2.13",
