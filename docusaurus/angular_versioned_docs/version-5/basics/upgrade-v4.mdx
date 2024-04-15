@@ -3,6 +3,45 @@ id: upgrade-v4
 title: Upgrade from v4
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+## Highlights
+
+stream-chat-angular@5 brings improvements in the following categories:
+
+- New message menu and message edit UIs to improve usability
+- Provide more CSS customization options for the avatar and icon components (to avoid providing a custom component for even basic customization)
+- Dropping support for [Angular 12-14](https://getstream.io/chat/docs/sdk/angular/basics/angular-version-support/) and [theme-v1](https://getstream.io/chat/docs/sdk/angular/concepts/themeing/)
+
+The full list of [features and progress](https://github.com/GetStream/stream-chat-angular/issues/584) are on GitHub.
+
+## Get started
+
+<Tabs groupId="examples">
+<TabItem value="Angular17" label="Angular 17">
+
+```
+npm install stream-chat-angular@beta
+```
+
+</TabItem>
+<TabItem value="Angular16" label="Angular 16">
+
+```
+npm install stream-chat-angular@beta ngx-float-ui@16
+```
+
+</TabItem>
+<TabItem value="Angular15" label="Angular 15">
+
+```
+npm install stream-chat-angular@beta ngx-float-ui@15 @ngx-translate/core@14
+```
+
+</TabItem>
+</Tabs>
+
 ## Breaking changes
 
 ### Angular version support
