@@ -3,6 +3,7 @@ import { createMessagePreview } from './message-preview';
 import {
   DefaultAttachmentType,
   DefaultChannelType,
+  DefaultStreamChatGenerics,
   DefaultUserType,
   StreamMessage,
   UnknownType,
@@ -25,7 +26,7 @@ describe('createMessagePreview', () => {
       results: number[];
       options: string[];
     };
-    type MyGenerics = {
+    type MyGenerics = DefaultStreamChatGenerics & {
       messageType: MyMessageType;
       attachmentType: DefaultAttachmentType;
       channelType: DefaultChannelType;
