@@ -10,7 +10,6 @@ import {
   MockChannelService,
 } from '../mocks';
 import { ThemeService } from '../theme.service';
-import { ChannelListToggleService } from './channel-list-toggle.service';
 import { ChannelListComponent } from './channel-list.component';
 import { Subject, of } from 'rxjs';
 
@@ -20,7 +19,6 @@ describe('ChannelListComponent', () => {
   let nativeElement: HTMLElement;
   let queryContainer: () => HTMLElement | null;
   let queryChannels: () => ChannelPreviewComponent[];
-  let queryChannelElements: () => HTMLElement[];
   let queryChatdownContainer: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryLoadMoreButton: () => HTMLElement | null;
@@ -50,10 +48,6 @@ describe('ChannelListComponent', () => {
       fixture.debugElement
         .queryAll(By.directive(ChannelPreviewComponent))
         .map((e) => e.componentInstance as ChannelPreviewComponent);
-    queryChannelElements = () =>
-      Array.from(
-        nativeElement.querySelectorAll('[data-testclass="channel-preview"]')
-      );
     queryChatdownContainer = () =>
       nativeElement.querySelector('[data-testid="chatdown-container"]');
     queryLoadingIndicator = () =>
@@ -153,21 +147,6 @@ describe('ChannelListComponent', () => {
     expect(channelServiceMock.loadMoreChannels).toHaveBeenCalledWith();
   });
 
-  it('should apply open class', () => {
-    const service = TestBed.inject(ChannelListToggleService);
-    const openClass = 'str-chat-channel-list--open';
-    service.close();
-    const container = queryContainer();
-    fixture.detectChanges();
-
-    expect(container?.classList.contains(openClass)).toBeFalse();
-
-    service.open();
-    fixture.detectChanges();
-
-    expect(container?.classList.contains(openClass)).toBeTrue();
-  });
-
   it('should apply dark/light theme', () => {
     const service = TestBed.inject(ThemeService);
     const lightClass = 'str-chat__theme-light';
@@ -182,22 +161,5 @@ describe('ChannelListComponent', () => {
     fixture.detectChanges();
 
     expect(container?.classList.contains(darkClass)).toBeTrue();
-  });
-
-  it('should notify the channelListToggleService if a channel is selected', () => {
-    const service = TestBed.inject(ChannelListToggleService);
-    spyOn(service, 'channelSelected');
-    spyOn(service, 'setMenuElement');
-    fixture.detectChanges();
-
-    expect(service.setMenuElement).toHaveBeenCalledWith(queryContainer()!);
-
-    const channels = generateMockChannels();
-    channelServiceMock.channels$.next(channels);
-    fixture.detectChanges();
-    queryChannelElements()[0].click();
-    fixture.detectChanges();
-
-    expect(service.channelSelected).toHaveBeenCalledWith();
   });
 });

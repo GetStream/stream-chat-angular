@@ -25,10 +25,8 @@ import {
 } from '../mocks';
 import { StreamI18nService } from '../stream-i18n.service';
 import { DefaultStreamChatGenerics } from '../types';
-import { ImageLoadService } from './image-load.service';
 import { MessageListComponent } from './message-list.component';
 import { take } from 'rxjs/operators';
-import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageListComponent', () => {
   let component: MessageListComponent;
@@ -122,29 +120,14 @@ describe('MessageListComponent', () => {
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     component.highlightedMessageId = messages[0].id;
     channelServiceMock.activeChannelMessages$.next([...messages]);
-    const spy = jasmine.createSpy();
-    const service = TestBed.inject(MessageActionsService);
-    service.customActions$.subscribe(spy);
-    spy.calls.reset();
-    const customActions = [
-      {
-        actionName: 'forward',
-        isVisible: () => true,
-        actionHandler: () => {},
-        actionLabelOrTranslationKey: 'Forward',
-      },
-    ];
-    component.customMessageActions = customActions;
     component.ngOnChanges({
       highlightedMessageId: {} as SimpleChange,
-      customMessageActions: {} as SimpleChange,
     });
     fixture.detectChanges();
     const messagesComponents = queryMessageComponents();
     const messageElements = queryMessages();
 
     expect(messagesComponents.length).toBe(messages.length);
-    expect(spy).toHaveBeenCalledWith(customActions);
     messagesComponents.forEach((m, i) => {
       expect(m.message).toBe(messages[i]);
       expect(m.isLastSentMessage).toBe(
@@ -160,26 +143,6 @@ describe('MessageListComponent', () => {
       );
 
       expect(messageElements[i].id).toBe(messages[i].id);
-      expect(m.customActions).toBe(customActions);
-    });
-  });
-
-  it('should listen for changes in messageActionsService.customActions$', () => {
-    const service = TestBed.inject(MessageActionsService);
-    const customActions = [
-      {
-        actionName: 'forward',
-        isVisible: () => true,
-        actionHandler: () => {},
-        actionLabelOrTranslationKey: 'Forward',
-      },
-    ];
-    service.customActions$.next(customActions);
-    fixture.detectChanges();
-
-    const messagesComponents = queryMessageComponents();
-    messagesComponents.forEach((m) => {
-      expect(m.customActions).toBe(customActions);
     });
   });
 
@@ -232,17 +195,6 @@ describe('MessageListComponent', () => {
     );
   });
 
-  it(`shouldn't scroll to bottom, after an image has been loaded if direction is top to bottom`, () => {
-    component.direction = 'top-to-bottom';
-    component.ngOnChanges({ direction: {} as SimpleChange });
-    fixture.detectChanges();
-    const imageLoadService = TestBed.inject(ImageLoadService);
-    spyOn(component, 'scrollToBottom');
-    imageLoadService.imageLoad$.next();
-
-    expect(component.scrollToBottom).not.toHaveBeenCalledWith();
-  });
-
   it('should scroll to bottom, if container grows', () => {
     spyOn(component, 'scrollToBottom');
     const child = queryScrollContainer()!.getElementsByTagName('div')[0];
@@ -260,16 +212,6 @@ describe('MessageListComponent', () => {
     const child = queryScrollContainer()!.getElementsByTagName('div')[0];
     child.style.height = (child.offsetHeight * 2).toString() + 'px';
     fixture.detectChanges();
-
-    expect(component.scrollToBottom).not.toHaveBeenCalled();
-  });
-
-  it(`shouldn't scroll to bottom, after an image has been loaded, if user is scrolled up`, () => {
-    component.isUserScrolled = true;
-    fixture.detectChanges();
-    const imageLoadService = TestBed.inject(ImageLoadService);
-    spyOn(component, 'scrollToBottom');
-    imageLoadService.imageLoad$.next();
 
     expect(component.scrollToBottom).not.toHaveBeenCalled();
   });

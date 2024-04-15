@@ -284,7 +284,7 @@ describe('MessageActionsBoxComponent', () => {
     });
   });
 
-  it('should emit #isEditing if user starts to edit', () => {
+  it('should emit if user starts to edit', () => {
     const spy = jasmine.createSpy();
     const actionsService = TestBed.inject(MessageActionsService);
     actionsService.messageToEdit$.subscribe(spy);
@@ -381,8 +381,9 @@ describe('MessageActionsBoxComponent', () => {
       actionHandler: () => {},
       actionLabelOrTranslationKey: 'Forward',
     };
-    component.customActions = [customAction];
-    component.ngOnChanges({ customActions: {} as SimpleChange });
+    const service = TestBed.inject(MessageActionsService);
+
+    service.customActions$.next([customAction]);
 
     expect(component.visibleMessageActionItems).toContain(customAction);
   });

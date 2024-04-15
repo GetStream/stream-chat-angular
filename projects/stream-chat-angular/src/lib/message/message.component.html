@@ -56,14 +56,10 @@
               <ng-template
                 #defaultMessageActionsBox
                 let-isMine="isMine"
-                let-enabledActions="enabledActions"
                 let-messageInput="message"
-                let-customActions="customActions"
               >
                 <stream-message-actions-box
                   [isMine]="isMine"
-                  [enabledActions]="enabledActions"
-                  [customActions]="customActions"
                   [message]="messageInput"
                   (click)="messageActionsBoxClicked(floatingContent)"
                 ></stream-message-actions-box>

@@ -512,18 +512,8 @@ describe('MessageComponent', () => {
       message: component.message,
       enabledActions: component.enabledMessageActions,
       isMine: component.isSentByCurrentUser,
-      customActions: component.customActions,
+      customActions: service.customActions$.getValue(),
     });
-  });
-
-  it('should provide #enabledActions to message actions box', () => {
-    component.isActionBoxOpen = true;
-    fixture.detectChanges();
-    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
-
-    expect(messageActionsBoxComponent.enabledActions).toBe(
-      component.enabledMessageActions
-    );
   });
 
   it('should provide #isMine to message actions box', () => {
@@ -546,23 +536,6 @@ describe('MessageComponent', () => {
     const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
 
     expect(messageActionsBoxComponent.message).toBe(message);
-  });
-
-  it('should provide #customActions to message actions box', () => {
-    const customActions = [
-      {
-        actionName: 'forward',
-        isVisible: () => true,
-        actionHandler: () => {},
-        actionLabelOrTranslationKey: 'Forward',
-      },
-    ];
-    component.customActions = customActions;
-    component.isActionBoxOpen = true;
-    fixture.detectChanges();
-    const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
-
-    expect(messageActionsBoxComponent.customActions).toBe(customActions);
   });
 
   it('should display attachment if message has attachment', () => {
@@ -1083,10 +1056,8 @@ describe('MessageComponent', () => {
         actionLabelOrTranslationKey: 'Forward',
       },
     ];
-    component.customActions = customActions;
     const service = TestBed.inject(MessageActionsService);
     service.customActions$.next(customActions);
-    component.ngOnChanges({ customActions: {} as SimpleChange });
 
     expect(component.visibleMessageActionsCount).toBe(5);
   });

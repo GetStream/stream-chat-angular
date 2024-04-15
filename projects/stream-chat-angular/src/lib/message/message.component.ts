@@ -1,10 +1,8 @@
 import {
   Component,
-  ElementRef,
   Input,
   OnChanges,
   SimpleChanges,
-  ViewChild,
   OnDestroy,
   OnInit,
   ChangeDetectorRef,
@@ -24,7 +22,6 @@ import {
   DeliveredStatusContext,
   SendingStatusContext,
   ReadStatusContext,
-  CustomMessageActionItem,
   SystemMessageContext,
   CustomMetadataContext,
 } from '../types';
@@ -75,11 +72,6 @@ export class MessageComponent
    * Highlighting is used to add visual emphasize to a message when jumping to the message
    */
   @Input() isHighlighted = false;
-  /**
-   * A list of custom message actions to be displayed in the action box
-   * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
-   */
-  @Input() customActions: CustomMessageActionItem[] = [];
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isActionBoxOpen = false;
@@ -112,9 +104,6 @@ export class MessageComponent
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
   private userId?: string;
-  @ViewChild('container') private container:
-    | ElementRef<HTMLElement>
-    | undefined;
   private readonly urlRegexp =
     /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
@@ -140,6 +129,23 @@ export class MessageComponent
           this.setLastReadUser();
           if (this.isViewInited) {
             this.cdRef.detectChanges();
+          }
+        }
+      })
+    );
+    this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe(() => {
+        if (this.message) {
+          const numberOfEnabledActions =
+            this.messageActionsService.getAuthorizedMessageActionsCount(
+              this.message,
+              this.enabledMessageActions
+            );
+          if (numberOfEnabledActions !== this.visibleMessageActionsCount) {
+            this.visibleMessageActionsCount = numberOfEnabledActions;
+            if (this.isViewInited) {
+              this.cdRef.detectChanges();
+            }
           }
         }
       })
@@ -222,11 +228,7 @@ export class MessageComponent
           )
         : false;
     }
-    if (
-      changes.message ||
-      changes.enabledMessageActions ||
-      changes.customActions
-    ) {
+    if (changes.message || changes.enabledMessageActions) {
       if (this.message) {
         this.visibleMessageActionsCount =
           this.messageActionsService.getAuthorizedMessageActionsCount(
@@ -255,7 +257,7 @@ export class MessageComponent
       this.messageActionsService.customActionClickHandler({
         message: this.message,
         enabledActions: this.enabledMessageActions,
-        customActions: this.customActions,
+        customActions: this.messageActionsService.customActions$.getValue(),
         isMine: this.isSentByCurrentUser,
       });
     } else {
@@ -284,7 +286,7 @@ export class MessageComponent
       isHighlighted: this.isHighlighted,
       isLastSentMessage: this.isLastSentMessage,
       mode: this.mode,
-      customActions: this.customActions,
+      customActions: this.messageActionsService.customActions$.getValue(),
       parsedDate: this.parsedDate,
     };
   }
@@ -345,17 +347,6 @@ export class MessageComponent
       isMine: this.isSentByCurrentUser,
       enabledActions: this.enabledMessageActions,
       message: this.message,
-      displayedActionsCountChaneHanler: (count) => {
-        this.visibleMessageActionsCount = count;
-        // message action box changes UI bindings in parent, so we'll have to rerun change detection
-        this.cdRef.detectChanges();
-      },
-      displayedActionsCountChangeHandler: (count) => {
-        this.visibleMessageActionsCount = count;
-        // message action box changes UI bindings in parent, so we'll have to rerun change detection
-        this.cdRef.detectChanges();
-      },
-      customActions: this.customActions || [],
     };
   }
 
