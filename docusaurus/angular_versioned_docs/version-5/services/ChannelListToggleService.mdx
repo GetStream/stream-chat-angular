@@ -1,0 +1,105 @@
+# ChannelListToggleService
+
+The `ChannelListToggleService` can be used to toggle the channel list.
+
+**`Deprecated`**
+
+This service can only be used with [theming-v1](../concepts/theming-and-css.mdx), if you are using [thmeing-v2](../theming/introduction.mdx) please refer to our [responsive layout guide](../code-examples/responsive-layout.mdx)
+
+## Properties
+
+### isOpen$
+
+• **isOpen$**: `Observable`<`boolean`\>
+
+Emits `true` if the channel list is in open state, otherwise it emits `false`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:14](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L14)
+
+## Methods
+
+### channelSelected
+
+▸ **channelSelected**(): `void`
+
+This method should be called if a channel was selected, if on mobile, the channel list will be closed.
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:59](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L59)
+
+---
+
+### close
+
+▸ **close**(): `void`
+
+Closes the channel list.
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:37](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L37)
+
+---
+
+### open
+
+▸ **open**(): `void`
+
+Opens the channel list.
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:30](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L30)
+
+---
+
+### setMenuElement
+
+▸ **setMenuElement**(`element`): `void`
+
+Sets the channel list element, on mobile screen size if the user opens the channel list, and clicks outside, the service automatically closes the channel list if a reference to the HTML element is provided.
+
+#### Parameters
+
+| Name      | Type                         |
+| :-------- | :--------------------------- |
+| `element` | `undefined` \| `HTMLElement` |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:52](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L52)
+
+---
+
+### toggle
+
+▸ **toggle**(): `void`
+
+Opens the channel list if it was closed, and closes if it was opened.
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts:44](https://github.com/GetStream/stream-chat-angular/blob/540ce0e4b9c0cd9fe86b510c531fb30f34f5bf84/projects/stream-chat-angular/src/lib/channel-list/channel-list-toggle.service.ts#L44)
