@@ -79,7 +79,6 @@ export class ChannelService<
    *
    *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
    *
-   *  By default if an error occurs during channel load, the Observable will emit an error, which will close the stream. Users will have to reload the page to be able to reinitialize the `ChannelService`. If you don't want the streams to be closed, you can pass `options.keepAliveChannels$OnError = true` to the `init` method. In that case the `channelQueryState$` stream will emit the status of the latest channel load request.
    */
   channels$: Observable<Channel<T>[] | undefined>;
   /**
@@ -353,9 +352,7 @@ export class ChannelService<
   }>({});
   private filters: ChannelFilters<T> | undefined;
   private sort: ChannelSort<T> | undefined;
-  private options:
-    | (ChannelOptions & { keepAliveChannels$OnError?: boolean })
-    | undefined;
+  private options: ChannelOptions | undefined;
   private readonly messagePageSize = 25;
   private messageToQuoteSubject = new BehaviorSubject<
     StreamMessage<T> | undefined
@@ -682,7 +679,7 @@ export class ChannelService<
   async init(
     filters: ChannelFilters<T>,
     sort?: ChannelSort<T>,
-    options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
+    options?: ChannelOptions,
     shouldSetActiveChannel: boolean = true
   ) {
     this.filters = filters;
@@ -1778,17 +1775,9 @@ export class ChannelService<
       }
       this.hasMoreChannelsSubject.next(channels.length >= this.options!.limit!);
       this.channelQueryStateSubject.next({ state: 'success' });
-      if (
-        this.options?.keepAliveChannels$OnError &&
-        this.dismissErrorNotification
-      ) {
-        this.dismissErrorNotification();
-      }
+      this.dismissErrorNotification?.();
       return channels;
     } catch (error) {
-      if (!this.options?.keepAliveChannels$OnError) {
-        this.channelsSubject.error(error);
-      }
       this.channelQueryStateSubject.next({
         state: 'error',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

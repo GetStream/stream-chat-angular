@@ -108,6 +108,10 @@ The `ImageLoadService` is now removed. It's no longer required since the SDK use
 
 The `ChannelListToggleService` is now removed as it was only used in theme-v1. For theme-v2 please refer to the [responsive layout guide](../code-examples/responsive-layout.mdx).
 
+### Channel query error handling
+
+In previous versions if an error occured during channel load, the `channelService.channels$` Observable emitted an error, which would close the stream. Users would have to reload the page to be able to reinitialize the `ChannelService`. This isn't a sensible default behavior. From version 5 the `channels$` Observable will never emit an error, the channel query result can be observed using the [`channelService.channelQueryState$`](../../services/ChannelService/#channelquerystate). With this change the `options.keepAliveChannels$OnError` is no longer necessary, and has been removed.
+
 ### Type changes
 
 - Event handlers with `Function` type are changed to `() => void`
