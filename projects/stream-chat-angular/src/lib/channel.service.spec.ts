@@ -48,7 +48,7 @@ describe('ChannelService', () => {
   let init: (
     c?: Channel<DefaultStreamChatGenerics>[],
     sort?: ChannelSort<DefaultStreamChatGenerics>,
-    options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
+    options?: ChannelOptions,
     mockChannelQuery?: Function,
     shouldSetActiveChannel?: boolean
   ) => Promise<Channel<DefaultStreamChatGenerics>[]>;
@@ -88,7 +88,7 @@ describe('ChannelService', () => {
     init = async (
       channels?: Channel<DefaultStreamChatGenerics>[],
       sort?: ChannelSort<DefaultStreamChatGenerics>,
-      options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
+      options?: ChannelOptions,
       mockChannelQuery?: Function,
       shouldSetActiveChannel?: boolean
     ) => {
@@ -190,7 +190,7 @@ describe('ChannelService', () => {
     service.activeChannel$.subscribe(activeChannelSpy);
 
     try {
-      void init(undefined, undefined, { keepAliveChannels$OnError: true }, () =>
+      void init(undefined, undefined, undefined, () =>
         mockChatClient.queryChannels.and.rejectWith('there was an error')
       );
       tick();
