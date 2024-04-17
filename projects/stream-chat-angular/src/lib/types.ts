@@ -246,22 +246,6 @@ export type MessageActionsBoxContext = {
   isMine: boolean;
   message: StreamMessage | undefined;
   enabledActions: string[];
-  /**
-   * @deprecated please use `messageReactionsService.customActions$`
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  customActions: CustomMessageActionItem[];
-  /**
-   * @deprecated because the name contains typos, use the `displayedActionsCountChangeHandler` instead
-   */
-  displayedActionsCountChaneHanler: (count: number) => void;
-  /**
-   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  displayedActionsCountChangeHandler: (count: number) => void;
 };
 
 export type MessageActionBoxItemContext<

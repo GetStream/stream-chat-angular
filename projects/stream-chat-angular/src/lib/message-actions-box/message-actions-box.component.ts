@@ -2,12 +2,10 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
@@ -44,28 +42,6 @@ export class MessageActionsBoxComponent
    * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
    */
   @Input() enabledActions: string[] = [];
-  /**
-   * A list of custom message actions to be displayed in the action box
-   *
-   * In the next major release this will be released with `messageReactionsService.customActions$`
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  @Input() customActions: CustomMessageActionItem[] = [];
-  /**
-   * The number of authorized actions (it can be less or equal than the number of enabled actions)
-   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  @Output() readonly displayedActionsCount = new EventEmitter<number>();
-  /**
-   * An event which emits `true` if the edit message modal is open, and `false` when it is closed.
-   * @deprecated components should use `messageReactionsService.messageToEdit$` Observable
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  @Output() readonly isEditing = new EventEmitter<boolean>();
   messageInputTemplate: TemplateRef<MessageInputContext> | undefined;
   messageActionItemTemplate:
     | TemplateRef<MessageActionBoxItemContext>
@@ -73,6 +49,7 @@ export class MessageActionsBoxComponent
   visibleMessageActionItems: (MessageActionItem | CustomMessageActionItem)[] =
     [];
   isEditModalOpen = false;
+  customActions: CustomMessageActionItem[] = [];
   private readonly messageActionItems: MessageActionItem[];
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
@@ -86,6 +63,15 @@ export class MessageActionsBoxComponent
 
   ngOnInit(): void {
     this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe((actions) => {
+        this.customActions = actions;
+        this.setVisibleActions();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+      })
+    );
+    this.subscriptions.push(
       this.messageActionsService.messageToEdit$.subscribe((m) => {
         let isEditModalOpen = false;
         if (m && m.id === this.message?.id) {
@@ -93,7 +79,6 @@ export class MessageActionsBoxComponent
         }
         if (isEditModalOpen !== this.isEditModalOpen) {
           this.isEditModalOpen = isEditModalOpen;
-          this.isEditing.emit(this.isEditModalOpen);
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -103,12 +88,7 @@ export class MessageActionsBoxComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes.isMine ||
-      changes.enabledActions ||
-      changes.message ||
-      changes.customActions
-    ) {
+    if (changes.isMine || changes.enabledActions || changes.message) {
       this.setVisibleActions();
     }
   }
@@ -155,6 +135,5 @@ export class MessageActionsBoxComponent
     ].filter((item) =>
       item.isVisible(this.enabledActions, this.isMine, this.message!)
     );
-    this.displayedActionsCount.emit(this.visibleMessageActionItems.length);
   }
 }

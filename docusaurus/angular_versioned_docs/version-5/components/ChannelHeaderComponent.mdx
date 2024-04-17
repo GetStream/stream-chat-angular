@@ -6,44 +6,25 @@ The `ChannelHeader` component displays the avatar and name of the currently acti
 
 <img src={ChannelHeaderScreenshot} width="500" />
 
-## Customization
+## Basic usage
 
-If you create your own channel header, you can use the [`ChannelService`](../services/ChannelService.mdx) to access the currently active channel. Please note that, the default channel header also contains the menu button to [toggle the channel list](../services/ChannelListToggleService.mdx). Here is a simple implementation of a custom channel header to guide you:
-
-```typescript
-@Component({
-  selector: "custom-channel-header",
-  template: `
-    <button (click)="toggleMenu()">Menu</button>
-    {{ activeChannel?.data?.name }}
-  `,
-  styles: [],
-})
-export class ChannelHeaderComponent {
-  activeChannel: Channel | undefined;
-
-  constructor(
-    private channelService: ChannelService,
-    private channelListToggleService: ChannelListToggleService
-  ) {
-    this.channelService.activeChannel$.subscribe(
-      (c) => (this.activeChannel = c)
-    );
-  }
-
-  toggleMenu() {
-    this.channelListToggleService.toggle();
-  }
-}
+```html
+<my-channel>
+  <stream-channel-header></stream-channel-header>
+</my-channel>
 ```
 
-If you want to create your own channel component check out our [customization guide](../concepts/customization.mdx) for more information.
+## Customization
 
-## Channel actions
+### Channel information
+
+You can provide your own template for displaying channel information using the (`CustomTemplatesService`)(../services/CustomTemplatesService/#channelheaderinfotemplate)
+
+### Channel actions
 
 By default no channel action is displayed, but it's possible to [add action buttons to the channel header](../services/CustomTemplatesService.mdx/#channelactionstemplate) component. You can follow our [code example](../code-examples/channel-invites.mdx) that implements the invite action (you can implement other kind of actions as well, for example edit).
 
-## Menu button
+### Menu button
 
 You can provide a menu button template to the channel header, the [responsive layout guide](../code-examples/responsive-layout.mdx) shows how you can use this to toggle the channel list on mobile screens.
 

@@ -4,7 +4,6 @@
   class="str-chat str-chat__channel-list str-chat-channel-list messaging str-chat__theme-{{
     theme$ | async
   }}"
-  [class.str-chat-channel-list--open]="(isOpen$ | async) === true"
 >
   <div
     *ngIf="
@@ -40,7 +39,7 @@
             [channel]="channelInput"
           ></stream-channel-preview>
         </ng-template>
-        <div (click)="channelSelected()" (keyup.enter)="channelSelected()">
+        <div>
           <ng-container
             *ngTemplateOutlet="
               customChannelPreviewTemplate || defaultTemplate;
