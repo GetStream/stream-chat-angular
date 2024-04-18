@@ -117,6 +117,10 @@ In previous versions if an error occured during channel load, the `channelServic
 - Event handlers with `Function` type are changed to `() => void`
 - Event handlers with `any` return types are changed to `void` return type
 
+### Default reactions
+
+To better align with other SDKs, the default reaction has been changed: the `angry` reaction is removed. You can provide your own reaction set using the [`MessageReactionsService`](../../services/MessageReactionsService/#reactions)
+
 ## Other changes
 
 ### Unused packages
