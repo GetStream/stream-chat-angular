@@ -44,7 +44,7 @@
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--options
             "
-            [floatUi]="floatingContent"
+            [floatUiLoose]="floatingContent"
             looseTrigger="click"
             [hideOnScroll]="false"
             [hideOnClickOutside]="true"
@@ -503,11 +503,8 @@
         "
         data-testid="delivered-indicator"
         tabindex="0"
-        [floatUi]="floatingContent"
-        looseTrigger="click"
-        [hideOnScroll]="false"
-        [hideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        looseTrigger="hover"
       >
         <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -538,11 +535,8 @@
         "
         data-testid="sending-indicator"
         tabindex="0"
-        [floatUi]="floatingContent"
-        looseTrigger="'hover'"
-        [hideOnScroll]="false"
-        [hideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        looseTrigger="hover"
       >
         <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -572,11 +566,8 @@
         "
         data-testid="read-indicator"
         tabindex="0"
-        [floatUi]="floatingContent"
-        looseTrigger="'hover'"
-        [hideOnScroll]="false"
-        [hideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        looseTrigger="hover"
       >
         <float-ui-content #floatingContent>
           <div
