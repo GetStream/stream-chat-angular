@@ -5,7 +5,6 @@ import {
   tick,
 } from '@angular/core/testing';
 import { ReactionResponse } from 'stream-chat';
-import { By } from '@angular/platform-browser';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { MessageReactionsComponent } from './message-reactions.component';
@@ -29,11 +28,6 @@ describe('MessageReactionsComponent', () => {
   let queryEmojiOptionReactionCount: (
     type: MessageReactionType
   ) => HTMLElement | null;
-  let queryReactionAvatarComponent: (
-    type: MessageReactionType
-  ) => AvatarPlaceholderComponent;
-  let queryReactionLastUser: (type: MessageReactionType) => HTMLElement | null;
-  let querySelectorTooltip: () => HTMLElement | null;
   let queryReactionCountsFromReactionList: () => HTMLElement[];
   const channelServiceMock = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -95,13 +89,6 @@ describe('MessageReactionsComponent', () => {
       );
     queryEmojiOptionReactionCount = (type) =>
       nativeElement.querySelector(`[data-testid=${type}-reaction-count]`);
-    queryReactionAvatarComponent = (type) =>
-      fixture.debugElement.query(By.css(`[data-testid="${type}-avatar"]`))
-        ?.componentInstance as AvatarPlaceholderComponent;
-    querySelectorTooltip = () =>
-      nativeElement.querySelector('[data-testid="tooltip"]');
-    queryReactionLastUser = (type) =>
-      nativeElement.querySelector(`[data-testid="${type}-last-user"]`);
     queryReactionCountsFromReactionList = () =>
       Array.from(
         nativeElement.querySelectorAll(
@@ -169,7 +156,7 @@ describe('MessageReactionsComponent', () => {
     ).not.toBeNull();
   });
 
-  it('should display detailed reactions', () => {
+  it('should display reactions', () => {
     const emojiOptionsCount = 6;
     component.messageReactionCounts = {
       wow: 1,
@@ -196,47 +183,6 @@ describe('MessageReactionsComponent', () => {
     expect(
       queryEmojiOptionReactionCount('like')?.textContent?.replace(/ /g, '')
     ).toBe(component.messageReactionCounts['like']?.toString());
-
-    const wowReactionAvatar = queryReactionAvatarComponent('wow');
-
-    expect(wowReactionAvatar.imageUrl).toBe(
-      component.latestReactions[0].user!.image
-    );
-
-    expect(wowReactionAvatar.name).toBe(
-      component.latestReactions[0].user!.name
-    );
-
-    expect(queryReactionAvatarComponent('sad').name).toBe(
-      component.latestReactions[1].user!.id
-    );
-
-    expect(queryReactionAvatarComponent('like')).toBeUndefined();
-  });
-
-  it('should display tooltip - selector', () => {
-    component.messageReactionCounts = {
-      wow: 3,
-      sad: 2,
-    };
-    component.latestReactions = [
-      { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
-      { type: 'wow', user: { id: 'jackid' } },
-      { type: 'wow' },
-      { type: 'sad', user: { id: 'jim' } },
-      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
-    ] as ReactionResponse[];
-    component.isSelectorOpen = true;
-    fixture.detectChanges();
-
-    expect(querySelectorTooltip()).toBeNull();
-
-    queryReactionLastUser('wow')?.dispatchEvent(new Event('mouseenter'));
-    fixture.detectChanges();
-    const tooltip = querySelectorTooltip();
-
-    expect(tooltip).not.toBeNull();
-    expect(tooltip?.innerHTML).toContain('Sara, jackid');
   });
 
   it('should display reaction details', fakeAsync(() => {

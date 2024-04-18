@@ -217,7 +217,6 @@ export type AvatarLocation =
 export type AvatarContext = {
   name: string | undefined;
   imageUrl: string | undefined;
-  size: number | undefined;
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel<DefaultStreamChatGenerics>;
