@@ -9,9 +9,7 @@
       (click)="deselectMessageToQuote()"
       (keyup.enter)="deselectMessageToQuote()"
     >
-      <stream-icon-placeholder
-        icon="close-no-outline"
-      ></stream-icon-placeholder>
+      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
     </button>
   </div>
   <ng-container *ngIf="canSendMessages; else notAllowed">

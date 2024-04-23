@@ -25,7 +25,6 @@
   let-isLastSentMessage="isLastSentMessage"
   let-enabledMessageActions="enabledMessageActions"
   let-mode="mode"
-  let-customActions="customActions"
   let-isHighlighted="isHighlighted"
 >
   <div>
@@ -34,7 +33,6 @@
       [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
-      [customActions]="customActions"
       [isHighlighted]="isHighlighted"
     ></stream-message>
   </div>
@@ -144,8 +142,8 @@
   ></stream-avatar>
 </ng-template>
 
-<ng-template #iconTemplate let-icon="icon" let-size="size">
-  <app-icon [icon]="icon" [size]="size"></app-icon>
+<ng-template #iconTemplate let-icon="icon">
+  <app-icon [icon]="icon"></app-icon>
 </ng-template>
 
 <ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
@@ -160,13 +158,11 @@
   let-isMine="isMine"
   let-enabledActions="enabledActions"
   let-messageInput="message"
-  let-customActions="customActions"
 >
   <stream-message-actions-box
     [isMine]="isMine"
     [enabledActions]="enabledActions"
     [message]="messageInput"
-    [customActions]="customActions"
   ></stream-message-actions-box>
 </ng-template>
 

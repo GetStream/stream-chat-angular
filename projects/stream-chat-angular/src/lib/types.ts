@@ -233,7 +233,6 @@ export type AttachmentPreviewListContext = {
 
 export type IconContext = {
   icon: Icon | undefined;
-  size: number | undefined;
 };
 
 export type LoadingIndicatorContext = {

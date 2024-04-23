@@ -8,25 +8,18 @@ import { Icon } from 'stream-chat-angular';
 })
 export class IconComponent {
   @Input() icon: Icon | undefined;
-  @Input() size: number | undefined;
-  defaultSize = 18;
 
   constructor() {}
 
   mapToMaterialIcon() {
+    // If an Icon is added/deleted in stream-chat-angular we'll get a type error, this ensures the mapping is always up-to-date
     const map: { [key in Icon]: string } = {
-      'action-icon': 'more_horiz',
+      action: 'more_horiz',
       'arrow-left': 'keyboard_arrow_left',
       'arrow-right': 'keyboard_arrow_right',
       close: 'close',
-      'close-no-outline': 'close',
-      'connection-error': 'error',
-      'delivered-icon': 'check',
-      file: 'folder',
-      'file-upload': 'file_upload',
-      menu: 'menu',
-      'reaction-icon': 'face',
-      reply: 'swap_horiz',
+      delivered: 'check',
+      reaction: 'face',
       'reply-in-thread': 'reply',
       retry: 'replay',
       send: 'send',
@@ -40,7 +33,7 @@ export class IconComponent {
       'audio-file': '',
       play: '',
       pause: '',
-      'read-icon': '',
+      read: '',
     };
 
     return map[this.icon!];

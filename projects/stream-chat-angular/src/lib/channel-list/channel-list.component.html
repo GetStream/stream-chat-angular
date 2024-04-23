@@ -85,18 +85,6 @@
 <ng-template #chatDown>
   <div data-testid="chatdown-container" class="str-chat__down">
     <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
-    <div class="str-chat__down-main">
-      <stream-icon-placeholder
-        icon="connection-error"
-      ></stream-icon-placeholder>
-      <h1>{{ "streamChat.Connection error" | translate }}</h1>
-      <h3>
-        {{
-          "streamChat.Error connecting to chat, refresh the page to try again."
-            | translate
-        }}
-      </h3>
-    </div>
   </div>
 </ng-template>
 

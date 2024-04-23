@@ -44,10 +44,7 @@
           str-chat__message-attachment__voice-recording-widget__error-message
         "
       >
-        <stream-icon-placeholder
-          icon="error"
-          [size]="20"
-        ></stream-icon-placeholder>
+        <stream-icon-placeholder icon="error"></stream-icon-placeholder>
         <span data-testid="error-message">{{
           "streamChat.Error playing audio" | translate
         }}</span>
@@ -103,8 +100,8 @@
     </button>
     <ng-template #fileIcon>
       <stream-icon-placeholder
+        class="str-chat__attachment-type-icon"
         icon="audio-file"
-        [size]="40"
       ></stream-icon-placeholder>
     </ng-template>
   </div>

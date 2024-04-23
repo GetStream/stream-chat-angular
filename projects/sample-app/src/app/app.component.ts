@@ -41,7 +41,8 @@ export class AppComponent implements AfterViewInit {
     void this.chatService.init(
       environment.apiKey,
       environment.userId,
-      environment.userToken
+      environment.userToken,
+      { timeout: 5000 }
     );
     void this.channelService.init({
       type: 'messaging',
