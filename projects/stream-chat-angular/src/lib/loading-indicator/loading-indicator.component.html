@@ -3,8 +3,8 @@
     viewBox="0 0 30 30"
     data-testid="loading-indicator"
     xmlns="http://www.w3.org/2000/svg"
-    [attr.height]="size"
-    [attr.width]="size"
+    height="30"
+    width="30"
   >
     <defs>
       <linearGradient
@@ -12,22 +12,16 @@
         x2="50%"
         y1="0%"
         y2="100%"
-        id="{{ linearGradientId }}"
+        id="stream-chat-loading-circle"
       >
         <stop offset="0%" stop-color="#FFF" stop-opacity="0" />
-        <stop
-          data-testid="stop-color"
-          offset="100%"
-          stop-opacity="1"
-          [attr.stop-color]="color"
-          [ngStyle]="{ stopColor: color }"
-        />
+        <stop data-testid="stop-color" offset="100%" stop-opacity="1" />
       </linearGradient>
     </defs>
     <path
       d="M2.518 23.321l1.664-1.11A12.988 12.988 0 0 0 15 28c7.18 0 13-5.82 13-13S22.18 2 15 2V0c8.284 0 15 6.716 15 15 0 8.284-6.716 15-15 15-5.206 0-9.792-2.652-12.482-6.679z"
       fillRule="evenodd"
-      [attr.fill]="'url(#' + linearGradientId + ')'"
+      fill="url(#stream-chat-loading-circle)"
     />
   </svg>
 </div>

@@ -235,11 +235,6 @@ export type IconContext = {
   icon: Icon | undefined;
 };
 
-export type LoadingIndicatorContext = {
-  size: number | undefined;
-  color: string | undefined;
-};
-
 export type MessageActionsBoxContext = {
   isMine: boolean;
   message: StreamMessage | undefined;

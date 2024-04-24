@@ -168,6 +168,12 @@ The icon names have also been consolidated, so if you're using a custom icon com
 | `play`                 | Unchanged                             |
 | `pause`                | Unchanged                             |
 
+#### Loading indicator
+
+To allow better customization for loading indicator, the `size` input has been removed, and was replaced with the [`--str-chat__loading-indicator-size` CSS variable](../../theming/component-variables/#loadingindicator).
+
+With this change the `size` input is no longer supported on the [`LoadingIndicatorPlaceholderComponent`](../../components/LoadingIndicatorPlaceholderComponent), [`LoadingIndicatorComponent`](../../components/LoadingIndicatorComponent), and the [`loadingIndicatorTemplate$`](../../services/CustomTemplatesService/#loadingindicatortemplate). The `loadingIndicatorTemplate$` now accepts `TemplateRef<void>` instead of `TemplateRef<LoadingIndicatorContext>`
+
 ## Other changes
 
 ### Unused packages
