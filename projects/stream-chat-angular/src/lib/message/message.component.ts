@@ -99,6 +99,7 @@ export class MessageComponent
   popperTriggerClick = NgxPopperjsTriggers.click;
   popperTriggerHover = NgxPopperjsTriggers.hover;
   popperPlacementAuto = NgxPopperjsPlacements.AUTO;
+  popperPlacementTop = NgxPopperjsPlacements.TOP;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
   imageAttachmentModalState: 'opened' | 'closed' = 'closed';
