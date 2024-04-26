@@ -26,10 +26,6 @@ export class AvatarPlaceholderComponent implements OnChanges {
    */
   @Input() imageUrl: string | undefined;
   /**
-   * The size in pixels of the avatar image.
-   */
-  @Input() size = 32;
-  /**
    * The location the avatar will be displayed in
    */
   @Input() location: AvatarLocation | undefined;
@@ -58,7 +54,6 @@ export class AvatarPlaceholderComponent implements OnChanges {
   context: AvatarContext = {
     name: undefined,
     imageUrl: undefined,
-    size: undefined,
     location: undefined,
     channel: undefined,
     user: undefined,
@@ -72,7 +67,6 @@ export class AvatarPlaceholderComponent implements OnChanges {
     this.context = {
       name: this.name,
       imageUrl: this.imageUrl,
-      size: this.size,
       location: this.location,
       type: this.type,
       user: this.user,

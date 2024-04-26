@@ -17,7 +17,6 @@ import {
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
-  LoadingIndicatorContext,
   MentionAutcompleteListItemContext,
   MentionTemplateContext,
   MessageActionBoxItemContext,
@@ -143,7 +142,7 @@ export class CustomTemplatesService<
    *
    */
   loadingIndicatorTemplate$ = new BehaviorSubject<
-    TemplateRef<LoadingIndicatorContext> | undefined
+    TemplateRef<void> | undefined
   >(undefined);
   /**
    * Template for displaying the message actions box (instead of the [default message actions box](../components/MessageActionsBoxComponent.mdx))

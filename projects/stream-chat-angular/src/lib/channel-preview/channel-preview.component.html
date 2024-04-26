@@ -13,7 +13,6 @@
       name="{{ avatarName }}"
       imageUrl="{{ avatarImage }}"
       [channel]="channel"
-      [size]="49"
     ></stream-avatar-placeholder>
   </div>
   <div
@@ -81,11 +80,7 @@
           }}"
         >
           <stream-icon-placeholder
-            [icon]="
-              latestMessageStatus === 'delivered'
-                ? 'delivered-icon'
-                : 'read-icon'
-            "
+            [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
           ></stream-icon-placeholder>
         </div>
         <div

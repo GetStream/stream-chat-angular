@@ -215,6 +215,79 @@ To solve this we also have to set the text color for the link attachment compone
 
 <img src={MessageCustomColor2Screenshot} width="500" />
 
+### Custom icons
+
+<SDKSpecific name="angular">
+
+#### From CSS
+
+Starting from stream-chat-angular@5 it's possible to customize icons from CSS.
+
+Here is an example using the [Google Material Icon library](https://fonts.google.com/icons) to override the send icon:
+
+```scss
+// Import the icon library you want to use
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+
+// Override the send icon
+.str-chat__icon--send:before {
+  font-family: "Material Symbols Outlined";
+  content: "\e163";
+}
+```
+
+It's also possible to use image files for icons:
+
+```scss
+.str-chat__icon--send {
+  &:before {
+    display: none;
+  }
+  // Link to your image file, or encode the image inline
+  content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0xMjAtMTYwdi02NDBsNzYwIDMyMC03NjAgMzIwWm04MC0xMjAgNDc0LTIwMC00NzQtMjAwdjE0MGwyNDAgNjAtMjQwIDYwdjE0MFptMCAwdi00MDAgNDAwWiIvPjwvc3ZnPg==");
+}
+```
+
+The full list of icons used by the SDK can be found [here](https://github.com/GetStream/stream-chat-css/blob/main/src/v2/styles/Icon/Icon-layout.scss).
+
+You can also change the size and color of the icons:
+
+```scss
+.str-chat__icon--attach {
+  --str-chat-icon-color: green; // Only works for font icons
+  --str-chat-icon-height: 60px;
+}
+```
+
+#### From HTML template
+
+If you're using stream-chat-angular@4 or an older version, or CSS customizations are not enough, you can completely replace the built-in icon component with your own using the [`CustomTemplatesService`](../../services/CustomTemplatesService/#icontemplate).
+
+You can find a working example in the [customization sample app](https://github.com/GetStream/stream-chat-angular/blob/master/projects/customizations-example/src/app/icon/icon.component.ts).
+
+If the default rules set by the stream-chat-angular stylesheets not enough to set the size and color of your custom icons, you can rely on the `--str-chat-icon-color`, `--str-chat-icon-height` and `--str-chat-icon-width` variables:
+
+```
+.my-custom-send-icon {
+  svg {
+    height: var(--str-chat-icon-height);
+    width: var(--str-chat-icon-width);
+
+    path {
+      fill: var(--str-chat-icon-color);
+    }
+  }
+}
+```
+
+</SDKSpecific>
+
+<SDKSpecific name="react">
+
+TODO
+
+</SDKSpecific>
+
 ### CSS overrides
 
 If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:

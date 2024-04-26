@@ -217,7 +217,6 @@ export type AvatarLocation =
 export type AvatarContext = {
   name: string | undefined;
   imageUrl: string | undefined;
-  size: number | undefined;
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel<DefaultStreamChatGenerics>;
@@ -234,12 +233,6 @@ export type AttachmentPreviewListContext = {
 
 export type IconContext = {
   icon: Icon | undefined;
-  size: number | undefined;
-};
-
-export type LoadingIndicatorContext = {
-  size: number | undefined;
-  color: string | undefined;
 };
 
 export type MessageActionsBoxContext = {

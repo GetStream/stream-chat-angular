@@ -1,32 +1,20 @@
 <div
-  class="str-chat__avatar str-chat__avatar--circle stream-chat__avatar--{{
+  class="str-chat__avatar str-chat-angular__avatar str-chat__avatar--circle stream-chat__avatar--{{
     location
+  }} stream-chat__avatar--{{
+    initialsType === 'first-letter-of-first-word'
+      ? 'one-letter'
+      : 'multiple-letters'
   }}"
   title="{{ name }}"
-  [ngStyle]="{
-    flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-    fontSize:
-      initialsType === 'first-letter-of-first-word'
-        ? 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 2 + ')'
-        : 'calc(var(--str-chat__spacing-px, 1px) * ' + size / 3 + ')',
-    height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-    lineHeight: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-    width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
-  }"
 >
   <img
     *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
-    class="str-chat__avatar-image str-chat__avatar-image"
+    class="str-chat__avatar-image"
     data-testid="avatar-img"
     fetchpriority="high"
     src="{{ imageUrl || fallbackChannelImage }}"
     alt="{{ initials }}"
-    [ngStyle]="{
-      flexBasis: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-      height: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')',
-      objectFit: 'cover',
-      width: 'calc(var(--str-chat__spacing-px, 1px) * ' + size + ')'
-    }"
     (error)="isError = true"
   />
   <ng-template #fallback>

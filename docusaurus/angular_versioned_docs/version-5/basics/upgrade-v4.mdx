@@ -121,6 +121,59 @@ In previous versions if an error occured during channel load, the `channelServic
 
 To better align with other SDKs, the default reaction has been changed: the `angry` reaction is removed. You can provide your own reaction set using the [`MessageReactionsService`](../../services/MessageReactionsService/#reactions)
 
+### Component customization
+
+#### Avatar
+
+To allow better customization for avatar, the `size` input has been removed, and was replaced with the [`--str-chat__avatar-size` CSS variable](../../theming/component-variables/#avatar).
+
+With this change the `size` input is no longer supported on the [`AvatarPlaceholderComponent`](../../components/AvatarPlaceholderComponent), [`AvatarComponent`](../../components/AvatarComponent), and the [`avatarTemplate$`](../../services/CustomTemplatesService/#avatartemplate).
+
+#### Icon
+
+In previous versions it was hard to customize icon size and color from CSS, and using custom icons required overriding the built-in icon component. To solve these issues stream-chat-angular@5 introduces a better customization system for icons.
+
+Please refer to the [theming guide](../../theming/themingv2/#custom-icons) that explains how to customize icons.
+
+With this change the `size` input is no longer necessary and has been removed from the the [`IconPlaceholderComponent`](../../components/IconPlaceHolderComponent), [`IconComponent`](../../components/IconComponent), and the [`iconTemplate$`](../../services/CustomTemplatesService/#icontemplate).
+
+The icon names have also been consolidated, so if you're using a custom icon component, you need to update it accordingly:
+
+| Previous name          | Change                                |
+| ---------------------- | ------------------------------------- |
+| `action-icon`          | Renamed to `action`                   |
+| `delivered-icon`       | Renamed to `delivered`                |
+| `read-icon`            | Renamed to `read`                     |
+| `reaction-icon`        | Renamed to `reaction`                 |
+| `connection-error`     | Removed, it was only used in theme-v1 |
+| `send`                 | Unchanged                             |
+| `file-upload`          | Removed, it was only used in theme-v1 |
+| `retry`                | Unchanged                             |
+| `close`                | Unchanged                             |
+| `file`                 | Removed, it was only used in theme-v1 |
+| `audio-file`           | Unchanged                             |
+| `reply`                | Removed, it was only used in theme-v1 |
+| `close-no-outline`     | Removed, use `close` instead          |
+| `reply-in-thread`      | Unchanged                             |
+| `arrow-left`           | Unchanged                             |
+| `arrow-right`          | Unchanged                             |
+| `menu`                 | Removed, it was only used in theme-v1 |
+| `arrow-up`             | Unchanged                             |
+| `arrow-down`           | Unchanged                             |
+| `chat-bubble`          | Unchanged                             |
+| `attach`               | Unchanged                             |
+| `unspecified-filetype` | Unchanged                             |
+| `download`             | Unchanged                             |
+| `error`                | Unchanged                             |
+| `play`                 | Unchanged                             |
+| `pause`                | Unchanged                             |
+
+#### Loading indicator
+
+To allow better customization for loading indicator, the `size` input has been removed, and was replaced with the [`--str-chat__loading-indicator-size` CSS variable](../../theming/component-variables/#loadingindicator).
+
+With this change the `size` input is no longer supported on the [`LoadingIndicatorPlaceholderComponent`](../../components/LoadingIndicatorPlaceholderComponent), [`LoadingIndicatorComponent`](../../components/LoadingIndicatorComponent), and the [`loadingIndicatorTemplate$`](../../services/CustomTemplatesService/#loadingindicatortemplate). The `loadingIndicatorTemplate$` now accepts `TemplateRef<void>` instead of `TemplateRef<LoadingIndicatorContext>`
+
 ## Other changes
 
 ### Unused packages

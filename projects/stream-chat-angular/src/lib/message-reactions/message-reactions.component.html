@@ -82,23 +82,6 @@
       (click)="react(reactionType)"
       (keyup.enter)="react(reactionType)"
     >
-      <div
-        *ngIf="getLatestUserByReaction(reactionType) as user"
-        class="latest-user str-chat__message-reactions-last-user"
-        attr.data-testid="{{ reactionType }}-last-user"
-        (click)="hideTooltip()"
-        (keyup.enter)="hideTooltip()"
-        (mouseenter)="showTooltip($event, reactionType)"
-        (mouseleave)="hideTooltip()"
-      >
-        <stream-avatar-placeholder
-          location="reaction"
-          attr.data-testid="{{ reactionType }}-avatar"
-          [imageUrl]="user.image"
-          [name]="user.name || user.id"
-          [size]="20"
-        ></stream-avatar-placeholder>
-      </div>
       <span
         class="
           emoji
@@ -212,7 +195,6 @@
             class="str-chat__avatar str-chat__avatar--circle"
             type="user"
             location="reaction"
-            [size]="30"
             [imageUrl]="user.image"
             [name]="user.name"
             [user]="user"
