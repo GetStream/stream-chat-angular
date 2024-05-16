@@ -32,7 +32,7 @@
     "typedoc:components": "typedoc --plugin typedoc-plugin-markdown --plugin typedoc-plugin-reference-excluder --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "copy-docs": "ts-node copy-generated-service-docs.ts docusaurus/docs/Angular/services & (ts-node remove-generated-component-docs-content docusaurus/docs/Angular/components && ts-node copy-generated-component-docs.ts docusaurus/docs/Angular/components)",
     "copy-docs:v5": "ts-node copy-generated-service-docs.ts docusaurus/angular_versioned_docs/version-5/services & (ts-node remove-generated-component-docs-content docusaurus/angular_versioned_docs/version-5/components && ts-node copy-generated-component-docs.ts docusaurus/angular_versioned_docs/version-5/components)",
-    "copy-css": "rm -rf projects/stream-chat-angular/src/assets/styles && copyfiles --up 5 \"node_modules/@stream-io/stream-chat-css/dist/v2/**/*\" projects/stream-chat-angular/src/assets/styles && copyfiles --up 5 \"node_modules/@stream-io/stream-chat-css/dist/assets/**/*\" projects/stream-chat-angular/src/assets/styles/assets",
+    "copy-css": "rm -rf projects/stream-chat-angular/src/assets/styles && copyfiles --up 5 \"node_modules/@stream-io/stream-chat-css/dist/v2/**/*\" projects/stream-chat-angular/src/assets/styles && copyfiles --up 5 \"node_modules/@stream-io/stream-chat-css/dist/assets/**/*\" projects/stream-chat-angular/src/assets/assets",
     "copy-css-docs": "./copy-css-docs.sh node_modules/@stream-io/stream-chat-css/docs docusaurus/docs/Angular",
     "copy-css-docs:v5": "./copy-css-docs.sh node_modules/@stream-io/stream-chat-css/docs docusaurus/angular_versioned_docs/version-5"
   },
@@ -119,7 +119,7 @@
     "@ctrl/ngx-emoji-mart": "^8.2.0",
     "@floating-ui/dom": "^1.6.3",
     "@ngx-translate/core": "^14.0.0",
-    "@stream-io/stream-chat-css": "4.15.0",
+    "@stream-io/stream-chat-css": "4.16.1",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "1.4.0",
     "dayjs": "^1.11.10",
