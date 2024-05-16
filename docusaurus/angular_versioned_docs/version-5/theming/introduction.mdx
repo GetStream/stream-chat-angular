@@ -230,7 +230,7 @@ Here is an example using the [Google Material Icon library](https://fonts.google
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
 
 // Override the send icon
-.str-chat__icon--send:before {
+.str-chat__icon--send::before {
   font-family: "Material Symbols Outlined";
   content: "\e163";
 }
@@ -240,7 +240,7 @@ It's also possible to use image files for icons:
 
 ```scss
 .str-chat__icon--send {
-  &:before {
+  &::before {
     display: none;
   }
   // Link to your image file, or encode the image inline

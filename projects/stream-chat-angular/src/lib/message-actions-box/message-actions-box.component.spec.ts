@@ -7,7 +7,7 @@ import {
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Channel, MessageResponseBase } from 'stream-chat';
+import { Channel, MessageResponseBase, ReactionResponse } from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -23,6 +23,8 @@ import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
 import { MessageActionsService } from '../message-actions.service';
+import { MessageReactionsSelectorComponent } from '../message-reactions-selector/message-reactions-selector.component';
+import { By } from '@angular/platform-browser';
 
 describe('MessageActionsBoxComponent', () => {
   let component: MessageActionsBoxComponent;
@@ -33,6 +35,11 @@ describe('MessageActionsBoxComponent', () => {
   let queryMuteAction: () => HTMLElement | null;
   let queryEditAction: () => HTMLElement | null;
   let queryDeleteAction: () => HTMLElement | null;
+  let queryThreadReplyAction: () => HTMLElement | null;
+  let queryCopyTextAction: () => HTMLElement | null;
+  let queryReactionSelectorComponent: () =>
+    | MessageReactionsSelectorComponent
+    | undefined;
   let message: StreamMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
@@ -44,6 +51,7 @@ describe('MessageActionsBoxComponent', () => {
     messageToQuote$: Observable<StreamMessage | undefined>;
     pinMessage: jasmine.Spy;
     unpinMessage: jasmine.Spy;
+    setAsActiveParentMessage: jasmine.Spy;
   };
 
   beforeEach(async () => {
@@ -56,10 +64,14 @@ describe('MessageActionsBoxComponent', () => {
       messageToQuote$: new Observable(),
       pinMessage: jasmine.createSpy(),
       unpinMessage: jasmine.createSpy(),
+      setAsActiveParentMessage: jasmine.createSpy(),
     };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [MessageActionsBoxComponent],
+      declarations: [
+        MessageActionsBoxComponent,
+        MessageReactionsSelectorComponent,
+      ],
       providers: [
         { provide: ChatClientService, useValue: mockChatClient },
         { provide: ChannelService, useValue: channelService },
@@ -94,6 +106,14 @@ describe('MessageActionsBoxComponent', () => {
       nativeElement.querySelector('[data-testid="edit-action"]');
     queryDeleteAction = () =>
       nativeElement.querySelector('[data-testid="delete-action"]');
+    queryThreadReplyAction = () =>
+      nativeElement.querySelector('[data-testid="thread-reply-action"]');
+    queryReactionSelectorComponent = () =>
+      fixture.debugElement.query(
+        By.directive(MessageReactionsSelectorComponent)
+      )?.componentInstance as MessageReactionsSelectorComponent;
+    queryCopyTextAction = () =>
+      nativeElement.querySelector('[data-testid="copy-message-text-action"]');
   });
 
   it('should only display the #enabledActions', () => {
@@ -387,4 +407,103 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(component.visibleMessageActionItems).toContain(customAction);
   });
+
+  it('should display reactions, if user can react to message', () => {
+    component.enabledActions = ['send-reaction'];
+    component.message!.own_reactions = [
+      { type: 'like', user: { id: 'jackid' } },
+    ] as ReactionResponse[];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      message: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+    const reactionSelectorComponent = queryReactionSelectorComponent();
+
+    expect(reactionSelectorComponent?.messageId).toBe(component.message?.id);
+    expect(reactionSelectorComponent?.ownReactions).toEqual(
+      component.message?.own_reactions || []
+    );
+
+    component.enabledActions = [];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(queryReactionSelectorComponent()).toBeUndefined();
+  });
+
+  it('should display thread reply action', () => {
+    component.enabledActions = ['send-reply'];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+    queryThreadReplyAction()?.click();
+    fixture.detectChanges();
+
+    expect(channelService.setAsActiveParentMessage).toHaveBeenCalledWith(
+      component.message
+    );
+
+    component.enabledActions = [];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(queryThreadReplyAction()).toBeNull();
+  });
+
+  it('should display copy text action', fakeAsync(async () => {
+    const spy = spyOn(navigator.clipboard, 'write').and.callFake(() =>
+      Promise.resolve()
+    );
+    component.enabledActions = ['copy-message-text'];
+    component.messageTextHtmlElement = {
+      innerText: 'test',
+      innerHTML: '<b>test</b>',
+    } as HTMLElement;
+
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      messageTextHtmlElement: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+    queryCopyTextAction()?.click();
+    fixture.detectChanges();
+    tick();
+
+    const clipboardItem: ClipboardItem = spy.calls.mostRecent().args[0][0];
+    const plainText = await new Response(
+      await clipboardItem.getType('text/plain')
+    ).text();
+    const htmlText = await new Response(
+      await clipboardItem.getType('text/html')
+    ).text();
+    expect(plainText).toBe('test');
+    expect(htmlText).toBe('<b>test</b>');
+
+    expect(spy).toHaveBeenCalled();
+
+    component.message!.type = 'deleted';
+    component.ngOnChanges({
+      message: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(queryCopyTextAction()).toBeNull();
+
+    component.enabledActions = [];
+    component.ngOnChanges({
+      enabledActions: {} as SimpleChange,
+      isMine: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+
+    expect(queryCopyTextAction()).toBeNull();
+  }));
 });

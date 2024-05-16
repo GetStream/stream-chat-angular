@@ -146,11 +146,8 @@
   <app-icon [icon]="icon"></app-icon>
 </ng-template>
 
-<ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
-  <stream-loading-indicator
-    color="#F1F8E9"
-    [size]="size"
-  ></stream-loading-indicator>
+<ng-template #loadingIndicatorTemplate let-color="color">
+  <stream-loading-indicator color="#F1F8E9"></stream-loading-indicator>
 </ng-template>
 
 <ng-template
@@ -171,14 +168,14 @@
   let-actionName="actionName"
   let-actionHandler="actionHandler"
   let-message="message"
-  let-isMine="isMine"
+  let-actionHandlerExtraParams="actionHandlerExtraParams"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
 >
   <app-message-action
     [actionName]="actionName"
     [actionHandler]="actionHandler"
     [message]="message"
-    [isMine]="isMine"
+    [extraParams]="actionHandlerExtraParams"
     [actionLabelOrTranslationKey]="actionLabelOrTranslationKey"
   ></app-message-action>
 </ng-template>
@@ -187,19 +184,26 @@
   #messageReactionsTemplate
   let-messageReactionCounts="messageReactionCounts"
   let-latestReactions="latestReactions"
-  let-isSelectorOpen="isSelectorOpen"
-  let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
   let-messageId="messageId"
   let-ownReactions="ownReactions"
 >
   <stream-message-reactions
     [messageReactionCounts]="messageReactionCounts"
     [latestReactions]="latestReactions"
-    [isSelectorOpen]="isSelectorOpen"
     [messageId]="messageId"
     [ownReactions]="ownReactions"
-    (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
   ></stream-message-reactions>
+</ng-template>
+
+<ng-template
+  #messageReactionsSelectorTemplate
+  let-messageId="messageId"
+  let-ownReactions="ownReactions"
+>
+  <stream-message-reactions-selector
+    [messageId]="messageId"
+    [ownReactions]="ownReactions"
+  ></stream-message-reactions-selector>
 </ng-template>
 
 <ng-template

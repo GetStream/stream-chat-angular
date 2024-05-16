@@ -5,6 +5,10 @@ title: Upgrade from v4
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import MessageMenuBefore from "../assets/message-menu-before.png";
+import MessageMenuAfterDesktop from "../assets/message-menu-after-desktop.png";
+import MessageMenuAfterMobile from "../assets/message-menu-after-mobile.png";
+import ImageShowcase from "@site/src/components/ImageShowcase";
 
 ## Highlights
 
@@ -69,6 +73,49 @@ No futher action is required for customers who were already using theme-v2.
 
 Customers who used to use theme-v1 now need to use theme-v2. Updating from theme-v1 to theme-v2 will require to rewrite your custom CSS code as the new theme has a new variable system, and all the components were restructured. To help you get started please refer our [theming guide](../theming/introduction.mdx).
 
+### New message menu UI
+
+The old message menu UI caused usability issues on mobile devices. The new UI address these issues, and adds some other improvements as well.
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption:
+        "Before (mobile) - Opening message menu or an image attachment used to take two taps",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterMobile,
+      caption:
+        "After (mobile) - Message menu is triggered by long press anywhere in the message bubble (attachment or the blue area), no more double tap required for opening image attachments",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption: "Before (desktop)",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterDesktop,
+      caption: "After (desktop)",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+With the new UI these component-level changes are introduced:
+
+- The [`MessageListComponent`](../../components/MessageListComponent) no longer supports the `messageOptionsTrigger` parameter as this was a workaround for mobile UX problems. On desktop devices the message menu will be triggered by hovering anywhere in the message area. On mobile devices the message menu will be triggered by a longpress insde the message bubble area.
+- The [`MessageReactionsComponent`](../../components/MessageReactionsComponent) was split into two components. The `MessageReactionsComponent` is only responsible for displaying the existing reactions, and with that the `isSelectorOpen` input and `isSelectorOpenChange` output was removed. The [`MessageReactionsSelector`](../../components/MessageReactionsSelectorComponent) is a new component, that's responsible for adding/removing message reactions.
+
 ### Removed deprecated features
 
 #### `MessageListComponent`
@@ -116,6 +163,8 @@ In previous versions if an error occured during channel load, the `channelServic
 
 - Event handlers with `Function` type are changed to `() => void`
 - Event handlers with `any` return types are changed to `void` return type
+- The action handler signature of (custom) message actions was changed from `(message: StreamMessage, isMine: boolean) => void` to `(message: StreamMessage, extraParams: MessageActionHandlerExtraParams) => void`. The `isMine` flag is part of the `MessageActionHandlerExtraParams` object.
+- The `MessageActionBoxItemContext` is changed, `isMine` is removed, and `params: MessageActionHandlerExtraParams` is added. The `isMine` flag is part of the `MessageActionHandlerExtraParams` object.
 
 ### Default reactions
 

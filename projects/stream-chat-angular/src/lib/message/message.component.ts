@@ -8,6 +8,8 @@ import {
   ChangeDetectorRef,
   ChangeDetectionStrategy,
   AfterViewInit,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -32,7 +34,10 @@ import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
-import { NgxFloatUiContentComponent } from 'ngx-float-ui';
+import {
+  NgxFloatUiContentComponent,
+  NgxFloatUiLooseDirective,
+} from 'ngx-float-ui';
 
 type MessagePart = {
   content: string;
@@ -74,10 +79,7 @@ export class MessageComponent
   @Input() isHighlighted = false;
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
-  isActionBoxOpen = false;
   isEditedFlagOpened = false;
-  isReactionSelectorOpen = false;
-  visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
   shouldDisplayTranslationNotice = false;
@@ -99,7 +101,9 @@ export class MessageComponent
   replyCountParam: { replyCount: number | undefined } = {
     replyCount: undefined,
   };
+  areMessageOptionsOpen = false;
   canDisplayReadStatus = false;
+  hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   private quotedMessageAttachments: Attachment[] | undefined;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
@@ -107,6 +111,14 @@ export class MessageComponent
   private readonly urlRegexp =
     /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
+  @ViewChild('messageMenuTrigger')
+  messageMenuTrigger!: NgxFloatUiLooseDirective;
+  @ViewChild('messageMenuFloat')
+  messageMenuFloat!: NgxFloatUiContentComponent;
+  @ViewChild('messageTextElement') messageTextElement?: ElementRef<HTMLElement>;
+  private showMessageMenuTimeout?: ReturnType<typeof setTimeout>;
+  private shouldPreventMessageMenuClose = false;
+  private _visibleMessageActionsCount = 0;
 
   constructor(
     private chatClientService: ChatClientService,
@@ -118,6 +130,17 @@ export class MessageComponent
     private messageActionsService: MessageActionsService
   ) {
     this.displayAs = this.messageService.displayAs;
+  }
+
+  get visibleMessageActionsCount() {
+    return this._visibleMessageActionsCount;
+  }
+
+  set visibleMessageActionsCount(count: number) {
+    this._visibleMessageActionsCount = count;
+    if (this.areOptionsVisible && this._visibleMessageActionsCount === 0) {
+      this.areOptionsVisible = false;
+    }
   }
 
   ngOnInit(): void {
@@ -215,16 +238,19 @@ export class MessageComponent
       this.shouldDisplayThreadLink =
         !!this.message?.reply_count && this.mode !== 'thread';
     }
-    if (changes.message || changes.mode) {
+    if (changes.message || changes.mode || changes.enabledMessageActions) {
       this.areOptionsVisible = this.message
         ? !(
             !this.message.type ||
             this.message.type === 'error' ||
             this.message.type === 'system' ||
+            this.message.type === 'deleted' ||
             this.message.type === 'ephemeral' ||
             this.message.status === 'failed' ||
             this.message.status === 'sending' ||
-            (this.mode === 'thread' && !this.message.parent_id)
+            (this.mode === 'thread' && !this.message.parent_id) ||
+            this.message.deleted_at ||
+            this.enabledMessageActions.length === 0
           )
         : false;
     }
@@ -249,7 +275,45 @@ export class MessageComponent
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  messageActionsClicked() {
+  mousePushedDown(event: MouseEvent) {
+    if (
+      !this.hasTouchSupport ||
+      event.button !== 0 ||
+      !this.areOptionsVisible
+    ) {
+      return;
+    }
+    this.startMessageMenuShowTimer({ fromTouch: false });
+  }
+
+  mouseReleased() {
+    this.stopMessageMenuShowTimer();
+  }
+
+  touchStarted() {
+    if (!this.areOptionsVisible) {
+      return;
+    }
+    this.startMessageMenuShowTimer({ fromTouch: true });
+  }
+
+  touchEnded() {
+    this.stopMessageMenuShowTimer();
+  }
+
+  messageBubbleClicked(event: Event) {
+    if (!this.hasTouchSupport) {
+      return;
+    }
+    if (this.shouldPreventMessageMenuClose) {
+      event.stopPropagation();
+      this.shouldPreventMessageMenuClose = false;
+    } else if (this.areMessageOptionsOpen) {
+      this.messageMenuTrigger?.hide();
+    }
+  }
+
+  messageOptionsButtonClicked() {
     if (!this.message) {
       return;
     }
@@ -259,9 +323,10 @@ export class MessageComponent
         enabledActions: this.enabledMessageActions,
         customActions: this.messageActionsService.customActions$.getValue(),
         isMine: this.isSentByCurrentUser,
+        messageTextHtmlElement: this.messageTextElement?.nativeElement,
       });
     } else {
-      this.isActionBoxOpen = !this.isActionBoxOpen;
+      this.areMessageOptionsOpen = !this.areMessageOptionsOpen;
     }
   }
 
@@ -303,9 +368,6 @@ export class MessageComponent
     return {
       messageReactionCounts: this.message?.reaction_counts || {},
       latestReactions: this.message?.latest_reactions || [],
-      isSelectorOpen: this.isReactionSelectorOpen,
-      isSelectorOpenChangeHandler: (isOpen) =>
-        (this.isReactionSelectorOpen = isOpen),
       messageId: this.message?.id,
       ownReactions: this.message?.own_reactions || [],
     };
@@ -347,6 +409,7 @@ export class MessageComponent
       isMine: this.isSentByCurrentUser,
       enabledActions: this.enabledMessageActions,
       message: this.message,
+      messageTextHtmlElement: this.messageTextElement?.nativeElement,
     };
   }
 
@@ -498,5 +561,35 @@ export class MessageComponent
     this.lastReadUser = this.message?.readBy?.filter(
       (u) => u.id !== this.userId
     )[0];
+  }
+
+  private startMessageMenuShowTimer(options: { fromTouch: boolean }) {
+    this.stopMessageMenuShowTimer();
+    this.showMessageMenuTimeout = setTimeout(() => {
+      if (!this.message) {
+        return;
+      }
+      if (this.messageActionsService.customActionClickHandler) {
+        this.messageActionsService.customActionClickHandler({
+          message: this.message,
+          enabledActions: this.enabledMessageActions,
+          customActions: this.messageActionsService.customActions$.getValue(),
+          isMine: this.isSentByCurrentUser,
+          messageTextHtmlElement: this.messageTextElement?.nativeElement,
+        });
+        return;
+      } else {
+        this.shouldPreventMessageMenuClose = !options.fromTouch;
+        this.messageMenuTrigger?.show();
+      }
+      this.showMessageMenuTimeout = undefined;
+    }, 400);
+  }
+
+  private stopMessageMenuShowTimer() {
+    if (this.showMessageMenuTimeout) {
+      clearTimeout(this.showMessageMenuTimeout);
+      this.showMessageMenuTimeout = undefined;
+    }
   }
 }

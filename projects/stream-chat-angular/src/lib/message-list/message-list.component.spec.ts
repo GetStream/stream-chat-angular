@@ -27,6 +27,7 @@ import { StreamI18nService } from '../stream-i18n.service';
 import { DefaultStreamChatGenerics } from '../types';
 import { MessageListComponent } from './message-list.component';
 import { take } from 'rxjs/operators';
+import { NgxFloatUiModule } from 'ngx-float-ui';
 
 describe('MessageListComponent', () => {
   let component: MessageListComponent;
@@ -49,7 +50,7 @@ describe('MessageListComponent', () => {
   beforeEach(() => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslateModule.forRoot(), NgxFloatUiModule],
       declarations: [
         MessageComponent,
         MessageListComponent,
@@ -926,19 +927,6 @@ describe('MessageListComponent', () => {
 
     expect(queryLoadingIndicator('top')).not.toBeNull();
     expect(queryLoadingIndicator('bottom')).toBeNull();
-  });
-
-  it('should add/remove CSS class based on #messageOptionsTrigger input', () => {
-    expect(
-      nativeElement.querySelector('.str-chat__message-options-in-bubble')
-    ).toBeNull();
-
-    component.messageOptionsTrigger = 'message-bubble';
-    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
-
-    expect(
-      nativeElement.querySelector('.str-chat__message-options-in-bubble')
-    ).not.toBeNull();
   });
 
   it('should tell if two messages are on separate dates', () => {

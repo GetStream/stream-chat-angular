@@ -16,6 +16,8 @@ import {
   MessageActionBoxItemContext,
   MessageActionItem,
   MessageInputContext,
+  MessageReactionActionItem,
+  MessageReactionsSelectorContext,
   StreamMessage,
 } from '../types';
 import { MessageActionsService } from '../message-actions.service';
@@ -39,6 +41,10 @@ export class MessageActionsBoxComponent
    */
   @Input() message: StreamMessage | undefined;
   /**
+   * The HTML element which contains the message text, it's used for the "copy message text" action
+   */
+  @Input() messageTextHtmlElement: HTMLElement | undefined;
+  /**
    * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
    */
   @Input() enabledActions: string[] = [];
@@ -46,11 +52,17 @@ export class MessageActionsBoxComponent
   messageActionItemTemplate:
     | TemplateRef<MessageActionBoxItemContext>
     | undefined;
-  visibleMessageActionItems: (MessageActionItem | CustomMessageActionItem)[] =
-    [];
+  visibleMessageActionItems: (
+    | MessageActionItem
+    | CustomMessageActionItem
+    | MessageReactionActionItem
+  )[] = [];
   isEditModalOpen = false;
   customActions: CustomMessageActionItem[] = [];
-  private readonly messageActionItems: MessageActionItem[];
+  private readonly messageActionItems: (
+    | MessageActionItem
+    | MessageReactionActionItem
+  )[];
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
   constructor(
@@ -109,31 +121,64 @@ export class MessageActionsBoxComponent
       : actionLabelOrTranslationKey(this.message!);
   }
 
-  getMessageActionTemplateContext(
-    item: MessageActionItem | CustomMessageActionItem
-  ): MessageActionBoxItemContext {
+  getReactionSelectorTemplateContext(): MessageReactionsSelectorContext {
     return {
-      actionHandler: item.actionHandler,
-      isMine: this.isMine,
-      actionName: item.actionName,
-      message: this.message!,
-      actionLabelOrTranslationKey: item.actionLabelOrTranslationKey,
+      messageId: this.message?.id,
+      ownReactions: this.message?.own_reactions || [],
     };
+  }
+
+  getMessageActionTemplateContext(
+    item:
+      | MessageActionItem
+      | CustomMessageActionItem
+      | MessageReactionActionItem
+  ): MessageActionBoxItemContext {
+    if (this.isReactAction(item)) {
+      return {} as MessageActionBoxItemContext;
+    } else {
+      return {
+        actionHandler: item.actionHandler,
+        actionHandlerExtraParams: {
+          isMine: this.isMine,
+          messageTextHtmlElement: this.messageTextHtmlElement,
+        },
+        actionName: item.actionName,
+        message: this.message!,
+        actionLabelOrTranslationKey: item.actionLabelOrTranslationKey,
+      };
+    }
   }
 
   trackByActionName(
     _: number,
-    item: MessageActionItem | CustomMessageActionItem
+    item:
+      | MessageActionItem
+      | CustomMessageActionItem
+      | MessageReactionActionItem
   ) {
     return item.actionName;
   }
 
+  private isReactAction(
+    item:
+      | MessageActionItem
+      | CustomMessageActionItem
+      | MessageReactionActionItem
+  ): item is MessageReactionActionItem {
+    return item.actionName === 'react';
+  }
+
   private setVisibleActions() {
-    this.visibleMessageActionItems = [
-      ...this.messageActionItems,
-      ...this.customActions,
-    ].filter((item) =>
-      item.isVisible(this.enabledActions, this.isMine, this.message!)
-    );
+    if (!this.message) {
+      this.visibleMessageActionItems = [];
+    } else {
+      this.visibleMessageActionItems = [
+        ...this.messageActionItems,
+        ...this.customActions,
+      ].filter((item) =>
+        item.isVisible(this.enabledActions, this.isMine, this.message!)
+      );
+    }
   }
 }

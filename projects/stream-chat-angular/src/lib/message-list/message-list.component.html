@@ -62,12 +62,7 @@
     <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
   </ng-container>
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
-    <ul
-      class="str-chat__ul"
-      [class.str-chat__message-options-in-bubble]="
-        messageOptionsTrigger === 'message-bubble'
-      "
-    >
+    <ul class="str-chat__ul">
       <li
         *ngIf="mode === 'thread' && parentMessage"
         #parentMessageElement
