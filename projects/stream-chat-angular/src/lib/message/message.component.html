@@ -49,7 +49,9 @@
             [hideOnScroll]="false"
             [hideOnClickOutside]="true"
             [hideOnMouseLeave]="false"
-            [disableAnimation]="true"
+            [disableAnimation]="false"
+            [preventOverflow]="true"
+            [positionFixed]="true"
             (onHidden)="isActionBoxOpen = false"
           >
             <float-ui-content #floatingContent>
@@ -540,6 +542,9 @@
         [floatUiLoose]="floatingContent"
         loosePlacement="top"
         looseTrigger="hover"
+        [disableAnimation]="false"
+        [preventOverflow]="true"
+        [positionFixed]="true"
       >
         <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -572,6 +577,9 @@
         [floatUiLoose]="floatingContent"
         loosePlacement="top"
         looseTrigger="hover"
+        [disableAnimation]="false"
+        [preventOverflow]="true"
+        [positionFixed]="true"
       >
         <float-ui-content #floatingContent>
           <div
