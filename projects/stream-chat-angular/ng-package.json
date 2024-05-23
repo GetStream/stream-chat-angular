@@ -10,7 +10,7 @@
     "dayjs",
     "@stream-io/transliterate",
     "@popperjs/core",
-    "uuidv4",
+    "uuid",
     "pretty-bytes",
     "emoji-regex",
     "ngx-popperjs"
