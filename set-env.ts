@@ -24,7 +24,9 @@ const envConfigFile = `export const environment = {
     ${Object.keys(envConfig).map((k) => `${k}: ${envConfig[k]},`)}
     apiKey: '${process.env.STREAM_API_KEY}',
     userId: '${process.env.STREAM_USER_ID}',
-    userToken: '${process.env.STREAM_USER_TOKEN}'
+    userToken: '${process.env.STREAM_USER_TOKEN}',
+    tokenUrl: '${process.env.STREAM_TOKEN_URL}',
+    channelsFilter: ${process.env.STREAM_CHANNELS_FILTER}
   };
   // I am a generated file, do not modify me directly, see set-env script
   `;
