@@ -22,7 +22,7 @@
     "lint:fix": "ng lint --fix",
     "config:dev": "ANGULAR_ENV=development ts-node set-env.ts",
     "config:prod": "ANGULAR_ENV=production ts-node set-env.ts",
-    "start-docs": "npx stream-chat-docusaurus -s",
+    "start-docs": "npm run config:prod && ng build --stats-json --project sample-app",
     "build:sample-app": "ng build --stats-json --project sample-app",
     "preanalyze:sample-app": "npm run build:sample-app",
     "analyze:sample-app": "webpack-bundle-analyzer dist/sample-app/stats.json",
@@ -129,9 +129,10 @@
     "pretty-bytes": "^6.1.1",
     "rxjs": "~7.4.0",
     "stream-chat": "^8.26.0",
+    "starwars-names": "^1.6.0",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
-    "uuidv4": "^6.2.13",
+    "uuid": "^9.0.1",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
@@ -148,6 +149,8 @@
     "@types/jasmine": "~3.8.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "@types/starwars-names": "^1.6.2",
+    "@types/uuid": "^9.0.8",
     "copyfiles": "^2.4.1",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.3.0",
@@ -171,6 +174,7 @@
     "typedoc-plugin-markdown": "^3.17.1",
     "typedoc-plugin-reference-excluder": "^1.1.3",
     "typescript": "~4.8.4",
+    "vercel": "^34.2.0",
     "wait-on": "^6.0.0",
     "webpack-bundle-analyzer": "^4.5.0"
   }

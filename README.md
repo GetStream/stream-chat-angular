@@ -13,6 +13,7 @@
 - [Demo Apps](https://getstream.io/chat/demos/)
 - [Docs](https://getstream.io/chat/docs/sdk/angular/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
+- [Demo application](https://angular-chat-demo-getstreamio.vercel.app/)
 
 With our component library, you can build a variety of chat use cases, including:
 
