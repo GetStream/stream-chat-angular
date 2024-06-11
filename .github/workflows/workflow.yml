@@ -4,10 +4,12 @@ on:
     branches:
       - master
       - beta
+      - angular-18
   pull_request:
     branches:
       - master
       - beta
+      - angular-18
 jobs:
   workflow:
     runs-on: ubuntu-latest
