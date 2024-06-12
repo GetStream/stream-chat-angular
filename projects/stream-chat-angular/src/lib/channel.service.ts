@@ -319,7 +319,11 @@ export class ChannelService<
    */
   customPaginator?: (channelQueryResult: Channel<T>[]) => NextPageConfiguration;
   /**
-   * internal
+   * @internal
+   */
+  static readonly MAX_MESSAGE_COUNT_IN_MESSAGE_LIST = 250;
+  /**
+   * @internal
    */
   static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
@@ -489,6 +493,28 @@ export class ChannelService<
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
+  }
+
+  /**
+   * internal
+   */
+  removeOldMessageFromMessageList() {
+    const channel = this.activeChannelSubject.getValue();
+    const channelMessages = channel?.state.latestMessages;
+    const targetLength = Math.ceil(
+      ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST / 2
+    );
+    if (
+      !channel ||
+      !channelMessages ||
+      channelMessages !== channel?.state.latestMessages ||
+      channelMessages.length <= targetLength
+    ) {
+      return;
+    }
+    const messages = channelMessages;
+    messages.splice(0, messages.length - targetLength);
+    this.activeChannelMessagesSubject.next(messages);
   }
 
   /**
@@ -1169,6 +1195,13 @@ export class ChannelService<
       );
       throw error;
     }
+  }
+
+  /**
+   * Clears the currently selected message to jump
+   */
+  clearMessageJump() {
+    this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
   }
 
   /**

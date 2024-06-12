@@ -232,6 +232,7 @@ export type MockChannelService = {
   loadMoreThreadReplies: (d: 'older' | 'newer') => void;
   autocompleteMembers: (s: string) => ChannelMemberResponse[];
   jumpToMessage: (id: string, parentId?: string) => void;
+  clearMessageJump: () => void;
 };
 
 export const mockChannelService = (): MockChannelService => {
@@ -292,6 +293,8 @@ export const mockChannelService = (): MockChannelService => {
 
   const jumpToMessage = () => {};
 
+  const clearMessageJump = () => {};
+
   const channelQueryState$ = new BehaviorSubject<ChannelQueryState | undefined>(
     undefined
   );
@@ -314,6 +317,7 @@ export const mockChannelService = (): MockChannelService => {
     usersTypingInThread$,
     jumpToMessage$,
     jumpToMessage,
+    clearMessageJump,
     channelQueryState$,
   };
 };
