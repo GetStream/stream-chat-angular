@@ -16,8 +16,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChannelService } from '../channel.service';
-import { Observable, Subscription } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { Observable, Subject, Subscription, combineLatest } from 'rxjs';
+import { filter, map, shareReplay, tap, throttleTime } from 'rxjs/operators';
 import {
   MessageContext,
   DefaultStreamChatGenerics,
@@ -92,6 +92,10 @@ export class MessageListComponent
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
    */
   @Input() displayLoadingIndicator = true;
+  /**
+   * @internal
+   */
+  @Input() limitNumberOfMessagesInList = true;
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
@@ -148,6 +152,10 @@ export class MessageListComponent
     typeof setTimeout
   >;
   private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
+  private messageRemoveTimeout?: ReturnType<typeof setTimeout>;
+  private removeOldMessagesSubscription?: Subscription;
+  private isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  private forceRepaintSubject = new Subject<void>();
 
   @HostBinding('class')
   private get class() {
@@ -179,6 +187,11 @@ export class MessageListComponent
 
   ngOnInit(): void {
     this.subscriptions.push(
+      this.forceRepaintSubject.pipe(throttleTime(1000)).subscribe(() => {
+        this.forceRepaint();
+      })
+    );
+    this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         this.chatClientService.chatClient?.logger?.(
           'info',
@@ -198,6 +211,9 @@ export class MessageListComponent
             { tags: `message list ${this.mode}` }
           );
           this.parsedDates = new Map();
+          if (this.messageRemoveTimeout) {
+            clearTimeout(this.messageRemoveTimeout);
+          }
           this.resetScrollState();
           this.channelId = channel?.id;
           if (this.isViewInited) {
@@ -367,6 +383,9 @@ export class MessageListComponent
         .pipe(filter((config) => !!config.id))
         .subscribe((config) => {
           let messageId: string | undefined = undefined;
+          if (this.messageRemoveTimeout) {
+            clearTimeout(this.messageRemoveTimeout);
+          }
           if (this.mode === 'main') {
             messageId = config.parentId || config.id;
           } else if (config.parentId) {
@@ -396,6 +415,7 @@ export class MessageListComponent
               }
             }
           }
+          this.channelService.clearMessageJump();
         })
     );
     this.subscriptions.push(
@@ -517,6 +537,10 @@ export class MessageListComponent
     if (this.jumpToLatestButtonVisibilityTimeout) {
       clearTimeout(this.jumpToLatestButtonVisibilityTimeout);
     }
+    if (this.messageRemoveTimeout) {
+      clearTimeout(this.messageRemoveTimeout);
+    }
+    this.removeOldMessagesSubscription?.unsubscribe();
   }
 
   trackByMessageId(index: number, item: StreamMessage) {
@@ -537,7 +561,9 @@ export class MessageListComponent
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight + 0.1;
-    this.forceRepaint();
+    if (this.isSafari) {
+      this.forceRepaintSubject.next();
+    }
   }
 
   scrollToTop() {
@@ -609,6 +635,9 @@ export class MessageListComponent
             { tags: `message list ${this.mode}` }
           );
           this.isLoading = true;
+          result.catch?.(() => {
+            this.isLoading = false;
+          });
         }
         this.cdRef.detectChanges();
       });
@@ -687,7 +716,8 @@ export class MessageListComponent
       position = 'top';
     } else if (
       Math.ceil(this.scrollContainer.nativeElement.scrollTop) +
-        this.scrollContainer.nativeElement.clientHeight >=
+        this.scrollContainer.nativeElement.clientHeight +
+        1 >=
       this.scrollContainer.nativeElement.scrollHeight
     ) {
       position = 'bottom';
@@ -697,7 +727,11 @@ export class MessageListComponent
   }
 
   private shouldLoadMoreMessages(scrollPosition: 'top' | 'bottom' | 'middle') {
-    return scrollPosition !== 'middle' && !this.highlightedMessageId;
+    return (
+      scrollPosition !== 'middle' &&
+      !this.highlightedMessageId &&
+      !this.isLoading
+    );
   }
 
   private setMessages$() {
@@ -791,8 +825,47 @@ export class MessageListComponent
         this.isNextMessageOnSeparateDate = messages.map((m, i) =>
           this.checkIfOnSeparateDates(m, messages[i + 1])
         );
-      })
+      }),
+      shareReplay(1)
     );
+    this.removeOldMessagesSubscription?.unsubscribe();
+    this.removeOldMessagesSubscription = combineLatest([
+      this.channelService.jumpToMessage$,
+      this.messages$,
+    ]).subscribe(([jumpToMessage, messages]) => {
+      if (
+        this.limitNumberOfMessagesInList &&
+        this.mode === 'main' &&
+        messages.length >
+          ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST * 0.5 &&
+        !this.isUserScrolled &&
+        !jumpToMessage?.id &&
+        this.isLatestMessageInList
+      ) {
+        if (this.messageRemoveTimeout) {
+          clearTimeout(this.messageRemoveTimeout);
+        }
+        if (
+          messages.length >= ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST
+        ) {
+          this.channelService.removeOldMessageFromMessageList();
+        } else {
+          this.messageRemoveTimeout = setTimeout(() => {
+            if (
+              this.limitNumberOfMessagesInList &&
+              this.mode === 'main' &&
+              messages.length >
+                ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST * 0.5 &&
+              !this.isUserScrolled &&
+              !this.highlightedMessageId &&
+              this.isLatestMessageInList
+            ) {
+              this.channelService.removeOldMessageFromMessageList();
+            }
+          }, 1500);
+        }
+      }
+    });
   }
 
   private resetScrollState() {

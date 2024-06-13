@@ -53,10 +53,6 @@
         "name": "v5",
         "prerelease": true,
         "channel": "beta"
-      },
-      {
-        "name": "remove-style-attributes-from-templates",
-        "prerelease": true
       }
     ],
     "dryRun": false,

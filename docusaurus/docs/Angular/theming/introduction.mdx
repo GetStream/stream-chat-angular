@@ -45,7 +45,11 @@ If you're using SCSS:
 <SDKSpecific name="angular">
 
 ```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
+// stream-chat-angular@5
+@import "stream-chat-angular/src/assets/styles/scss/index.scss";
+
+// stream-chat-angular@4
+@import "stream-chat-angular/src/assets/styles/v2/scss/index.scss";
 ```
 
 </SDKSpecific>
@@ -63,7 +67,11 @@ If you're using CSS:
 <SDKSpecific name="angular">
 
 ```css
-@import "~stream-chat-angular/src/assets/styles/css/index.css";
+// stream-chat-angular@5
+@import "stream-chat-angular/src/assets/styles/css/index.css";
+
+// stream-chat-angular@4
+@import "stream-chat-angular/src/assets/styles/v2/css/index.css";
 ```
 
 </SDKSpecific>
@@ -98,14 +106,6 @@ Here is the default chat UI:
 <img src={ChatUiScreenshot} width="500" />
 
 Here is how you can customize global variables:
-
-<SDKSpecific name="angular">
-
-```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
-```
-
-</SDKSpecific>
 
 <SDKSpecific name="react">
 
@@ -215,17 +215,82 @@ To solve this we also have to set the text color for the link attachment compone
 
 <img src={MessageCustomColor2Screenshot} width="500" />
 
-### CSS overrides
-
-If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:
+### Custom icons
 
 <SDKSpecific name="angular">
 
+#### From CSS
+
+Starting from stream-chat-angular@5 it's possible to customize icons from CSS.
+
+Here is an example using the [Google Material Icon library](https://fonts.google.com/icons) to override the send icon:
+
 ```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
+// Import the icon library you want to use
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+
+// Override the send icon
+.str-chat__icon--send::before {
+  font-family: "Material Symbols Outlined";
+  content: "\e163";
+}
+```
+
+It's also possible to use image files for icons:
+
+```scss
+.str-chat__icon--send {
+  &::before {
+    display: none;
+  }
+  // Link to your image file, or encode the image inline
+  content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0xMjAtMTYwdi02NDBsNzYwIDMyMC03NjAgMzIwWm04MC0xMjAgNDc0LTIwMC00NzQtMjAwdjE0MGwyNDAgNjAtMjQwIDYwdjE0MFptMCAwdi00MDAgNDAwWiIvPjwvc3ZnPg==");
+}
+```
+
+The full list of icons used by the SDK can be found [here](https://github.com/GetStream/stream-chat-css/blob/main/src/v2/styles/Icon/Icon-layout.scss).
+
+You can also change the size and color of the icons:
+
+```scss
+.str-chat__icon--attach {
+  --str-chat-icon-color: green; // Only works for font icons
+  --str-chat-icon-height: 60px;
+}
+```
+
+#### From HTML template
+
+If you're using stream-chat-angular@4 or an older version, or CSS customizations are not enough, you can completely replace the built-in icon component with your own using the [`CustomTemplatesService`](../../services/CustomTemplatesService/#icontemplate).
+
+You can find a working example in the [customization sample app](https://github.com/GetStream/stream-chat-angular/blob/master/projects/customizations-example/src/app/icon/icon.component.ts).
+
+If the default rules set by the stream-chat-angular stylesheets not enough to set the size and color of your custom icons, you can rely on the `--str-chat-icon-color`, `--str-chat-icon-height` and `--str-chat-icon-width` variables:
+
+```
+.my-custom-send-icon {
+  svg {
+    height: var(--str-chat-icon-height);
+    width: var(--str-chat-icon-width);
+
+    path {
+      fill: var(--str-chat-icon-color);
+    }
+  }
+}
 ```
 
 </SDKSpecific>
+
+<SDKSpecific name="react">
+
+TODO
+
+</SDKSpecific>
+
+### CSS overrides
+
+If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:
 
 <SDKSpecific name="react">
 
@@ -249,11 +314,19 @@ If you're using SCSS it's also possible to import component stylesheets separate
 <SDKSpecific name="angular">
 
 ```scss
+// stream-chat-angular@5
 // Use default theme for channel list and channel preview components
-@import "~stream-chat-angular/src/assets/styles/scss/ChannelList/ChannelList-layout.scss";
-@import "~stream-chat-angular/src/assets/styles/scss/ChannelList/ChannelList-theme.scss";
-@import "~stream-chat-angular/src/assets/styles/scss/ChannelPreview/ChannelPreview-layout.scss";
-@import "~stream-chat-angular/src/assets/styles/scss/ChannelPreview/ChannelPreview-theme.scss";
+@import "stream-chat-angular/src/assets/styles/scss/ChannelList/ChannelList-layout.scss";
+@import "stream-chat-angular/src/assets/styles/scss/ChannelList/ChannelList-theme.scss";
+@import "stream-chat-angular/src/assets/styles/scss/ChannelPreview/ChannelPreview-layout.scss";
+@import "stream-chat-angular/src/assets/styles/scss/ChannelPreview/ChannelPreview-theme.scss";
+
+// stream-chat-angular@4
+// Use default theme for channel list and channel preview components
+@import "stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-layout.scss";
+@import "stream-chat-angular/src/assets/styles/v2/scss/ChannelList/ChannelList-theme.scss";
+@import "stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-layout.scss";
+@import "stream-chat-angular/src/assets/styles/v2/scss/ChannelPreview/ChannelPreview-theme.scss";
 ```
 
 </SDKSpecific>
@@ -285,7 +358,11 @@ Here is how you can import the layout stylesheet:
 <SDKSpecific name="angular">
 
 ```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.layout.scss";
+// stream-chat-angular@5
+@import "stream-chat-angular/src/assets/styles/scss/index.layout.scss";
+
+// stream-chat-angular@4
+@import "stream-chat-angular/src/assets/styles/v2/scss/index.layout.scss";
 ```
 
 </SDKSpecific>
@@ -303,7 +380,11 @@ or if you're using CSS:
 <SDKSpecific name="angular">
 
 ```css
-@import "~stream-chat-angular/src/assets/styles/css/index.layout.css";
+// stream-chat-angular@5
+@import "stream-chat-angular/src/assets/styles/css/index.layout.css";
+
+// stream-chat-angular@4
+@import "stream-chat-angular/src/assets/styles/v2/css/index.layout.css";
 ```
 
 </SDKSpecific>
@@ -395,14 +476,6 @@ The `str-chat__theme-dark`/`str-chat__theme-light` class is applied to the [Chan
 
 Here is how you can provide different color configurations for the dark and light themes:
 
-<SDKSpecific name="angular">
-
-```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
-```
-
-</SDKSpecific>
-
 <SDKSpecific name="react">
 
 ```scss
@@ -446,14 +519,6 @@ Here is the custom dark theme:
 It's possible to extend the existing themes with your own themes.
 
 Here is an example creating 'round' and 'square' themes:
-
-<SDKSpecific name="angular">
-
-```scss
-@import "~stream-chat-angular/src/assets/styles/scss/index.scss";
-```
-
-</SDKSpecific>
 
 <SDKSpecific name="react">
 
