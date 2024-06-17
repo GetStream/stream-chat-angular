@@ -71,6 +71,7 @@ export class ChatClientService<
     OwnUserResponse<T> | UserResponse<T> | undefined
   >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
+  private trackPendingChannelInvites = true;
 
   constructor(
     private ngZone: NgZone,
@@ -99,8 +100,10 @@ export class ChatClientService<
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
     userTokenOrProvider: TokenOrProvider,
-    clientOptions?: StreamChatOptions
+    clientOptions?: StreamChatOptions & { trackPendingChannelInvites?: boolean }
   ): ConnectAPIResponse<T> {
+    this.trackPendingChannelInvites =
+      clientOptions?.trackPendingChannelInvites !== false;
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
@@ -133,12 +136,15 @@ export class ChatClientService<
         );
       }
     });
-    const channels = await this.chatClient.queryChannels(
-      { invite: 'pending' } as unknown as ChannelFilters<T>, // TODO: find out why we need this typecast
-      {},
-      { user_id: this.chatClient.user?.id }
-    );
-    this.pendingInvitesSubject.next(channels);
+    if (this.chatClient.user?.id && this.trackPendingChannelInvites) {
+      const channels = await this.chatClient.queryChannels(
+        {
+          invite: 'pending',
+          members: { $in: [this.chatClient.user?.id] },
+        } as any as ChannelFilters<T> // TODO: find out why we need this typecast
+      );
+      this.pendingInvitesSubject.next(channels);
+    }
     this.appSettingsSubject.next(undefined);
     this.subscriptions.push(
       this.chatClient.on((e) => {
@@ -221,6 +227,9 @@ export class ChatClientService<
   }
 
   private updatePendingInvites(e: Event<T>) {
+    if (!this.trackPendingChannelInvites) {
+      return;
+    }
     if (e.member?.user?.id === this.chatClient.user?.id && e.channel) {
       const pendingInvites = this.pendingInvitesSubject.getValue();
       if (e.type === 'notification.invited') {
