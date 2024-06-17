@@ -303,13 +303,10 @@ describe('ChatClientService', () => {
     invitesSpy.calls.reset();
     await service.init(apiKey, userId, userToken);
 
-    expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
-      {
-        invite: 'pending',
-      },
-      {},
-      { user_id: mockChatClient.user.id }
-    );
+    expect(mockChatClient.queryChannels).toHaveBeenCalledWith({
+      invite: 'pending',
+      members: { $in: [mockChatClient.user.id] },
+    });
 
     expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);
   });
