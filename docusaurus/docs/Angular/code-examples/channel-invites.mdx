@@ -401,6 +401,14 @@ Add a reference to the template in your `app.component.ts`:
 
 #### Displaying the invitations
 
+The [`ChatClientService`](../services/ChatClientService.mdx) can keep track of pending invites, to enable this you have to initialize the service with the following flag:
+
+```typescript
+this.chatService.init("<API key>", "<user>", "<token provider>", {
+  trackPendingChannelInvites: true,
+});
+```
+
 The `pendingInvites$` Observable on the [`ChatClientService`](../services/ChatClientService.mdx) can notify us about the pending invitations of the current user. Let's subscribe to this Observable and [display the invites](../services/NotificationService.mdx) in the `ngOnInit` method of the `app.component.ts`
 
 ```typescript
