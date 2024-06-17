@@ -141,7 +141,7 @@ export class ChatClientService<
         {
           invite: 'pending',
           members: { $in: [this.chatClient.user?.id] },
-        } as any as ChannelFilters<T> // TODO: find out why we need this typecast
+        } as unknown as ChannelFilters<T> // TODO: find out why we need this typecast
       );
       this.pendingInvitesSubject.next(channels);
     }
