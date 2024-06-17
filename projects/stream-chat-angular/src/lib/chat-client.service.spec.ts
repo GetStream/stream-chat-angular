@@ -302,7 +302,9 @@ describe('ChatClientService', () => {
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     invitesSpy.calls.reset();
-    await service.init(apiKey, userId, userToken);
+    await service.init(apiKey, userId, userToken, {
+      trackPendingChannelInvites: true,
+    });
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith({
       invite: 'pending',
@@ -312,7 +314,10 @@ describe('ChatClientService', () => {
     expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);
   });
 
-  it('should emit pending invitations of user', () => {
+  it('should emit pending invitations of user', async () => {
+    await service.init(apiKey, userId, userToken, {
+      trackPendingChannelInvites: true,
+    });
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     const event1 = {

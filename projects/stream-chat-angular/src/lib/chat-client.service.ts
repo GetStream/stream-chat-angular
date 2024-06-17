@@ -103,7 +103,7 @@ export class ChatClientService<
     clientOptions?: StreamChatOptions & { trackPendingChannelInvites?: boolean }
   ): ConnectAPIResponse<T> {
     this.trackPendingChannelInvites =
-      clientOptions?.trackPendingChannelInvites !== false;
+      clientOptions?.trackPendingChannelInvites === true;
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
