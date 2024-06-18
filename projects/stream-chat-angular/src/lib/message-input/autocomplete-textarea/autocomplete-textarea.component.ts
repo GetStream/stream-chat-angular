@@ -125,6 +125,7 @@ export class AutocompleteTextareaComponent
       ),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
+  private isViewInited = false;
 
   constructor(
     private channelService: ChannelService,
@@ -200,10 +201,22 @@ export class AutocompleteTextareaComponent
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
       this.updateMentionedUsersFromText();
+    } else if (
+      changes.value &&
+      this.value &&
+      this.messageInput &&
+      this.isViewInited
+    ) {
+      setTimeout(() => {
+        if (this.messageInput.nativeElement.scrollHeight > 0) {
+          this.adjustTextareaHeight();
+        }
+      }, 0);
     }
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     if (this.messageInput.nativeElement.scrollHeight > 0) {
       this.adjustTextareaHeight();
     }

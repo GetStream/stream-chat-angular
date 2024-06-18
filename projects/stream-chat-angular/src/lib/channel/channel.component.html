@@ -14,15 +14,6 @@
   >
     <ng-container
       *ngTemplateOutlet="
-        (customTemplatesService.editMessageFormTemplate$ | async) ||
-        defaultEditMessageForm
-      "
-    ></ng-container>
-    <ng-template #defaultEditMessageForm>
-      <stream-edit-message-form></stream-edit-message-form>
-    </ng-template>
-    <ng-container
-      *ngTemplateOutlet="
         (customTemplatesService.messageBouncePromptTemplate$ | async) ||
         defaultMessageBouncePrompt
       "

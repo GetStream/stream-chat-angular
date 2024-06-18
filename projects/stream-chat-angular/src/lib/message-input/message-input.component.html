@@ -12,6 +12,19 @@
       <stream-icon-placeholder icon="close"></stream-icon-placeholder>
     </button>
   </div>
+  <div *ngIf="isUpdate" class="str-chat__quoted-message-preview-header">
+    <div class="str-chat__quoted-message-reply-to-message">
+      {{ "streamChat.Edit Message" | translate }}
+    </div>
+    <button
+      class="str-chat__quoted-message-remove"
+      data-testid="remove-quote"
+      (click)="deselectMessageToEdit()"
+      (keyup.enter)="deselectMessageToEdit()"
+    >
+      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+    </button>
+  </div>
   <ng-container *ngIf="canSendMessages; else notAllowed">
     <div
       class="
@@ -134,7 +147,7 @@
         </div>
       </div>
       <button
-        *ngIf="canSendMessages && !isCooldownInProgress && !message"
+        *ngIf="canSendMessages && !isCooldownInProgress && displaySendButton"
         data-testid="send-button"
         class="str-chat__send-button"
         [disabled]="

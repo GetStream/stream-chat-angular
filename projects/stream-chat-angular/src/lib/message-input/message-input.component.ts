@@ -41,6 +41,7 @@ import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { v4 as uuidv4 } from 'uuid';
+import { MessageActionsService } from '../message-actions.service';
 
 /**
  * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
@@ -91,6 +92,16 @@ export class MessageInputComponent
    */
   @Input() autoFocus = true;
   /**
+   * By default the input will react to changes in `messageToEdit$` from [`MessageActionsService`](../services/MessageActionsService.mdx) and display the message to be edited (taking into account the current `mode`).
+   *
+   * If you don't need that behavior, you can turn this of with this flag. In that case you should create your own edit message UI.
+   */
+  @Input() watchForMessageToEdit = true;
+  /**
+   * Use this input to control wether a send button is rendered or not. If you don't render a send button, you can still trigger message send using the `sendMessage$` input.
+   */
+  @Input() displaySendButton = true;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{
@@ -129,6 +140,8 @@ export class MessageInputComponent
   private sendMessageSubcription: Subscription | undefined;
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
+  private messageToEdit?: StreamMessage;
+
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
@@ -140,7 +153,8 @@ export class MessageInputComponent
     private cdRef: ChangeDetectorRef,
     private chatClient: ChatClientService,
     private emojiInputService: EmojiInputService,
-    private customTemplatesService: CustomTemplatesService
+    private customTemplatesService: CustomTemplatesService,
+    private messageActionsService: MessageActionsService
   ) {
     this.textareaPlaceholder = this.defaultTextareaPlaceholder;
     this.subscriptions.push(
@@ -184,6 +198,12 @@ export class MessageInputComponent
         ) {
           this.quotedMessage = m;
         }
+      })
+    );
+    this.subscriptions.push(
+      this.messageActionsService.messageToEdit$.subscribe((message) => {
+        this.messageToEdit = message;
+        this.checkIfInEditMode();
       })
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
@@ -268,13 +288,7 @@ export class MessageInputComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
-      this.attachmentService.resetAttachmentUploads();
-      if (this.isUpdate) {
-        this.attachmentService.createFromAttachments(
-          this.message!.attachments || []
-        );
-        this.textareaValue = this.message!.text || '';
-      }
+      this.messageToUpdateChanged();
     }
     if (changes.isFileUploadEnabled) {
       this.configService.isFileUploadEnabled = this.isFileUploadEnabled;
@@ -291,6 +305,10 @@ export class MessageInputComponent
     }
     if (changes.mode) {
       this.setCanSendMessages();
+      this.checkIfInEditMode();
+    }
+    if (changes.watchForMessageToEdit) {
+      this.checkIfInEditMode();
     }
     if (changes.inputMode) {
       this.configService.inputMode = this.inputMode;
@@ -369,7 +387,9 @@ export class MessageInputComponent
             this.quotedMessage?.id
           ));
       this.messageUpdate.emit({ message });
-      if (!this.isUpdate) {
+      if (this.isUpdate) {
+        this.deselectMessageToEdit();
+      } else {
         this.attachmentService.resetAttachmentUploads();
       }
     } catch (error) {
@@ -419,6 +439,10 @@ export class MessageInputComponent
     this.channelService.selectMessageToQuote(undefined);
   }
 
+  deselectMessageToEdit() {
+    this.messageActionsService.messageToEdit$.next(undefined);
+  }
+
   getEmojiPickerContext(): EmojiPickerContext {
     return {
       emojiInput$: this.emojiInputService.emojiInput$,
@@ -440,6 +464,10 @@ export class MessageInputComponent
     };
   }
 
+  get isUpdate() {
+    return !!this.message;
+  }
+
   private deleteUpload(upload: AttachmentUpload) {
     if (this.isUpdate) {
       // Delay delete to avoid modal detecting this click as outside click
@@ -457,10 +485,6 @@ export class MessageInputComponent
 
   private clearFileInput() {
     this.fileInput.nativeElement.value = '';
-  }
-
-  private get isUpdate() {
-    return !!this.message;
   }
 
   private initTextarea() {
@@ -562,7 +586,7 @@ export class MessageInputComponent
       this.canSendMessages =
         capabilities.indexOf(
           this.mode === 'main' ? 'send-message' : 'send-reply'
-        ) !== -1;
+        ) !== -1 || this.isUpdate;
     }
     if (this.isViewInited) {
       this.cdRef.detectChanges();
@@ -599,5 +623,36 @@ export class MessageInputComponent
     this.cooldown$ = undefined;
     this.isCooldownInProgress = false;
     this.textareaPlaceholder = this.defaultTextareaPlaceholder;
+  }
+
+  private checkIfInEditMode() {
+    if (!this.watchForMessageToEdit) {
+      return;
+    }
+    if (!this.messageToEdit && this.message) {
+      this.message = undefined;
+      this.messageToUpdateChanged();
+    }
+    if (
+      this.messageToEdit &&
+      ((this.mode === 'main' && !this.messageToEdit.parent_id) ||
+        (this.mode === 'thread' && this.messageToEdit.parent_id))
+    ) {
+      this.message = this.messageToEdit;
+      this.messageToUpdateChanged();
+    }
+  }
+
+  private messageToUpdateChanged() {
+    this.attachmentService.resetAttachmentUploads();
+    this.setCanSendMessages();
+    if (this.isUpdate) {
+      this.attachmentService.createFromAttachments(
+        this.message!.attachments || []
+      );
+      this.textareaValue = this.message!.text || '';
+    } else {
+      this.textareaValue = '';
+    }
   }
 }

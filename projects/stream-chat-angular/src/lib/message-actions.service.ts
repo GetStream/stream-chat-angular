@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import {
   CustomMessageActionItem,
   DefaultStreamChatGenerics,
@@ -190,7 +190,24 @@ export class MessageActionsService<
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
     private channelService: ChannelService
-  ) {}
+  ) {
+    combineLatest([
+      this.messageToEdit$,
+      this.channelService.activeChannel$,
+    ]).subscribe(([messageToEdit, activeChannel]) => {
+      if (messageToEdit && !activeChannel) {
+        this.messageToEdit$.next(undefined);
+      }
+    });
+    combineLatest([
+      this.messageToEdit$,
+      this.channelService.activeParentMessageId$,
+    ]).subscribe(([messageToEdit, parentMessageId]) => {
+      if (messageToEdit && messageToEdit.parent_id !== parentMessageId) {
+        this.messageToEdit$.next(undefined);
+      }
+    });
+  }
 
   /**
    * This method returns how many authorized actions are available to the given message

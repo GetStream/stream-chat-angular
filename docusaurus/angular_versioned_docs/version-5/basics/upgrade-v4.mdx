@@ -9,6 +9,8 @@ import MessageMenuBefore from "../assets/message-menu-before.png";
 import MessageMenuAfterDesktop from "../assets/message-menu-after-desktop.png";
 import MessageMenuAfterMobile from "../assets/message-menu-after-mobile.png";
 import ImageShowcase from "@site/src/components/ImageShowcase";
+import MessageEditBefore from "../assets/message-edit-before.png";
+import MessageEditAfter from "../assets/message-edit-after.png";
 
 ## Highlights
 
@@ -115,6 +117,49 @@ With the new UI these component-level changes are introduced:
 
 - The [`MessageListComponent`](../../components/MessageListComponent) no longer supports the `messageOptionsTrigger` parameter as this was a workaround for mobile UX problems. On desktop devices the message menu will be triggered by hovering anywhere in the message area. On mobile devices the message menu will be triggered by a longpress insde the message bubble area.
 - The [`MessageReactionsComponent`](../../components/MessageReactionsComponent) was split into two components. The `MessageReactionsComponent` is only responsible for displaying the existing reactions, and with that the `isSelectorOpen` input and `isSelectorOpenChange` output was removed. The [`MessageReactionsSelector`](../../components/MessageReactionsSelectorComponent) is a new component, that's responsible for adding/removing message reactions.
+
+### New message edit UI
+
+The modal-based edit message UI is replaced with a more modern approach: the message will be edited inside the main/thread [message input](../../components/MessageInputComponent).
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageEditBefore,
+      caption: "Message edit UI - before",
+      alt: "Message edit - before",
+    },
+    {
+      image: MessageEditAfter,
+      caption: "Message edit UI - after",
+      alt: "Message edit - after",
+    },
+  ]}
+/>
+
+These are the component-level changes related to this feature:
+
+- The `EditMessageForm` component has been removed
+- The `editMessageFormTemplate$` has been removed from the [`CustomTemplatesService`](../../services/CustomTemplatesService)
+
+If you don't want to have this UI, you can set the `watchForMessageToEdit` input to `false` on the `MessageInputComponent`:
+
+```html
+<stream-message-input [watchForMessageToEdit]="false"></stream-message-input>
+```
+
+The `stream-message-input` still has all inputs/outputs you need to create a custom message edit UI:
+
+```html
+<stream-message-input
+  [watchForMessageToEdit]="false"
+  [displaySendButton]="false"
+  [message]="messageToEdit"
+  [sendMessage$]="sendMessage$Input"
+  (messageUpdate)="messageUpdateHandler()"
+></stream-message-input>
+```
 
 ### Removed deprecated features
 
