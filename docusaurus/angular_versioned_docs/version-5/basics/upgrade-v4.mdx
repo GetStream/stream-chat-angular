@@ -14,13 +14,45 @@ import MessageEditAfter from "../assets/message-edit-after.png";
 
 ## Highlights
 
-stream-chat-angular@5 brings improvements in the following categories:
-
 - New message menu and message edit UIs to improve usability
 - Provide more CSS customization options for the avatar and icon components (to avoid providing a custom component for even basic customization)
-- Dropping support for [Angular 12-14](https://getstream.io/chat/docs/sdk/angular/basics/angular-version-support/) and [theme-v1](https://getstream.io/chat/docs/sdk/angular/concepts/themeing/)
+- Drop support for [Angular 12-14](https://getstream.io/chat/docs/sdk/angular/basics/angular-version-support/) and [theme-v1](https://getstream.io/chat/docs/sdk/angular/concepts/themeing/)
 
 The full list of [features and progress](https://github.com/GetStream/stream-chat-angular/issues/584) are on GitHub.
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption:
+        "Before (mobile) - Opening message menu or an image attachment used to take two taps",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterMobile,
+      caption:
+        "After (mobile) - Message menu is triggered by long press anywhere in the message bubble (attachment or the blue area), no more double tap required for opening image attachments",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageEditBefore,
+      caption: "Message edit UI - before",
+      alt: "Message edit - before",
+    },
+    {
+      image: MessageEditAfter,
+      caption: "Message edit UI - after",
+      alt: "Message edit - after",
+    },
+  ]}
+/>
 
 ## Get started
 
@@ -69,6 +101,14 @@ From version 5 this path should be used:
 
 // or if you're using CSS
 @import "stream-chat-angular/src/assets/styles/css/index.css";
+```
+
+In case you run into an SCSS issue related to icons, you should extend the stylesheet import like this:
+
+```scss
+@use "stream-chat-angular/src/assets/styles/scss/variables" with
+  ($assetsPath: "../node_modules/stream-chat-angular/src/assets/assets");
+@import "stream-chat-angular/src/assets/styles/scss/index.scss";
 ```
 
 No futher action is required for customers who were already using theme-v2.
@@ -143,7 +183,7 @@ These are the component-level changes related to this feature:
 - The `EditMessageForm` component has been removed
 - The `editMessageFormTemplate$` has been removed from the [`CustomTemplatesService`](../../services/CustomTemplatesService)
 
-If you don't want to have this UI, you can set the `watchForMessageToEdit` input to `false` on the `MessageInputComponent`:
+If you don't want to have this UI, you can set the [`watchForMessageToEdit`](../../components/MessageInputComponent/#watchformessagetoedit) input to `false` on the `MessageInputComponent`:
 
 ```html
 <stream-message-input [watchForMessageToEdit]="false"></stream-message-input>
@@ -213,7 +253,7 @@ In previous versions if an error occured during channel load, the `channelServic
 
 ### Default reactions
 
-To better align with other SDKs, the default reaction has been changed: the `angry` reaction is removed. You can provide your own reaction set using the [`MessageReactionsService`](../../services/MessageReactionsService/#reactions)
+To better align with other SDKs, the default reaction set has been changed: the `angry` reaction is removed. You can provide your own reaction set using the [`MessageReactionsService`](../../services/MessageReactionsService/#reactions)
 
 ### Component customization
 
@@ -270,7 +310,7 @@ With this change the `size` input is no longer supported on the [`LoadingIndicat
 
 ### Channel invites
 
-Keeping track of pending channel invites is no longer automatic. If you want to enable this behavior you need to initialize the [`ChatClientService`](../services/ChatClientService.mdx) with the following flag:
+Keeping track of pending channel invites is no longer automatic. If you're using channel invites and want to enable this behavior you need to initialize the [`ChatClientService`](../services/ChatClientService.mdx) with the following flag:
 
 ```typescript
 this.chatService.init("<API key>", "<user>", "<token provider>", {
@@ -282,7 +322,7 @@ this.chatService.init("<API key>", "<user>", "<token provider>", {
 
 ### Unused packages
 
-The `ngx-popperjs` package has been deprecated, so you can remove the related packages from your `package.json` file:
+The `ngx-popperjs` package is no longer used, so you can remove the related packages from your `package.json` file:
 
 - `@popperjs/core`
 - `ngx-popperjs`
