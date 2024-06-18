@@ -55,6 +55,7 @@ export class TextareaComponent
   @Output() readonly send = new EventEmitter<void>();
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
   private subscriptions: Subscription[] = [];
+  private isViewInited = false;
 
   constructor(
     private emojiInputService: EmojiInputService,
@@ -77,10 +78,22 @@ export class TextareaComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
+    } else if (
+      changes.value &&
+      this.value &&
+      this.messageInput &&
+      this.isViewInited
+    ) {
+      setTimeout(() => {
+        if (this.messageInput.nativeElement.scrollHeight > 0) {
+          this.adjustTextareaHeight();
+        }
+      }, 0);
     }
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     if (this.messageInput.nativeElement.scrollHeight > 0) {
       this.adjustTextareaHeight();
     }

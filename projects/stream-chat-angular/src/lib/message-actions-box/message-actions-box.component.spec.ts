@@ -6,7 +6,7 @@ import {
   tick,
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Channel, MessageResponseBase, ReactionResponse } from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
@@ -52,6 +52,7 @@ describe('MessageActionsBoxComponent', () => {
     pinMessage: jasmine.Spy;
     unpinMessage: jasmine.Spy;
     setAsActiveParentMessage: jasmine.Spy;
+    activeParentMessageId$: Observable<string | undefined>;
   };
 
   beforeEach(async () => {
@@ -65,6 +66,7 @@ describe('MessageActionsBoxComponent', () => {
       pinMessage: jasmine.createSpy(),
       unpinMessage: jasmine.createSpy(),
       setAsActiveParentMessage: jasmine.createSpy(),
+      activeParentMessageId$: of(undefined),
     };
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],

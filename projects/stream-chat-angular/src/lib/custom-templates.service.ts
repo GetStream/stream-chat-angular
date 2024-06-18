@@ -325,12 +325,6 @@ export class CustomTemplatesService<
     TemplateRef<void> | undefined
   >(undefined);
   /**
-   * The template used to display the [edit message form](../components/EditMessageFormComponent.mdx)
-   */
-  editMessageFormTemplate$ = new BehaviorSubject<TemplateRef<void> | undefined>(
-    undefined
-  );
-  /**
    * The template used to display the [message bounce prompt](../components/MessageBouncePromptComponent.mdx)
    */
   messageBouncePromptTemplate$ = new BehaviorSubject<
