@@ -24,6 +24,7 @@ import {
   MessageContext,
   MessageInputContext,
   MessageReactionsContext,
+  MessageReactionsSelectorContext,
   ModalContext,
   NotificationContext,
   ReadStatusContext,
@@ -164,6 +165,13 @@ export class CustomTemplatesService<
    */
   messageReactionsTemplate$ = new BehaviorSubject<
     TemplateRef<MessageReactionsContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display the reactions of a [message](../components/MessageComponent.mdx), and the selector to add a reaction to a message (instead of the [default message reactions component](../components/MessageReactionsComponent.mdx))
+   *
+   */
+  messageReactionsSelectorTemplate$ = new BehaviorSubject<
+    TemplateRef<MessageReactionsSelectorContext> | undefined
   >(undefined);
   /**
    * The template used to display a modal window (instead of the [default modal](../components/ModalComponent.mdx))

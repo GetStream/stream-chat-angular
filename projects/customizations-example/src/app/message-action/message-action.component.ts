@@ -1,5 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { DefaultStreamChatGenerics, StreamMessage } from 'stream-chat-angular';
+import {
+  DefaultStreamChatGenerics,
+  MessageActionHandlerExtraParams,
+  StreamMessage,
+} from 'stream-chat-angular';
 
 @Component({
   selector: 'app-message-action',
@@ -12,8 +16,11 @@ export class MessageActionComponent {
     | ((m: StreamMessage<DefaultStreamChatGenerics>) => string)
     | string;
   @Input() message!: StreamMessage<DefaultStreamChatGenerics>;
-  @Input() isMine!: boolean;
-  @Input() actionHandler!: (message: StreamMessage, isMine: boolean) => void;
+  @Input() extraParams!: MessageActionHandlerExtraParams;
+  @Input() actionHandler!: (
+    message: StreamMessage,
+    extraParams: MessageActionHandlerExtraParams
+  ) => void;
 
   constructor() {}
 

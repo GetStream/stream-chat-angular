@@ -3,7 +3,6 @@
   data-testid="reaction-list"
   class="str-chat__reaction-list str-chat__message-reactions-container"
   [class.str-chat__reaction-list--reverse]="true"
-  [class.str-chat__reaction-list-hidden]="isSelectorOpen"
 >
   <ul class="str-chat__message-reactions">
     <li
@@ -34,73 +33,6 @@
         class="str-chat__reaction-list--counter"
         >{{ reactionsCount }}</span
       >
-    </li>
-  </ul>
-</div>
-
-<div
-  *ngIf="isSelectorOpen"
-  #selectorContainer
-  data-testid="reaction-selector"
-  class="str-chat__reaction-selector str-chat__message-reaction-selector"
->
-  <div
-    *ngIf="tooltipText"
-    #selectorTooltip
-    class="str-chat__reaction-selector-tooltip"
-    data-testid="tooltip"
-    [ngStyle]="{
-      left: tooltipPositions?.tooltip + 'px',
-      visibility: tooltipPositions ? 'visible' : 'hidden'
-    }"
-  >
-    <div
-      class="arrow"
-      [ngStyle]="{ left: tooltipPositions?.arrow + 'px' }"
-    ></div>
-    <span class="latest-user-username">
-      {{ tooltipText }}
-    </span>
-  </div>
-  <ul
-    class="str-chat__message-reactions-list str-chat__message-reactions-options"
-  >
-    <li
-      *ngFor="
-        let reactionType of reactionOptions;
-        trackBy: trackByMessageReaction
-      "
-      class="
-        str-chat__message-reactions-option
-        str-chat__message-reactions-list-item
-        str-chat__emoji
-      "
-      data-testclass="emoji-option"
-      [class.str-chat__message-reactions-option-selected]="
-        isOwnReaction(reactionType)
-      "
-      (click)="react(reactionType)"
-      (keyup.enter)="react(reactionType)"
-    >
-      <span
-        class="
-          emoji
-          str-chat__emoji-selector-emoji-angular
-          str-chat__message-reaction-emoji
-        "
-      >
-        {{ getEmojiByReaction(reactionType) }}
-      </span>
-      <span
-        *ngIf="
-          messageReactionCounts[reactionType] &&
-          messageReactionCounts[reactionType]! > 0
-        "
-        class="str-chat__message-reactions-list-item__count"
-        attr.data-testid="{{ reactionType }}-reaction-count"
-      >
-        {{ messageReactionCounts[reactionType] }}
-      </span>
     </li>
   </ul>
 </div>

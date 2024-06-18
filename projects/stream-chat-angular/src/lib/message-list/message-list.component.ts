@@ -56,11 +56,6 @@ export class MessageListComponent
    */
   @Input() direction: 'bottom-to-top' | 'top-to-bottom' = 'bottom-to-top';
   /**
-   * Determines what triggers the appearance of the message options: by default you can hover (click on mobile) anywhere in the row of the message (`message-row` option), or you can set `message-bubble`, in that case only a hover (click on mobile) in the message bubble will trigger the options to appear.
-   */
-  @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
-    'message-row';
-  /**
    * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar webview](https://github.com/GetStream/stream-chat-angular/issues/418)
    *
    */

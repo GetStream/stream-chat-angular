@@ -235,11 +235,26 @@ export type IconContext = {
   icon: Icon | undefined;
 };
 
-export type MessageActionsBoxContext = {
+export type MessageActionsBoxContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
   isMine: boolean;
-  message: StreamMessage | undefined;
+  message: StreamMessage<T> | undefined;
   enabledActions: string[];
+  messageTextHtmlElement: HTMLElement | undefined;
 };
+
+export type MessageActionHandlerExtraParams = {
+  isMine: boolean;
+  messageTextHtmlElement?: HTMLElement;
+};
+
+export type MessageActionHandler<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = (
+  message: StreamMessage<T>,
+  params: MessageActionHandlerExtraParams
+) => void;
 
 export type MessageActionBoxItemContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
@@ -247,8 +262,19 @@ export type MessageActionBoxItemContext<
   actionName: string;
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   message: StreamMessage<T>;
-  isMine: boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => void;
+  actionHandlerExtraParams: MessageActionHandlerExtraParams;
+  actionHandler: MessageActionHandler<T>;
+};
+
+export type MessageReactionActionItem<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  actionName: 'react';
+  isVisible: (
+    enabledActions: string[],
+    isMine: boolean,
+    message: StreamMessage<T>
+  ) => boolean;
 };
 
 type MessageActionItemBase<
@@ -260,13 +286,21 @@ type MessageActionItemBase<
     isMine: boolean,
     message: StreamMessage<T>
   ) => boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => void;
+  actionHandler: MessageActionHandler;
 };
 
 export type MessageActionItem<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = MessageActionItemBase<T> & {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | 'mark-unread';
+  actionName:
+    | 'quote'
+    | 'pin'
+    | 'flag'
+    | 'edit'
+    | 'delete'
+    | 'mark-unread'
+    | 'thread-reply'
+    | 'copy-message-text';
 };
 
 export type CustomMessageActionItem<
@@ -275,13 +309,16 @@ export type CustomMessageActionItem<
   actionName: string;
 };
 
+export type MessageReactionsSelectorContext = {
+  messageId: string | undefined;
+  ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+};
+
 export type MessageReactionsContext = {
   messageId: string | undefined;
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  isSelectorOpen: boolean;
   latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
-  isSelectorOpenChangeHandler: (isOpen: boolean) => void;
 };
 
 export type ModalContext = {
@@ -408,12 +445,7 @@ export type MessageReactionClickDetails = {
 
 export type MessageActionsClickDetails<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> = {
-  message: StreamMessage<T>;
-  enabledActions: string[];
-  isMine: boolean;
-  customActions: CustomMessageActionItem[];
-};
+> = MessageActionsBoxContext<T> & { customActions: CustomMessageActionItem[] };
 
 export type GroupStyleOptions = {
   noGroupByUser?: boolean;

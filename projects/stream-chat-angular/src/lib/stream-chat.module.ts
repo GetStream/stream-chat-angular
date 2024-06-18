@@ -27,6 +27,7 @@ import { VoiceRecordingComponent } from './voice-recording/voice-recording.compo
 import { VoiceRecordingWavebarComponent } from './voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';
 import { NgxFloatUiModule } from 'ngx-float-ui';
 import { TranslateModule } from '@ngx-translate/core';
+import { MessageReactionsSelectorComponent } from './message-reactions-selector/message-reactions-selector.component';
 
 @NgModule({
   declarations: [
@@ -54,6 +55,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MessageBouncePromptComponent,
     VoiceRecordingComponent,
     VoiceRecordingWavebarComponent,
+    MessageReactionsSelectorComponent,
   ],
   imports: [
     CommonModule,
@@ -86,6 +88,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MessageBouncePromptComponent,
     VoiceRecordingComponent,
     VoiceRecordingWavebarComponent,
+    MessageReactionsSelectorComponent,
   ],
 })
 export class StreamChatModule {}

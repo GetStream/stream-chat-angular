@@ -1,10 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import {
-  MessageResponseBase,
-  ReactionResponse,
-  UserResponse,
-} from 'stream-chat';
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
+
+import { MessageResponseBase, UserResponse } from 'stream-chat';
 import { DefaultStreamChatGenerics, StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -23,6 +24,7 @@ import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeho
 import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
 import { MessageService } from '../message.service';
+import { NgxFloatUiModule } from 'ngx-float-ui';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -37,24 +39,22 @@ describe('MessageComponent', () => {
   let queryDeliveredIndicator: () => HTMLElement | null;
   let queryReadIndicator: () => HTMLElement | null;
   let queryAvatar: () => AvatarPlaceholderComponent;
-  let queryMessageOptions: () => HTMLElement | null;
-  let queryActionIcon: () => HTMLElement | null;
   let queryText: () => HTMLElement | null;
   let queryMessageActionsBoxComponent: () =>
     | MessageActionsBoxComponent
     | undefined;
   let queryAttachmentComponent: () => AttachmentListComponent;
-  let queryReactionIcon: () => HTMLElement | null;
-  let queryMessageReactions: () => MessageReactionsComponent;
   let queryMessageInner: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
   let queryDeletedMessageContainer: () => HTMLElement | null;
   let querySystemMessageContainer: () => HTMLElement | null;
   let queryReplyCountButton: () => HTMLButtonElement | null;
-  let queryReplyInThreadIcon: () => HTMLElement | null;
   let queryTranslationNotice: () => HTMLElement | null;
   let querySeeOriginalButton: () => HTMLButtonElement | null;
   let querySeeTranslationButton: () => HTMLButtonElement | null;
+  let queryMessageBubble: () => HTMLElement | null;
+  let queryMessageOptions: () => HTMLElement | null;
+  let queryMessageOptionsButton: () => HTMLElement | null;
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
@@ -69,7 +69,7 @@ describe('MessageComponent', () => {
     jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslateModule.forRoot(), NgxFloatUiModule],
       declarations: [
         MessageComponent,
         AvatarComponent,
@@ -117,24 +117,17 @@ describe('MessageComponent', () => {
     queryAvatar = () =>
       fixture.debugElement.query(By.css('[data-testid="avatar"]'))
         ?.componentInstance as AvatarPlaceholderComponent;
-    queryMessageOptions = () =>
-      nativeElement.querySelector('[data-testid=message-options]');
-    queryActionIcon = () =>
-      nativeElement.querySelector('[data-testid="action-icon"]');
     queryText = () => nativeElement.querySelector('[data-testid="text"]');
-    queryReactionIcon = () =>
-      nativeElement.querySelector('[data-testid="reaction-icon"]');
-    queryMessageReactions = () =>
-      fixture.debugElement.query(By.directive(MessageReactionsComponent))
-        .componentInstance as MessageReactionsComponent;
     queryMessageInner = () =>
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
       nativeElement.querySelector('[data-testid="loading-indicator"]');
     queryReplyCountButton = () =>
       nativeElement.querySelector('[data-testid="reply-count-button"]');
-    queryReplyInThreadIcon = () =>
-      nativeElement.querySelector('[data-testid="reply-in-thread"]');
+    queryMessageOptions = () =>
+      nativeElement.querySelector('[data-testid="message-options"]');
+    queryMessageOptionsButton = () =>
+      nativeElement.querySelector('[data-testid="message-options-button"]');
     message = mockMessage();
     component.message = message;
     component.ngOnChanges({ message: {} as SimpleChange });
@@ -156,6 +149,8 @@ describe('MessageComponent', () => {
       nativeElement.querySelector('[data-testid="see-original"]');
     querySeeTranslationButton = () =>
       nativeElement.querySelector('[data-testid="see-translation"]');
+    queryMessageBubble = () =>
+      nativeElement.querySelector('[data-testid="message-bubble"]');
     component.enabledMessageActions = [
       'read-events',
       'send-reaction',
@@ -425,7 +420,6 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(component.areOptionsVisible).toBe(false);
-      expect(queryMessageOptions()).toBeNull();
     });
 
     it('if message sending failed', () => {
@@ -457,67 +451,159 @@ describe('MessageComponent', () => {
     });
   });
 
-  it('should display message options for regular messages', () => {
-    expect(queryMessageOptions()).not.toBeNull();
+  describe('message menu when touch support is available', () => {
+    beforeEach(() => {
+      component.hasTouchSupport = true;
+      fixture.detectChanges();
+    });
+
+    it('should display message options for regular messages on long press', fakeAsync(() => {
+      spyOn(component['messageMenuTrigger'], 'show');
+      component.hasTouchSupport = true;
+
+      const messageBubble = queryMessageBubble()!;
+      const touchStart = new TouchEvent('touchstart');
+      messageBubble.dispatchEvent(touchStart);
+      tick(200);
+
+      expect(component['messageMenuTrigger'].show).not.toHaveBeenCalled();
+
+      tick(200);
+
+      expect(component['messageMenuTrigger'].show).toHaveBeenCalled();
+    }));
+
+    it(`shouldn't display message options for regular messages on short press`, fakeAsync(() => {
+      spyOn(component['messageMenuTrigger'], 'show');
+      component.hasTouchSupport = true;
+
+      const messageBubble = queryMessageBubble()!;
+      const touchStart = new MouseEvent('touchstart');
+      messageBubble.dispatchEvent(touchStart);
+      tick(200);
+
+      const mouseUpEvent = new MouseEvent('touchend');
+      messageBubble.dispatchEvent(mouseUpEvent);
+
+      expect(component['messageMenuTrigger'].show).not.toHaveBeenCalled();
+    }));
+
+    it(`shouldn't display message options if #areOptionsVisible is false`, fakeAsync(() => {
+      component.areOptionsVisible = false;
+      component.hasTouchSupport = true;
+      spyOn(component['messageMenuTrigger'], 'show');
+
+      const messageBubble = queryMessageBubble()!;
+      const mouseDownEvent = new TouchEvent('touchstart');
+      messageBubble.dispatchEvent(mouseDownEvent);
+      tick(400);
+
+      expect(component['messageMenuTrigger'].show).not.toHaveBeenCalled();
+    }));
+
+    it('should call custom message actions click handler', fakeAsync(() => {
+      const service = TestBed.inject(MessageActionsService);
+      const spy = jasmine.createSpy();
+      service.customActionClickHandler = spy;
+      component.enabledMessageActions = ['update-own-message', 'flag-message'];
+      component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
+      fixture.detectChanges();
+      spyOn(component['messageMenuTrigger'], 'show');
+      const messageBubble = queryMessageBubble()!;
+      const mouseDownEvent = new TouchEvent('touchstart');
+      messageBubble.dispatchEvent(mouseDownEvent);
+      tick(400);
+
+      expect(spy).toHaveBeenCalledWith({
+        message: component.message,
+        enabledActions: component.enabledMessageActions,
+        isMine: component.isSentByCurrentUser,
+        customActions: service.customActions$.getValue(),
+        messageTextHtmlElement: component['messageTextElement']?.nativeElement,
+      });
+
+      expect(component['messageMenuTrigger'].show).not.toHaveBeenCalled();
+    }));
+
+    it(`shouldn't display the message options button`, () => {
+      expect(queryMessageOptions()).toBeNull();
+    });
   });
 
-  it('should display message actions for regular messages', () => {
-    component.enabledMessageActions = ['delete'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
+  describe('message menu without touch support', () => {
+    beforeEach(() => {
+      component.hasTouchSupport = false;
+      fixture.detectChanges();
+    });
 
-    expect(queryActionIcon()).not.toBeNull();
+    it('should display message options for regular messages', () => {
+      expect(component.areMessageOptionsOpen).toBeFalse();
+
+      queryMessageOptionsButton()?.click();
+      fixture.detectChanges();
+
+      expect(component.areMessageOptionsOpen).toBeTrue();
+    });
+
+    it(`shouldn't display message options for regular messages on long click`, fakeAsync(() => {
+      const messageBubble = queryMessageBubble()!;
+      const mouseDownEvent = new MouseEvent('mousedown', { button: 0 });
+      messageBubble.dispatchEvent(mouseDownEvent);
+      tick(200);
+      const mouseUpEvent = new MouseEvent('mouseup');
+      messageBubble.dispatchEvent(mouseUpEvent);
+      fixture.detectChanges();
+
+      expect(component.areMessageOptionsOpen).toBeFalse();
+    }));
+
+    it(`shouldn't display message options if #areOptionsVisible is false`, fakeAsync(() => {
+      component.areOptionsVisible = false;
+
+      queryMessageOptionsButton()?.click();
+      fixture.detectChanges();
+
+      expect(component.areMessageOptionsOpen).toBeTrue();
+    }));
+
+    it('should call custom message actions click handler', () => {
+      const service = TestBed.inject(MessageActionsService);
+      const spy = jasmine.createSpy();
+      service.customActionClickHandler = spy;
+      queryMessageOptionsButton()?.click();
+      fixture.detectChanges();
+
+      expect(spy).toHaveBeenCalledWith({
+        message: component.message,
+        enabledActions: component.enabledMessageActions,
+        isMine: component.isSentByCurrentUser,
+        customActions: service.customActions$.getValue(),
+        messageTextHtmlElement: component['messageTextElement']?.nativeElement,
+      });
+    });
   });
 
-  it(`shouldn't display message actions if there are no enabled message actions`, () => {
+  it(`shouldn't display message options if there are no enabled message actions`, () => {
     component.enabledMessageActions = [];
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
-    expect(queryActionIcon()).toBeNull();
+    expect(component.areOptionsVisible).toBeFalse();
   });
 
   it(`shouldn't display message actions if there is no visible message action`, () => {
     component.enabledMessageActions = ['flag-message'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryActionIcon()).toBeNull();
-  });
-
-  it('should open and close message actions box', () => {
-    component.enabledMessageActions = ['update-own-message', 'flag-message'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(component.isActionBoxOpen).toBe(false);
-
-    queryActionIcon()?.click();
-    fixture.detectChanges();
-
-    expect(component.isActionBoxOpen).toBe(true);
-  });
-
-  it('should call custom message actions click handler', () => {
     const service = TestBed.inject(MessageActionsService);
-    const spy = jasmine.createSpy();
-    service.customActionClickHandler = spy;
-    component.enabledMessageActions = ['update-own-message', 'flag-message'];
+    service.defaultActions.find(
+      (a) => a.actionName === 'copy-message-text'
+    )!.isVisible = () => false;
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
 
-    queryActionIcon()?.click();
-
-    expect(spy).toHaveBeenCalledWith({
-      message: component.message,
-      enabledActions: component.enabledMessageActions,
-      isMine: component.isSentByCurrentUser,
-      customActions: service.customActions$.getValue(),
-    });
+    expect(component.areOptionsVisible).toBeFalse();
   });
 
   it('should provide #isMine to message actions box', () => {
-    component.isActionBoxOpen = true;
     fixture.detectChanges();
     const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
 
@@ -531,7 +617,6 @@ describe('MessageComponent', () => {
   });
 
   it('should provide #message to message actions box', () => {
-    component.isActionBoxOpen = true;
     fixture.detectChanges();
     const messageActionsBoxComponent = queryMessageActionsBoxComponent()!;
 
@@ -577,64 +662,6 @@ describe('MessageComponent', () => {
     expect(attachmentComponent.parentMessageId).toBe(
       component.message.parent_id
     );
-  });
-
-  it('should display reactions icon, if user can react to message', () => {
-    const message = {
-      ...mockMessage(),
-      id: 'messagId',
-      reaction_counts: { haha: 1 },
-      latest_reactions: [
-        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
-        { type: 'sad', user: { id: 'ben', name: 'Ben' } },
-      ] as ReactionResponse[],
-      own_reactions: [
-        { type: 'wow', user: { id: 'sara', name: 'Sara', image: 'image/url' } },
-      ] as any as ReactionResponse[],
-      text: 'Hi',
-    };
-    component.message = message as any as StreamMessage;
-    component.enabledMessageActions = [];
-    component.ngOnChanges({
-      enabledMessageActions: {} as SimpleChange,
-      message: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryReactionIcon()).toBeNull();
-
-    component.enabledMessageActions = ['send-reaction'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    component.isReactionSelectorOpen = true;
-    fixture.detectChanges();
-    const messageReactions = queryMessageReactions();
-
-    expect(queryReactionIcon()).not.toBeNull();
-    expect(messageReactions.messageId).toBe(message.id);
-    expect(messageReactions.latestReactions).toBe(message.latest_reactions);
-    expect(messageReactions.messageReactionCounts).toBe(
-      message.reaction_counts
-    );
-
-    expect(messageReactions.ownReactions).toBe(message.own_reactions);
-    expect(messageReactions.isSelectorOpen).toBe(true);
-
-    messageReactions.isSelectorOpenChange.next(false);
-
-    expect(component.isReactionSelectorOpen).toBeFalse();
-  });
-
-  it('should toggle reactions selector', () => {
-    component.enabledMessageActions = ['send-reaction'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(component.isReactionSelectorOpen).toBeFalse();
-
-    queryReactionIcon()?.click();
-    fixture.detectChanges();
-
-    expect(component.isReactionSelectorOpen).toBeTrue();
   });
 
   it(`shouldn't display empty text`, () => {
@@ -694,7 +721,7 @@ describe('MessageComponent', () => {
 
     expect(queryDeletedMessageContainer()).not.toBeNull();
     expect(queryAvatar()).toBeUndefined();
-    expect(queryMessageOptions()).toBeNull();
+    expect(component.areOptionsVisible).toBeFalse();
   });
 
   it('should display system message', () => {
@@ -912,27 +939,6 @@ describe('MessageComponent', () => {
     expect(setAsActiveParentMessageSpy).toHaveBeenCalledWith(component.message);
   });
 
-  it('should display reply in thread icon, if user has the necessary capability', () => {
-    expect(queryReplyInThreadIcon()).not.toBeNull();
-
-    component.enabledMessageActions = [];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryReplyInThreadIcon()).toBeNull();
-  });
-
-  it('should select parent message, if reply in thread is clicked', () => {
-    component.enabledMessageActions = ['send-reply'];
-    component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
-    fixture.detectChanges();
-
-    queryReplyInThreadIcon()?.click();
-    fixture.detectChanges();
-
-    expect(setAsActiveParentMessageSpy).toHaveBeenCalledWith(component.message);
-  });
-
   describe('in thread mode', () => {
     beforeEach(() => {
       component.mode = 'thread';
@@ -958,9 +964,8 @@ describe('MessageComponent', () => {
       expect(queryDeliveredIndicator()).toBeNull();
     });
 
-    it('should not display message actions for parent meesage', () => {
-      expect(queryActionIcon()).toBeNull();
-      expect(queryReactionIcon()).toBeNull();
+    it('should not display message options for parent meesage', () => {
+      expect(component.areOptionsVisible).toBeFalse();
     });
 
     it('should not display reply count for parent meesage', () => {
@@ -968,42 +973,6 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(queryReplyCountButton()).toBeNull();
-    });
-
-    it(`shouldn't display reply in thread for thread replies`, () => {
-      component.enabledMessageActions = ['send-reply'];
-      component.message!.parent_id = 'parentMessage';
-      component.ngOnChanges({
-        message: {} as SimpleChange,
-        enabledMessageActions: {} as SimpleChange,
-      });
-      fixture.detectChanges();
-
-      expect(queryReplyInThreadIcon()).toBeNull();
-    });
-
-    it('should display message actions for thread replies', () => {
-      component.enabledMessageActions = ['update-any-message'];
-      component.message!.parent_id = 'parentMessage';
-      component.ngOnChanges({
-        message: {} as SimpleChange,
-        enabledMessageActions: {} as SimpleChange,
-      });
-      fixture.detectChanges();
-
-      expect(queryActionIcon()).not.toBeNull();
-    });
-
-    it('should display message reactions for thread replies', () => {
-      component.enabledMessageActions = ['send-reaction'];
-      component.message!.parent_id = 'parentMessage';
-      component.ngOnChanges({
-        message: {} as SimpleChange,
-        enabledMessageActions: {} as SimpleChange,
-      });
-      fixture.detectChanges();
-
-      expect(queryReactionIcon()).not.toBeNull();
     });
   });
 
@@ -1031,7 +1000,7 @@ describe('MessageComponent', () => {
       enabledMessageActions: {} as any as SimpleChange,
     });
 
-    expect(component.visibleMessageActionsCount).toBe(3);
+    expect(component.visibleMessageActionsCount).toBe(3 + 1);
 
     component.enabledMessageActions = [
       'pin-message',
@@ -1046,7 +1015,7 @@ describe('MessageComponent', () => {
       enabledMessageActions: {} as any as SimpleChange,
     });
 
-    expect(component.visibleMessageActionsCount).toBe(4);
+    expect(component.visibleMessageActionsCount).toBe(4 + 1);
 
     const customActions = [
       {
@@ -1059,7 +1028,7 @@ describe('MessageComponent', () => {
     const service = TestBed.inject(MessageActionsService);
     service.customActions$.next(customActions);
 
-    expect(component.visibleMessageActionsCount).toBe(5);
+    expect(component.visibleMessageActionsCount).toBe(5 + 1);
   });
 
   describe('quoted message', () => {

@@ -3,8 +3,10 @@ import { BehaviorSubject } from 'rxjs';
 import {
   CustomMessageActionItem,
   DefaultStreamChatGenerics,
+  MessageActionHandlerExtraParams,
   MessageActionItem,
   MessageActionsClickDetails,
+  MessageReactionActionItem,
   StreamMessage,
 } from './types';
 import { ChatClientService } from './chat-client.service';
@@ -23,7 +25,16 @@ export class MessageActionsService<
   /**
    * Default actions - these are the actions that are handled by the built-in component
    */
-  readonly defaultActions: MessageActionItem<T>[] = [
+  readonly defaultActions: (
+    | MessageActionItem<T>
+    | MessageReactionActionItem<T>
+  )[] = [
+    {
+      actionName: 'react',
+      isVisible: (enabledActions: string[]) => {
+        return enabledActions.indexOf('send-reaction') !== -1;
+      },
+    },
     {
       actionName: 'mark-unread',
       actionLabelOrTranslationKey: 'streamChat.Mark as unread',
@@ -44,6 +55,18 @@ export class MessageActionsService<
       },
       isVisible: (enabledActions: string[]) =>
         enabledActions.indexOf('quote-message') !== -1,
+    },
+    {
+      actionName: 'thread-reply',
+      actionLabelOrTranslationKey: 'streamChat.Thread',
+      actionHandler: (message: StreamMessage<T>) => {
+        void this.channelService.setAsActiveParentMessage(message);
+      },
+      isVisible: (
+        enabledActions: string[],
+        isMine: boolean,
+        message: StreamMessage<T>
+      ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
     {
       actionName: 'pin',
@@ -106,6 +129,48 @@ export class MessageActionsService<
           isMine) ||
         enabledActions.indexOf('delete-any') !== -1 ||
         enabledActions.indexOf('delete-any-message') !== -1,
+    },
+    {
+      actionName: 'copy-message-text',
+      actionLabelOrTranslationKey: 'streamChat.Copy text',
+      isVisible: (_: string[], __: boolean, message: StreamMessage<T>) => {
+        const isClipboardSupported = navigator?.clipboard?.write !== undefined;
+        if (!isClipboardSupported) {
+          console.warn(
+            `Clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`
+          );
+        }
+        return (
+          !!message.text &&
+          (message.type === 'regular' || message.type === 'reply') &&
+          isClipboardSupported
+        );
+      },
+      actionHandler: (
+        message: StreamMessage<T>,
+        extraParams: MessageActionHandlerExtraParams
+      ) => {
+        const fallbackContent = message.text || '';
+        // Android Chrome can only copy plain text: https://issues.chromium.org/issues/40851502
+        void navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob(
+              [
+                extraParams.messageTextHtmlElement?.innerText ||
+                  fallbackContent,
+              ],
+              { type: 'text/plain' }
+            ),
+            'text/html': new Blob(
+              [
+                extraParams.messageTextHtmlElement?.innerHTML ||
+                  fallbackContent,
+              ],
+              { type: 'text/html' }
+            ),
+          }),
+        ]);
+      },
     },
   ];
   /**

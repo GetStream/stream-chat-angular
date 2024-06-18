@@ -11,13 +11,26 @@
     <ng-container
       *ngFor="let item of visibleMessageActionItems; trackBy: trackByActionName"
     >
-      <ng-container
-        *ngTemplateOutlet="
-          (customTemplatesService.messageActionsBoxItemTemplate$ | async) ||
-            defaultMessageActionItem;
-          context: getMessageActionTemplateContext(item)
-        "
-      ></ng-container>
+      <ng-container [ngSwitch]="item.actionName">
+        <ng-container *ngSwitchCase="'react'">
+          <ng-container
+            *ngTemplateOutlet="
+              (customTemplatesService.messageReactionsSelectorTemplate$
+                | async) || defaultReactionSelector;
+              context: getReactionSelectorTemplateContext()
+            "
+          ></ng-container>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          <ng-container
+            *ngTemplateOutlet="
+              (customTemplatesService.messageActionsBoxItemTemplate$ | async) ||
+                defaultMessageActionItem;
+              context: getMessageActionTemplateContext(item)
+            "
+          ></ng-container>
+        </ng-container>
+      </ng-container>
     </ng-container>
   </ul>
 </div>
@@ -27,14 +40,26 @@
   let-actionName="actionName"
   let-actionHandler="actionHandler"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
+  let-actionHandlerExtraParams="actionHandlerExtraParams"
 >
   <button
     class="str-chat__message-actions-list-item-button"
     [attr.data-testid]="actionName + '-action'"
-    (click)="actionHandler(message, isMine)"
+    (click)="actionHandler(message, actionHandlerExtraParams)"
   >
     <li class="str-chat__message-actions-list-item">
       {{ getActionLabel(actionLabelOrTranslationKey) | translate }}
     </li>
   </button>
+</ng-template>
+
+<ng-template
+  #defaultReactionSelector
+  let-messageId="messageId"
+  let-ownReactions="ownReactions"
+>
+  <stream-message-reactions-selector
+    [messageId]="message?.id"
+    [ownReactions]="message?.own_reactions || []"
+  ></stream-message-reactions-selector>
 </ng-template>
