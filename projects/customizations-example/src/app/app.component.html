@@ -154,12 +154,14 @@
   #messageActionsBoxTemplate
   let-isMine="isMine"
   let-enabledActions="enabledActions"
-  let-messageInput="message"
+  let-message="message"
+  let-messageTextHtmlElement="messageTextHtmlElement"
 >
   <stream-message-actions-box
     [isMine]="isMine"
     [enabledActions]="enabledActions"
-    [message]="messageInput"
+    [message]="message"
+    [messageTextHtmlElement]="messageTextHtmlElement"
   ></stream-message-actions-box>
 </ng-template>
 
