@@ -454,6 +454,7 @@ describe('MessageComponent', () => {
   describe('message menu when touch support is available', () => {
     beforeEach(() => {
       component.hasTouchSupport = true;
+      component['registerMenuTriggerEventHandlers']();
       fixture.detectChanges();
     });
 
@@ -513,6 +514,7 @@ describe('MessageComponent', () => {
       const mouseDownEvent = new TouchEvent('touchstart');
       messageBubble.dispatchEvent(mouseDownEvent);
       tick(400);
+      fixture.detectChanges();
 
       expect(spy).toHaveBeenCalledWith({
         message: component.message,

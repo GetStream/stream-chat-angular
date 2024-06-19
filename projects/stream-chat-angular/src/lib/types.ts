@@ -158,17 +158,6 @@ export type ChannelPreviewInfoContext<
   unreadCount: number;
 };
 
-export type MessageInputContext = {
-  isFileUploadEnabled: boolean | undefined;
-  areMentionsEnabled: boolean | undefined;
-  mentionScope: 'channel' | 'application' | undefined;
-  mode: 'thread' | 'main' | undefined;
-  isMultipleFileUploadEnabled: boolean | undefined;
-  message: StreamMessage | undefined;
-  messageUpdateHandler: () => void | undefined;
-  sendMessage$: Observable<void>;
-};
-
 export type MentionTemplateContext = {
   content: string;
   user: UserResponse;
@@ -189,6 +178,7 @@ export type MessageContext = {
   mode: 'thread' | 'main';
   isHighlighted: boolean;
   customActions: CustomMessageActionItem[];
+  scroll$?: Observable<void>;
 };
 
 export type ChannelActionsContext<

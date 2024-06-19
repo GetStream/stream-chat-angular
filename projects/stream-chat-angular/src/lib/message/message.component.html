@@ -129,6 +129,7 @@
           data-testid="message-bubble"
           [floatUiLoose]="messageMenuFloat"
           #messageMenuTrigger="floatUiLoose"
+          #messageBubble
           looseTrigger="none"
           [hideOnScroll]="false"
           [hideOnClickOutside]="true"
@@ -138,12 +139,6 @@
           (onShown)="areMessageOptionsOpen = true"
           (onHidden)="areMessageOptionsOpen = false"
           [positionFixed]="true"
-          (mousedown)="mousePushedDown($event)"
-          (mouseup)="mouseReleased()"
-          (touchstart)="touchStarted()"
-          (touchend)="touchEnded()"
-          (click)="messageBubbleClicked($event)"
-          (keyup.enter)="messageBubbleClicked($event)"
         >
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
             <div class="str-chat__attachments-container">

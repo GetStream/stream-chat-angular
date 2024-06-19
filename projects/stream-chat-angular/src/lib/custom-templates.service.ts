@@ -22,7 +22,6 @@ import {
   MessageActionBoxItemContext,
   MessageActionsBoxContext,
   MessageContext,
-  MessageInputContext,
   MessageReactionsContext,
   MessageReactionsSelectorContext,
   ModalContext,
@@ -67,13 +66,6 @@ export class CustomTemplatesService<
    */
   channelPreviewTemplate$ = new BehaviorSubject<
     TemplateRef<ChannelPreviewContext> | undefined
-  >(undefined);
-  /**
-   * The message input template used when editing a message (instead of the [default message input](../components/MessageInputComponent.mdx))
-   *
-   */
-  messageInputTemplate$ = new BehaviorSubject<
-    TemplateRef<MessageInputContext> | undefined
   >(undefined);
   /**
    * The template used for displaying a [mention inside a message](../code-examples/mention-actions.mdx)

@@ -12,7 +12,7 @@
     "prestart:dev": "npm run config:dev",
     "start:dev": "rm -rf dist & npm run watch & (wait-on dist && ng serve sample-app --host 0.0.0.0)",
     "prestart:dev:customizations-example": "npm run config:dev",
-    "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example)",
+    "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example --host 0.0.0.0)",
     "build": "ng build stream-chat-angular",
     "build:prod": "npm run copy-css && ng build stream-chat-angular --configuration production",
     "watch": "ng build stream-chat-angular --watch --configuration development",

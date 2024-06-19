@@ -26,6 +26,7 @@
   let-enabledMessageActions="enabledMessageActions"
   let-mode="mode"
   let-isHighlighted="isHighlighted"
+  let-scroll$="scroll$"
 >
   <div>
     <stream-message
@@ -34,31 +35,9 @@
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
       [isHighlighted]="isHighlighted"
+      [scroll$]="scroll$"
     ></stream-message>
   </div>
-</ng-template>
-
-<ng-template
-  #customMessageInputTemplate
-  let-message="message"
-  let-isFileUploadEnabled="isFileUploadEnabled"
-  let-areMentionsEnabled="areMentionsEnabled"
-  let-mentionScope="mentionScope"
-  let-mode="mode"
-  let-isMultipleFileUploadEnabled="isMultipleFileUploadEnabled"
-  let-messageUpdateHandler="messageUpdateHandler"
-  let-sendMessage$="sendMessage$"
->
-  <stream-message-input
-    [message]="message"
-    [isFileUploadEnabled]="isFileUploadEnabled"
-    [areMentionsEnabled]="areMentionsEnabled"
-    [mentionScope]="mentionScope"
-    [mode]="mode"
-    [isMultipleFileUploadEnabled]="isMultipleFileUploadEnabled"
-    [sendMessage$]="sendMessage$"
-    (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
-  ></stream-message-input>
 </ng-template>
 
 <ng-template #mentionTemplate let-user="user">

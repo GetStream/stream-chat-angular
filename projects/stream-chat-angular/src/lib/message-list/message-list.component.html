@@ -239,6 +239,7 @@
     let-enabledMessageActions="enabledMessageActions"
     let-mode="mode"
     let-isHighlighted="isHighlighted"
+    let-scroll$="scroll$"
   >
     <stream-message
       [message]="messageInput"
@@ -246,6 +247,7 @@
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
       [isHighlighted]="isHighlighted"
+      [scroll$]="scroll$"
     ></stream-message>
   </ng-template>
   <ng-container
@@ -258,7 +260,8 @@
         ),
         enabledMessageActions: enabledMessageActions,
         mode: mode,
-        isHighlighted: message?.id === highlightedMessageId
+        isHighlighted: message?.id === highlightedMessageId,
+        scroll$: scroll$
       }
     "
   ></ng-container>

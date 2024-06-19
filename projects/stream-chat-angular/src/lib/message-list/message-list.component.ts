@@ -120,6 +120,7 @@ export class MessageListComponent
   unreadCount?: number;
   isJumpingToLatestUnreadMessage = false;
   isJumpToLatestButtonVisible = true;
+  scroll$ = new Subject<void>();
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -572,6 +573,7 @@ export class MessageListComponent
     ) {
       return;
     }
+    this.scroll$.next();
     const scrollPosition = this.getScrollPosition();
     this.chatClientService.chatClient?.logger?.(
       'info',

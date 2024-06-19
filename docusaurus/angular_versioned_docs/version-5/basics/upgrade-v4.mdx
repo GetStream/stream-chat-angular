@@ -181,7 +181,7 @@ The modal-based edit message UI is replaced with a more modern approach: the mes
 These are the component-level changes related to this feature:
 
 - The `EditMessageForm` component has been removed
-- The `editMessageFormTemplate$` has been removed from the [`CustomTemplatesService`](../../services/CustomTemplatesService)
+- The `editMessageFormTemplate$` and `messageInputTemplate$` have been removed from the [`CustomTemplatesService`](../../services/CustomTemplatesService)
 
 If you don't want to have this UI, you can set the [`watchForMessageToEdit`](../../components/MessageInputComponent/#watchformessagetoedit) input to `false` on the `MessageInputComponent`:
 

@@ -135,10 +135,11 @@ export class MessageActionsService<
       actionLabelOrTranslationKey: 'streamChat.Copy text',
       isVisible: (_: string[], __: boolean, message: StreamMessage<T>) => {
         const isClipboardSupported = navigator?.clipboard?.write !== undefined;
-        if (!isClipboardSupported) {
+        if (!isClipboardSupported && !this.hasDisplayedClipboardWarning) {
           console.warn(
-            `Clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`
+            `[Stream Chat] Copy action is disabled because clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`
           );
+          this.hasDisplayedClipboardWarning = true;
         }
         return (
           !!message.text &&
@@ -185,6 +186,7 @@ export class MessageActionsService<
    * By default the [`MessageComponent`](../../components/MessageComponent) will display the [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent). You can override that behavior by providing your own event handler.
    */
   customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
+  private hasDisplayedClipboardWarning = false;
 
   constructor(
     private chatClientService: ChatClientService,

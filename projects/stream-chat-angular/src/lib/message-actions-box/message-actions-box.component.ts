@@ -15,7 +15,6 @@ import {
   CustomMessageActionItem,
   MessageActionBoxItemContext,
   MessageActionItem,
-  MessageInputContext,
   MessageReactionActionItem,
   MessageReactionsSelectorContext,
   StreamMessage,
@@ -48,7 +47,6 @@ export class MessageActionsBoxComponent
    * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
    */
   @Input() enabledActions: string[] = [];
-  messageInputTemplate: TemplateRef<MessageInputContext> | undefined;
   messageActionItemTemplate:
     | TemplateRef<MessageActionBoxItemContext>
     | undefined;

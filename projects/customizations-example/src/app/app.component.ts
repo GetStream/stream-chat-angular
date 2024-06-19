@@ -16,7 +16,6 @@ import {
   MentionAutcompleteListItemContext,
   CustomTemplatesService,
   CommandAutocompleteListItemContext,
-  MessageInputContext,
   EmojiPickerContext,
   MentionTemplateContext,
   MessageContext,
@@ -52,8 +51,6 @@ export class AppComponent implements AfterViewInit {
   private commandAutocompleteItemTemplate!: TemplateRef<CommandAutocompleteListItemContext>;
   @ViewChild('channelPreviewInfo')
   private channelPreviewInfoTemplate!: TemplateRef<ChannelPreviewInfoContext>;
-  @ViewChild('customMessageInputTemplate')
-  private customMessageInputTemplate!: TemplateRef<MessageInputContext>;
   @ViewChild('mentionTemplate')
   private mentionTemplate!: TemplateRef<MentionTemplateContext>;
   @ViewChild('emojiPickerTemplate')
@@ -135,9 +132,6 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.channelPreviewInfoTemplate$.next(
       this.channelPreviewInfoTemplate
-    );
-    this.customTemplatesService.messageInputTemplate$.next(
-      this.customMessageInputTemplate
     );
     this.customTemplatesService.mentionTemplate$.next(this.mentionTemplate);
     this.customTemplatesService.emojiPickerTemplate$.next(

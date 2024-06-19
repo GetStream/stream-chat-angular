@@ -10,6 +10,7 @@ import {
   AfterViewInit,
   ViewChild,
   ElementRef,
+  NgZone,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -28,7 +29,7 @@ import {
   CustomMetadataContext,
 } from '../types';
 import emojiRegex from 'emoji-regex';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
@@ -77,6 +78,10 @@ export class MessageComponent
    * Highlighting is used to add visual emphasize to a message when jumping to the message
    */
   @Input() isHighlighted = false;
+  /**
+   * An Observable that emits when the message list is scrolled, it's used to prevent opening the message menu while scroll is in progress
+   */
+  @Input() scroll$?: Observable<void>;
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isEditedFlagOpened = false;
@@ -116,6 +121,7 @@ export class MessageComponent
   @ViewChild('messageMenuFloat')
   messageMenuFloat!: NgxFloatUiContentComponent;
   @ViewChild('messageTextElement') messageTextElement?: ElementRef<HTMLElement>;
+  @ViewChild('messageBubble') messageBubble?: ElementRef<HTMLElement>;
   private showMessageMenuTimeout?: ReturnType<typeof setTimeout>;
   private shouldPreventMessageMenuClose = false;
   private _visibleMessageActionsCount = 0;
@@ -127,7 +133,8 @@ export class MessageComponent
     private cdRef: ChangeDetectorRef,
     private dateParser: DateParserService,
     private messageService: MessageService,
-    private messageActionsService: MessageActionsService
+    private messageActionsService: MessageActionsService,
+    private ngZone: NgZone
   ) {
     this.displayAs = this.messageService.displayAs;
   }
@@ -269,6 +276,11 @@ export class MessageComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
+    if (this.hasTouchSupport && this.messageBubble?.nativeElement) {
+      this.ngZone.runOutsideAngular(() => {
+        this.registerMenuTriggerEventHandlers();
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -353,6 +365,7 @@ export class MessageComponent
       mode: this.mode,
       customActions: this.messageActionsService.customActions$.getValue(),
       parsedDate: this.parsedDate,
+      scroll$: this.scroll$,
     };
   }
 
@@ -565,25 +578,55 @@ export class MessageComponent
 
   private startMessageMenuShowTimer(options: { fromTouch: boolean }) {
     this.stopMessageMenuShowTimer();
+    if (this.scroll$) {
+      this.subscriptions.push(
+        this.scroll$.pipe(take(1)).subscribe(() => {
+          this.stopMessageMenuShowTimer();
+        })
+      );
+    }
     this.showMessageMenuTimeout = setTimeout(() => {
       if (!this.message) {
         return;
       }
-      if (this.messageActionsService.customActionClickHandler) {
-        this.messageActionsService.customActionClickHandler({
-          message: this.message,
-          enabledActions: this.enabledMessageActions,
-          customActions: this.messageActionsService.customActions$.getValue(),
-          isMine: this.isSentByCurrentUser,
-          messageTextHtmlElement: this.messageTextElement?.nativeElement,
-        });
-        return;
-      } else {
-        this.shouldPreventMessageMenuClose = !options.fromTouch;
-        this.messageMenuTrigger?.show();
-      }
-      this.showMessageMenuTimeout = undefined;
+      this.ngZone.run(() => {
+        if (this.messageActionsService.customActionClickHandler) {
+          this.messageActionsService.customActionClickHandler({
+            message: this.message,
+            enabledActions: this.enabledMessageActions,
+            customActions: this.messageActionsService.customActions$.getValue(),
+            isMine: this.isSentByCurrentUser,
+            messageTextHtmlElement: this.messageTextElement?.nativeElement,
+          });
+          return;
+        } else {
+          this.shouldPreventMessageMenuClose = !options.fromTouch;
+          this.messageMenuTrigger?.show();
+        }
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+        this.showMessageMenuTimeout = undefined;
+      });
     }, 400);
+  }
+
+  private registerMenuTriggerEventHandlers() {
+    this.messageBubble!.nativeElement.addEventListener('touchstart', () =>
+      this.touchStarted()
+    );
+    this.messageBubble!.nativeElement.addEventListener('touchend', () =>
+      this.touchEnded()
+    );
+    this.messageBubble!.nativeElement.addEventListener('mousedown', (e) =>
+      this.mousePushedDown(e)
+    );
+    this.messageBubble!.nativeElement.addEventListener('mouseup', () =>
+      this.mouseReleased()
+    );
+    this.messageBubble!.nativeElement.addEventListener('click', (e) =>
+      this.messageBubbleClicked(e)
+    );
   }
 
   private stopMessageMenuShowTimer() {
