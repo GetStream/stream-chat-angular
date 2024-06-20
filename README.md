@@ -52,41 +52,13 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
-Run the following command if you are using **Angular 17**
+Supported Angular versions: **Angular 15-18**
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core
+npm install stream-chat-angular
 ```
 
-Run the following command if you are using **Angular 16**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core
-```
-
-Run the following command if you are using **Angular 15**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@15
-```
-
-Run the following command if you are using **Angular 14**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@14
-```
-
-Run the following command if you are using **Angular 13**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@13 --legacy-peer-deps
-```
-
-Run this command if you are using **Angular 12**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@12 --legacy-peer-deps
-```
+Supported node verison: 18+
 
 ## Sample App
 
@@ -108,8 +80,6 @@ Run `npm install` to install dependencies.
 
 Run `npm start` and navigate to `http://localhost:4200/`.
 
-Preferred Node version: v16.
-
 ## Customization examples
 
 This repository includes a sample app that showcases how you can provide your own template for different components within the SDK:
@@ -127,8 +97,6 @@ STREAM_USER_TOKEN=<Your user token>
 Run `npm install` to install dependencies.
 
 Run `npm run start:customizations-example` and navigate to `http://localhost:4200/`.
-
-Preferred Node version: v16.
 
 ## Local development
 
@@ -151,5 +119,3 @@ A note about the documentation:
 - Documentations for Angular services are generated from doc comments in the source files (not under source control)
 - Documentations for inputs and outputs of Angular components are generated from doc comments in the source files (not under source control)
 - Everything else in the documentation is written in `mdx` files located in the `docusaurus` folder
-
-Preferred Node version: v16.
