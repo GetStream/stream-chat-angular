@@ -10,10 +10,10 @@
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
 - [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/)
-- [Demo Apps](https://getstream.io/chat/demos/)
 - [Docs](https://getstream.io/chat/docs/sdk/angular/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
 - [Demo application](https://angular-chat-demo-getstreamio.vercel.app/)
+- [Codesandbox](https://codesandbox.io/p/devbox/stream-chat-angular-sample-app-gkczc5?file=%2Fsrc%2Fapp%2Fapp.component.ts%3A11%2C32)
 
 With our component library, you can build a variety of chat use cases, including:
 
