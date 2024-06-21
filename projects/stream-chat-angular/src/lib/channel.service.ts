@@ -358,6 +358,7 @@ export class ChannelService<
   private sort: ChannelSort<T> | undefined;
   private options: ChannelOptions | undefined;
   private readonly messagePageSize = 25;
+  private readonly attachmentMaxSizeFallbackInMB = 100;
   private messageToQuoteSubject = new BehaviorSubject<
     StreamMessage<T> | undefined
   >(undefined);
@@ -958,9 +959,23 @@ export class ChannelService<
         const code: number | undefined =
           /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
           uploadResult.reason.response?.data?.code;
-        if (code === 22) {
+        if (
+          code === 22 ||
+          (code === 4 && message?.toLowerCase()?.includes('bytes'))
+        ) {
           reason = 'file-size';
-          extraData = { param: /\d+MB/.exec(message || '')?.[0] || '100MB' };
+          extraData = {
+            param:
+              /\d+MB|\d+\s?bytes/.exec(message || '')?.[0] ||
+              `${this.attachmentMaxSizeFallbackInMB}MB`,
+          };
+          if (extraData.param.includes('bytes')) {
+            const limitInBytes = +(
+              /\d+/.exec(extraData.param)?.[0] ||
+              this.attachmentMaxSizeFallbackInMB * 1024 * 1024
+            );
+            extraData.param = `${limitInBytes / (1024 * 1024)}MB`;
+          }
         } else if (
           code === 4 &&
           message?.toLowerCase()?.includes('file extension')

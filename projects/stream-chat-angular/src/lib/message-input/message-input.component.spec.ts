@@ -10,7 +10,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of } from 'rxjs';
-import { AppSettings, Channel, UserResponse } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -62,8 +62,7 @@ describe('MessageInputComponent', () => {
     deleteAttachment: jasmine.Spy;
     retryAttachmentUpload: jasmine.Spy;
   };
-  let appSettings$: Subject<AppSettings>;
-  let getAppSettings: jasmine.Spy;
+
   let mockMessageToQuote$: BehaviorSubject<undefined | StreamMessage>;
   let selectMessageToQuoteSpy: jasmine.Spy;
   let typingStartedSpy: jasmine.Spy;
@@ -73,7 +72,6 @@ describe('MessageInputComponent', () => {
   }>;
 
   beforeEach(() => {
-    appSettings$ = new Subject<AppSettings>();
     channel = generateMockChannels(1)[0];
     mockActiveChannel$ = new BehaviorSubject(channel);
     mockActiveParentMessageId$ = new BehaviorSubject<string | undefined>(
@@ -94,7 +92,6 @@ describe('MessageInputComponent', () => {
       deleteAttachment: jasmine.createSpy(),
       retryAttachmentUpload: jasmine.createSpy(),
     };
-    getAppSettings = jasmine.createSpy();
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
       undefined
     );
@@ -146,8 +143,6 @@ describe('MessageInputComponent', () => {
           useValue: {
             user$: of(user),
             chatClient: { user },
-            appSettings$,
-            getAppSettings,
           },
         },
       ],
@@ -632,76 +627,6 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(queryTextarea()).toBeUndefined();
-  });
-
-  it('should check uploaded attachments', async () => {
-    const notificationService = TestBed.inject(NotificationService);
-    spyOn(notificationService, 'addTemporaryNotification');
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: [],
-        allowed_mime_types: [],
-      },
-      image_upload_config: {
-        allowed_file_extensions: [],
-        allowed_mime_types: [],
-      },
-    });
-    let files = [{ name: 'test.pdf', type: 'application/pdf' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
-
-    attachmentService.filesSelected.calls.reset();
-    appSettings$.next({
-      file_upload_config: {
-        blocked_file_extensions: ['.doc'],
-      },
-      image_upload_config: {
-        blocked_mime_types: ['image/png'],
-      },
-    });
-    files = [
-      { name: 'test.pdf', type: 'application/pdf' },
-      { name: 'test2.doc', type: 'application/msword' },
-      { name: 'test3.png', type: 'image/png' },
-    ];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
-    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
-      2
-    );
-
-    attachmentService.filesSelected.calls.reset();
-    (notificationService.addTemporaryNotification as jasmine.Spy).calls.reset();
-    appSettings$.next({
-      file_upload_config: {
-        allowed_mime_types: ['application/msword'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.jpg', '.png'],
-      },
-    });
-    files = [
-      { name: 'test.pdf', type: 'application/pdf' },
-      { name: 'test2.doc', type: 'application/msword' },
-      { name: 'test3.png', type: 'image/png' },
-      { name: 'test4.txt', type: 'application/text' },
-    ];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
-    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
-      2
-    );
-  });
-
-  it('should load app settings, if not yet loaded', async () => {
-    const files = [{ name: 'test.pdf', type: 'application/pdf' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(getAppSettings).toHaveBeenCalledWith();
   });
 
   it('should send parent message id if in thread mode', async () => {

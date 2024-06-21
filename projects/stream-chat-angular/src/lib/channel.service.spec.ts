@@ -1633,6 +1633,16 @@ describe('ChannelService', () => {
               },
             },
           });
+        case 'file_too_big.jpg':
+          return Promise.reject({
+            response: {
+              data: {
+                code: 4,
+                message:
+                  'UploadImage failed with error: "File size is above the size limit (1048576 bytes)"',
+              },
+            },
+          });
         default:
           return Promise.resolve({
             file: 'http://url/to/image',
@@ -1670,12 +1680,14 @@ describe('ChannelService', () => {
     const file3 = { name: 'menu.pdf' } as File;
     const file4 = { name: 'file_error.pdf' } as File;
     const file5 = { name: 'video.mp4', type: 'video/mp4' } as File;
+    const file6 = { name: 'file_too_big.jpg', type: 'image/jpg' } as File;
     const attachments = [
       { file: file1, type: 'image', state: 'uploading' },
       { file: file2, type: 'image', state: 'uploading' },
       { file: file3, type: 'file', state: 'uploading' },
       { file: file4, type: 'file', state: 'uploading' },
       { file: file5, type: 'video', state: 'uploading' },
+      { file: file6, type: 'image', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
     const expectedResult: AttachmentUpload[] = [
@@ -1713,6 +1725,13 @@ describe('ChannelService', () => {
         type: 'video',
         url: 'http://url/to/file',
         thumb_url: 'http://url/to/poster',
+      },
+      {
+        file: file6,
+        state: 'error',
+        type: 'image',
+        errorReason: 'file-size',
+        errorExtraInfo: [{ param: '1MB' }],
       },
     ];
 

@@ -21,7 +21,7 @@ import {
 import { ChatClientService } from '../chat-client.service';
 import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
 import { first, map, take, tap } from 'rxjs/operators';
-import { AppSettings, Channel, UserResponse } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
@@ -37,7 +37,6 @@ import {
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
 import { TextareaInterface } from './textarea.interface';
-import { isImageFile } from '../is-image-file';
 import { EmojiInputService } from './emoji-input.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -135,7 +134,6 @@ export class MessageInputComponent
   private subscriptions: Subscription[] = [];
   private hideNotification: (() => void) | undefined;
   private isViewInited = false;
-  private appSettings: AppSettings | undefined;
   private channel: Channel<DefaultStreamChatGenerics> | undefined;
   private sendMessageSubcription: Subscription | undefined;
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
@@ -182,11 +180,6 @@ export class MessageInputComponent
           this.setCanSendMessages();
         }
       })
-    );
-    this.subscriptions.push(
-      this.chatClient.appSettings$.subscribe(
-        (appSettings) => (this.appSettings = appSettings)
-      )
     );
     this.subscriptions.push(
       this.channelService.messageToQuote$.subscribe((m) => {
@@ -428,9 +421,6 @@ export class MessageInputComponent
   }
 
   async filesSelected(fileList: FileList | null) {
-    if (!(await this.areAttachemntsValid(fileList))) {
-      return;
-    }
     await this.attachmentService.filesSelected(fileList);
     this.clearFileInput();
   }
@@ -504,78 +494,6 @@ export class MessageInputComponent
         componentFactory
       );
     this.cdRef.detectChanges();
-  }
-
-  private async areAttachemntsValid(fileList: FileList | null) {
-    if (!fileList) {
-      return true;
-    }
-    if (!this.appSettings) {
-      await this.chatClient.getAppSettings();
-    }
-    let isValid = true;
-    Array.from(fileList).forEach((f) => {
-      let hasBlockedExtension: boolean;
-      let hasBlockedMimeType: boolean;
-      let hasNotAllowedExtension: boolean;
-      let hasNotAllowedMimeType: boolean;
-      if (isImageFile(f)) {
-        hasBlockedExtension =
-          !!this.appSettings?.image_upload_config?.blocked_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
-          );
-        hasBlockedMimeType =
-          !!this.appSettings?.image_upload_config?.blocked_mime_types?.find(
-            (type) => f.type === type
-          );
-        hasNotAllowedExtension =
-          !!this.appSettings?.image_upload_config?.allowed_file_extensions
-            ?.length &&
-          !this.appSettings?.image_upload_config?.allowed_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
-          );
-        hasNotAllowedMimeType =
-          !!this.appSettings?.image_upload_config?.allowed_mime_types?.length &&
-          !this.appSettings?.image_upload_config?.allowed_mime_types?.find(
-            (type) => f.type === type
-          );
-      } else {
-        hasBlockedExtension =
-          !!this.appSettings?.file_upload_config?.blocked_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
-          );
-        hasBlockedMimeType =
-          !!this.appSettings?.file_upload_config?.blocked_mime_types?.find(
-            (type) => f.type === type
-          );
-        hasNotAllowedExtension =
-          !!this.appSettings?.file_upload_config?.allowed_file_extensions
-            ?.length &&
-          !this.appSettings?.file_upload_config?.allowed_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
-          );
-        hasNotAllowedMimeType =
-          !!this.appSettings?.file_upload_config?.allowed_mime_types?.length &&
-          !this.appSettings?.file_upload_config?.allowed_mime_types?.find(
-            (type) => f.type === type
-          );
-      }
-      if (
-        hasBlockedExtension ||
-        hasBlockedMimeType ||
-        hasNotAllowedExtension ||
-        hasNotAllowedMimeType
-      ) {
-        this.notificationService.addTemporaryNotification(
-          'streamChat.Error uploading file, extension not supported',
-          undefined,
-          undefined,
-          { name: f.name, ext: f.type }
-        );
-        isValid = false;
-      }
-    });
-    return isValid;
   }
 
   private setCanSendMessages() {
