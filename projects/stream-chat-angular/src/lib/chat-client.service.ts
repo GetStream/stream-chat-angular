@@ -105,6 +105,12 @@ export class ChatClientService<
     this.trackPendingChannelInvites =
       clientOptions?.trackPendingChannelInvites === true;
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
+    const sdkPrefix = 'stream-chat-angular';
+    if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
+      this.chatClient.setUserAgent(
+        `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
+      );
+    }
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
@@ -129,12 +135,6 @@ export class ChatClientService<
       this.userSubject.next(
         this.chatClient.user ? { ...this.chatClient.user } : undefined
       );
-      const sdkPrefix = 'stream-chat-angular';
-      if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
-        this.chatClient.setUserAgent(
-          `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
-        );
-      }
     });
     if (this.chatClient.user?.id && this.trackPendingChannelInvites) {
       const channels = await this.chatClient.queryChannels(
