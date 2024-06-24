@@ -347,7 +347,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const setUserAgent = jasmine.createSpy();
   const queryUsers = jasmine.createSpy();
   const queryChannels = jasmine.createSpy().and.returnValue([]);
-  const getAppSettings = jasmine.createSpy().and.returnValue({
+  const getAppSettings = jasmine.createSpy().and.resolveTo({
     app: {
       file_upload_config: {
         allowed_file_extensions: [],

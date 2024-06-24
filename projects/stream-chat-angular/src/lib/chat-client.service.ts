@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import {
+  AppSettingsAPIResponse,
   Channel,
   ChannelFilters,
   ChannelResponse,
@@ -72,6 +73,7 @@ export class ChatClientService<
   >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
   private trackPendingChannelInvites = true;
+  private appSettingsPromise?: Promise<AppSettingsAPIResponse<T>>;
 
   constructor(
     private ngZone: NgZone,
@@ -102,6 +104,10 @@ export class ChatClientService<
     userTokenOrProvider: TokenOrProvider,
     clientOptions?: StreamChatOptions & { trackPendingChannelInvites?: boolean }
   ): ConnectAPIResponse<T> {
+    if (this.chatClient && this.chatClient.key !== apiKey) {
+      this.appSettingsSubject.next(undefined);
+      this.appSettingsPromise = undefined;
+    }
     this.trackPendingChannelInvites =
       clientOptions?.trackPendingChannelInvites === true;
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
@@ -145,7 +151,6 @@ export class ChatClientService<
       );
       this.pendingInvitesSubject.next(channels);
     }
-    this.appSettingsSubject.next(undefined);
     this.subscriptions.push(
       this.chatClient.on((e) => {
         this.updateUser(e);
@@ -192,10 +197,17 @@ export class ChatClientService<
    * Loads the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript), if the application settings have already been loaded, it does nothing.
    */
   async getAppSettings() {
+    if (this.appSettingsPromise) {
+      return;
+    }
     if (this.appSettingsSubject.getValue()) {
       return;
     }
-    const settings = await this.chatClient.getAppSettings();
+    this.appSettingsPromise = this.chatClient.getAppSettings();
+    void this.appSettingsPromise.finally(() => {
+      this.appSettingsPromise = undefined;
+    });
+    const settings = await this.appSettingsPromise;
     this.appSettingsSubject.next((settings.app as AppSettings) || {});
   }
 
