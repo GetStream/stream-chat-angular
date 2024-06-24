@@ -1,24 +1,32 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { first } from 'rxjs/operators';
-import { Attachment } from 'stream-chat';
+import { AppSettings, Attachment } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
 import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
+import { Subject } from 'rxjs';
+import { ChatClientService } from './chat-client.service';
 
 describe('AttachmentService', () => {
   let service: AttachmentService<DefaultStreamChatGenerics>;
   let uploadAttachmentsSpy: jasmine.Spy;
   let deleteAttachmentSpy: jasmine.Spy;
   let readAsDataURLSpy: jasmine.Spy;
+  let appSettings$: Subject<AppSettings>;
+  let getAppSettings: jasmine.Spy;
 
   beforeEach(() => {
+    appSettings$ = new Subject<AppSettings>();
+    getAppSettings = jasmine.createSpy();
+    getAppSettings.and.callFake(() => appSettings$.next({}));
     readAsDataURLSpy = jasmine.createSpy();
     spyOn(window, 'FileReader').and.returnValue({
       onload: jasmine.createSpy(),
       readAsDataURL: readAsDataURLSpy,
     } as any as FileReader);
     uploadAttachmentsSpy = jasmine.createSpy('uploadAttachmentsSpy');
+    uploadAttachmentsSpy.and.resolveTo([]);
     deleteAttachmentSpy = jasmine.createSpy('deleteAttachmentSpy');
     TestBed.configureTestingModule({
       providers: [
@@ -27,6 +35,13 @@ describe('AttachmentService', () => {
           useValue: {
             uploadAttachments: uploadAttachmentsSpy,
             deleteAttachment: deleteAttachmentSpy,
+          },
+        },
+        {
+          provide: ChatClientService,
+          useValue: {
+            appSettings$,
+            getAppSettings,
           },
         },
       ],
@@ -53,23 +68,31 @@ describe('AttachmentService', () => {
 
   it('should delete attachment, if file is uploading', fakeAsync(() => {
     const file = { name: 'myimage.jpg', type: 'image/jpg' } as any as File;
-    uploadAttachmentsSpy.and.resolveTo([
-      {
-        file,
-        state: 'success' as const,
-        url: 'http://url/to/image',
-        type: 'image' as const,
-      },
-    ]);
+    let resolver!: Function;
+    uploadAttachmentsSpy.and.returnValue(
+      new Promise((resolve) => {
+        resolver = () =>
+          resolve([
+            {
+              file,
+              state: 'success' as const,
+              url: 'http://url/to/image',
+              type: 'image' as const,
+            },
+          ]);
+      })
+    );
     const attachmentUploadsSpy = jasmine.createSpy('attachmentUploadsSpy');
     service.attachmentUploads$.subscribe(attachmentUploadsSpy);
     void service.filesSelected([file] as any as FileList);
+    tick();
     let attachmentUpload!: AttachmentUpload;
     service.attachmentUploads$.pipe(first()).subscribe((uploads) => {
       attachmentUpload = uploads[0];
     });
     void service.deleteAttachment(attachmentUpload);
     attachmentUploadsSpy.calls.reset();
+    resolver();
     tick();
 
     expect(attachmentUploadsSpy).toHaveBeenCalledWith([]);
@@ -265,15 +288,42 @@ describe('AttachmentService', () => {
       { type: 'video/x-msvideo' },
     ];
     const files = [...imageFiles, ...dataFiles, ...videoFiles];
-    uploadAttachmentsSpy.and.resolveTo([
-      { file: imageFiles[0], state: 'success', url: 'url1', type: 'image' },
-      { file: imageFiles[1], state: 'success', url: 'url2', type: 'image' },
-      { file: dataFiles[0], state: 'success', url: 'url3', type: 'file' },
-      { file: dataFiles[1], state: 'success', url: 'url4', type: 'file' },
-      { file: videoFiles[0], state: 'success', url: 'url5', type: 'video' },
-      { file: videoFiles[1], state: 'success', url: 'url6', type: 'video' },
-    ]);
+    let resolver!: Function;
+    uploadAttachmentsSpy.and.returnValue(
+      new Promise((resolve) => {
+        resolver = () =>
+          resolve([
+            {
+              file: imageFiles[0],
+              state: 'success',
+              url: 'url1',
+              type: 'image',
+            },
+            {
+              file: imageFiles[1],
+              state: 'success',
+              url: 'url2',
+              type: 'image',
+            },
+            { file: dataFiles[0], state: 'success', url: 'url3', type: 'file' },
+            { file: dataFiles[1], state: 'success', url: 'url4', type: 'file' },
+            {
+              file: videoFiles[0],
+              state: 'success',
+              url: 'url5',
+              type: 'video',
+            },
+            {
+              file: videoFiles[1],
+              state: 'success',
+              url: 'url6',
+              type: 'video',
+            },
+          ]);
+      })
+    );
     void service.filesSelected(files as any as FileList);
+    tick();
 
     expect(uploadAttachmentsSpy).toHaveBeenCalledWith([
       { file: imageFiles[0], type: 'image', state: 'uploading' },
@@ -284,16 +334,17 @@ describe('AttachmentService', () => {
       { file: dataFiles[1], type: 'file', state: 'uploading' },
     ]);
 
+    resolver();
     tick();
 
     expect(deleteAttachmentSpy).not.toHaveBeenCalled();
   }));
 
-  it('should create preview for images', () => {
+  it('should create preview for images', async () => {
     const imageFile = { type: 'image/png' };
     const dataFile = { type: 'plain/text' };
     uploadAttachmentsSpy.and.resolveTo([{}, {}]);
-    void service.filesSelected([imageFile, dataFile] as any as FileList);
+    await service.filesSelected([imageFile, dataFile] as any as FileList);
 
     expect(readAsDataURLSpy).toHaveBeenCalledOnceWith(imageFile);
   });
@@ -301,20 +352,29 @@ describe('AttachmentService', () => {
   it('should emit the number of uploads in progress', fakeAsync(() => {
     const spy = jasmine.createSpy();
     service.attachmentUploadInProgressCounter$.subscribe(spy);
-    uploadAttachmentsSpy.and.resolveTo([{}, {}]);
+    let resolver!: Function;
+    uploadAttachmentsSpy.and.returnValue(
+      new Promise((resovle) => {
+        resolver = () => resovle([{}, {}]);
+      })
+    );
 
     expect(spy).toHaveBeenCalledWith(0);
 
     void service.filesSelected([
       { type: 'application/pdf' },
     ] as any as FileList);
+    tick();
 
     expect(spy).toHaveBeenCalledWith(1);
 
     void service.filesSelected([{ type: 'image/png' }] as any as FileList);
+    tick();
 
     expect(spy).toHaveBeenCalledWith(2);
 
+    spy.calls.reset();
+    resolver();
     tick();
 
     expect(spy).toHaveBeenCalledWith(0);
@@ -527,5 +587,146 @@ describe('AttachmentService', () => {
         thumb_url: undefined,
       },
     ]);
+  });
+
+  it(`should check uploaded attachments' size`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    const errorNotificationSpy = spyOn(
+      notificationService,
+      'addTemporaryNotification'
+    );
+    appSettings$.next({
+      file_upload_config: {
+        size_limit: 10485760,
+      },
+      image_upload_config: {
+        size_limit: 3145728,
+      },
+    });
+    let files = [{ name: 'test.pdf', type: 'application/pdf', size: 1048576 }];
+    let result = await service.filesSelected(files as any as FileList);
+
+    expect(result).toBeTrue();
+    expect(errorNotificationSpy).not.toHaveBeenCalled();
+
+    files = [
+      { name: 'test.pdf', type: 'application/pdf', size: 1048576 },
+      { name: 'test2.doc', type: 'application/msword', size: 10495760 },
+      { name: 'test3.png', type: 'image/png', size: 3145729 },
+    ];
+    result = await service.filesSelected(files as any as FileList);
+
+    expect(result).toBeFalse();
+    const calls = errorNotificationSpy.calls;
+    expect(errorNotificationSpy).toHaveBeenCalledTimes(2);
+    expect(calls.first().args).toEqual([
+      'streamChat.Error uploading file, maximum file size exceeded',
+      undefined,
+      undefined,
+      {
+        name: 'test2.doc',
+        limit: '10MB',
+      },
+    ]);
+    expect(calls.mostRecent().args).toEqual([
+      'streamChat.Error uploading file, maximum file size exceeded',
+      undefined,
+      undefined,
+      {
+        name: 'test3.png',
+        limit: '3MB',
+      },
+    ]);
+  });
+
+  it(`should check uploaded attachments' extensions`, async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    const errorNotificationSpy = spyOn(
+      notificationService,
+      'addTemporaryNotification'
+    );
+    appSettings$.next({
+      file_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+      },
+      image_upload_config: {
+        allowed_file_extensions: [],
+        allowed_mime_types: [],
+      },
+    });
+    let files = [{ name: 'test.pdf', type: 'application/pdf' }];
+    let result = await service.filesSelected(files as any as FileList);
+
+    expect(result).toBeTrue();
+
+    appSettings$.next({
+      file_upload_config: {
+        blocked_file_extensions: ['.doc'],
+      },
+      image_upload_config: {
+        blocked_mime_types: ['image/png'],
+      },
+    });
+
+    files = [
+      { name: 'test.pdf', type: 'application/pdf' },
+      { name: 'test2.doc', type: 'application/msword' },
+      { name: 'test3.png', type: 'image/png' },
+    ];
+    result = await service.filesSelected(files as any as FileList);
+
+    expect(result).toBeFalse();
+    const calls = errorNotificationSpy.calls;
+    expect(errorNotificationSpy).toHaveBeenCalledTimes(2);
+    expect(calls.first().args).toEqual([
+      'streamChat.Error uploading file, extension not supported',
+      undefined,
+      undefined,
+      { name: 'test2.doc', ext: 'application/msword' },
+    ]);
+    expect(calls.mostRecent().args).toEqual([
+      'streamChat.Error uploading file, extension not supported',
+      undefined,
+      undefined,
+      { name: 'test3.png', ext: 'image/png' },
+    ]);
+
+    errorNotificationSpy.calls.reset();
+    appSettings$.next({
+      file_upload_config: {
+        allowed_mime_types: ['application/msword'],
+      },
+      image_upload_config: {
+        allowed_file_extensions: ['.jpg', '.png'],
+      },
+    });
+    files = [
+      { name: 'test.pdf', type: 'application/pdf' },
+      { name: 'test2.doc', type: 'application/msword' },
+      { name: 'test3.png', type: 'image/png' },
+      { name: 'test4.txt', type: 'application/text' },
+    ];
+    result = await service.filesSelected(files as any as FileList);
+
+    expect(result).toBeFalse();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
+      2
+    );
+  });
+
+  it('should load app settings, if not yet loaded', async () => {
+    const files = [{ name: 'test.pdf', type: 'application/pdf' }];
+    await service.filesSelected(files as any as FileList);
+
+    expect(getAppSettings).toHaveBeenCalledWith();
+  });
+
+  it('should load app settings only once', async () => {
+    const files = [{ name: 'test.pdf', type: 'application/pdf' }];
+    await service.filesSelected(files as any as FileList);
+    await service.filesSelected(files as any as FileList);
+
+    expect(getAppSettings).toHaveBeenCalledTimes(1);
   });
 });

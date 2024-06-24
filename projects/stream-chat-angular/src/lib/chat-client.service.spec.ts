@@ -178,6 +178,45 @@ describe('ChatClientService', () => {
     expect(mockChatClient.getAppSettings).not.toHaveBeenCalled();
   });
 
+  it('should make sure we call app settings only once', () => {
+    const spy = mockChatClient.getAppSettings;
+    void service.getAppSettings();
+    void service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should make sure we call app settings only once unless first call returned an error', async () => {
+    const spy = mockChatClient.getAppSettings;
+
+    try {
+      spy.and.rejectWith();
+      await service.getAppSettings();
+    } catch (error) {
+      spy.and.resolveTo({});
+      await service.getAppSettings();
+    }
+
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should make sure we call app settings only once unless we change API key', async () => {
+    const spy = mockChatClient.getAppSettings;
+    service.chatClient.key = apiKey;
+    await service.getAppSettings();
+    await service.init(apiKey, '', '');
+    await service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    spy.calls.reset();
+    service.chatClient.key = apiKey;
+    await service.init('different-api-key', '', '');
+    await service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
   it('should set SDK information', () => {
     const userAgent = `stream-chat-angular-${version}-${
       mockChatClient.getUserAgent() as string
