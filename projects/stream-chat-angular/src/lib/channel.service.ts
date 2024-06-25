@@ -19,7 +19,6 @@ import {
   FormatMessageResponse,
   Message,
   MessageResponse,
-  QueryChannelAPIResponse,
   ReactionResponse,
   UpdatedMessage,
   UserFilters,
@@ -155,42 +154,50 @@ export class ChannelService<
   activeChannelUnreadCount?: number;
   /**
    * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customNewMessageNotificationHandler?: (
     clientEvent: ClientEvent,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customAddedToChannelNotificationHandler?: (
     clientEvent: ClientEvent,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customRemovedFromChannelNotificationHandler?: (
     clientEvent: ClientEvent,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customChannelDeletedHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
@@ -198,13 +205,15 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customChannelUpdatedHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage[]) => void,
@@ -212,13 +221,15 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customChannelTruncatedHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
@@ -226,13 +237,15 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customChannelHiddenHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
@@ -240,13 +253,15 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customChannelVisibleHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
@@ -254,13 +269,15 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   *
+   * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
   customNewMessageHandler?: (
     event: Event,
     channel: Channel<T>,
     channelListSetter: (
-      channels: (Channel<T> | ChannelResponse<T>)[],
+      channels: Channel<T>[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
     messageListSetter: (messages: StreamMessage<T>[]) => void,
@@ -377,22 +394,58 @@ export class ChannelService<
   >(undefined);
 
   private channelListSetter = (
-    channels: (Channel<T> | ChannelResponse<T>)[],
+    channels: Channel<T>[],
     shouldStopWatchingRemovedChannels = true
   ) => {
     const currentChannels = this.channelsSubject.getValue() || [];
-    const newChannels = channels.filter(
-      (c) => !currentChannels.find((channel) => channel.cid === c.cid)
-    );
     const deletedChannels = currentChannels.filter(
       (c) => !channels?.find((channel) => channel.cid === c.cid)
     );
-    void this.addChannelsFromNotification(newChannels as ChannelResponse<T>[]);
-    this.removeChannelsFromChannelList(
-      deletedChannels.map((c) => c.cid),
-      shouldStopWatchingRemovedChannels
-    );
+
+    for (let i = 0; i < channels.length; i++) {
+      const channel = channels[i];
+      if (!this.channelSubscriptions[channel.cid]) {
+        this.watchForChannelEvents(channel);
+      }
+      if (deletedChannels.includes(channel)) {
+        if (shouldStopWatchingRemovedChannels) {
+          if (this.channelSubscriptions[channel.cid]) {
+            this.channelSubscriptions[channel.cid]();
+            delete this.channelSubscriptions.cid;
+          }
+          void this.chatClientService.chatClient.activeChannels[channel.cid]
+            ?.stopWatching()
+            .catch((err) =>
+              this.chatClientService.chatClient.logger(
+                'warn',
+                'Failed to unwatch channel',
+                err
+              )
+            );
+        }
+      }
+    }
+
+    const nextChannels = channels as Channel<T>[];
+    this.channelsSubject.next(nextChannels);
+    if (
+      !nextChannels.find(
+        (c) => c.cid === this.activeChannelSubject.getValue()?.cid
+      )
+    ) {
+      if (nextChannels.length > 0) {
+        this.setAsActiveChannel(nextChannels[0]);
+      } else {
+        this.activeChannelSubject.next(undefined);
+      }
+    }
   };
+
+  private isChannelResponse(
+    c: Channel<T> | ChannelResponse<T>
+  ): c is ChannelResponse<T> {
+    return c._client === undefined;
+  }
 
   private messageListSetter = (messages: StreamMessage<T>[]) => {
     this.activeChannelMessagesSubject.next(messages);
@@ -1374,66 +1427,74 @@ export class ChannelService<
 
   private handleRemovedFromChannelNotification(clientEvent: ClientEvent<T>) {
     const channelIdToBeRemoved = clientEvent.event.channel!.cid;
-    this.removeChannelsFromChannelList([channelIdToBeRemoved], true);
+    this.removeChannelFromChannelList(channelIdToBeRemoved, true);
   }
 
   private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
-      void this.addChannelsFromNotification([clientEvent.event.channel]);
+      void this.addChannelFromNotification(clientEvent.event.channel);
     }
   }
 
   private handleAddedToChannelNotification(clientEvent: ClientEvent<T>) {
     if (clientEvent.event.channel) {
-      void this.addChannelsFromNotification([clientEvent.event.channel]);
+      void this.addChannelFromNotification(clientEvent.event.channel);
     }
   }
 
-  private async addChannelsFromNotification(
-    channelResponses: ChannelResponse<T>[]
+  private async addChannelFromNotification(
+    channelResponse: ChannelResponse<T>
   ) {
-    let newChannels: Channel<T>[] = [];
-    const watchRequests: Promise<QueryChannelAPIResponse<T>>[] = [];
-    channelResponses.forEach((channelResponse) => {
-      const channel = this.chatClientService.chatClient.channel(
-        channelResponse.type,
-        channelResponse.id
-      );
-      watchRequests.push(channel.watch());
-      newChannels.push(channel);
-    });
-    await Promise.all(watchRequests);
-    const currentChannels = this.channelsSubject.getValue() || [];
-    newChannels = newChannels.filter(
-      (newChannel) => !currentChannels.find((c) => c.cid === newChannel.cid)
+    let newChannel = this.chatClientService.chatClient.channel(
+      channelResponse.type,
+      channelResponse.id
     );
-    if (newChannels.length > 0) {
-      newChannels.forEach((c) => this.watchForChannelEvents(c));
-      this.channelsSubject.next([...newChannels, ...currentChannels]);
+    let currentChannels = this.channelsSubject.getValue() || [];
+    if (currentChannels.find((c) => c.cid === newChannel.cid)) {
+      return;
     }
+    await newChannel.watch().catch((err) => {
+      this.chatClientService.chatClient.logger(
+        'error',
+        'Failed to add channel to channel list because watch request failed',
+        err
+      );
+    });
+    currentChannels = this.channelsSubject.getValue() || [];
+    if (currentChannels.find((c) => c.cid === newChannel.cid)) {
+      return;
+    }
+    this.watchForChannelEvents(newChannel);
+    this.channelsSubject.next([newChannel, ...currentChannels]);
   }
 
-  private removeChannelsFromChannelList(
-    cids: string[],
+  private removeChannelFromChannelList(
+    cid: string,
     shouldStopWatching: boolean
   ) {
-    const channels = this.channels.filter((c) => !cids.includes(c.cid || ''));
+    const remainingChannels = this.channels.filter((c) => c.cid !== cid);
+
     if (shouldStopWatching) {
-      cids.forEach((cid) => {
-        if (this.channelSubscriptions[cid]) {
-          this.channelSubscriptions[cid]();
-          delete this.channelSubscriptions.cid;
-        }
-        void this.chatClientService.chatClient.activeChannels[
-          cid
-        ]?.stopWatching();
-      });
+      if (this.channelSubscriptions[cid]) {
+        this.channelSubscriptions[cid]();
+        delete this.channelSubscriptions.cid;
+      }
+      void this.chatClientService.chatClient.activeChannels[cid]
+        ?.stopWatching()
+        .catch((err) =>
+          this.chatClientService.chatClient.logger(
+            'warn',
+            'Failed to unwatch channel',
+            err
+          )
+        );
     }
-    if (channels.length < this.channels.length) {
-      this.channelsSubject.next(channels);
-      if (cids.includes(this.activeChannelSubject.getValue()?.cid || '')) {
-        if (channels.length > 0) {
-          this.setAsActiveChannel(channels[0]);
+
+    if (remainingChannels.length < this.channels.length) {
+      this.channelsSubject.next(remainingChannels);
+      if (cid === this.activeChannelSubject.getValue()?.cid) {
+        if (remainingChannels.length > 0) {
+          this.setAsActiveChannel(remainingChannels[0]);
         } else {
           this.activeChannelSubject.next(undefined);
         }
@@ -1836,6 +1897,9 @@ export class ChannelService<
   }
 
   private watchForChannelEvents(channel: Channel<T>) {
+    if (this.channelSubscriptions[channel.cid]) {
+      this.channelSubscriptions[channel.cid]();
+    }
     const unsubscribe = channel.on((event: Event<T>) => {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const type = event.type as EventTypes | 'capabilities.changed';
@@ -1972,11 +2036,11 @@ export class ChannelService<
   }
 
   private handleChannelHidden(event: Event) {
-    this.removeChannelsFromChannelList([event.channel!.cid], false);
+    this.removeChannelFromChannelList(event.channel!.cid, false);
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeChannelsFromChannelList([event.channel!.cid], false);
+    this.removeChannelFromChannelList(event.channel!.cid, false);
   }
 
   private handleChannelVisible(event: Event, channel: Channel<T>) {

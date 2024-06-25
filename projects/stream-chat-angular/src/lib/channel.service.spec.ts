@@ -1061,7 +1061,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     mockChatClient.activeChannels[channel.cid] = channel;
-    spyOn(channel, 'stopWatching');
+    spyOn(channel, 'stopWatching').and.callThrough();
     spyOn(service, 'setAsActiveChannel');
 
     events$.next({
@@ -2554,5 +2554,37 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('channel list setter should respect channel order', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    spy.calls.reset();
+
+    service['channelListSetter'](newChannels);
+
+    expect(spy).toHaveBeenCalledOnceWith(newChannels);
+  });
+
+  it('channel list setter should watch for channel events', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    newChannel.cid = 'new-channel';
+    const unsubscribeSpy = jasmine.createSpy();
+    spyOn(newChannel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+
+    service['channelListSetter'](newChannels);
+
+    expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
   });
 });

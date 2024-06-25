@@ -55,7 +55,7 @@ export class ChatClientService<
   /**
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
    */
-  pendingInvites$: Observable<(ChannelResponse<T> | Channel<T>)[]>;
+  pendingInvites$: Observable<Channel<T>[]>;
   /**
    * Emits the current chat user
    */
@@ -65,9 +65,7 @@ export class ChatClientService<
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
   );
-  private pendingInvitesSubject = new BehaviorSubject<
-    (ChannelResponse<T> | Channel<T>)[]
-  >([]);
+  private pendingInvitesSubject = new BehaviorSubject<Channel<T>[]>([]);
   private userSubject = new ReplaySubject<
     OwnUserResponse<T> | UserResponse<T> | undefined
   >(1);
@@ -245,7 +243,8 @@ export class ChatClientService<
     if (e.member?.user?.id === this.chatClient.user?.id && e.channel) {
       const pendingInvites = this.pendingInvitesSubject.getValue();
       if (e.type === 'notification.invited') {
-        this.pendingInvitesSubject.next([...pendingInvites, e.channel]);
+        const channel = this.chatClient.channel(e.channel?.type, e.channel?.id);
+        this.pendingInvitesSubject.next([...pendingInvites, channel]);
       } else if (
         e.type === 'notification.invite_accepted' ||
         e.type === 'notification.invite_rejected'

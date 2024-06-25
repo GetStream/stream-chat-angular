@@ -362,40 +362,75 @@ describe('ChatClientService', () => {
     const event1 = {
       id: 'mockevent',
       type: 'notification.invited',
-      channel: { cid: 'what-i-ate-for-lunch' },
+      channel: {
+        cid: 'messaging:what-i-ate-for-lunch',
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event1.type, event1);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event1.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event2 = {
       id: 'mockevent',
       type: 'notification.invited',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event2.type, event2);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event1.channel, event2.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      }),
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'gardening',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event3 = {
       id: 'mockevent',
       type: 'notification.invite_accepted',
-      channel: { cid: 'what-i-ate-for-lunch' },
+      channel: {
+        cid: 'messaging:what-i-ate-for-lunch',
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event3.type, event3);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event2.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'gardening',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event4 = {
       id: 'mockevent',
       type: 'notification.invite_rejected',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event4.type, event4);
@@ -406,7 +441,11 @@ describe('ChatClientService', () => {
     const event5 = {
       id: 'mockevent',
       type: 'notification.invite_rejected',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: {
         user: { id: `not${mockChatClient.user.id}` },
       },
