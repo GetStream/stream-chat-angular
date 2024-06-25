@@ -442,3 +442,12 @@ export type GroupStyleOptions = {
   lastReadMessageId?: string;
   noGroupByReadState?: boolean;
 };
+
+export type ChannelQueryType = 'first-page' | 'next-page' | 'recover-state';
+
+export type ChannelQueryResult<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  channels: Channel<T>[];
+  hasMorePage: boolean;
+};

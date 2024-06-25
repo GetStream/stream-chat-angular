@@ -62,3 +62,4 @@ export * from './lib/voice-recording/voice-recording.component';
 export * from './lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';
 export * from './lib/is-on-separate-date';
 export * from './lib/message-reactions-selector/message-reactions-selector.component';
+export * from './lib/channel-query';

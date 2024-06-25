@@ -212,6 +212,7 @@ export const generateMockChannel = (type: string, id: string) => {
   const channel = generateMockChannels(1)[0];
   channel.type = type;
   channel.id = id;
+  channel.cid = `${type}:${id}`;
 
   return channel;
 };

@@ -4,7 +4,6 @@ import {
   AppSettingsAPIResponse,
   Channel,
   ChannelFilters,
-  ChannelResponse,
   ConnectAPIResponse,
   OwnUserResponse,
   StreamChatOptions,

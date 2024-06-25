@@ -269,7 +269,7 @@ describe('ChannelService', () => {
 
     await init();
 
-    expect(service['nextPageConfiguration']).toEqual({
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'filter',
       paginationFilter: {
         cid: { $gte: jasmine.any(String) },
@@ -408,7 +408,7 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
-    expect(service['nextPageConfiguration']).toEqual({
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'offset',
       offset: service.channels.length,
     });
