@@ -269,7 +269,8 @@ describe('ChannelService', () => {
 
     await init();
 
-    expect(service['nextPageConfiguration']).toEqual({
+    // @ts-expect-error we know channelQuery exists, TS doesn't
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'filter',
       paginationFilter: {
         cid: { $gte: jasmine.any(String) },
@@ -408,7 +409,8 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
-    expect(service['nextPageConfiguration']).toEqual({
+    // @ts-expect-error we know channelQuery exists, TS doesn't
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'offset',
       offset: service.channels.length,
     });
@@ -1061,7 +1063,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     mockChatClient.activeChannels[channel.cid] = channel;
-    spyOn(channel, 'stopWatching');
+    spyOn(channel, 'stopWatching').and.callThrough();
     spyOn(service, 'setAsActiveChannel');
 
     events$.next({
@@ -2554,5 +2556,69 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('channel list setter should respect channel order', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    spy.calls.reset();
+
+    service['channelListSetter'](newChannels);
+
+    expect(spy).toHaveBeenCalledOnceWith(newChannels);
+  });
+
+  it('channel list setter should watch for channel events', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    newChannel.cid = 'new-channel';
+    const unsubscribeSpy = jasmine.createSpy();
+    spyOn(newChannel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+
+    service['channelListSetter'](newChannels);
+
+    expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
+  });
+
+  it('init with custom query', async () => {
+    const mockChannels = generateMockChannels();
+    const customQuery = jasmine
+      .createSpy()
+      .and.resolveTo({ channels: mockChannels, hasMorePage: true });
+    const result = await service.initWithCustomQuery(customQuery, {
+      shouldSetActiveChannel: false,
+      messagePageSize: 30,
+    });
+    const hasMoreSpy = jasmine.createSpy();
+    service.hasMoreChannels$.subscribe(hasMoreSpy);
+
+    expect(result).toBe(mockChannels);
+    expect(customQuery).toHaveBeenCalledWith('first-page');
+    expect(service['shouldSetActiveChannel']).toBeFalse();
+    expect(service['messagePageSize']).toBe(30);
+    expect(hasMoreSpy).toHaveBeenCalledWith(true);
+
+    customQuery.calls.reset();
+    hasMoreSpy.calls.reset();
+    const nextPage = generateMockChannels(5);
+    customQuery.and.resolveTo({
+      channels: [...mockChannels, ...nextPage],
+      hasMorePage: false,
+    });
+
+    await service.loadMoreChannels();
+
+    expect(customQuery).toHaveBeenCalledWith('next-page');
+    expect(hasMoreSpy).toHaveBeenCalledWith(false);
   });
 });

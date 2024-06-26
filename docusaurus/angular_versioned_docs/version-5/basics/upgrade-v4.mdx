@@ -201,6 +201,46 @@ The `stream-message-input` still has all inputs/outputs you need to create a cus
 ></stream-message-input>
 ```
 
+### Signature change for custom channel list event handlers
+
+The `channelListSetter`'s signature changed for the following custom event handlers of the `ChannelService`:
+
+- `customNewMessageNotificationHandler`
+- `customAddedToChannelNotificationHandler`
+- `customRemovedFromChannelNotificationHandler`
+- `customChannelDeletedHandler`
+- `customChannelUpdatedHandler`
+- `customChannelTruncatedHandler`
+- `customChannelHiddenHandler`
+- `customChannelVisibleHandler`
+- `customNewMessageHandler`
+
+If you're adding a new channel to the list from these handlers, you need to make sure to provide a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
+
+Example code:
+
+```typescript
+private async customEventHandler(
+  clientEvent: ClientEvent,
+  channelListSetter: (channels: Channel<DefaultStreamChatGenerics>[]) => void
+) {
+  const channelResponse = clientEvent!.event!.channel!;
+  // Change 1: create a channel from `ChannelResponse`
+  const newChanel = this.chatService.chatClient.channel(
+    channelResponse.type,
+    channelResponse.id
+  );
+  try {
+    // Change 2: call .watch() before adding it to the channel list
+    await newChanel.watch();
+    const existingChannels = this.channelService.channels;
+    channelListSetter([newChanel, ...existingChannels]);
+  } catch (error) {
+    console.error('Failed to watch channel', error);
+  }
+}
+```
+
 ### Removed deprecated features
 
 #### `MessageListComponent`

@@ -426,7 +426,8 @@ export type FiltertNextPageConfiguration<
 
 export type NextPageConfiguration =
   | OffsetNextPageConfiguration
-  | FiltertNextPageConfiguration;
+  | FiltertNextPageConfiguration
+  | undefined;
 
 export type MessageReactionClickDetails = {
   messageId: string;
@@ -441,4 +442,13 @@ export type GroupStyleOptions = {
   noGroupByUser?: boolean;
   lastReadMessageId?: string;
   noGroupByReadState?: boolean;
+};
+
+export type ChannelQueryType = 'first-page' | 'next-page' | 'recover-state';
+
+export type ChannelQueryResult<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  channels: Channel<T>[];
+  hasMorePage: boolean;
 };
