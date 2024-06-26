@@ -269,6 +269,7 @@ describe('ChannelService', () => {
 
     await init();
 
+    // @ts-expect-error we know channelQuery exists, TS doesn't
     expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'filter',
       paginationFilter: {
@@ -408,6 +409,7 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
+    // @ts-expect-error we know channelQuery exists, TS doesn't
     expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'offset',
       offset: service.channels.length,
@@ -2586,5 +2588,37 @@ describe('ChannelService', () => {
     service['channelListSetter'](newChannels);
 
     expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
+  });
+
+  it('init with custom query', async () => {
+    const mockChannels = generateMockChannels();
+    const customQuery = jasmine
+      .createSpy()
+      .and.resolveTo({ channels: mockChannels, hasMorePage: true });
+    const result = await service.initWithCustomQuery(customQuery, {
+      shouldSetActiveChannel: false,
+      messagePageSize: 30,
+    });
+    const hasMoreSpy = jasmine.createSpy();
+    service.hasMoreChannels$.subscribe(hasMoreSpy);
+
+    expect(result).toBe(mockChannels);
+    expect(customQuery).toHaveBeenCalledWith('first-page');
+    expect(service['shouldSetActiveChannel']).toBeFalse();
+    expect(service['messagePageSize']).toBe(30);
+    expect(hasMoreSpy).toHaveBeenCalledWith(true);
+
+    customQuery.calls.reset();
+    hasMoreSpy.calls.reset();
+    const nextPage = generateMockChannels(5);
+    customQuery.and.resolveTo({
+      channels: [...mockChannels, ...nextPage],
+      hasMorePage: false,
+    });
+
+    await service.loadMoreChannels();
+
+    expect(customQuery).toHaveBeenCalledWith('next-page');
+    expect(hasMoreSpy).toHaveBeenCalledWith(false);
   });
 });

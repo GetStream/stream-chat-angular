@@ -32,6 +32,7 @@ import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
   AttachmentUploadErrorReason,
+  ChannelQueryResult,
   ChannelQueryState,
   ChannelQueryType,
   DefaultStreamChatGenerics,
@@ -61,25 +62,6 @@ export class ChannelService<
    * :::important
    * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
    * :::
-   *
-   *  Apart from pagination, the channel list is also updated on the following events:
-   *
-   *  | Event type                          | Default behavior                                                   | Custom handler to override                    |
-   *  | ----------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
-   *  | `channel.deleted`                   | Remove channel from the list                                       | `customChannelDeletedHandler`                 |
-   *  | `channel.hidden`                    | Remove channel from the list                                       | `customChannelHiddenHandler`                  |
-   *  | `channel.truncated`                 | Updates the channel                                                | `customChannelTruncatedHandler`               |
-   *  | `channel.updated`                   | Updates the channel                                                | `customChannelUpdatedHandler`                 |
-   *  | `channel.visible`                   | Adds the channel to the list                                       | `customChannelVisibleHandler`                 |
-   *  | `message.new`                       | Moves the channel to top of the list                               | `customNewMessageHandler`                     |
-   *  | `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it | `customAddedToChannelNotificationHandler`     |
-   *  | `notification.message_new`          | Adds the new channel to the top of the list and starts watching it | `customNewMessageNotificationHandler`         |
-   *  | `notification.removed_from_channel` | Removes the channel from the list                                  | `customRemovedFromChannelNotificationHandler` |
-   *
-   *  It's important to note that filters don't apply to updates to the list from events.
-   *
-   *  Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
-   *
    */
   channels$: Observable<Channel<T>[] | undefined>;
   /**
@@ -383,7 +365,9 @@ export class ChannelService<
   private channelQueryStateSubject = new BehaviorSubject<
     ChannelQueryState | undefined
   >(undefined);
-  private channelQuery?: ChannelQuery<T>;
+  private channelQuery?:
+    | ChannelQuery<T>
+    | ((queryType: ChannelQueryType) => Promise<ChannelQueryResult<T>>);
   private _customPaginator:
     | ((channelQueryResult: Channel<T>[]) => NextPageConfiguration)
     | undefined;
@@ -434,12 +418,6 @@ export class ChannelService<
       }
     }
   };
-
-  private isChannelResponse(
-    c: Channel<T> | ChannelResponse<T>
-  ): c is ChannelResponse<T> {
-    return c._client === undefined;
-  }
 
   private messageListSetter = (messages: StreamMessage<T>[]) => {
     this.activeChannelMessagesSubject.next(messages);
@@ -595,7 +573,7 @@ export class ChannelService<
       | undefined
   ) {
     this._customPaginator = paginator;
-    if (this.channelQuery) {
+    if (this.channelQuery && 'customPaginator' in this.channelQuery) {
       this.channelQuery.customPaginator = this._customPaginator;
     }
   }
@@ -764,10 +742,10 @@ export class ChannelService<
    * @param filters
    * @param sort
    * @param options
-   * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel, or no channel should be marked as active
+   * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel or not.
    * @returns the list of channels found by the query
    */
-  async init(
+  init(
     filters: ChannelFilters<T>,
     sort?: ChannelSort<T>,
     options?: ChannelOptions,
@@ -789,27 +767,29 @@ export class ChannelService<
     );
     this.channelQuery.customPaginator = this._customPaginator;
 
-    if (options?.message_limit) {
-      this.messagePageSize = options.member_limit!;
+    return this._init({
+      shouldSetActiveChannel,
+      messagePageSize: options?.message_limit ?? this.messagePageSize,
+    });
+  }
+
+  /**
+   * Queries the channels with the given query function. More info about [channel querying](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript) can be found in the platform documentation.
+   * @param query
+   * @param options
+   * @param options.shouldSetActiveChannel The `shouldSetActiveChannel` specifies if the first channel in the result should be selected as the active channel or not. Default is `true`.
+   * @param options.messagePageSize How many messages should we load? The default is 25
+   * @returns the channels that were loaded
+   */
+  initWithCustomQuery(
+    query: (queryType: ChannelQueryType) => Promise<ChannelQueryResult<T>>,
+    options: { shouldSetActiveChannel: boolean; messagePageSize: number } = {
+      shouldSetActiveChannel: true,
+      messagePageSize: this.messagePageSize,
     }
-    this.shouldSetActiveChannel = shouldSetActiveChannel;
-    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
-      (notification) => void this.handleNotification(notification)
-    );
-    try {
-      const result = await this.queryChannels(
-        this.shouldSetActiveChannel,
-        'first-page'
-      );
-      return result;
-    } catch (error) {
-      this.dismissErrorNotification =
-        this.notificationService.addPermanentNotification(
-          'streamChat.Error loading channels',
-          'error'
-        );
-      throw error;
-    }
+  ) {
+    this.channelQuery = query;
+    return this._init(options);
   }
 
   /**
@@ -1171,6 +1151,42 @@ export class ChannelService<
     }
   }
 
+  /**
+   *
+   * @param cid
+   * @param shouldStopWatching
+   */
+  removeChannel(cid: string, shouldStopWatching = true) {
+    const remainingChannels = this.channels.filter((c) => c.cid !== cid);
+
+    if (shouldStopWatching) {
+      if (this.channelSubscriptions[cid]) {
+        this.channelSubscriptions[cid]();
+        delete this.channelSubscriptions.cid;
+      }
+      void this.chatClientService.chatClient.activeChannels[cid]
+        ?.stopWatching()
+        .catch((err) =>
+          this.chatClientService.chatClient.logger(
+            'warn',
+            'Failed to unwatch channel',
+            err as Record<string, unknown>
+          )
+        );
+    }
+
+    if (remainingChannels.length < this.channels.length) {
+      this.channelsSubject.next(remainingChannels);
+      if (cid === this.activeChannelSubject.getValue()?.cid) {
+        if (remainingChannels.length > 0) {
+          this.setAsActiveChannel(remainingChannels[0]);
+        } else {
+          this.activeChannelSubject.next(undefined);
+        }
+      }
+    }
+  }
+
   private async sendMessageRequest(
     preview: MessageResponse<T> | StreamMessage<T>,
     customData?: Partial<T['messageType']>,
@@ -1451,7 +1467,7 @@ export class ChannelService<
 
   private handleRemovedFromChannelNotification(clientEvent: ClientEvent<T>) {
     const channelIdToBeRemoved = clientEvent.event.channel!.cid;
-    this.removeChannelFromChannelList(channelIdToBeRemoved, true);
+    this.removeChannel(channelIdToBeRemoved, true);
   }
 
   private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
@@ -1490,40 +1506,6 @@ export class ChannelService<
     }
     this.watchForChannelEvents(newChannel);
     this.channelsSubject.next([newChannel, ...currentChannels]);
-  }
-
-  private removeChannelFromChannelList(
-    cid: string,
-    shouldStopWatching: boolean
-  ) {
-    const remainingChannels = this.channels.filter((c) => c.cid !== cid);
-
-    if (shouldStopWatching) {
-      if (this.channelSubscriptions[cid]) {
-        this.channelSubscriptions[cid]();
-        delete this.channelSubscriptions.cid;
-      }
-      void this.chatClientService.chatClient.activeChannels[cid]
-        ?.stopWatching()
-        .catch((err) =>
-          this.chatClientService.chatClient.logger(
-            'warn',
-            'Failed to unwatch channel',
-            err as Record<string, unknown>
-          )
-        );
-    }
-
-    if (remainingChannels.length < this.channels.length) {
-      this.channelsSubject.next(remainingChannels);
-      if (cid === this.activeChannelSubject.getValue()?.cid) {
-        if (remainingChannels.length > 0) {
-          this.setAsActiveChannel(remainingChannels[0]);
-        } else {
-          this.activeChannelSubject.next(undefined);
-        }
-      }
-    }
   }
 
   private watchForActiveChannelEvents(channel: Channel<T>) {
@@ -1849,9 +1831,9 @@ export class ChannelService<
     try {
       this.channelQueryStateSubject.next({ state: 'in-progress' });
 
-      const { channels, hasMorePage } = await this.channelQuery.query(
-        queryType
-      );
+      const { channels, hasMorePage } = await ('query' in this.channelQuery
+        ? this.channelQuery.query(queryType)
+        : this.channelQuery(queryType));
       const filteredChannels = channels.filter(
         (channel, index) =>
           !channels.slice(0, index).find((c) => c.cid === channel.cid)
@@ -1869,8 +1851,7 @@ export class ChannelService<
         !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
       ) {
         this.deselectActiveChannel();
-      }
-      if (
+      } else if (
         filteredChannels.length > 0 &&
         !currentActiveChannel &&
         shouldSetActiveChannel
@@ -2031,11 +2012,11 @@ export class ChannelService<
   }
 
   private handleChannelHidden(event: Event) {
-    this.removeChannelFromChannelList(event.channel!.cid, false);
+    this.removeChannel(event.channel!.cid, false);
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeChannelFromChannelList(event.channel!.cid, false);
+    this.removeChannel(event.channel!.cid, false);
   }
 
   private handleChannelVisible(event: Event, channel: Channel<T>) {
@@ -2260,6 +2241,31 @@ export class ChannelService<
       !this.areReadEventsPaused
     ) {
       void channel.markRead();
+    }
+  }
+
+  private async _init(settings: {
+    shouldSetActiveChannel: boolean;
+    messagePageSize: number;
+  }) {
+    this.shouldSetActiveChannel = settings.shouldSetActiveChannel;
+    this.messagePageSize = settings.messagePageSize;
+    this.clientEventsSubscription = this.chatClientService.events$.subscribe(
+      (notification) => void this.handleNotification(notification)
+    );
+    try {
+      const result = await this.queryChannels(
+        this.shouldSetActiveChannel,
+        'first-page'
+      );
+      return result;
+    } catch (error) {
+      this.dismissErrorNotification =
+        this.notificationService.addPermanentNotification(
+          'streamChat.Error loading channels',
+          'error'
+        );
+      throw error;
     }
   }
 }

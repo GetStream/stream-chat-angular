@@ -426,7 +426,8 @@ export type FiltertNextPageConfiguration<
 
 export type NextPageConfiguration =
   | OffsetNextPageConfiguration
-  | FiltertNextPageConfiguration;
+  | FiltertNextPageConfiguration
+  | undefined;
 
 export type MessageReactionClickDetails = {
   messageId: string;

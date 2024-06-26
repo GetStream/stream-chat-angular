@@ -1,0 +1,279 @@
+---
+id: channel-list
+sidebar_position: 4
+title: Channel list state
+---
+
+import ChannelList from "../assets/channel-list.png";
+
+This guide describes the behaviour of the channel list, and shows how you can customize it. The channel list is controlled by the [`ChannelService`](../../services/ChannelService/).
+
+<img src={ChannelList} />
+
+On the screenshot you can see the [built-in channel list component](../../components/ChannelListComponent) that integrates with the `ChannelService`.
+
+## Querying channels
+
+The `ChannelService` will initialize the channel list when you call either of the following methods:
+
+```ts
+channelService.init(/* see details below */);
+channelService.initWithCustomQuery(/* see details below */);
+```
+
+To load more pages:
+
+```ts
+channelService.loadMoreChannels();
+```
+
+To clear the list:
+
+```ts
+channelService.reset();
+```
+
+The current state of the channel list and the latest query can be accessed via theese variables:
+
+```ts
+// Reactive value of the current channel list, you'll be notified when it changes
+channelService.channels$.subscribe((channels) => console.log(channels));
+
+// The current value of the channel list
+console.log(channelService.channels);
+
+// Reactive value of the latest channel query request, it could be: 'in-progress' | 'success' | 'error'
+channelService.channelQueryState$.subscribe((state) => console.log(state));
+
+// Reactive value that tells if there are more pages to load
+channelService.hasMoreChannels$.subscribe((hasMoreChannels) =>
+  console.log(hasMoreChannels)
+);
+```
+
+### Built-in queries
+
+The easiest way to initialize the channel list is to use a built-in query, a typical configuration could look like this:
+
+```ts
+channelService.init({ type: "messaging", members: { $in: ["<user id>"] } });
+
+// If you want, you can add sort configuration and other options
+channelService.init(
+  { type: "messaging", members: { $in: ["<user id>"] } },
+  { name: 1 },
+  { limit: 20 }
+);
+```
+
+For the full list of capabilities please refer the [query channel API documentation](https://getstream.io/chat/docs/javascript/query_channels/?language=javascript).
+
+### Custom queries
+
+If built-in quieries aren't enough for you use-case, you can provide a custom query function that has this signature: `(queryType: ChannelQueryType) => Promise<ChannelQueryResult>`. `ChannelQueryType` can be `'first-page' | 'next-page' | 'recover-state'`, the result is expected to be this format:
+
+```ts
+{
+  channels: Channel[]; // Ordered list of all channels that are displayed
+  hasMorePage: boolean; // Are there any more pages to load?
+};
+```
+
+Let's say you're using the [channel invites](../../code-examples/channel-invites/) to add members to a channel. In that case you might want to do a channel list where you display the channels the user is invited to, but not yet joined, at the top. And then all other chanenls, the user already joined. To do this you need to combine two query channel requests. Here is how you can do that:
+
+```ts
+notJoinedChannelsQuery = new ChannelQuery(
+  this.chatService,
+  this.channelService,
+  {
+    type: 'messaging',
+    members: { $in: ["<user id>"] },
+    joined: false,
+  }
+);
+joinedChannelsQuery = new ChannelQuery(
+  this.chatService,
+  this.channelService,
+  {
+    type: 'messaging',
+    members: { $in: ["<user id>"] },
+    joined: true,
+  }
+);
+areAllNotJoinedChannelsQueried = false;
+
+async myCustomChannelQuery(queryType: ChannelQueryType) {
+  if (queryType === 'first-page' || queryType === 'recover-state') {
+    this.areAllNotJoinedChannelsQueried = false;
+  }
+
+  if (!this.areAllNotJoinedChannelsQueried) {
+    const notJoinedQueryResult = await this.notJoinedChannelsQuery.query(
+      queryType
+    );
+    if (notJoinedQueryResult.hasMorePage) {
+      return {
+        channels: notJoinedQueryResult.channels,
+        hasMorePage: notJoinedQueryResult.hasMorePage,
+      };
+    } else {
+      this.areAllNotJoinedChannelsQueried = true;
+      const joinedQueryResult = await this.joinedChannelsQuery.query(
+        'first-page'
+      );
+      return {
+        channels: [
+          ...notJoinedQueryResult.channels,
+          ...joinedQueryResult.channels,
+        ],
+        hasMorePage: joinedQueryResult.hasMorePage,
+      };
+    }
+  } else {
+    return this.joinedChannelsQuery.query(queryType);
+  }
+}
+```
+
+And then provide your query to the `ChannelService`:
+
+```ts
+this.channelService.initWithCustomQuery((queryType) =>
+  this.myCustomChannelQuery(queryType)
+);
+```
+
+The above example used the `ChannelQuery` class that's exported by the SDK, but you can use any implementation you like, as long as your custom query follows this method signature: `(queryType: ChannelQueryType) => Promise<ChannelQueryResult>`. You can reference the [`ChannelQuery` implementation](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/channel-query.ts) for the details.
+
+### Pagination
+
+By default the SDK will use an offset based pagination, where the offset will start from 0, and will be incremented with the number of channels returned from each query request.
+
+However, it's possible to provide your own pagination logic. Let's see the below example which sorts the channels alphabetically by their names, and then paginates using the following filter: `{name: $gt: <last loaded channel>}`
+
+```ts
+this.channelService.customPaginator = (
+  channelQueryResult: Channel<DefaultStreamChatGenerics>[]
+) => {
+  const lastChannel = channelQueryResult[channelQueryResult.length - 1];
+  if (!lastChannel) {
+    return undefined;
+  } else {
+    return {
+      type: "filter",
+      paginationFilter: {
+        name: { $gt: lastChannel.data?.name || "" },
+      },
+    };
+  }
+};
+this.channelService.init(
+  {
+    type: "messaging",
+    members: { $in: ["<user id>"] },
+  },
+  { name: 1 }
+);
+```
+
+## Active channel
+
+The currently selected channel is called the active channel.
+
+```ts
+// Reactive value of the current active channel, you'll be notified when it changes
+channelService.activeChannel$.subscribe((channel) => console.log(channel));
+
+// The current value of the active channel
+console.log(channelService.activeChannel);
+```
+
+Here is how you can select/deselect the active channel:
+
+```ts
+channelService.setAsActiveChannel(<channel to select>);
+channelService.deselectActiveChannel();
+```
+
+Selecting a channel as active will immediately mark the channel as read.
+
+By default the SDK will set the first channel as active when initializing the channel list. If you wish to turn off that behvior, set the `shouldSetActiveChannel` flag to `false`:
+
+```ts
+channelService.init(<filter>, <sort>, <options>, false);
+channelService.initWithCustomQuery(<custom query>, {shouldSetActiveChannel: false});
+```
+
+## WebSocket events
+
+Apart from channel queries, the channel list is also updated on the following WebSocket events:
+
+| Event type                          | Default behavior                                                   | Custom handler to override                    |
+| ----------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+| `channel.deleted`                   | Remove channel from the list                                       | `customChannelDeletedHandler`                 |
+| `channel.hidden`                    | Remove channel from the list                                       | `customChannelHiddenHandler`                  |
+| `channel.truncated`                 | Updates the channel                                                | `customChannelTruncatedHandler`               |
+| `channel.updated`                   | Updates the channel                                                | `customChannelUpdatedHandler`                 |
+| `channel.visible`                   | Adds the channel to the list                                       | `customChannelVisibleHandler`                 |
+| `message.new`                       | Moves the channel to top of the list                               | `customNewMessageHandler`                     |
+| `notification.added_to_channel`     | Adds the new channel to the top of the list and starts watching it | `customAddedToChannelNotificationHandler`     |
+| `notification.message_new`          | Adds the new channel to the top of the list and starts watching it | `customNewMessageNotificationHandler`         |
+| `notification.removed_from_channel` | Removes the channel from the list                                  | `customRemovedFromChannelNotificationHandler` |
+
+Our platform documentation covers the topic of [channel events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript#events) in depth.
+
+It's important to note that filters don't apply to updates to the list from events. So if you initialize the channel list with this filter:
+
+```ts
+{
+  type: 'messaging',
+  members: { $in: ['<user id>'] },
+}
+```
+
+And the user receives a message from a `team` channel, that channel will be added to the channel list by the default `notification.message_new` handler. If you don't want that behavior, you will need to provide your custom event handler to all relevant events. Here is an example event handler:
+
+```ts
+customNewMessageNotificationHandler = async (
+  clientEvent: ClientEvent,
+  channelListSetter: (channels: Channel<DefaultStreamChatGenerics>[]) => void
+) => {
+  const channelResponse = clientEvent!.event!.channel!;
+  if (channelResponse.type !== "messaging") {
+    return;
+  }
+  const newChanel = this.chatService.chatClient.channel(
+    channelResponse.type,
+    channelResponse.id
+  );
+  try {
+    // We can only add watched channels to the channel list, so make sure to call `watch`
+    await newChanel.watch();
+    const existingChannels = this.channelService.channels;
+    channelListSetter([newChanel, ...existingChannels]);
+  } catch (error) {
+    console.error("Failed to watch channel", error);
+  }
+};
+
+this.channelService.customNewMessageNotificationHandler =
+  this.customNewMessageNotificationHandler;
+this.channelService.init(/* ... */);
+```
+
+## Adding and removing channels
+
+While the SDK doesn't come with built-in components to [create](https://getstream.io/chat/docs/javascript/creating_channels/?language=javascript) or [delete](https://getstream.io/chat/docs/javascript/channel_delete/?language=javascript) channels it's easy to create these components should you need them. The SDK even provides a few component hooks to inject you custom UI ([channel list](../../components/ChannelListComponent/#ui-customization), [channel preview](../../components/ChannelPreviewComponent/#customization), [channel header](../../components/ChannelHeaderComponent/#channel-actions)). But of course you can also create a completely custom UI.
+
+The channel list will be automatically updated on the `notification.added_to_channel` and `channel.deleted` events, however it's also possible to add and remove channels manually from the list:
+
+```ts
+// Make sure to watch the channel before adding it
+channelService.addChannel(<watched channel>);
+
+channelService.removeChannel('<cid>');
+// This will automatically unwatch the chennel, unless you provide the following flag:
+channelService.removeChannel('<cid>', false);
+```
+
+It's important to note that you should make sure that the channel you add is watched, more information about [watching channels](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) can be found in our API documentation.
