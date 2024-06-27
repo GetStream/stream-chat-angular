@@ -277,3 +277,67 @@ channelService.removeChannel('<cid>', false);
 ```
 
 It's important to note that you should make sure that the channel you add is watched, more information about [watching channels](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) can be found in our API documentation.
+
+## Multiple channel lists
+
+Sometimes we need to show multiple separate channel lists. For example: we want to show 1:1 conversations and team chats in two separate tabs.
+
+<iframe
+  loading="lazy"
+  src="https://zptmyv-4200.csb.app/"
+  style={{
+    width: "100%",
+    height: "500px",
+    border: "0",
+    borderRadius: "4px",
+    overflow: "hidden",
+  }}
+  title="Stream Chat Angular Multi-channel list Example"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+/>
+
+Here are the necessary steps to achieve this:
+
+1. Create your own channel list component, and provide a separate `ChannelService` instance to them using Angular's dependency injection system:
+
+```ts
+@Component({
+  selector: 'app-custom-channel-list',
+  templateUrl: './custom-channel-list.component.html',
+  styleUrls: ['./custom-channel-list.component.css'],
+  // Each channel list has it's own ChannelService instance
+  providers: [ChannelService],
+})
+```
+
+2. Each channel list component will initialize it's `ChannelService` instance with the given filter:
+
+```ts
+this.channelService.init({
+  type: "messaging",
+  members: { $in: [this.userId] },
+  member_count:
+    this.channelListType === "1:1 conversations" ? { $lte: 2 } : { $gt: 2 },
+});
+```
+
+3. Each channel list component will have to define custom WebSocket event handlers, where it filters which channel can be added to the list
+
+```ts
+this.channelService.customAddedToChannelNotificationHandler = (
+  clientEvent,
+  channelListSetter
+) => filter(clientEvent.event.channel, channelListSetter);
+this.channelService.customNewMessageNotificationHandler = (
+  clientEvent,
+  channelListSetter
+) => filter(clientEvent.event.channel, channelListSetter);
+this.channelService.customChannelVisibleHandler = (
+  _,
+  channel,
+  channelListSetter
+) => filter(channel, channelListSetter);
+```
+
+You can checkout the full example on [Codesandbox](https://codesandbox.io/p/devbox/stream-chat-angular-multiple-channel-list-zptmyv?embed=1&file=%2Fsrc%2Fapp%2Fcustom-channel-list%2Fcustom-channel-list.component.ts)
