@@ -571,6 +571,11 @@ export class MessageListComponent
       this.scrollContainer.nativeElement.scrollHeight ===
       this.scrollContainer.nativeElement.clientHeight
     ) {
+      if (this.isJumpToLatestButtonVisible) {
+        this.isJumpToLatestButtonVisible = false;
+        this.newMessageCountWhileBeingScrolled = 0;
+        this.cdRef.detectChanges();
+      }
       return;
     }
     this.scroll$.next();
@@ -738,7 +743,9 @@ export class MessageListComponent
         : this.channelService.activeThreadMessages$
     ).pipe(
       tap((messages) => {
-        this.isLoading = false;
+        if (this.isLoading) {
+          this.isLoading = false;
+        }
         if (messages.length === 0) {
           this.chatClientService.chatClient?.logger?.(
             'info',
