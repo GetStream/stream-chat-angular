@@ -197,7 +197,10 @@ export class MessageActionsService<
       this.messageToEdit$,
       this.channelService.activeChannel$,
     ]).subscribe(([messageToEdit, activeChannel]) => {
-      if (messageToEdit && !activeChannel) {
+      if (
+        messageToEdit &&
+        (!activeChannel || activeChannel?.cid !== messageToEdit.cid)
+      ) {
         this.messageToEdit$.next(undefined);
       }
     });
@@ -205,7 +208,11 @@ export class MessageActionsService<
       this.messageToEdit$,
       this.channelService.activeParentMessageId$,
     ]).subscribe(([messageToEdit, parentMessageId]) => {
-      if (messageToEdit && messageToEdit.parent_id !== parentMessageId) {
+      if (
+        messageToEdit &&
+        messageToEdit.parent_id &&
+        messageToEdit.parent_id !== parentMessageId
+      ) {
         this.messageToEdit$.next(undefined);
       }
     });

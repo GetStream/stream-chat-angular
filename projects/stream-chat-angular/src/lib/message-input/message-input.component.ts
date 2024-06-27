@@ -18,7 +18,6 @@ import {
   Type,
   ViewChild,
 } from '@angular/core';
-import { ChatClientService } from '../chat-client.service';
 import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
 import { first, map, take, tap } from 'rxjs/operators';
 import { Channel, UserResponse } from 'stream-chat';
@@ -149,7 +148,6 @@ export class MessageInputComponent
     private textareaType: Type<TextareaInterface>,
     private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
-    private chatClient: ChatClientService,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
     private messageActionsService: MessageActionsService
@@ -550,6 +548,9 @@ export class MessageInputComponent
     if (!this.messageToEdit && this.message) {
       this.message = undefined;
       this.messageToUpdateChanged();
+      if (this.isViewInited) {
+        this.cdRef.detectChanges();
+      }
     }
     if (
       this.messageToEdit &&
@@ -558,6 +559,9 @@ export class MessageInputComponent
     ) {
       this.message = this.messageToEdit;
       this.messageToUpdateChanged();
+      if (this.isViewInited) {
+        this.cdRef.detectChanges();
+      }
     }
   }
 
