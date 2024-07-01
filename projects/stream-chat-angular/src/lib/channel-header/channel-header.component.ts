@@ -7,7 +7,6 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Channel } from 'stream-chat';
-import { ChannelListToggleService } from '../channel-list/channel-list-toggle.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -35,7 +34,6 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     private channelService: ChannelService,
-    private channelListToggleService: ChannelListToggleService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
     private chatClientService: ChatClientService
@@ -72,11 +70,6 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  toggleMenu(event: Event) {
-    event.stopPropagation();
-    this.channelListToggleService.toggle();
   }
 
   getChannelActionsContext(): ChannelActionsContext {

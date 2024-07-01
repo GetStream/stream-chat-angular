@@ -25,8 +25,8 @@
   let-isLastSentMessage="isLastSentMessage"
   let-enabledMessageActions="enabledMessageActions"
   let-mode="mode"
-  let-customActions="customActions"
   let-isHighlighted="isHighlighted"
+  let-scroll$="scroll$"
 >
   <div>
     <stream-message
@@ -34,33 +34,10 @@
       [isLastSentMessage]="isLastSentMessage"
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
-      [customActions]="customActions"
       [isHighlighted]="isHighlighted"
+      [scroll$]="scroll$"
     ></stream-message>
   </div>
-</ng-template>
-
-<ng-template
-  #customMessageInputTemplate
-  let-message="message"
-  let-isFileUploadEnabled="isFileUploadEnabled"
-  let-areMentionsEnabled="areMentionsEnabled"
-  let-mentionScope="mentionScope"
-  let-mode="mode"
-  let-isMultipleFileUploadEnabled="isMultipleFileUploadEnabled"
-  let-messageUpdateHandler="messageUpdateHandler"
-  let-sendMessage$="sendMessage$"
->
-  <stream-message-input
-    [message]="message"
-    [isFileUploadEnabled]="isFileUploadEnabled"
-    [areMentionsEnabled]="areMentionsEnabled"
-    [mentionScope]="mentionScope"
-    [mode]="mode"
-    [isMultipleFileUploadEnabled]="isMultipleFileUploadEnabled"
-    (messageUpdate)="messageUpdateHandler ? messageUpdateHandler() : null"
-    [sendMessage$]="sendMessage$"
-  ></stream-message-input>
 </ng-template>
 
 <ng-template #mentionTemplate let-user="user">
@@ -114,10 +91,10 @@
   let-deleteUploadHandler="deleteUploadHandler"
 >
   <stream-attachment-preview-list
+    class="rfu-image-previewer-angular-host"
     [attachmentUploads$]="attachmentUploads$"
     (retryAttachmentUpload)="retryUploadHandler($event)"
     (deleteAttachment)="deleteUploadHandler($event)"
-    class="rfu-image-previewer-angular-host"
   ></stream-attachment-preview-list>
 </ng-template>
 
@@ -125,7 +102,6 @@
   #avatarTemplate
   let-name="name"
   let-imageUrl="imageUrl"
-  let-size="size"
   let-type="type"
   let-location="location"
   let-user="user"
@@ -136,7 +112,6 @@
   <stream-avatar
     [name]="name"
     [imageUrl]="imageUrl"
-    [size]="size"
     [type]="type"
     [location]="location"
     [user]="user"
@@ -146,29 +121,26 @@
   ></stream-avatar>
 </ng-template>
 
-<ng-template #iconTemplate let-icon="icon" let-size="size">
-  <app-icon [icon]="icon" [size]="size"></app-icon>
+<ng-template #iconTemplate let-icon="icon">
+  <app-icon [icon]="icon"></app-icon>
 </ng-template>
 
-<ng-template #loadingIndicatorTemplate let-size="size" let-color="color">
-  <stream-loading-indicator
-    [size]="size"
-    color="#F1F8E9"
-  ></stream-loading-indicator>
+<ng-template #loadingIndicatorTemplate let-color="color">
+  <stream-loading-indicator color="#F1F8E9"></stream-loading-indicator>
 </ng-template>
 
 <ng-template
   #messageActionsBoxTemplate
   let-isMine="isMine"
   let-enabledActions="enabledActions"
-  let-messageInput="message"
-  let-customActions="customActions"
+  let-message="message"
+  let-messageTextHtmlElement="messageTextHtmlElement"
 >
   <stream-message-actions-box
     [isMine]="isMine"
     [enabledActions]="enabledActions"
-    [message]="messageInput"
-    [customActions]="customActions"
+    [message]="message"
+    [messageTextHtmlElement]="messageTextHtmlElement"
   ></stream-message-actions-box>
 </ng-template>
 
@@ -177,14 +149,14 @@
   let-actionName="actionName"
   let-actionHandler="actionHandler"
   let-message="message"
-  let-isMine="isMine"
+  let-actionHandlerExtraParams="actionHandlerExtraParams"
   let-actionLabelOrTranslationKey="actionLabelOrTranslationKey"
 >
   <app-message-action
     [actionName]="actionName"
     [actionHandler]="actionHandler"
     [message]="message"
-    [isMine]="isMine"
+    [extraParams]="actionHandlerExtraParams"
     [actionLabelOrTranslationKey]="actionLabelOrTranslationKey"
   ></app-message-action>
 </ng-template>
@@ -193,19 +165,26 @@
   #messageReactionsTemplate
   let-messageReactionCounts="messageReactionCounts"
   let-latestReactions="latestReactions"
-  let-isSelectorOpen="isSelectorOpen"
-  let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
   let-messageId="messageId"
   let-ownReactions="ownReactions"
 >
   <stream-message-reactions
     [messageReactionCounts]="messageReactionCounts"
     [latestReactions]="latestReactions"
-    [isSelectorOpen]="isSelectorOpen"
-    (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
     [messageId]="messageId"
     [ownReactions]="ownReactions"
   ></stream-message-reactions>
+</ng-template>
+
+<ng-template
+  #messageReactionsSelectorTemplate
+  let-messageId="messageId"
+  let-ownReactions="ownReactions"
+>
+  <stream-message-reactions-selector
+    [messageId]="messageId"
+    [ownReactions]="ownReactions"
+  ></stream-message-reactions-selector>
 </ng-template>
 
 <ng-template
@@ -216,8 +195,8 @@
 >
   <stream-modal
     [isOpen]="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>

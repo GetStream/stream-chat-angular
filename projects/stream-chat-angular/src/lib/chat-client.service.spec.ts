@@ -145,7 +145,8 @@ describe('ChatClientService', () => {
     const options = { timeout: 5000 };
     await service.init(apiKey, user, userToken, options);
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options as any);
+    // @ts-expect-error don't know what's wrong here
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options);
   });
 
   it('should init with token provider', async () => {
@@ -175,6 +176,45 @@ describe('ChatClientService', () => {
     await service.getAppSettings();
 
     expect(mockChatClient.getAppSettings).not.toHaveBeenCalled();
+  });
+
+  it('should make sure we call app settings only once', () => {
+    const spy = mockChatClient.getAppSettings;
+    void service.getAppSettings();
+    void service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should make sure we call app settings only once unless first call returned an error', async () => {
+    const spy = mockChatClient.getAppSettings;
+
+    try {
+      spy.and.rejectWith();
+      await service.getAppSettings();
+    } catch (error) {
+      spy.and.resolveTo({});
+      await service.getAppSettings();
+    }
+
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should make sure we call app settings only once unless we change API key', async () => {
+    const spy = mockChatClient.getAppSettings;
+    service.chatClient.key = apiKey;
+    await service.getAppSettings();
+    await service.init(apiKey, '', '');
+    await service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    spy.calls.reset();
+    service.chatClient.key = apiKey;
+    await service.init('different-api-key', '', '');
+    await service.getAppSettings();
+
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('should set SDK information', () => {
@@ -301,7 +341,9 @@ describe('ChatClientService', () => {
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     invitesSpy.calls.reset();
-    await service.init(apiKey, userId, userToken);
+    await service.init(apiKey, userId, userToken, {
+      trackPendingChannelInvites: true,
+    });
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith({
       invite: 'pending',
@@ -311,46 +353,84 @@ describe('ChatClientService', () => {
     expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);
   });
 
-  it('should emit pending invitations of user', () => {
+  it('should emit pending invitations of user', async () => {
+    await service.init(apiKey, userId, userToken, {
+      trackPendingChannelInvites: true,
+    });
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     const event1 = {
       id: 'mockevent',
       type: 'notification.invited',
-      channel: { cid: 'what-i-ate-for-lunch' },
+      channel: {
+        cid: 'messaging:what-i-ate-for-lunch',
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event1.type, event1);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event1.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event2 = {
       id: 'mockevent',
       type: 'notification.invited',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event2.type, event2);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event1.channel, event2.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      }),
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'gardening',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event3 = {
       id: 'mockevent',
       type: 'notification.invite_accepted',
-      channel: { cid: 'what-i-ate-for-lunch' },
+      channel: {
+        cid: 'messaging:what-i-ate-for-lunch',
+        type: 'messaging',
+        id: 'what-i-ate-for-lunch',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event3.type, event3);
 
-    expect(invitesSpy).toHaveBeenCalledWith([event2.channel]);
+    expect(invitesSpy).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        type: 'messaging',
+        id: 'gardening',
+      }),
+    ]);
 
     invitesSpy.calls.reset();
     const event4 = {
       id: 'mockevent',
       type: 'notification.invite_rejected',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: { user: mockChatClient.user },
     } as any as Event;
     mockChatClient.handleEvent(event4.type, event4);
@@ -361,7 +441,11 @@ describe('ChatClientService', () => {
     const event5 = {
       id: 'mockevent',
       type: 'notification.invite_rejected',
-      channel: { cid: 'gardening' },
+      channel: {
+        cid: 'messaging:gardening',
+        type: 'messaging',
+        id: 'gardening',
+      },
       member: {
         user: { id: `not${mockChatClient.user.id}` },
       },

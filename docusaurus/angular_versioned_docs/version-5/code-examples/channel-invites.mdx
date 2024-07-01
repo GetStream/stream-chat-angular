@@ -401,6 +401,14 @@ Add a reference to the template in your `app.component.ts`:
 
 #### Displaying the invitations
 
+The [`ChatClientService`](../services/ChatClientService.mdx) can keep track of pending invites, to enable this you have to initialize the service with the following flag:
+
+```typescript
+this.chatService.init("<API key>", "<user>", "<token provider>", {
+  trackPendingChannelInvites: true,
+});
+```
+
 The `pendingInvites$` Observable on the [`ChatClientService`](../services/ChatClientService.mdx) can notify us about the pending invitations of the current user. Let's subscribe to this Observable and [display the invites](../services/NotificationService.mdx) in the `ngOnInit` method of the `app.component.ts`
 
 ```typescript
@@ -451,19 +459,26 @@ It's important to note that the filtering set above is not applied to [events](h
 To override the default behavior create a custom event handler in `app.component.ts` that checks if the user was invited to the channel or added directly and only adds the channel to the list if the user was added directly:
 
 ```typescript
-private customAddedToChannelNotificationHandler(
-    clientEvent: ClientEvent,
-    channelListSetter: (channels: (Channel | ChannelResponse)[]) => void
-  ): void {
-    let channels!: Channel[];
-    this.channelService.channels$
-      .pipe(take(1))
-      .subscribe((c) => (channels = c || []));
-    if (clientEvent.event.member?.invited) {
-      return;
-    }
-    channelListSetter([clientEvent!.event!.channel!, ...channels]);
+private async customAddedToChannelNotificationHandler(
+  clientEvent: ClientEvent,
+  channelListSetter: (channels: Channel<DefaultStreamChatGenerics>[]) => void
+) {
+  if (clientEvent.event.member?.invited) {
+    return;
   }
+  const channelResponse = clientEvent!.event!.channel!;
+  const newChanel = this.chatService.chatClient.channel(
+    channelResponse.type,
+    channelResponse.id
+  );
+  try {
+    await newChanel.watch();
+    const existingChannels = this.channelService.channels;
+    channelListSetter([newChanel, ...existingChannels]);
+  } catch (error) {
+    console.error('Failed to watch channel', error);
+  }
+}
 ```
 
 Now register the handler to the [channel service](../services/ChannelService.mdx) in the constructor of `app.component.ts`:
@@ -489,3 +504,5 @@ this.chatService.events$
     });
   });
 ```
+
+If you're doing this in a component other than `AppComponent`, don't forget to unsubscribe from the `events$` Observable.

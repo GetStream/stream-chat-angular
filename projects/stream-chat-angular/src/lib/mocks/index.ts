@@ -87,8 +87,8 @@ export const generateMockChannels = (length = 25) => {
               () => {}),
         };
       },
-      watch: () => {},
-      stopWatching: () => {},
+      watch: () => Promise.resolve(),
+      stopWatching: () => Promise.resolve(),
       sendMessage: (m: any) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         return Promise.resolve({ message: m });
@@ -208,6 +208,15 @@ export const generateMockChannels = (length = 25) => {
   return channels;
 };
 
+export const generateMockChannel = (type: string, id: string) => {
+  const channel = generateMockChannels(1)[0];
+  channel.type = type;
+  channel.id = id;
+  channel.cid = `${type}:${id}`;
+
+  return channel;
+};
+
 export type MockChannelService = {
   hasMoreChannels$: Subject<boolean>;
   channels$: Subject<Channel<DefaultStreamChatGenerics>[] | undefined>;
@@ -323,6 +332,7 @@ export const mockChannelService = (): MockChannelService => {
 };
 
 export type MockStreamChatClient = {
+  channel: (type: string, id: string) => MockChannel;
   appSettings$: Subject<AppSettings>;
   user: UserResponse;
   connectUser: jasmine.Spy;
@@ -341,14 +351,13 @@ export type MockStreamChatClient = {
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
   const eventHandlers: { [key: string]: Function } = {};
-  /* eslint-disable jasmine/no-unsafe-spy */
   const connectUser = jasmine.createSpy();
   const setGuestUser = jasmine.createSpy();
   const flagMessage = jasmine.createSpy();
   const setUserAgent = jasmine.createSpy();
   const queryUsers = jasmine.createSpy();
   const queryChannels = jasmine.createSpy().and.returnValue([]);
-  const getAppSettings = jasmine.createSpy().and.returnValue({
+  const getAppSettings = jasmine.createSpy().and.resolveTo({
     app: {
       file_upload_config: {
         allowed_file_extensions: [],
@@ -369,7 +378,6 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     .createSpy()
     .and.returnValue('stream-chat-javascript-client-browser-2.2.2');
   const connectAnonymousUser = jasmine.createSpy();
-  /* eslint-enable jasmine/no-unsafe-spy */
   const user = mockCurrentUser();
   const on = (name: EventTypes | Function, handler: () => {}) => {
     if (typeof name === 'string') {
@@ -390,6 +398,9 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     }
   };
   const appSettings$ = new Subject<AppSettings>();
+  const channel = (type: string, id: string) => {
+    return generateMockChannel(type, id);
+  };
 
   return {
     connectUser,
@@ -406,6 +417,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     queryChannels,
     setGuestUser,
     connectAnonymousUser,
+    channel,
   };
 };
 

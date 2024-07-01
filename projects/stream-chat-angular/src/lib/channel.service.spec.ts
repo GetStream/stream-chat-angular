@@ -48,7 +48,7 @@ describe('ChannelService', () => {
   let init: (
     c?: Channel<DefaultStreamChatGenerics>[],
     sort?: ChannelSort<DefaultStreamChatGenerics>,
-    options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
+    options?: ChannelOptions,
     mockChannelQuery?: Function,
     shouldSetActiveChannel?: boolean
   ) => Promise<Channel<DefaultStreamChatGenerics>[]>;
@@ -88,7 +88,7 @@ describe('ChannelService', () => {
     init = async (
       channels?: Channel<DefaultStreamChatGenerics>[],
       sort?: ChannelSort<DefaultStreamChatGenerics>,
-      options?: ChannelOptions & { keepAliveChannels$OnError?: boolean },
+      options?: ChannelOptions,
       mockChannelQuery?: Function,
       shouldSetActiveChannel?: boolean
     ) => {
@@ -190,7 +190,7 @@ describe('ChannelService', () => {
     service.activeChannel$.subscribe(activeChannelSpy);
 
     try {
-      void init(undefined, undefined, { keepAliveChannels$OnError: true }, () =>
+      void init(undefined, undefined, undefined, () =>
         mockChatClient.queryChannels.and.rejectWith('there was an error')
       );
       tick();
@@ -269,7 +269,8 @@ describe('ChannelService', () => {
 
     await init();
 
-    expect(service['nextPageConfiguration']).toEqual({
+    // @ts-expect-error we know channelQuery exists, TS doesn't
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'filter',
       paginationFilter: {
         cid: { $gte: jasmine.any(String) },
@@ -408,7 +409,8 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
-    expect(service['nextPageConfiguration']).toEqual({
+    // @ts-expect-error we know channelQuery exists, TS doesn't
+    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
       type: 'offset',
       offset: service.channels.length,
     });
@@ -485,11 +487,9 @@ describe('ChannelService', () => {
 
   it('should add readBy field to messages', async () => {
     await init();
-    /* eslint-disable jasmine/new-line-before-expect */
     service.activeChannelMessages$.subscribe((messages) => {
       messages.forEach((m) => expect(m.readBy).not.toBeUndefined());
     });
-    /* eslint-enable jasmine/new-line-before-expect */
   });
 
   it('should load more older messages', async () => {
@@ -1063,7 +1063,7 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     mockChatClient.activeChannels[channel.cid] = channel;
-    spyOn(channel, 'stopWatching');
+    spyOn(channel, 'stopWatching').and.callThrough();
     spyOn(service, 'setAsActiveChannel');
 
     events$.next({
@@ -1635,6 +1635,16 @@ describe('ChannelService', () => {
               },
             },
           });
+        case 'file_too_big.jpg':
+          return Promise.reject({
+            response: {
+              data: {
+                code: 4,
+                message:
+                  'UploadImage failed with error: "File size is above the size limit (1048576 bytes)"',
+              },
+            },
+          });
         default:
           return Promise.resolve({
             file: 'http://url/to/image',
@@ -1672,12 +1682,14 @@ describe('ChannelService', () => {
     const file3 = { name: 'menu.pdf' } as File;
     const file4 = { name: 'file_error.pdf' } as File;
     const file5 = { name: 'video.mp4', type: 'video/mp4' } as File;
+    const file6 = { name: 'file_too_big.jpg', type: 'image/jpg' } as File;
     const attachments = [
       { file: file1, type: 'image', state: 'uploading' },
       { file: file2, type: 'image', state: 'uploading' },
       { file: file3, type: 'file', state: 'uploading' },
       { file: file4, type: 'file', state: 'uploading' },
       { file: file5, type: 'video', state: 'uploading' },
+      { file: file6, type: 'image', state: 'uploading' },
     ] as AttachmentUpload[];
     const result = await service.uploadAttachments(attachments);
     const expectedResult: AttachmentUpload[] = [
@@ -1715,6 +1727,13 @@ describe('ChannelService', () => {
         type: 'video',
         url: 'http://url/to/file',
         thumb_url: 'http://url/to/poster',
+      },
+      {
+        file: file6,
+        state: 'error',
+        type: 'image',
+        errorReason: 'file-size',
+        errorExtraInfo: [{ param: '1MB' }],
       },
     ];
 
@@ -2353,7 +2372,7 @@ describe('ChannelService', () => {
   it('should load message reactions', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactions = [
       { type: 'wow', user: { id: 'jack' } },
     ] as ReactionResponse[];
@@ -2374,7 +2393,7 @@ describe('ChannelService', () => {
   it('should load message reactions - multiple pages', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactionsFirstPage = new Array(300)
       .fill(null)
       .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
@@ -2407,7 +2426,7 @@ describe('ChannelService', () => {
   it('should load message reactions - but no more than 1200', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const mockReactionsPage = new Array(300)
       .fill(null)
       .map(() => ({ type: 'wow', user: { id: 'jack' } })) as ReactionResponse[];
@@ -2423,7 +2442,7 @@ describe('ChannelService', () => {
   it('should load message reactions - error', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
     const error = new Error('Reactions loading failed');
     spyOn(activeChannel, 'getReactions').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
@@ -2443,7 +2462,7 @@ describe('ChannelService', () => {
   it('should mark message as unread', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
 
     spyOn(activeChannel, 'markUnread').and.resolveTo();
     await service.markMessageUnread(message.id);
@@ -2456,7 +2475,7 @@ describe('ChannelService', () => {
   it('should mark message as unread - error', async () => {
     await init();
     const activeChannel = service.activeChannel!;
-    const message = service.activeChannelMessages[0]!;
+    const message = service.activeChannelMessages[0];
 
     const error = {
       response: {
@@ -2537,5 +2556,69 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('channel list setter should respect channel order', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    spy.calls.reset();
+
+    service['channelListSetter'](newChannels);
+
+    expect(spy).toHaveBeenCalledOnceWith(newChannels);
+  });
+
+  it('channel list setter should watch for channel events', async () => {
+    await init();
+    const currentChannels = service.channels;
+    const newChannel = generateMockChannels()[0];
+    newChannel.cid = 'new-channel';
+    const unsubscribeSpy = jasmine.createSpy();
+    spyOn(newChannel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
+    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
+    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
+    newChannels.forEach((c) => (c._client = {}));
+
+    service['channelListSetter'](newChannels);
+
+    expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
+  });
+
+  it('init with custom query', async () => {
+    const mockChannels = generateMockChannels();
+    const customQuery = jasmine
+      .createSpy()
+      .and.resolveTo({ channels: mockChannels, hasMorePage: true });
+    const result = await service.initWithCustomQuery(customQuery, {
+      shouldSetActiveChannel: false,
+      messagePageSize: 30,
+    });
+    const hasMoreSpy = jasmine.createSpy();
+    service.hasMoreChannels$.subscribe(hasMoreSpy);
+
+    expect(result).toBe(mockChannels);
+    expect(customQuery).toHaveBeenCalledWith('first-page');
+    expect(service['shouldSetActiveChannel']).toBeFalse();
+    expect(service['messagePageSize']).toBe(30);
+    expect(hasMoreSpy).toHaveBeenCalledWith(true);
+
+    customQuery.calls.reset();
+    hasMoreSpy.calls.reset();
+    const nextPage = generateMockChannels(5);
+    customQuery.and.resolveTo({
+      channels: [...mockChannels, ...nextPage],
+      hasMorePage: false,
+    });
+
+    await service.loadMoreChannels();
+
+    expect(customQuery).toHaveBeenCalledWith('next-page');
+    expect(hasMoreSpy).toHaveBeenCalledWith(false);
   });
 });

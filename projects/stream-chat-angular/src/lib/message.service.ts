@@ -18,7 +18,6 @@ export class MessageService {
 
   /**
    * You can provide a custom method to display links
-   *
    * @param url the url the link should refer to
    * @returns the HTML markup as a string for the link
    */

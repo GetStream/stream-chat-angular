@@ -10,12 +10,17 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of } from 'rxjs';
-import { AppSettings, Channel, UserResponse } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { textareaInjectionToken } from '../injection-tokens';
-import { generateMockChannels, mockCurrentUser, mockMessage } from '../mocks';
+import {
+  generateMockChannels,
+  generateMockMessages,
+  mockCurrentUser,
+  mockMessage,
+} from '../mocks';
 import { NotificationService } from '../notification.service';
 import {
   AttachmentUpload,
@@ -29,7 +34,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
-import { ThemeService } from '../theme.service';
+import { MessageActionsService } from '../message-actions.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -57,8 +62,7 @@ describe('MessageInputComponent', () => {
     deleteAttachment: jasmine.Spy;
     retryAttachmentUpload: jasmine.Spy;
   };
-  let appSettings$: Subject<AppSettings>;
-  let getAppSettings: jasmine.Spy;
+
   let mockMessageToQuote$: BehaviorSubject<undefined | StreamMessage>;
   let selectMessageToQuoteSpy: jasmine.Spy;
   let typingStartedSpy: jasmine.Spy;
@@ -68,7 +72,6 @@ describe('MessageInputComponent', () => {
   }>;
 
   beforeEach(() => {
-    appSettings$ = new Subject<AppSettings>();
     channel = generateMockChannels(1)[0];
     mockActiveChannel$ = new BehaviorSubject(channel);
     mockActiveParentMessageId$ = new BehaviorSubject<string | undefined>(
@@ -89,7 +92,6 @@ describe('MessageInputComponent', () => {
       deleteAttachment: jasmine.createSpy(),
       retryAttachmentUpload: jasmine.createSpy(),
     };
-    getAppSettings = jasmine.createSpy();
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
       undefined
     );
@@ -141,13 +143,7 @@ describe('MessageInputComponent', () => {
           useValue: {
             user$: of(user),
             chatClient: { user },
-            appSettings$,
-            getAppSettings,
           },
-        },
-        {
-          provide: ThemeService,
-          useValue: { themeVersion: '2' },
         },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -198,19 +194,26 @@ describe('MessageInputComponent', () => {
     expect(component.messageSent).toHaveBeenCalledWith();
   });
 
-  it('should update message send is triggered and #message is provided', () => {
-    component.message = mockMessage();
+  it('should update message if send is triggered and #message is provided', fakeAsync(() => {
+    const messageToEdit = mockMessage();
+    const messageToEditSpy = jasmine.createSpy();
+    const messageActionsService = TestBed.inject(MessageActionsService);
+    messageActionsService.messageToEdit$.next(messageToEdit);
+    messageActionsService.messageToEdit$.subscribe(messageToEditSpy);
     fixture.detectChanges();
     const textarea = queryTextarea();
     const message = 'This is my new message';
     component.textareaValue = message;
+    messageToEditSpy.calls.reset();
     textarea?.send.next();
+    tick();
     fixture.detectChanges();
 
     expect(updateMessageSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: component.message.id, text: message })
+      jasmine.objectContaining({ id: messageToEdit.id, text: message })
     );
-  });
+    expect(messageToEditSpy).toHaveBeenCalledWith(undefined);
+  }));
 
   it('should show error message if message update failed', async () => {
     const notificationService = TestBed.inject(NotificationService);
@@ -230,16 +233,21 @@ describe('MessageInputComponent', () => {
     expect(spy).not.toHaveBeenCalledWith();
   });
 
-  it(`shouldn't display send button in edit mode`, () => {
-    component.message = mockMessage();
-    component.ngOnChanges({ message: {} as any as SimpleChange });
+  it(`shouldn't display send button if corresponding input if #displaySendButton`, () => {
+    component.displaySendButton = false;
     fixture.detectChanges();
 
     expect(querySendButton()).toBeNull();
+
+    component.displaySendButton = true;
+    fixture.detectChanges();
+
+    expect(querySendButton()).not.toBeNull();
   });
 
   it('should emit #messageUpdate event if message update was successful', async () => {
-    component.message = mockMessage();
+    const messageToEdit = mockMessage();
+    component.message = messageToEdit;
     component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
     const spy = jasmine.createSpy();
@@ -248,7 +256,7 @@ describe('MessageInputComponent', () => {
     await component.messageSent();
 
     expect(spy).toHaveBeenCalledWith({
-      message: jasmine.objectContaining({ id: component.message.id }),
+      message: jasmine.objectContaining({ id: messageToEdit.id }),
     });
   });
 
@@ -598,6 +606,18 @@ describe('MessageInputComponent', () => {
     } as any as Channel<DefaultStreamChatGenerics>);
 
     expect(component.canSendMessages).toBeFalse();
+
+    mockActiveChannel$.next({
+      data: { own_capabilities: [] },
+      getConfig: () => ({ commands: [] }),
+    } as any as Channel<DefaultStreamChatGenerics>);
+
+    expect(component.canSendMessages).toBeFalse();
+
+    component.message = generateMockMessages()[0];
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.canSendMessages).toBeTrue();
   });
 
   it(`shouldn't display textarea component if user can't send messages`, () => {
@@ -607,76 +627,6 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(queryTextarea()).toBeUndefined();
-  });
-
-  it('should check uploaded attachments', async () => {
-    const notificationService = TestBed.inject(NotificationService);
-    spyOn(notificationService, 'addTemporaryNotification');
-    appSettings$.next({
-      file_upload_config: {
-        allowed_file_extensions: [],
-        allowed_mime_types: [],
-      },
-      image_upload_config: {
-        allowed_file_extensions: [],
-        allowed_mime_types: [],
-      },
-    });
-    let files = [{ name: 'test.pdf', type: 'application/pdf' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
-
-    attachmentService.filesSelected.calls.reset();
-    appSettings$.next({
-      file_upload_config: {
-        blocked_file_extensions: ['.doc'],
-      },
-      image_upload_config: {
-        blocked_mime_types: ['image/png'],
-      },
-    });
-    files = [
-      { name: 'test.pdf', type: 'application/pdf' },
-      { name: 'test2.doc', type: 'application/msword' },
-      { name: 'test3.png', type: 'image/png' },
-    ];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
-    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
-      2
-    );
-
-    attachmentService.filesSelected.calls.reset();
-    (notificationService.addTemporaryNotification as jasmine.Spy).calls.reset();
-    appSettings$.next({
-      file_upload_config: {
-        allowed_mime_types: ['application/msword'],
-      },
-      image_upload_config: {
-        allowed_file_extensions: ['.jpg', '.png'],
-      },
-    });
-    files = [
-      { name: 'test.pdf', type: 'application/pdf' },
-      { name: 'test2.doc', type: 'application/msword' },
-      { name: 'test3.png', type: 'image/png' },
-      { name: 'test4.txt', type: 'application/text' },
-    ];
-    await component.filesSelected(files as any as FileList);
-
-    expect(attachmentService.filesSelected).not.toHaveBeenCalled();
-    expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
-      2
-    );
-  });
-
-  it('should load app settings, if not yet loaded', async () => {
-    const files = [{ name: 'test.pdf', type: 'application/pdf' }];
-    await component.filesSelected(files as any as FileList);
-
-    expect(getAppSettings).toHaveBeenCalledWith();
   });
 
   it('should send parent message id if in thread mode', async () => {
@@ -1038,5 +988,63 @@ describe('MessageInputComponent', () => {
     expect(sentText).toEqual(
       'Multiple empty line inside the message\n\n\nis allowed'
     );
+  });
+
+  it('should watch for message to edit', () => {
+    // @ts-expect-error - whitebox test
+    spyOn(component, 'messageToUpdateChanged').and.callThrough();
+    const service = TestBed.inject(MessageActionsService);
+    const message = generateMockMessages()[0];
+    service.messageToEdit$.next(message);
+
+    expect(component['messageToUpdateChanged']).toHaveBeenCalledWith();
+    expect(component.message).toBe(message);
+    expect(component.textareaValue).toBe(message.text!);
+
+    service.messageToEdit$.next(undefined);
+
+    expect(component['messageToUpdateChanged']).toHaveBeenCalledTimes(2);
+    expect(component.message).toBeUndefined();
+    expect(component.textareaValue).toBe('');
+  });
+
+  it(`shouldn't watch for message to edit if #watchForMessageToEdit is set to false`, () => {
+    // @ts-expect-error - whitebox test
+    spyOn(component, 'messageToUpdateChanged');
+    component.watchForMessageToEdit = false;
+    component.ngOnChanges({ watchForMessageToEdit: {} as SimpleChange });
+
+    const service = TestBed.inject(MessageActionsService);
+    const message = generateMockMessages()[0];
+    service.messageToEdit$.next(message);
+
+    expect(component['messageToUpdateChanged']).not.toHaveBeenCalledWith();
+    expect(component.message).toBe(undefined);
+  });
+
+  it(`shouldn't enable edit mode for thread replies when in main mode`, () => {
+    // @ts-expect-error - whitebox test
+    spyOn(component, 'messageToUpdateChanged');
+
+    const service = TestBed.inject(MessageActionsService);
+    const message = generateMockMessages()[0];
+    message.parent_id = 'parent';
+    service.messageToEdit$.next(message);
+
+    expect(component['messageToUpdateChanged']).not.toHaveBeenCalledWith();
+    expect(component.message).toBe(undefined);
+  });
+
+  it(`shouldn't enable edit mode for main messages when in thread mode`, () => {
+    // @ts-expect-error - whitebox test
+    spyOn(component, 'messageToUpdateChanged');
+    component.mode = 'thread';
+
+    const service = TestBed.inject(MessageActionsService);
+    const message = generateMockMessages()[0];
+    service.messageToEdit$.next(message);
+
+    expect(component['messageToUpdateChanged']).not.toHaveBeenCalledWith();
+    expect(component.message).toBe(undefined);
   });
 });

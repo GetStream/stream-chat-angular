@@ -13,7 +13,6 @@ import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
-import { ThemeService } from '../theme.service';
 import { SimpleChange } from '@angular/core';
 import { mockVoiceRecording } from '../mocks';
 import { VoiceRecordingComponent } from '../voice-recording/voice-recording.component';
@@ -49,7 +48,6 @@ describe('AttachmentListComponent', () => {
       ],
       providers: [
         { provide: ChannelService, useValue: { sendAction: sendAction } },
-        { provide: ThemeService, useValue: { themeVersion: '2' } },
         StreamI18nService,
         AttachmentConfigurationService,
       ],

@@ -6,13 +6,10 @@
     "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": [
-    "angular-mentions",
     "dayjs",
     "@stream-io/transliterate",
-    "@popperjs/core",
     "uuid",
     "pretty-bytes",
-    "emoji-regex",
-    "ngx-popperjs"
+    "emoji-regex"
   ]
 }

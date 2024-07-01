@@ -31,11 +31,8 @@ describe('AvatarPlaceholderComponent', () => {
     const avatar = fixture.debugElement.query(By.directive(AvatarComponent))
       .componentInstance as AvatarComponent;
 
-    expect(avatar.size).toBe(32);
-
     component.imageUrl = 'imageUrl';
     component.name = 'name';
-    component.size = 5;
     component.type = 'user';
     component.location = 'autocomplete-item';
     const user = { id: 'user-id' };
@@ -45,7 +42,6 @@ describe('AvatarPlaceholderComponent', () => {
 
     expect(avatar.imageUrl).toBe('imageUrl');
     expect(avatar.name).toBe('name');
-    expect(avatar.size).toBe(5);
     expect(avatar.type).toBe('user');
     expect(avatar.location).toBe('autocomplete-item');
     expect(avatar.user).toBe(user);

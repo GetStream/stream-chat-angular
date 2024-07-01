@@ -31,6 +31,7 @@ chrome-profiler-events*.json
 .history/*
 
 # misc
+/.angular/cache
 /.sass-cache
 /connect.lock
 /coverage
@@ -56,3 +57,4 @@ Thumbs.db
 
 # Encapsulated stream-chat-css
 projects/stream-chat-angular/src/assets/styles
+projects/stream-chat-angular/src/assets/assets

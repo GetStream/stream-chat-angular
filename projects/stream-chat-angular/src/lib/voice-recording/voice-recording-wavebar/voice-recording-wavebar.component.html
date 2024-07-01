@@ -1,15 +1,16 @@
+<!--eslint-disable @angular-eslint/template/click-events-have-key-events-->
 <div
-  class="str-chat__wave-progress-bar__track"
   #container
+  class="str-chat__wave-progress-bar__track"
   data-testid="wave-progress-bar-track"
+  role="progressbar"
   (mousedown)="isDragging = true"
   (mouseup)="isDragging = false"
   (mouseleave)="isDragging = false"
   (mousemove)="isDragging ? seek($event) : null"
   (click)="seek($event)"
-  (keyup.enter)="seek($event)"
-  role="progressbar"
 >
+  <!--eslint-enable @angular-eslint/template/click-events-have-key-events-->
   <div
     *ngFor="
       let dataPoint of resampledWaveFormData;

@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { ThemeService } from '../theme.service';
 import { AttachmentUpload } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
@@ -18,7 +17,6 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$ = new BehaviorSubject<AttachmentUpload[]>([]);
     await TestBed.configureTestingModule({
       declarations: [AttachmentPreviewListComponent],
-      providers: [{ provide: ThemeService, useValue: { themeVersion: '2' } }],
     }).compileComponents();
   });
 
@@ -142,13 +140,11 @@ describe('AttachmentPreviewListComponent', () => {
     const filePreviews = queryPreviewFiles();
 
     filePreviews.forEach((p) => {
-      /* eslint-disable jasmine/new-line-before-expect */
       expect(
         p.querySelector('.rfu-file-previewer__file--uploading')
       ).toBeNull();
       expect(p.innerHTML).toContain(url);
       expect(p.innerHTML).toContain(fileName);
-      /* eslint-enable jasmine/new-line-before-expect */
     });
   });
 

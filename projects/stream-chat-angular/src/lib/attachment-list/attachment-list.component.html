@@ -40,22 +40,6 @@
               ).url
             "
             [alt]="attachmentContext?.fallback"
-            (click)="openImageModal([attachmentContext])"
-            (keyup.enter)="openImageModal([attachmentContext])"
-            [style.--original-height]="
-              getImageAttachmentConfiguration(
-                attachmentContext,
-                'single',
-                imgElement
-              ).originalHeight
-            "
-            [style.--original-width]="
-              getImageAttachmentConfiguration(
-                attachmentContext,
-                'single',
-                imgElement
-              ).originalWidth
-            "
             [ngStyle]="{
               height: getImageAttachmentConfiguration(
                 attachmentContext,
@@ -66,8 +50,20 @@
                 attachmentContext,
                 'single',
                 imgElement
-              ).width
+              ).width,
+              '--original-height': getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).originalHeight,
+              '--original-width': getImageAttachmentConfiguration(
+                attachmentContext,
+                'single',
+                imgElement
+              ).originalWidth
             }"
+            (click)="openImageModal([attachmentContext])"
+            (keyup.enter)="openImageModal([attachmentContext])"
           />
         </ng-template>
       </ng-container>
@@ -102,16 +98,16 @@
                 *ngIf="index < 3 || (index === 3 && isLast)"
                 class="str-chat__gallery-image"
                 data-testclass="gallery-image"
-                (click)="openImageModal(attachmentContext.images!, index)"
-                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
                 [class.str-chat__message-attachment--svg-image]="
                   isSvg(galleryImage)
                 "
+                (click)="openImageModal(attachmentContext.images!, index)"
+                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
               >
                 <img
+                  #imgElement
                   fetchpriority="low"
                   loading="lazy"
-                  #imgElement
                   [src]="
                     getImageAttachmentConfiguration(
                       galleryImage,
@@ -149,29 +145,13 @@
                 />
               </button>
               <button
-                #element
                 *ngIf="index === 3 && !isLast"
+                #element
                 class="str-chat__gallery-placeholder"
                 data-testclass="gallery-image"
                 data-testid="more-image-button"
-                (click)="openImageModal(attachmentContext.images!, index)"
-                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
                 [class.str-chat__message-attachment--svg-image]="
                   isSvg(galleryImage)
-                "
-                [style.--original-height]="
-                  getImageAttachmentConfiguration(
-                    galleryImage,
-                    'gallery',
-                    element
-                  ).originalHeight
-                "
-                [style.--original-width]="
-                  getImageAttachmentConfiguration(
-                    galleryImage,
-                    'gallery',
-                    element
-                  ).originalWidth
                 "
                 [ngStyle]="{
                   'background-image':
@@ -191,8 +171,20 @@
                     galleryImage,
                     'gallery',
                     element
-                  ).width
+                  ).width,
+                  '--original-height': getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).originalHeight,
+                  '--original-width': getImageAttachmentConfiguration(
+                    galleryImage,
+                    'gallery',
+                    element
+                  ).originalWidth
                 }"
+                (click)="openImageModal(attachmentContext.images!, index)"
+                (keyup.enter)="openImageModal(attachmentContext.images!, index)"
               >
                 <p
                   [innerHTML]="
@@ -270,21 +262,15 @@
             "
           >
             <stream-icon-placeholder
-              *ngIf="themeVersion === '1'"
-              icon="file"
-              [size]="30"
-            ></stream-icon-placeholder>
-            <stream-icon-placeholder
-              *ngIf="themeVersion === '2'"
+              class="str-chat__attachment-type-icon"
               icon="unspecified-filetype"
-              [size]="30"
             ></stream-icon-placeholder>
             <div class="str-chat__message-attachment-file--item-text">
               <a
                 class="str-chat__message-attachment-file--item-first-row"
                 data-testclass="file-link"
-                href="{{ attachmentContext.asset_url }}"
                 target="_blank"
+                href="{{ attachmentContext.asset_url }}"
               >
                 <div
                   data-testclass="file-title"
@@ -298,9 +284,9 @@
                 ></stream-icon-placeholder>
               </a>
               <span
+                *ngIf="hasFileSize(attachmentContext)"
                 class="str-chat__message-attachment-file--item-size"
                 data-testclass="size"
-                *ngIf="hasFileSize(attachmentContext)"
                 >{{ getFileSize(attachmentContext) }}</span
               >
             </div>
@@ -374,19 +360,19 @@
                   {{ attachmentContext.text }}
                 </div>
                 <a
-                  class="str-chat__message-attachment-card--url"
                   *ngIf="
                     attachmentContext.title_link ||
                     attachmentContext.og_scrape_url
                   "
+                  class="str-chat__message-attachment-card--url"
                   data-testclass="url-link"
                   noopener
                   noreferrer
+                  target="_blank"
                   href="{{
                     attachmentContext.title_link ||
                       attachmentContext.og_scrape_url
                   }}"
-                  target="_blank"
                 >
                   {{
                     trimUrl(
@@ -416,10 +402,10 @@
                   let action of attachmentContext.actions;
                   trackBy: trackByActionValue
                 "
+                data-testclass="attachment-action"
                 class="str-chat__message-attachment-actions-button str-chat__message-attachment-actions-button--{{
                   action.style
                 }}"
-                data-testclass="attachment-action"
                 (click)="sendAction(action)"
                 (keyup.enter)="sendAction(action)"
               >
@@ -451,8 +437,8 @@
   <stream-modal
     class="stream-chat-angular__image-modal-host"
     [isOpen]="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>
@@ -502,11 +488,11 @@
           stream-chat-angular__image-modal-stepper
           str-chat__image-carousel-stepper str-chat__image-carousel-stepper-prev
         "
+        data-testid="image-modal-prev"
+        type="button"
         [ngStyle]="{
           visibility: isImageModalPrevButtonVisible ? 'visible' : 'hidden'
         }"
-        data-testid="image-modal-prev"
-        type="button"
         (click)="stepImages(-1)"
         (keyup.enter)="stepImages(-1)"
       >
@@ -518,10 +504,10 @@
           str-chat__image-carousel-stepper str-chat__image-carousel-stepper-next
         "
         type="button"
+        data-testid="image-modal-next"
         [ngStyle]="{
           visibility: isImageModalNextButtonVisible ? 'visible' : 'hidden'
         }"
-        data-testid="image-modal-next"
         (click)="stepImages(1)"
         (keyup.enter)="stepImages(1)"
       >

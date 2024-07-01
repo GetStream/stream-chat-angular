@@ -10,7 +10,7 @@
   >
     <stream-icon-placeholder icon="close"></stream-icon-placeholder>
   </div>
-  <div class="str-chat__modal__inner" #modalInner>
+  <div #modalInner class="str-chat__modal__inner">
     <ng-container *ngIf="content; else elseContent">
       <ng-container *ngTemplateOutlet="content"></ng-container>
     </ng-container>

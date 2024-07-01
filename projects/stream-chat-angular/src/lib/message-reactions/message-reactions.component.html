@@ -1,20 +1,19 @@
 <div
   *ngIf="existingReactions.length > 0"
+  data-testid="reaction-list"
   class="str-chat__reaction-list str-chat__message-reactions-container"
   [class.str-chat__reaction-list--reverse]="true"
-  [class.str-chat__reaction-list-hidden]="isSelectorOpen"
-  data-testid="reaction-list"
 >
   <ul class="str-chat__message-reactions">
     <li
-      class="str-chat__message-reaction"
       *ngFor="
         let reactionType of existingReactions;
         trackBy: trackByMessageReaction
       "
+      class="str-chat__message-reaction"
+      data-testclass="emoji"
       [ngStyle]="{ cursor: shouldHandleReactionClick ? 'pointer' : 'default' }"
       [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
-      data-testclass="emoji"
       (click)="reactionSelected(reactionType)"
       (keyup.enter)="reactionSelected(reactionType)"
     >
@@ -34,90 +33,6 @@
         class="str-chat__reaction-list--counter"
         >{{ reactionsCount }}</span
       >
-    </li>
-  </ul>
-</div>
-
-<div
-  #selectorContainer
-  class="str-chat__reaction-selector str-chat__message-reaction-selector"
-  *ngIf="isSelectorOpen"
-  data-testid="reaction-selector"
->
-  <div
-    *ngIf="tooltipText"
-    data-testid="tooltip"
-    #selectorTooltip
-    class="str-chat__reaction-selector-tooltip"
-    [ngStyle]="{
-      left: tooltipPositions?.tooltip + 'px',
-      visibility: tooltipPositions ? 'visible' : 'hidden'
-    }"
-  >
-    <div
-      class="arrow"
-      [ngStyle]="{ left: tooltipPositions?.arrow + 'px' }"
-    ></div>
-    <span class="latest-user-username">
-      {{ tooltipText }}
-    </span>
-  </div>
-  <ul
-    class="str-chat__message-reactions-list str-chat__message-reactions-options"
-  >
-    <li
-      class="
-        str-chat__message-reactions-option
-        str-chat__message-reactions-list-item
-        str-chat__emoji
-      "
-      *ngFor="
-        let reactionType of reactionOptions;
-        trackBy: trackByMessageReaction
-      "
-      [class.str-chat__message-reactions-option-selected]="
-        isOwnReaction(reactionType)
-      "
-      data-testclass="emoji-option"
-      (click)="react(reactionType)"
-      (keyup.enter)="react(reactionType)"
-    >
-      <div
-        *ngIf="getLatestUserByReaction(reactionType) as user"
-        class="latest-user str-chat__message-reactions-last-user"
-        (click)="hideTooltip()"
-        (keyup.enter)="hideTooltip()"
-        (mouseenter)="showTooltip($event, reactionType)"
-        (mouseleave)="hideTooltip()"
-        attr.data-testid="{{ reactionType }}-last-user"
-      >
-        <stream-avatar-placeholder
-          attr.data-testid="{{ reactionType }}-avatar"
-          [imageUrl]="user.image"
-          [name]="user.name || user.id"
-          [size]="20"
-          location="reaction"
-        ></stream-avatar-placeholder>
-      </div>
-      <span
-        class="
-          emoji
-          str-chat__emoji-selector-emoji-angular
-          str-chat__message-reaction-emoji
-        "
-      >
-        {{ getEmojiByReaction(reactionType) }}
-      </span>
-      <span
-        *ngIf="
-          messageReactionCounts[reactionType] &&
-          messageReactionCounts[reactionType]! > 0
-        "
-        class="str-chat__message-reactions-list-item__count"
-        attr.data-testid="{{ reactionType }}-reaction-count"
-      >
-        {{ messageReactionCounts[reactionType] }}
-      </span>
     </li>
   </ul>
 </div>
@@ -148,8 +63,8 @@
   <stream-modal
     class="str-chat__message-reactions-details-modal"
     [isOpen]="isOpen"
-    (isOpenChange)="isOpenChangeHandler($event)"
     [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
   >
   </stream-modal>
 </ng-template>
@@ -158,11 +73,11 @@
   <div class="str-chat__message-reactions-details">
     <div class="str-chat__message-reactions-details-reaction-types">
       <div
-        class="str-chat__message-reactions-details-reaction-type"
         *ngFor="
           let reactionType of existingReactions;
           trackBy: trackByMessageReaction
         "
+        class="str-chat__message-reactions-details-reaction-type"
         [ngStyle]="{
           cursor: shouldHandleReactionClick ? 'pointer' : 'default'
         }"
@@ -201,20 +116,19 @@
       ></stream-loading-indicator>
       <ng-template #reactions>
         <div
-          class="str-chat__message-reactions-details-reacting-user"
           *ngFor="
             let user of getAllUsersByReaction(selectedReactionType);
             trackBy: trackByUserId
           "
+          class="str-chat__message-reactions-details-reacting-user"
         >
           <stream-avatar-placeholder
             data-testclass="avatar"
             class="str-chat__avatar str-chat__avatar--circle"
-            [size]="30"
-            [imageUrl]="user.image"
-            [name]="user.name"
             type="user"
             location="reaction"
+            [imageUrl]="user.image"
+            [name]="user.name"
             [user]="user"
           ></stream-avatar-placeholder>
           <span

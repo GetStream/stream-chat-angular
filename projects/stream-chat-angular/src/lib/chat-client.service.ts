@@ -1,9 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import {
+  AppSettingsAPIResponse,
   Channel,
   ChannelFilters,
-  ChannelResponse,
   ConnectAPIResponse,
   OwnUserResponse,
   StreamChatOptions,
@@ -54,7 +54,7 @@ export class ChatClientService<
   /**
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](../code-examples/channel-invites.mdx) guide.
    */
-  pendingInvites$: Observable<(ChannelResponse<T> | Channel<T>)[]>;
+  pendingInvites$: Observable<Channel<T>[]>;
   /**
    * Emits the current chat user
    */
@@ -64,14 +64,13 @@ export class ChatClientService<
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
   );
-  private pendingInvitesSubject = new BehaviorSubject<
-    (ChannelResponse<T> | Channel<T>)[]
-  >([]);
+  private pendingInvitesSubject = new BehaviorSubject<Channel<T>[]>([]);
   private userSubject = new ReplaySubject<
     OwnUserResponse<T> | UserResponse<T> | undefined
   >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
   private trackPendingChannelInvites = true;
+  private appSettingsPromise?: Promise<AppSettingsAPIResponse<T>>;
 
   constructor(
     private ngZone: NgZone,
@@ -99,12 +98,22 @@ export class ChatClientService<
   async init(
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
-    userTokenOrProvider: TokenOrProvider | 'anonymous' | 'guest',
+    userTokenOrProvider: TokenOrProvider,
     clientOptions?: StreamChatOptions & { trackPendingChannelInvites?: boolean }
   ): ConnectAPIResponse<T> {
+    if (this.chatClient && this.chatClient.key !== apiKey) {
+      this.appSettingsSubject.next(undefined);
+      this.appSettingsPromise = undefined;
+    }
     this.trackPendingChannelInvites =
-      clientOptions?.trackPendingChannelInvites !== false;
+      clientOptions?.trackPendingChannelInvites === true;
     this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
+    const sdkPrefix = 'stream-chat-angular';
+    if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
+      this.chatClient.setUserAgent(
+        `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
+      );
+    }
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
@@ -129,23 +138,16 @@ export class ChatClientService<
       this.userSubject.next(
         this.chatClient.user ? { ...this.chatClient.user } : undefined
       );
-      const sdkPrefix = 'stream-chat-angular';
-      if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
-        this.chatClient.setUserAgent(
-          `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
-        );
-      }
     });
     if (this.chatClient.user?.id && this.trackPendingChannelInvites) {
       const channels = await this.chatClient.queryChannels(
         {
           invite: 'pending',
           members: { $in: [this.chatClient.user?.id] },
-        } as any as ChannelFilters<T> // TODO: find out why we need this typecast
+        } as unknown as ChannelFilters<T> // TODO: find out why we need this typecast
       );
       this.pendingInvitesSubject.next(channels);
     }
-    this.appSettingsSubject.next(undefined);
     this.subscriptions.push(
       this.chatClient.on((e) => {
         this.updateUser(e);
@@ -156,7 +158,7 @@ export class ChatClientService<
         });
       })
     );
-    let removeNotification: undefined | Function;
+    let removeNotification: undefined | (() => void);
     this.subscriptions.push(
       this.chatClient.on('connection.changed', (e) => {
         this.ngZone.run(() => {
@@ -192,10 +194,17 @@ export class ChatClientService<
    * Loads the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript), if the application settings have already been loaded, it does nothing.
    */
   async getAppSettings() {
+    if (this.appSettingsPromise) {
+      return;
+    }
     if (this.appSettingsSubject.getValue()) {
       return;
     }
-    const settings = await this.chatClient.getAppSettings();
+    this.appSettingsPromise = this.chatClient.getAppSettings();
+    void this.appSettingsPromise.finally(() => {
+      this.appSettingsPromise = undefined;
+    });
+    const settings = await this.appSettingsPromise;
     this.appSettingsSubject.next((settings.app as AppSettings) || {});
   }
 
@@ -233,7 +242,8 @@ export class ChatClientService<
     if (e.member?.user?.id === this.chatClient.user?.id && e.channel) {
       const pendingInvites = this.pendingInvitesSubject.getValue();
       if (e.type === 'notification.invited') {
-        this.pendingInvitesSubject.next([...pendingInvites, e.channel]);
+        const channel = this.chatClient.channel(e.channel?.type, e.channel?.id);
+        this.pendingInvitesSubject.next([...pendingInvites, channel]);
       } else if (
         e.type === 'notification.invite_accepted' ||
         e.type === 'notification.invite_rejected'

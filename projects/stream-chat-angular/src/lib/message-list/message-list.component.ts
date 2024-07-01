@@ -23,7 +23,6 @@ import {
   DefaultStreamChatGenerics,
   StreamMessage,
   TypingIndicatorContext,
-  CustomMessageActionItem,
   DateSeparatorContext,
   UnreadMessagesNotificationContext,
   UnreadMessagesIndicatorContext,
@@ -34,7 +33,6 @@ import { UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
-import { MessageActionsService } from '../message-actions.service';
 import { isOnSeparateDate } from '../is-on-separate-date';
 
 /**
@@ -58,21 +56,10 @@ export class MessageListComponent
    */
   @Input() direction: 'bottom-to-top' | 'top-to-bottom' = 'bottom-to-top';
   /**
-   * Determines what triggers the appearance of the message options: by default you can hover (click on mobile) anywhere in the row of the message (`message-row` option), or you can set `message-bubble`, in that case only a hover (click on mobile) in the message bubble will trigger the options to appear.
-   */
-  @Input() messageOptionsTrigger: 'message-row' | 'message-bubble' =
-    'message-row';
-  /**
    * You can hide the "jump to latest" button while scrolling. A potential use-case for this input would be to [workaround a known issue on iOS Safar webview](https://github.com/GetStream/stream-chat-angular/issues/418)
    *
    */
   @Input() hideJumpToLatestButtonDuringScroll = false;
-  /**
-   * A list of custom message actions to be displayed in the message action box
-   *
-   * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
-   */
-  @Input() customMessageActions: CustomMessageActionItem<any>[] = [];
   /**
    * If `true` date separators will be displayed
    */
@@ -126,13 +113,14 @@ export class MessageListComponent
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
   isLoading = false;
-  scrollEndTimeout: any;
+  scrollEndTimeout?: ReturnType<typeof setTimeout>;
   lastReadMessageId?: string;
   isUnreadNotificationVisible = true;
   firstUnreadMessageId?: string;
   unreadCount?: number;
   isJumpingToLatestUnreadMessage = false;
   isJumpToLatestButtonVisible = true;
+  scroll$ = new Subject<void>();
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
@@ -156,9 +144,11 @@ export class MessageListComponent
   private channelId?: string;
   private parsedDates = new Map<Date, string>();
   private isViewInited = false;
-  private checkIfUnreadNotificationIsVisibleTimeout?: any;
-  private jumpToLatestButtonVisibilityTimeout?: any;
-  private messageRemoveTimeout?: any;
+  private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
+    typeof setTimeout
+  >;
+  private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
+  private messageRemoveTimeout?: ReturnType<typeof setTimeout>;
   private removeOldMessagesSubscription?: Subscription;
   private isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   private forceRepaintSubject = new Subject<void>();
@@ -176,8 +166,7 @@ export class MessageListComponent
     private customTemplatesService: CustomTemplatesService,
     private dateParser: DateParserService,
     private ngZone: NgZone,
-    private cdRef: ChangeDetectorRef,
-    private messageActionsService: MessageActionsService
+    private cdRef: ChangeDetectorRef
   ) {
     this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
     this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
@@ -300,16 +289,6 @@ export class MessageListComponent
               created_at: new Date(event.message.created_at || ''),
             });
           });
-        }
-      })
-    );
-    this.subscriptions.push(
-      this.messageActionsService.customActions$.subscribe((actions) => {
-        if (actions !== this.customMessageActions) {
-          this.customMessageActions = actions;
-          if (this.isViewInited) {
-            this.cdRef.detectChanges();
-          }
         }
       })
     );
@@ -469,9 +448,6 @@ export class MessageListComponent
         this.jumpToLatestMessage();
       }
     }
-    if (changes.customMessageActions) {
-      this.messageActionsService.customActions$.next(this.customMessageActions);
-    }
   }
 
   ngAfterViewInit(): void {
@@ -595,8 +571,14 @@ export class MessageListComponent
       this.scrollContainer.nativeElement.scrollHeight ===
       this.scrollContainer.nativeElement.clientHeight
     ) {
+      if (this.isJumpToLatestButtonVisible) {
+        this.isJumpToLatestButtonVisible = false;
+        this.newMessageCountWhileBeingScrolled = 0;
+        this.cdRef.detectChanges();
+      }
       return;
     }
+    this.scroll$.next();
     const scrollPosition = this.getScrollPosition();
     this.chatClientService.chatClient?.logger?.(
       'info',
@@ -761,7 +743,9 @@ export class MessageListComponent
         : this.channelService.activeThreadMessages$
     ).pipe(
       tap((messages) => {
-        this.isLoading = false;
+        if (this.isLoading) {
+          this.isLoading = false;
+        }
         if (messages.length === 0) {
           this.chatClientService.chatClient?.logger?.(
             'info',

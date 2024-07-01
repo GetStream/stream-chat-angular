@@ -38,10 +38,6 @@ export class AvatarComponent
    */
   @Input() imageUrl: string | undefined;
   /**
-   * The size in pixels of the avatar image.
-   */
-  @Input() size = 32;
-  /**
    * The location the avatar will be displayed in
    */
   @Input() location: AvatarLocation | undefined;

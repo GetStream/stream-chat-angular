@@ -119,14 +119,14 @@ export type ComandAutocompleteListItem = CommandResponse & {
 
 export type NotificationType = 'success' | 'error' | 'info';
 
-export type NotificationPayload<T = {}> = {
+export type NotificationPayload<T = object> = {
   id: string;
   type: NotificationType;
   text?: string;
-  translateParams?: Object;
+  translateParams?: object;
   template?: TemplateRef<T>;
   templateContext?: T;
-  dismissFn: Function;
+  dismissFn: () => void;
 };
 
 export type ChannelPreviewContext<
@@ -158,17 +158,6 @@ export type ChannelPreviewInfoContext<
   unreadCount: number;
 };
 
-export type MessageInputContext = {
-  isFileUploadEnabled: boolean | undefined;
-  areMentionsEnabled: boolean | undefined;
-  mentionScope: 'channel' | 'application' | undefined;
-  mode: 'thread' | 'main' | undefined;
-  isMultipleFileUploadEnabled: boolean | undefined;
-  message: StreamMessage | undefined;
-  messageUpdateHandler: Function | undefined;
-  sendMessage$: Observable<void>;
-};
-
 export type MentionTemplateContext = {
   content: string;
   user: UserResponse;
@@ -189,6 +178,7 @@ export type MessageContext = {
   mode: 'thread' | 'main';
   isHighlighted: boolean;
   customActions: CustomMessageActionItem[];
+  scroll$?: Observable<void>;
 };
 
 export type ChannelActionsContext<
@@ -199,7 +189,7 @@ export type AttachmentListContext = {
   messageId: string;
   attachments: Attachment<DefaultStreamChatGenerics>[];
   parentMessageId?: string;
-  imageModalStateChangeHandler?: (state: 'opened' | 'closed') => {};
+  imageModalStateChangeHandler?: (state: 'opened' | 'closed') => void;
 };
 
 export type AvatarType = 'channel' | 'user';
@@ -217,7 +207,6 @@ export type AvatarLocation =
 export type AvatarContext = {
   name: string | undefined;
   imageUrl: string | undefined;
-  size: number | undefined;
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel<DefaultStreamChatGenerics>;
@@ -228,51 +217,54 @@ export type AvatarContext = {
 
 export type AttachmentPreviewListContext = {
   attachmentUploads$: Observable<AttachmentUpload[]> | undefined;
-  retryUploadHandler: (f: File) => any;
-  deleteUploadHandler: (u: AttachmentUpload) => any;
+  retryUploadHandler: (f: File) => void;
+  deleteUploadHandler: (u: AttachmentUpload) => void;
 };
 
 export type IconContext = {
   icon: Icon | undefined;
-  size: number | undefined;
 };
 
-export type LoadingIndicatorContext = {
-  size: number | undefined;
-  color: string | undefined;
-};
-
-export type MessageActionsBoxContext = {
-  isOpen: boolean;
+export type MessageActionsBoxContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
   isMine: boolean;
-  message: StreamMessage | undefined;
+  message: StreamMessage<T> | undefined;
   enabledActions: string[];
-  /**
-   * @deprecated please use `messageReactionsService.customActions$`
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  customActions: CustomMessageActionItem[];
-  /**
-   * @deprecated because the name contains typos, use the `displayedActionsCountChangeHandler` instead
-   */
-  displayedActionsCountChaneHanler: (count: number) => any;
-  /**
-   * @deprecated components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
-   *
-   * More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-   */
-  displayedActionsCountChangeHandler: (count: number) => any;
+  messageTextHtmlElement: HTMLElement | undefined;
 };
+
+export type MessageActionHandlerExtraParams = {
+  isMine: boolean;
+  messageTextHtmlElement?: HTMLElement;
+};
+
+export type MessageActionHandler<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = (
+  message: StreamMessage<T>,
+  params: MessageActionHandlerExtraParams
+) => void;
 
 export type MessageActionBoxItemContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | string;
+  actionName: string;
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   message: StreamMessage<T>;
-  isMine: boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
+  actionHandlerExtraParams: MessageActionHandlerExtraParams;
+  actionHandler: MessageActionHandler<T>;
+};
+
+export type MessageReactionActionItem<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  actionName: 'react';
+  isVisible: (
+    enabledActions: string[],
+    isMine: boolean,
+    message: StreamMessage<T>
+  ) => boolean;
 };
 
 type MessageActionItemBase<
@@ -284,13 +276,21 @@ type MessageActionItemBase<
     isMine: boolean,
     message: StreamMessage<T>
   ) => boolean;
-  actionHandler: (message: StreamMessage<T>, isMine: boolean) => any;
+  actionHandler: MessageActionHandler;
 };
 
 export type MessageActionItem<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = MessageActionItemBase<T> & {
-  actionName: 'quote' | 'pin' | 'flag' | 'edit' | 'delete' | 'mark-unread';
+  actionName:
+    | 'quote'
+    | 'pin'
+    | 'flag'
+    | 'edit'
+    | 'delete'
+    | 'mark-unread'
+    | 'thread-reply'
+    | 'copy-message-text';
 };
 
 export type CustomMessageActionItem<
@@ -299,18 +299,21 @@ export type CustomMessageActionItem<
   actionName: string;
 };
 
+export type MessageReactionsSelectorContext = {
+  messageId: string | undefined;
+  ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+};
+
 export type MessageReactionsContext = {
   messageId: string | undefined;
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  isSelectorOpen: boolean;
   latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
-  isSelectorOpenChangeHandler: (isOpen: boolean) => any;
 };
 
 export type ModalContext = {
   isOpen: boolean;
-  isOpenChangeHandler: (isOpen: boolean) => any;
+  isOpenChangeHandler: (isOpen: boolean) => void;
   content: TemplateRef<void>;
 };
 
@@ -321,17 +324,10 @@ export type NotificationContext = {
 
 export type ThreadHeaderContext = {
   parentMessage: StreamMessage | undefined;
-  closeThreadHandler: Function;
+  closeThreadHandler: () => void;
 };
 
-export type MessageReactionType =
-  | 'angry'
-  | 'haha'
-  | 'like'
-  | 'love'
-  | 'sad'
-  | 'wow'
-  | string;
+export type MessageReactionType = string;
 
 export type AttachmentConfigration = {
   url: string;
@@ -395,8 +391,8 @@ export type UnreadMessagesIndicatorContext = {
 
 export type UnreadMessagesNotificationContext =
   UnreadMessagesIndicatorContext & {
-    onJump: Function;
-    onDismiss: Function;
+    onJump: () => void;
+    onDismiss: () => void;
   };
 
 export type ChannelQueryState = {
@@ -430,7 +426,8 @@ export type FiltertNextPageConfiguration<
 
 export type NextPageConfiguration =
   | OffsetNextPageConfiguration
-  | FiltertNextPageConfiguration;
+  | FiltertNextPageConfiguration
+  | undefined;
 
 export type MessageReactionClickDetails = {
   messageId: string;
@@ -439,15 +436,19 @@ export type MessageReactionClickDetails = {
 
 export type MessageActionsClickDetails<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> = {
-  message: StreamMessage<T>;
-  enabledActions: string[];
-  isMine: boolean;
-  customActions: CustomMessageActionItem[];
-};
+> = MessageActionsBoxContext<T> & { customActions: CustomMessageActionItem[] };
 
 export type GroupStyleOptions = {
   noGroupByUser?: boolean;
   lastReadMessageId?: string;
   noGroupByReadState?: boolean;
+};
+
+export type ChannelQueryType = 'first-page' | 'next-page' | 'recover-state';
+
+export type ChannelQueryResult<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  channels: Channel<T>[];
+  hasMorePage: boolean;
 };

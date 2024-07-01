@@ -1,19 +1,11 @@
 <div class="str-chat__header-livestream str-chat__channel-header">
-  <div
-    class="str-chat__header-hamburger"
-    (click)="toggleMenu($event)"
-    (keyup.enter)="toggleMenu($event)"
-  >
-    <stream-icon-placeholder icon="menu"></stream-icon-placeholder>
-  </div>
   <ng-content></ng-content>
   <stream-avatar-placeholder
-    imageUrl="{{ activeChannel?.data?.image }}"
-    name="{{ avatarName }}"
     type="channel"
     location="channel-header"
+    imageUrl="{{ activeChannel?.data?.image }}"
+    name="{{ avatarName }}"
     [channel]="activeChannel"
-    [size]="40"
   ></stream-avatar-placeholder>
   <div class="str-chat__header-livestream-left str-chat__channel-header-end">
     <p

@@ -62,15 +62,10 @@
     <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
   </ng-container>
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
-    <ul
-      class="str-chat__ul"
-      [class.str-chat__message-options-in-bubble]="
-        messageOptionsTrigger === 'message-bubble'
-      "
-    >
+    <ul class="str-chat__ul">
       <li
-        #parentMessageElement
         *ngIf="mode === 'thread' && parentMessage"
+        #parentMessageElement
         data-testid="parent-message"
         class="str-chat__parent-message-li"
       >
@@ -81,7 +76,7 @@
           "
         ></ng-container>
         <div data-testid="reply-count" class="str-chat__thread-start">
-          {{parentMessage?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+          {{parentMessage.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
           replies' | translate:replyCountParam)}}
         </div>
       </li>
@@ -89,10 +84,10 @@
         <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
       </ng-container>
       <stream-loading-indicator
-        data-testid="top-loading-indicator"
         *ngIf="
           isLoading && direction === 'bottom-to-top' && displayLoadingIndicator
         "
+        data-testid="top-loading-indicator"
       ></stream-loading-indicator>
       <ng-container *ngIf="messages$ | async as messages">
         <ng-container
@@ -165,10 +160,10 @@
         </ng-container>
       </ng-container>
       <stream-loading-indicator
-        data-testid="bottom-loading-indicator"
         *ngIf="
           isLoading && direction === 'top-to-bottom' && displayLoadingIndicator
         "
+        data-testid="bottom-loading-indicator"
       ></stream-loading-indicator>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
@@ -209,8 +204,8 @@
 </div>
 <div class="str-chat__jump-to-latest-message">
   <button
-    data-testid="scroll-to-latest"
     *ngIf="isUserScrolled && isJumpToLatestButtonVisible"
+    data-testid="scroll-to-latest"
     class="
       str-chat__message-notification-scroll-to-latest
       str-chat__message-notification-scroll-to-latest-right
@@ -244,7 +239,7 @@
     let-enabledMessageActions="enabledMessageActions"
     let-mode="mode"
     let-isHighlighted="isHighlighted"
-    let-customActions="customActions"
+    let-scroll$="scroll$"
   >
     <stream-message
       [message]="messageInput"
@@ -252,7 +247,7 @@
       [enabledMessageActions]="enabledMessageActions"
       [mode]="mode"
       [isHighlighted]="isHighlighted"
-      [customActions]="customActions"
+      [scroll$]="scroll$"
     ></stream-message>
   </ng-template>
   <ng-container
@@ -266,7 +261,7 @@
         enabledMessageActions: enabledMessageActions,
         mode: mode,
         isHighlighted: message?.id === highlightedMessageId,
-        customActions: customMessageActions
+        scroll$: scroll$
       }
     "
   ></ng-container>

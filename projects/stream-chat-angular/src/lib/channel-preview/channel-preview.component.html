@@ -1,19 +1,18 @@
 <button
   class="str-chat__channel-preview-messenger str-chat__channel-preview"
+  data-testid="channel-preview-container"
   [class.str-chat__channel-preview-messenger--active]="isActive"
   [class.str-chat__channel-preview--active]="isActive"
   [class.str-chat__channel-preview-messenger--unread]="isUnread"
   (click)="setAsActiveChannel()"
-  data-testid="channel-preview-container"
 >
   <div class="str-chat__channel-preview-messenger--left">
     <stream-avatar-placeholder
+      type="channel"
+      location="channel-preview"
       name="{{ avatarName }}"
       imageUrl="{{ avatarImage }}"
-      type="channel"
       [channel]="channel"
-      location="channel-preview"
-      [size]="49"
     ></stream-avatar-placeholder>
   </div>
   <div
@@ -51,8 +50,8 @@
           }}</span>
         </div>
         <div
-          data-testid="unread-badge"
           *ngIf="unreadCount"
+          data-testid="unread-badge"
           class="str-chat__channel-preview-unread-badge"
         >
           {{ unreadCount }}
@@ -74,24 +73,20 @@
           </ng-template>
         </div>
         <div
-          data-testid="latest-message-status"
           *ngIf="latestMessageStatus"
+          data-testid="latest-message-status"
           class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
             latestMessageStatus
           }}"
         >
           <stream-icon-placeholder
-            [icon]="
-              latestMessageStatus === 'delivered'
-                ? 'delivered-icon'
-                : 'read-icon'
-            "
+            [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
           ></stream-icon-placeholder>
         </div>
         <div
+          *ngIf="latestMessageTime"
           data-testid="latest-message-time"
           class="str-chat__channel-preview-messenger--time"
-          *ngIf="latestMessageTime"
         >
           {{ latestMessageTime }}
         </div>

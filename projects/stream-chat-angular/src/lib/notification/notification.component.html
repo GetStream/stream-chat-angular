@@ -1,8 +1,8 @@
 <div
+  data-testid="custom-notification"
   class="str-chat__custom-notification notification-{{
     type
   }} str-chat__notification"
-  data-testid="custom-notification"
 >
   <ng-container *ngIf="content; else elseContent">
     <ng-container *ngTemplateOutlet="content"></ng-container>

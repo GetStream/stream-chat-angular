@@ -18,7 +18,7 @@ export const getMessageTranslation = <
     user?.language ||
     (channel?.data?.auto_translation_language as TranslationLanguages);
   if (language && message?.i18n && message?.user?.id !== user?.id) {
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
     return message.i18n[`${language}_text` as `${TranslationLanguages}_text`];
   } else {
     return undefined;

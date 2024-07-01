@@ -1,9 +1,9 @@
 <div id="root">
   <stream-channel-list
-    (click)="closeMenu()"
     class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
       isThreadOpen ? 'open' : 'close'
     }}"
+    (click)="closeMenu()"
   ></stream-channel-list>
   <stream-channel class="channel" (click)="closeMenu()">
     <stream-channel-header>

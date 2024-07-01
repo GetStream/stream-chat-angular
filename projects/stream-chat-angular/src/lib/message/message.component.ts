@@ -1,16 +1,16 @@
 import {
   Component,
-  ElementRef,
   Input,
   OnChanges,
   SimpleChanges,
-  ViewChild,
   OnDestroy,
   OnInit,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
-  NgZone,
   AfterViewInit,
+  ViewChild,
+  ElementRef,
+  NgZone,
 } from '@angular/core';
 import { Attachment, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -25,23 +25,20 @@ import {
   DeliveredStatusContext,
   SendingStatusContext,
   ReadStatusContext,
-  CustomMessageActionItem,
   SystemMessageContext,
   CustomMetadataContext,
 } from '../types';
 import emojiRegex from 'emoji-regex';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
-import { ThemeService } from '../theme.service';
-import {
-  NgxPopperjsTriggers,
-  NgxPopperjsPlacements,
-  NgxPopperjsContentComponent,
-} from 'ngx-popperjs';
 import { DateParserService } from '../date-parser.service';
 import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
+import {
+  NgxFloatUiContentComponent,
+  NgxFloatUiLooseDirective,
+} from 'ngx-float-ui';
 
 type MessagePart = {
   content: string;
@@ -82,24 +79,14 @@ export class MessageComponent
    */
   @Input() isHighlighted = false;
   /**
-   * A list of custom message actions to be displayed in the action box
-   *
-   * @deprecated please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
+   * An Observable that emits when the message list is scrolled, it's used to prevent opening the message menu while scroll is in progress
    */
-  @Input() customActions: CustomMessageActionItem[] = [];
-  readonly themeVersion: '1' | '2';
+  @Input() scroll$?: Observable<void>;
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
-  isActionBoxOpen = false;
   isEditedFlagOpened = false;
-  isReactionSelectorOpen = false;
-  visibleMessageActionsCount = 0;
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
-  popperTriggerClick = NgxPopperjsTriggers.click;
-  popperTriggerHover = NgxPopperjsTriggers.hover;
-  popperPlacementAuto = NgxPopperjsPlacements.AUTO;
-  popperPlacementTop = NgxPopperjsPlacements.TOP;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
   imageAttachmentModalState: 'opened' | 'closed' = 'closed';
@@ -119,31 +106,48 @@ export class MessageComponent
   replyCountParam: { replyCount: number | undefined } = {
     replyCount: undefined,
   };
+  areMessageOptionsOpen = false;
   canDisplayReadStatus = false;
+  hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   private quotedMessageAttachments: Attachment[] | undefined;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
   private userId?: string;
-  @ViewChild('container') private container:
-    | ElementRef<HTMLElement>
-    | undefined;
   private readonly urlRegexp =
     /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
+  @ViewChild('messageMenuTrigger')
+  messageMenuTrigger!: NgxFloatUiLooseDirective;
+  @ViewChild('messageMenuFloat')
+  messageMenuFloat!: NgxFloatUiContentComponent;
+  @ViewChild('messageTextElement') messageTextElement?: ElementRef<HTMLElement>;
+  @ViewChild('messageBubble') messageBubble?: ElementRef<HTMLElement>;
+  private showMessageMenuTimeout?: ReturnType<typeof setTimeout>;
+  private shouldPreventMessageMenuClose = false;
+  private _visibleMessageActionsCount = 0;
 
   constructor(
     private chatClientService: ChatClientService,
     private channelService: ChannelService,
     public customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    themeService: ThemeService,
     private dateParser: DateParserService,
-    private ngZone: NgZone,
     private messageService: MessageService,
-    private messageActionsService: MessageActionsService
+    public messageActionsService: MessageActionsService,
+    private ngZone: NgZone
   ) {
-    this.themeVersion = themeService.themeVersion;
     this.displayAs = this.messageService.displayAs;
+  }
+
+  get visibleMessageActionsCount() {
+    return this._visibleMessageActionsCount;
+  }
+
+  set visibleMessageActionsCount(count: number) {
+    this._visibleMessageActionsCount = count;
+    if (this.areOptionsVisible && this._visibleMessageActionsCount === 0) {
+      this.areOptionsVisible = false;
+    }
   }
 
   ngOnInit(): void {
@@ -155,6 +159,23 @@ export class MessageComponent
           this.setLastReadUser();
           if (this.isViewInited) {
             this.cdRef.detectChanges();
+          }
+        }
+      })
+    );
+    this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe(() => {
+        if (this.message) {
+          const numberOfEnabledActions =
+            this.messageActionsService.getAuthorizedMessageActionsCount(
+              this.message,
+              this.enabledMessageActions
+            );
+          if (numberOfEnabledActions !== this.visibleMessageActionsCount) {
+            this.visibleMessageActionsCount = numberOfEnabledActions;
+            if (this.isViewInited) {
+              this.cdRef.detectChanges();
+            }
           }
         }
       })
@@ -224,24 +245,23 @@ export class MessageComponent
       this.shouldDisplayThreadLink =
         !!this.message?.reply_count && this.mode !== 'thread';
     }
-    if (changes.message || changes.mode) {
+    if (changes.message || changes.mode || changes.enabledMessageActions) {
       this.areOptionsVisible = this.message
         ? !(
             !this.message.type ||
             this.message.type === 'error' ||
             this.message.type === 'system' ||
+            this.message.type === 'deleted' ||
             this.message.type === 'ephemeral' ||
             this.message.status === 'failed' ||
             this.message.status === 'sending' ||
-            (this.mode === 'thread' && !this.message.parent_id)
+            (this.mode === 'thread' && !this.message.parent_id) ||
+            this.message.deleted_at ||
+            this.enabledMessageActions.length === 0
           )
         : false;
     }
-    if (
-      changes.message ||
-      changes.enabledMessageActions ||
-      changes.customActions
-    ) {
+    if (changes.message || changes.enabledMessageActions) {
       if (this.message) {
         this.visibleMessageActionsCount =
           this.messageActionsService.getAuthorizedMessageActionsCount(
@@ -256,13 +276,56 @@ export class MessageComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
+    if (this.hasTouchSupport && this.messageBubble?.nativeElement) {
+      this.ngZone.runOutsideAngular(() => {
+        this.registerMenuTriggerEventHandlers();
+      });
+    }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  messageActionsClicked() {
+  mousePushedDown(event: MouseEvent) {
+    if (
+      !this.hasTouchSupport ||
+      event.button !== 0 ||
+      !this.areOptionsVisible
+    ) {
+      return;
+    }
+    this.startMessageMenuShowTimer({ fromTouch: false });
+  }
+
+  mouseReleased() {
+    this.stopMessageMenuShowTimer();
+  }
+
+  touchStarted() {
+    if (!this.areOptionsVisible) {
+      return;
+    }
+    this.startMessageMenuShowTimer({ fromTouch: true });
+  }
+
+  touchEnded() {
+    this.stopMessageMenuShowTimer();
+  }
+
+  messageBubbleClicked(event: Event) {
+    if (!this.hasTouchSupport) {
+      return;
+    }
+    if (this.shouldPreventMessageMenuClose) {
+      event.stopPropagation();
+      this.shouldPreventMessageMenuClose = false;
+    } else if (this.areMessageOptionsOpen) {
+      this.messageMenuTrigger?.hide();
+    }
+  }
+
+  messageOptionsButtonClicked() {
     if (!this.message) {
       return;
     }
@@ -270,16 +333,17 @@ export class MessageComponent
       this.messageActionsService.customActionClickHandler({
         message: this.message,
         enabledActions: this.enabledMessageActions,
-        customActions: this.customActions,
+        customActions: this.messageActionsService.customActions$.getValue(),
         isMine: this.isSentByCurrentUser,
+        messageTextHtmlElement: this.messageTextElement?.nativeElement,
       });
     } else {
-      this.isActionBoxOpen = !this.isActionBoxOpen;
+      this.areMessageOptionsOpen = !this.areMessageOptionsOpen;
     }
   }
 
-  messageActionsBoxClicked(popperContent: NgxPopperjsContentComponent) {
-    popperContent.hide();
+  messageActionsBoxClicked(floatingContent: NgxFloatUiContentComponent) {
+    floatingContent.hide();
   }
 
   getAttachmentListContext(): AttachmentListContext {
@@ -299,8 +363,9 @@ export class MessageComponent
       isHighlighted: this.isHighlighted,
       isLastSentMessage: this.isLastSentMessage,
       mode: this.mode,
-      customActions: this.customActions,
+      customActions: this.messageActionsService.customActions$.getValue(),
       parsedDate: this.parsedDate,
+      scroll$: this.scroll$,
     };
   }
 
@@ -316,9 +381,6 @@ export class MessageComponent
     return {
       messageReactionCounts: this.message?.reaction_counts || {},
       latestReactions: this.message?.latest_reactions || [],
-      isSelectorOpen: this.isReactionSelectorOpen,
-      isSelectorOpenChangeHandler: (isOpen) =>
-        (this.isReactionSelectorOpen = isOpen),
       messageId: this.message?.id,
       ownReactions: this.message?.own_reactions || [],
     };
@@ -357,21 +419,10 @@ export class MessageComponent
 
   getMessageActionsBoxContext(): MessageActionsBoxContext {
     return {
-      isOpen: this.isActionBoxOpen,
       isMine: this.isSentByCurrentUser,
       enabledActions: this.enabledMessageActions,
       message: this.message,
-      displayedActionsCountChaneHanler: (count) => {
-        this.visibleMessageActionsCount = count;
-        // message action box changes UI bindings in parent, so we'll have to rerun change detection
-        this.cdRef.detectChanges();
-      },
-      displayedActionsCountChangeHandler: (count) => {
-        this.visibleMessageActionsCount = count;
-        // message action box changes UI bindings in parent, so we'll have to rerun change detection
-        this.cdRef.detectChanges();
-      },
-      customActions: this.customActions || [],
+      messageTextHtmlElement: this.messageTextElement?.nativeElement,
     };
   }
 
@@ -487,10 +538,10 @@ export class MessageComponent
   private fixEmojiDisplay(content: string) {
     // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
     // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     const isChrome =
       !!(window as any).chrome && typeof (window as any).opr === 'undefined';
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
     content = content.replace(
       this.emojiRegexp,
       (match) =>
@@ -523,5 +574,65 @@ export class MessageComponent
     this.lastReadUser = this.message?.readBy?.filter(
       (u) => u.id !== this.userId
     )[0];
+  }
+
+  private startMessageMenuShowTimer(options: { fromTouch: boolean }) {
+    this.stopMessageMenuShowTimer();
+    if (this.scroll$) {
+      this.subscriptions.push(
+        this.scroll$.pipe(take(1)).subscribe(() => {
+          this.stopMessageMenuShowTimer();
+        })
+      );
+    }
+    this.showMessageMenuTimeout = setTimeout(() => {
+      if (!this.message) {
+        return;
+      }
+      this.ngZone.run(() => {
+        if (this.messageActionsService.customActionClickHandler) {
+          this.messageActionsService.customActionClickHandler({
+            message: this.message,
+            enabledActions: this.enabledMessageActions,
+            customActions: this.messageActionsService.customActions$.getValue(),
+            isMine: this.isSentByCurrentUser,
+            messageTextHtmlElement: this.messageTextElement?.nativeElement,
+          });
+          return;
+        } else {
+          this.shouldPreventMessageMenuClose = !options.fromTouch;
+          this.messageMenuTrigger?.show();
+        }
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+        this.showMessageMenuTimeout = undefined;
+      });
+    }, 400);
+  }
+
+  private registerMenuTriggerEventHandlers() {
+    this.messageBubble!.nativeElement.addEventListener('touchstart', () =>
+      this.touchStarted()
+    );
+    this.messageBubble!.nativeElement.addEventListener('touchend', () =>
+      this.touchEnded()
+    );
+    this.messageBubble!.nativeElement.addEventListener('mousedown', (e) =>
+      this.mousePushedDown(e)
+    );
+    this.messageBubble!.nativeElement.addEventListener('mouseup', () =>
+      this.mouseReleased()
+    );
+    this.messageBubble!.nativeElement.addEventListener('click', (e) =>
+      this.messageBubbleClicked(e)
+    );
+  }
+
+  private stopMessageMenuShowTimer() {
+    if (this.showMessageMenuTimeout) {
+      clearTimeout(this.showMessageMenuTimeout);
+      this.showMessageMenuTimeout = undefined;
+    }
   }
 }

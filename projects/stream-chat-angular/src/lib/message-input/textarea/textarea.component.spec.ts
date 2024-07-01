@@ -2,7 +2,6 @@ import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
-import { ThemeService } from '../../theme.service';
 import { EmojiInputService } from '../emoji-input.service';
 
 import { TextareaComponent } from './textarea.component';
@@ -23,10 +22,6 @@ describe('TextareaComponent', () => {
         {
           provide: EmojiInputService,
           useValue: { emojiInput$ },
-        },
-        {
-          provide: ThemeService,
-          useValue: { themeVersion: '2' },
         },
       ],
     }).compileComponents();

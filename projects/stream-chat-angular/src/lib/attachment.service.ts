@@ -1,14 +1,17 @@
 import { Injectable } from '@angular/core';
 import { isImageFile } from './is-image-file';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Attachment } from 'stream-chat';
+import { AppSettings, Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
 import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
+import { ChatClientService } from './chat-client.service';
 
 /**
  * The `AttachmentService` manages the uploads of a message input.
+ *
+ * You can read more about [uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript&q=size) in the Stream API documentation. You can use Stream's API or the dashboard to customize the [file](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#file-uploads) and [image upload](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#image-uploads) configuration.
  */
 @Injectable({
   providedIn: 'root',
@@ -29,14 +32,19 @@ export class AttachmentService<
   private attachmentUploadsSubject = new BehaviorSubject<AttachmentUpload[]>(
     []
   );
+  private appSettings: AppSettings | undefined;
 
   constructor(
     private channelService: ChannelService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private chatClientService: ChatClientService
   ) {
     this.attachmentUploadInProgressCounter$ =
       this.attachmentUploadInProgressCounterSubject.asObservable();
     this.attachmentUploads$ = this.attachmentUploadsSubject.asObservable();
+    this.chatClientService.appSettings$.subscribe(
+      (appSettings) => (this.appSettings = appSettings)
+    );
   }
 
   /**
@@ -48,18 +56,27 @@ export class AttachmentService<
 
   /**
    * Uploads the selected files, and creates preview for image files. The result is propagated throught the `attachmentUploads$` stream.
-   * @param fileList The files selected by the user
-   * @returns A promise with the result
+   * @param fileList The files selected by the user, if you have Blobs instead of Files, you can convert them with this method: https://developer.mozilla.org/en-US/docs/Web/API/File/File
+   * @returns A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
    */
-  async filesSelected(fileList: FileList | null) {
+  async filesSelected(fileList: FileList | File[] | null) {
     if (!fileList) {
       return;
+    }
+
+    const files = Array.from(fileList);
+
+    if (!(await this.areAttachmentsHaveValidExtension(files))) {
+      return false;
+    }
+    if (!(await this.areAttachmentsHaveValidSize(files))) {
+      return false;
     }
     const imageFiles: File[] = [];
     const dataFiles: File[] = [];
     const videoFiles: File[] = [];
 
-    Array.from(fileList).forEach((file) => {
+    files.forEach((file) => {
       if (isImageFile(file)) {
         imageFiles.push(file);
       } else if (file.type.startsWith('video/')) {
@@ -72,18 +89,18 @@ export class AttachmentService<
     const newUploads = [
       ...imageFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'image' as 'image',
+        state: 'uploading' as const,
+        type: 'image' as const,
       })),
       ...videoFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'video' as 'video',
+        state: 'uploading' as const,
+        type: 'video' as const,
       })),
       ...dataFiles.map((file) => ({
         file,
-        state: 'uploading' as 'uploading',
-        type: 'file' as 'file',
+        state: 'uploading' as const,
+        type: 'file' as const,
       })),
     ];
     this.attachmentUploadsSubject.next([
@@ -91,13 +108,13 @@ export class AttachmentService<
       ...newUploads,
     ]);
     await this.uploadAttachments(newUploads);
+    return true;
   }
 
   /**
    * You can add custom `image`, `video` and `file` attachments using this method.
    *
    * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](./ChannelService.mdx)
-   *
    * @param attachment
    */
   addAttachment(attachment: Attachment<T>) {
@@ -226,7 +243,7 @@ export class AttachmentService<
     }
   }
 
-  private createPreview(file: File) {
+  private createPreview(file: File | Blob) {
     const reader = new FileReader();
     reader.onload = (event) => {
       const attachmentUploads = this.attachmentUploadsSubject.getValue();
@@ -289,5 +306,116 @@ export class AttachmentService<
       this.attachmentUploadInProgressCounterSubject.getValue() - 1
     );
     this.attachmentUploadsSubject.next([...attachmentUploads]);
+  }
+
+  private async areAttachmentsHaveValidExtension(files: File[]) {
+    if (!this.appSettings) {
+      try {
+        await this.chatClientService.getAppSettings();
+      } catch (error) {
+        return true;
+      }
+    }
+    let isValid = true;
+    files.forEach((f) => {
+      let hasBlockedExtension: boolean;
+      let hasBlockedMimeType: boolean;
+      let hasNotAllowedExtension: boolean;
+      let hasNotAllowedMimeType: boolean;
+      if (isImageFile(f)) {
+        hasBlockedExtension =
+          !!this.appSettings?.image_upload_config?.blocked_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasBlockedMimeType =
+          !!this.appSettings?.image_upload_config?.blocked_mime_types?.find(
+            (type) => f.type === type
+          );
+        hasNotAllowedExtension =
+          !!this.appSettings?.image_upload_config?.allowed_file_extensions
+            ?.length &&
+          !this.appSettings?.image_upload_config?.allowed_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasNotAllowedMimeType =
+          !!this.appSettings?.image_upload_config?.allowed_mime_types?.length &&
+          !this.appSettings?.image_upload_config?.allowed_mime_types?.find(
+            (type) => f.type === type
+          );
+      } else {
+        hasBlockedExtension =
+          !!this.appSettings?.file_upload_config?.blocked_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasBlockedMimeType =
+          !!this.appSettings?.file_upload_config?.blocked_mime_types?.find(
+            (type) => f.type === type
+          );
+        hasNotAllowedExtension =
+          !!this.appSettings?.file_upload_config?.allowed_file_extensions
+            ?.length &&
+          !this.appSettings?.file_upload_config?.allowed_file_extensions?.find(
+            (ext) => f.name.endsWith(ext)
+          );
+        hasNotAllowedMimeType =
+          !!this.appSettings?.file_upload_config?.allowed_mime_types?.length &&
+          !this.appSettings?.file_upload_config?.allowed_mime_types?.find(
+            (type) => f.type === type
+          );
+      }
+      if (
+        hasBlockedExtension ||
+        hasBlockedMimeType ||
+        hasNotAllowedExtension ||
+        hasNotAllowedMimeType
+      ) {
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Error uploading file, extension not supported',
+          undefined,
+          undefined,
+          { name: f.name, ext: f.type }
+        );
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
+
+  private async areAttachmentsHaveValidSize(files: File[]) {
+    if (!this.appSettings) {
+      try {
+        await this.chatClientService.getAppSettings();
+      } catch (error) {
+        return true;
+      }
+    }
+    const imageSizeLimitInBytes =
+      this.appSettings?.image_upload_config?.size_limit || 0;
+    const imageSizeLimiString = `${imageSizeLimitInBytes / (1024 * 1024)}MB`;
+    const fileSizeLimitInBytes =
+      this.appSettings?.file_upload_config?.size_limit || 0;
+    const fileSizeLimitInString = `${fileSizeLimitInBytes / (1024 * 1024)}MB`;
+    let isValid = true;
+    files.forEach((f) => {
+      let isOverSized = false;
+      let limit = '';
+      if (isImageFile(f) && imageSizeLimitInBytes > 0) {
+        isOverSized = f.size > imageSizeLimitInBytes;
+        limit = imageSizeLimiString;
+      } else if (fileSizeLimitInBytes > 0) {
+        isOverSized = f.size > fileSizeLimitInBytes;
+        limit = fileSizeLimitInString;
+      }
+      if (isOverSized) {
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Error uploading file, maximum file size exceeded',
+          undefined,
+          undefined,
+          { name: f.name, limit: limit }
+        );
+        isValid = false;
+      }
+    });
+    return isValid;
   }
 }

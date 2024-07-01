@@ -17,8 +17,7 @@ export class EmojiPickerComponent {
     this.theme$ = themeService.theme$;
   }
 
-  emojiSelected(event: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  emojiSelected(event: { emoji: { native: string } }) {
     this.emojiInput$?.next(event.emoji.native);
   }
 

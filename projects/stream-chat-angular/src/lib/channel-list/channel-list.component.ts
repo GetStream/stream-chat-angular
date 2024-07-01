@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   OnDestroy,
@@ -13,7 +12,6 @@ import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { ThemeService } from '../theme.service';
 import { ChannelPreviewContext, DefaultStreamChatGenerics } from '../types';
-import { ChannelListToggleService } from './channel-list-toggle.service';
 
 /**
  * The `ChannelList` component renders the list of channels.
@@ -23,12 +21,11 @@ import { ChannelListToggleService } from './channel-list-toggle.service';
   templateUrl: './channel-list.component.html',
   styles: [],
 })
-export class ChannelListComponent implements AfterViewInit, OnDestroy {
+export class ChannelListComponent implements OnDestroy {
   channels$: Observable<Channel<DefaultStreamChatGenerics>[] | undefined>;
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
   isLoadingMoreChannels = false;
-  isOpen$: Observable<boolean>;
   hasMoreChannels$: Observable<boolean>;
   customChannelPreviewTemplate: TemplateRef<ChannelPreviewContext> | undefined;
   theme$: Observable<string>;
@@ -37,12 +34,10 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private channelService: ChannelService,
-    private channelListToggleService: ChannelListToggleService,
     private customTemplatesService: CustomTemplatesService,
     private themeService: ThemeService
   ) {
     this.theme$ = this.themeService.theme$;
-    this.isOpen$ = this.channelListToggleService.isOpen$;
     this.channels$ = this.channelService.channels$;
     this.hasMoreChannels$ = this.channelService.hasMoreChannels$;
     this.isError$ = this.channelService.channelQueryState$.pipe(
@@ -57,9 +52,6 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
       )
     );
   }
-  ngAfterViewInit(): void {
-    this.channelListToggleService.setMenuElement(this.container.nativeElement);
-  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
@@ -73,9 +65,5 @@ export class ChannelListComponent implements AfterViewInit, OnDestroy {
 
   trackByChannelId(index: number, item: Channel<DefaultStreamChatGenerics>) {
     return item.cid;
-  }
-
-  channelSelected() {
-    this.channelListToggleService.channelSelected();
   }
 }

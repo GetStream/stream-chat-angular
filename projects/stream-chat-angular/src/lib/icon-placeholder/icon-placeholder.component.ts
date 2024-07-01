@@ -16,18 +16,13 @@ export class IconPlaceholderComponent implements OnChanges {
    * The icon to display, the list of [supported icons](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/icon/icon.component.ts) can be found on GitHub.
    */
   @Input() icon: Icon | undefined;
-  /**
-   * The size of the icon (in pixels)
-   */
-  @Input() size: number | undefined;
-  iconContext: IconContext = { icon: undefined, size: undefined };
+  iconContext: IconContext = { icon: undefined };
 
   constructor(public customTemplatesService: CustomTemplatesService) {}
 
   ngOnChanges(): void {
     this.iconContext = {
       icon: this.icon,
-      size: this.size,
     };
   }
 }
