@@ -18,7 +18,7 @@ import MessageEditAfter from "../assets/message-edit-after.png";
 - Provide more CSS customization options for the avatar and icon components (to avoid providing a custom component for even basic customization)
 - Drop support for [Angular 12-14](https://getstream.io/chat/docs/sdk/angular/basics/angular-version-support/) and [theme-v1](https://getstream.io/chat/docs/sdk/angular/concepts/themeing/)
 
-The full list of [features and progress](https://github.com/GetStream/stream-chat-angular/issues/584) are on GitHub.
+Want to see it all in action? Check out [the demo application](https://angular-chat-demo-getstreamio.vercel.app/) or try it out in your own application using the instructions below.
 
 <ImageShowcase
   border
@@ -57,24 +57,32 @@ The full list of [features and progress](https://github.com/GetStream/stream-cha
 ## Get started
 
 <Tabs groupId="examples">
+<TabItem value="Angular18" label="Angular 18">
+
+```bash
+# --force is only required until this issue is solved: https://github.com/tonysamperi/ngx-float-ui/issues/26
+npm install stream-chat-angular@beta ngx-float-ui@18 --force
+```
+
+</TabItem>
 <TabItem value="Angular17" label="Angular 17">
 
-```
-npm install stream-chat-angular@beta
+```bash
+npm install stream-chat-angular@beta ngx-float-ui@17
 ```
 
 </TabItem>
 <TabItem value="Angular16" label="Angular 16">
 
-```
+```bash
 npm install stream-chat-angular@beta ngx-float-ui@16
 ```
 
 </TabItem>
 <TabItem value="Angular15" label="Angular 15">
 
-```
-npm install stream-chat-angular@beta ngx-float-ui@15 @ngx-translate/core@14
+```bash
+npm install stream-chat-angular@beta @ngx-translate/core@14 ngx-float-ui@15
 ```
 
 </TabItem>
