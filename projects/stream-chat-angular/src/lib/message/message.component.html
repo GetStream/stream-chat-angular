@@ -47,7 +47,9 @@
               str-chat__message-simple__actions__action--options
             "
             [floatUiLoose]="messageMenuFloat"
-            looseTrigger="click"
+            [looseTrigger]="
+              messageActionsService.customActionClickHandler ? 'none' : 'click'
+            "
             [hideOnScroll]="false"
             [hideOnClickOutside]="true"
             [hideOnMouseLeave]="false"

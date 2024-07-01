@@ -133,7 +133,7 @@ export class MessageComponent
     private cdRef: ChangeDetectorRef,
     private dateParser: DateParserService,
     private messageService: MessageService,
-    private messageActionsService: MessageActionsService,
+    public messageActionsService: MessageActionsService,
     private ngZone: NgZone
   ) {
     this.displayAs = this.messageService.displayAs;
