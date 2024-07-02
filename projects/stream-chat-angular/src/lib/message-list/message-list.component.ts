@@ -16,8 +16,15 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ChannelService } from '../channel.service';
-import { Observable, Subject, Subscription, combineLatest } from 'rxjs';
-import { filter, map, shareReplay, tap, throttleTime } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
+import {
+  filter,
+  map,
+  shareReplay,
+  take,
+  tap,
+  throttleTime,
+} from 'rxjs/operators';
 import {
   MessageContext,
   DefaultStreamChatGenerics,
@@ -26,14 +33,16 @@ import {
   DateSeparatorContext,
   UnreadMessagesNotificationContext,
   UnreadMessagesIndicatorContext,
+  VirtualizedListScrollPosition,
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
-import { UserResponse } from 'stream-chat';
+import { MessageResponse, UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
 import { isOnSeparateDate } from '../is-on-separate-date';
+import { VirtualizedMessageListService } from '../virtualized-message-list.service';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -87,10 +96,6 @@ export class MessageListComponent
    * You can turn on and off the loading indicator that signals to users that more messages are being loaded to the message list
    */
   @Input() displayLoadingIndicator = true;
-  /**
-   * @internal
-   */
-  @Input() limitNumberOfMessagesInList = true;
   typingIndicatorTemplate: TemplateRef<TypingIndicatorContext> | undefined;
   messageTemplate: TemplateRef<MessageContext> | undefined;
   customDateSeparatorTemplate: TemplateRef<DateSeparatorContext> | undefined;
@@ -112,7 +117,7 @@ export class MessageListComponent
   lastSentMessageId: string | undefined;
   parentMessage: StreamMessage | undefined;
   highlightedMessageId: string | undefined;
-  isLoading = false;
+  loadingState: 'idle' | 'loading-top' | 'loading-bottom' = 'idle';
   scrollEndTimeout?: ReturnType<typeof setTimeout>;
   lastReadMessageId?: string;
   isUnreadNotificationVisible = true;
@@ -120,20 +125,15 @@ export class MessageListComponent
   unreadCount?: number;
   isJumpingToLatestUnreadMessage = false;
   isJumpToLatestButtonVisible = true;
+  isJumpingToMessage = false;
   scroll$ = new Subject<void>();
   @ViewChild('scrollContainer')
   private scrollContainer!: ElementRef<HTMLElement>;
   @ViewChild('parentMessageElement')
   private parentMessageElement!: ElementRef<HTMLElement>;
-  private latestMessage: { id: string; created_at: Date } | undefined;
-  private hasNewMessages: boolean | undefined;
-  private containerHeight: number | undefined;
-  private oldestMessage: { id: string; created_at: Date } | undefined;
-  private olderMassagesLoaded: boolean | undefined;
-  private isNewMessageSentByUser: boolean | undefined;
+  private isNewMessageSentByUser: boolean = false;
   private subscriptions: Subscription[] = [];
   private newMessageSubscription: { unsubscribe: () => void } | undefined;
-  private prevScrollTop: number | undefined;
   private usersTypingInChannel$!: Observable<
     UserResponse<DefaultStreamChatGenerics>[]
   >;
@@ -148,10 +148,10 @@ export class MessageListComponent
     typeof setTimeout
   >;
   private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
-  private messageRemoveTimeout?: ReturnType<typeof setTimeout>;
-  private removeOldMessagesSubscription?: Subscription;
   private isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   private forceRepaintSubject = new Subject<void>();
+  private messageIdToAnchorTo?: string;
+  private anchorMessageTopOffset?: number;
 
   @HostBinding('class')
   private get class() {
@@ -159,6 +159,12 @@ export class MessageListComponent
       this.isEmpty ? 'str-chat-angular__message-list-host--empty' : ''
     }`;
   }
+  private virtualizedList?: VirtualizedMessageListService;
+  private scrollPosition$ = new BehaviorSubject<VirtualizedListScrollPosition>(
+    'bottom'
+  );
+  private jumpToItemSubscription?: Subscription;
+  private queryStateSubscription?: Subscription;
 
   constructor(
     private channelService: ChannelService,
@@ -189,11 +195,6 @@ export class MessageListComponent
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        this.chatClientService.chatClient?.logger?.(
-          'info',
-          `${channel?.cid || 'undefined'} selected`,
-          { tags: `message list ${this.mode}` }
-        );
         let isNewChannel = false;
         if (this.channelId !== channel?.id) {
           isNewChannel = true;
@@ -201,16 +202,9 @@ export class MessageListComponent
             clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
           }
           this.isUnreadNotificationVisible = false;
-          this.chatClientService?.chatClient?.logger?.(
-            'info',
-            `new channel is different from prev channel, reseting scroll state`,
-            { tags: `message list ${this.mode}` }
-          );
           this.parsedDates = new Map();
-          if (this.messageRemoveTimeout) {
-            clearTimeout(this.messageRemoveTimeout);
-          }
           this.resetScrollState();
+          this.setMessages$();
           this.channelId = channel?.id;
           if (this.isViewInited) {
             this.cdRef.detectChanges();
@@ -275,19 +269,11 @@ export class MessageListComponent
         this.newMessageSubscription?.unsubscribe();
         if (channel) {
           this.newMessageSubscription = channel.on('message.new', (event) => {
-            // If we display main channel messages and we're switched to an older message set -> use message.new event to update unread count and detect new messages sent by current user
-            if (
-              !event.message ||
-              channel.state.messages === channel.state.latestMessages ||
-              this.mode === 'thread'
-            ) {
+            if (!event.message) {
               return;
+            } else {
+              this.newMessageReceived(event.message);
             }
-            this.newMessageReceived({
-              id: event.message.id,
-              user: event.message.user,
-              created_at: new Date(event.message.created_at || ''),
-            });
           });
         }
       })
@@ -301,6 +287,7 @@ export class MessageListComponent
           this.mode === 'thread'
         ) {
           this.resetScrollState();
+          this.setMessages$();
         }
         if (this.parentMessage === message) {
           return;
@@ -375,46 +362,6 @@ export class MessageListComponent
       )
     );
     this.subscriptions.push(
-      this.channelService.jumpToMessage$
-        .pipe(filter((config) => !!config.id))
-        .subscribe((config) => {
-          let messageId: string | undefined = undefined;
-          if (this.messageRemoveTimeout) {
-            clearTimeout(this.messageRemoveTimeout);
-          }
-          if (this.mode === 'main') {
-            messageId = config.parentId || config.id;
-          } else if (config.parentId) {
-            messageId = config.id;
-          }
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `Jumping to ${messageId || ''}`,
-            { tags: `message list ${this.mode}` }
-          );
-          if (messageId) {
-            if (messageId === 'latest') {
-              this.scrollToLatestMessage();
-              if (this.isViewInited) {
-                this.cdRef.detectChanges();
-              }
-            } else {
-              if (this.isJumpingToLatestUnreadMessage) {
-                this.scrollMessageIntoView(
-                  this.firstUnreadMessageId || messageId
-                );
-                this.highlightedMessageId =
-                  this.firstUnreadMessageId || messageId;
-              } else {
-                this.scrollMessageIntoView(messageId);
-                this.highlightedMessageId = messageId;
-              }
-            }
-          }
-          this.channelService.clearMessageJump();
-        })
-    );
-    this.subscriptions.push(
       this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
         (template) => {
           const isChanged = this.emptyMainMessageListTemplate !== template;
@@ -441,6 +388,7 @@ export class MessageListComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.mode || changes.direction) {
+      this.resetScrollState();
       this.setMessages$();
     }
     if (changes.direction) {
@@ -453,71 +401,31 @@ export class MessageListComponent
   ngAfterViewInit(): void {
     this.isViewInited = true;
     this.ngZone.runOutsideAngular(() => {
-      this.scrollContainer.nativeElement.addEventListener('scroll', () =>
+      this.scrollContainer?.nativeElement?.addEventListener('scroll', () =>
         this.scrolled()
       );
     });
   }
 
   ngAfterViewChecked() {
-    if (this.highlightedMessageId) {
-      // Turn off programatic scroll adjustments while jump to message is in progress
-      this.hasNewMessages = false;
-      this.olderMassagesLoaded = false;
+    if (this.isJumpingToMessage) {
+      this.isNewMessageSentByUser = false;
+      this.messageIdToAnchorTo = undefined;
+      this.anchorMessageTopOffset = undefined;
+      return;
     }
-    if (this.direction === 'top-to-bottom') {
-      if (
-        this.hasNewMessages &&
-        (this.isNewMessageSentByUser || !this.isUserScrolled)
-      ) {
-        this.isLatestMessageInList
-          ? this.scrollToTop()
-          : this.jumpToLatestMessage();
-        this.hasNewMessages = false;
-        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      }
-    } else {
-      if (this.hasNewMessages) {
-        if (!this.isUserScrolled || this.isNewMessageSentByUser) {
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `User has new messages, and not scrolled or sent new messages, therefore we ${
-              this.isLatestMessageInList ? 'scroll' : 'jump'
-            } to latest message`,
-            { tags: `message list ${this.mode}` }
-          );
-          this.isLatestMessageInList
-            ? this.scrollToBottom()
-            : this.jumpToLatestMessage();
-        }
-        this.hasNewMessages = false;
-        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      } else if (this.olderMassagesLoaded) {
-        this.chatClientService.chatClient?.logger?.(
-          'info',
-          `Older messages are loaded, we preserve the scroll position`,
-          { tags: `message list ${this.mode}` }
-        );
-        this.preserveScrollbarPosition();
-        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-        this.olderMassagesLoaded = false;
-      } else if (
-        this.getScrollPosition() !== 'bottom' &&
-        !this.isUserScrolled &&
-        !this.highlightedMessageId
-      ) {
-        this.chatClientService.chatClient?.logger?.(
-          'info',
-          `Container grew and user didn't scroll therefore we ${
-            this.isLatestMessageInList ? 'scroll' : 'jump'
-          } to latest message`,
-          { tags: `message list ${this.mode}` }
-        );
-        this.isLatestMessageInList
-          ? this.scrollToBottom()
-          : this.jumpToLatestMessage();
-        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-      }
+    if (this.messageIdToAnchorTo && this.loadingState === 'idle') {
+      this.preserveScrollbarPosition();
+    } else if (
+      (!this.isUserScrolled &&
+        this.scrollContainer.nativeElement?.scrollHeight >
+          this.scrollContainer?.nativeElement.clientHeight &&
+        this.getScrollPosition() !==
+          (this.direction === 'bottom-to-top' ? 'bottom' : 'top')) ||
+      (this.isUserScrolled && this.isNewMessageSentByUser)
+    ) {
+      this.isNewMessageSentByUser = false;
+      this.jumpToLatestMessage();
     }
   }
 
@@ -533,25 +441,28 @@ export class MessageListComponent
     if (this.jumpToLatestButtonVisibilityTimeout) {
       clearTimeout(this.jumpToLatestButtonVisibilityTimeout);
     }
-    if (this.messageRemoveTimeout) {
-      clearTimeout(this.messageRemoveTimeout);
-    }
-    this.removeOldMessagesSubscription?.unsubscribe();
+    this.disposeVirtualizedList();
   }
 
-  trackByMessageId(index: number, item: StreamMessage) {
+  trackByMessageId(_: number, item: StreamMessage) {
     return item.id;
   }
 
-  trackByUserId(index: number, user: UserResponse) {
+  trackByUserId(_: number, user: UserResponse) {
     return user.id;
   }
 
   jumpToLatestMessage() {
-    void this.channelService.jumpToMessage(
-      'latest',
-      this.mode === 'thread' ? this.parentMessage?.id : undefined
-    );
+    if (this.isLatestMessageInList) {
+      this.direction === 'bottom-to-top'
+        ? this.scrollToBottom()
+        : this.scrollToTop();
+    } else {
+      void this.channelService.jumpToMessage(
+        'latest',
+        this.mode === 'thread' ? this.parentMessage?.id : undefined
+      );
+    }
   }
 
   scrollToBottom(): void {
@@ -579,12 +490,7 @@ export class MessageListComponent
       return;
     }
     this.scroll$.next();
-    const scrollPosition = this.getScrollPosition();
-    this.chatClientService.chatClient?.logger?.(
-      'info',
-      `Scrolled - scroll position: ${scrollPosition}, container height: ${this.scrollContainer.nativeElement.scrollHeight}`,
-      { tags: `message list ${this.mode}` }
-    );
+    let scrollPosition = this.getScrollPosition();
 
     const isUserScrolled =
       (this.direction === 'bottom-to-top'
@@ -617,34 +523,34 @@ export class MessageListComponent
       }, 100);
     }
 
-    if (this.shouldLoadMoreMessages(scrollPosition)) {
-      this.ngZone.run(() => {
-        this.containerHeight = this.scrollContainer.nativeElement.scrollHeight;
-        let direction: 'newer' | 'older';
-        if (this.direction === 'top-to-bottom') {
-          direction = scrollPosition === 'top' ? 'newer' : 'older';
-        } else {
-          direction = scrollPosition === 'top' ? 'older' : 'newer';
-        }
-        const result =
-          this.mode === 'main'
-            ? this.channelService.loadMoreMessages(direction)
-            : this.channelService.loadMoreThreadReplies(direction);
-        if (result) {
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `Displaying loading indicator`,
-            { tags: `message list ${this.mode}` }
-          );
-          this.isLoading = true;
-          result.catch?.(() => {
-            this.isLoading = false;
+    const prevScrollPosition = this.scrollPosition$.getValue();
+
+    if (this.direction === 'top-to-bottom') {
+      if (scrollPosition === 'top') {
+        scrollPosition = 'bottom';
+      } else if (scrollPosition === 'bottom') {
+        scrollPosition = 'top';
+      }
+    }
+
+    if (prevScrollPosition !== scrollPosition && !this.isJumpingToMessage) {
+      if (scrollPosition === 'top' || scrollPosition === 'bottom') {
+        this.virtualizedList?.virtualizedItems$
+          .pipe(take(1))
+          .subscribe((items) => {
+            this.messageIdToAnchorTo =
+              scrollPosition === 'top'
+                ? items[0]?.id
+                : items[items.length - 1]?.id;
+            this.anchorMessageTopOffset = document
+              .getElementById(this.messageIdToAnchorTo)
+              ?.getBoundingClientRect()?.top;
           });
-        }
-        this.cdRef.detectChanges();
+      }
+      this.ngZone.run(() => {
+        this.scrollPosition$.next(scrollPosition);
       });
     }
-    this.prevScrollTop = this.scrollContainer.nativeElement.scrollTop;
   }
 
   jumpToFirstUnreadMessage() {
@@ -694,9 +600,18 @@ export class MessageListComponent
   }
 
   private preserveScrollbarPosition() {
-    this.scrollContainer.nativeElement.scrollTop =
-      (this.prevScrollTop || 0) +
-      (this.scrollContainer.nativeElement.scrollHeight - this.containerHeight!);
+    if (!this.messageIdToAnchorTo) {
+      return;
+    }
+    const messageToAlignTo = document.getElementById(this.messageIdToAnchorTo);
+    this.messageIdToAnchorTo = undefined;
+    this.scrollContainer.nativeElement.scrollTop +=
+      (messageToAlignTo?.getBoundingClientRect()?.top || 0) -
+      (this.anchorMessageTopOffset || 0);
+    this.anchorMessageTopOffset = undefined;
+    if (this.isSafari) {
+      this.forceRepaintSubject.next();
+    }
   }
 
   private forceRepaint() {
@@ -710,10 +625,7 @@ export class MessageListComponent
     let position: 'top' | 'bottom' | 'middle' = 'middle';
     if (
       Math.floor(this.scrollContainer.nativeElement.scrollTop) <=
-        (this.parentMessageElement?.nativeElement.clientHeight || 0) &&
-      (this.prevScrollTop === undefined ||
-        this.prevScrollTop >
-          (this.parentMessageElement?.nativeElement.clientHeight || 0))
+      (this.parentMessageElement?.nativeElement.clientHeight || 0)
     ) {
       position = 'top';
     } else if (
@@ -728,60 +640,36 @@ export class MessageListComponent
     return position;
   }
 
-  private shouldLoadMoreMessages(scrollPosition: 'top' | 'bottom' | 'middle') {
-    return (
-      scrollPosition !== 'middle' &&
-      !this.highlightedMessageId &&
-      !this.isLoading
-    );
-  }
-
   private setMessages$() {
-    this.messages$ = (
-      this.mode === 'main'
-        ? this.channelService.activeChannelMessages$
-        : this.channelService.activeThreadMessages$
-    ).pipe(
-      tap((messages) => {
-        if (this.isLoading) {
-          this.isLoading = false;
+    this.disposeVirtualizedList();
+    this.virtualizedList = new VirtualizedMessageListService(
+      this.mode,
+      this.scrollPosition$,
+      this.channelService
+    );
+    this.queryStateSubscription = this.virtualizedList.queryState$.subscribe(
+      (queryState) => {
+        let mappedState: 'idle' | 'loading-top' | 'loading-bottom' = 'idle';
+        if (queryState.state.includes('loading')) {
+          mappedState = (queryState.state as 'loading-top') || 'loading-bottom';
         }
+        if (mappedState !== this.loadingState) {
+          this.loadingState = mappedState;
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      }
+    );
+    this.messages$ = this.virtualizedList.virtualizedItems$.pipe(
+      tap((messages) => {
         if (messages.length === 0) {
-          this.chatClientService.chatClient?.logger?.(
-            'info',
-            `Empty messages array, reseting scroll state`,
-            {
-              tags: `message list ${this.mode}`,
-            }
-          );
           this.resetScrollState();
           return;
         }
         if (this.isEmpty) {
           // cdRef.detectChanges() isn't enough here, test will fail
           setTimeout(() => (this.isEmpty = false), 0);
-        }
-        this.chatClientService.chatClient?.logger?.(
-          'info',
-          `Received one or more messages`,
-          {
-            tags: `message list ${this.mode}`,
-          }
-        );
-        const currentLatestMessageInState = messages[messages.length - 1];
-        this.newMessageReceived(currentLatestMessageInState);
-        const currentOldestMessage = messages[0];
-        if (
-          !this.oldestMessage ||
-          !messages.find((m) => m.id === this.oldestMessage!.id)
-        ) {
-          this.oldestMessage = currentOldestMessage;
-        } else if (
-          this.oldestMessage.created_at.getTime() >
-          currentOldestMessage.created_at.getTime()
-        ) {
-          this.oldestMessage = currentOldestMessage;
-          this.olderMassagesLoaded = true;
         }
       }),
       tap((messages) => {
@@ -808,18 +696,26 @@ export class MessageListComponent
             )?.id)
       ),
       tap((messages) => {
+        const latestMessageInList = messages[messages.length - 1];
+        const channel = this.channelService.activeChannel;
+        const messagesFromState =
+          (this.mode === 'main'
+            ? channel?.state.latestMessages
+            : channel?.state.threads[this.parentMessage?.id || '']) || [];
         this.isLatestMessageInList =
-          !this.latestMessage ||
-          messages.length === 0 ||
-          messages[messages.length - 1].id === this.latestMessage.id ||
-          this.mode === 'thread';
+          !latestMessageInList ||
+          latestMessageInList.cid !== channel?.cid ||
+          latestMessageInList?.id ===
+            messagesFromState[messagesFromState.length - 1]?.id;
         if (!this.isLatestMessageInList) {
           this.isUserScrolled = true;
         }
       }),
-      map((messages) =>
-        this.direction === 'bottom-to-top' ? messages : [...messages].reverse()
-      ),
+      map((messages) => {
+        return this.direction === 'bottom-to-top'
+          ? messages
+          : [...messages].reverse();
+      }),
       tap((messages) => {
         this.groupStyles = messages.map((m, i) =>
           getGroupStyles(m, messages[i - 1], messages[i + 1], {
@@ -832,58 +728,47 @@ export class MessageListComponent
       }),
       shareReplay(1)
     );
-    this.removeOldMessagesSubscription?.unsubscribe();
-    this.removeOldMessagesSubscription = combineLatest([
-      this.channelService.jumpToMessage$,
-      this.messages$,
-    ]).subscribe(([jumpToMessage, messages]) => {
-      if (
-        this.limitNumberOfMessagesInList &&
-        this.mode === 'main' &&
-        messages.length >
-          ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST * 0.5 &&
-        !this.isUserScrolled &&
-        !jumpToMessage?.id &&
-        this.isLatestMessageInList
-      ) {
-        if (this.messageRemoveTimeout) {
-          clearTimeout(this.messageRemoveTimeout);
-        }
-        if (
-          messages.length >= ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST
-        ) {
-          this.channelService.removeOldMessageFromMessageList();
-        } else {
-          this.messageRemoveTimeout = setTimeout(() => {
-            if (
-              this.limitNumberOfMessagesInList &&
-              this.mode === 'main' &&
-              messages.length >
-                ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST * 0.5 &&
-              !this.isUserScrolled &&
-              !this.highlightedMessageId &&
-              this.isLatestMessageInList
-            ) {
-              this.channelService.removeOldMessageFromMessageList();
+    if (this.virtualizedList?.jumpToItem$) {
+      this.jumpToItemSubscription = this.virtualizedList.jumpToItem$
+        .pipe(filter((jumpToMessage) => !!jumpToMessage.item?.id))
+        .subscribe((jumpToMessage) => {
+          let messageId = jumpToMessage.item?.id;
+          if (messageId) {
+            if (this.isJumpingToLatestUnreadMessage) {
+              messageId = this.firstUnreadMessageId || messageId;
             }
-          }, 1500);
-        }
-      }
-    });
+            if (jumpToMessage.position !== 'bottom') {
+              this.highlightedMessageId = messageId;
+            } else if (this.direction === 'top-to-bottom') {
+              jumpToMessage.position = 'top';
+            }
+            this.isJumpingToMessage = true;
+            this.scrollMessageIntoView({
+              messageId: this.firstUnreadMessageId || messageId,
+              position: jumpToMessage.position || 'middle',
+            });
+          }
+        });
+    }
   }
 
   private resetScrollState() {
     this.isEmpty = true;
-    this.latestMessage = undefined;
-    this.hasNewMessages = true;
     this.isUserScrolled = false;
-    this.containerHeight = undefined;
-    this.olderMassagesLoaded = false;
-    this.oldestMessage = undefined;
+    this.messageIdToAnchorTo = undefined;
+    this.anchorMessageTopOffset = undefined;
     this.newMessageCountWhileBeingScrolled = 0;
-    this.prevScrollTop = undefined;
-    this.isNewMessageSentByUser = undefined;
+    this.isNewMessageSentByUser = false;
     this.isLatestMessageInList = true;
+    this.isJumpingToMessage = false;
+    this.scrollPosition$.next('bottom');
+    this.loadingState = 'idle';
+  }
+
+  private disposeVirtualizedList() {
+    this.virtualizedList?.dispose();
+    this.jumpToItemSubscription?.unsubscribe();
+    this.queryStateSubscription?.unsubscribe();
   }
 
   private get usersTyping$() {
@@ -892,15 +777,31 @@ export class MessageListComponent
       : this.usersTypingInChannel$;
   }
 
-  private scrollMessageIntoView(messageId: string, withRetry = true) {
-    const element = document.getElementById(messageId);
+  private scrollMessageIntoView(
+    options: { messageId: string; position: 'top' | 'bottom' | 'middle' },
+    withRetry: boolean = true
+  ) {
+    const element = document.getElementById(options.messageId);
     if (!element && withRetry) {
       // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
-      setTimeout(() => this.scrollMessageIntoView(messageId, false));
+      setTimeout(() => this.scrollMessageIntoView(options, false));
     } else if (element) {
+      const blockMapping: { [key: string]: ScrollLogicalPosition } = {
+        top: 'start',
+        bottom: 'end',
+        middle: 'center',
+      };
       element.scrollIntoView({
-        block: 'center',
+        block: blockMapping[options.position],
       });
+      if (options.position !== 'middle') {
+        options.position === 'bottom'
+          ? this.scrollToBottom()
+          : this.scrollToTop();
+      }
+      setTimeout(() => {
+        this.isJumpingToMessage = false;
+      }, 0);
       setTimeout(() => {
         this.highlightedMessageId = undefined;
         this.firstUnreadMessageId = undefined;
@@ -910,52 +811,33 @@ export class MessageListComponent
     }
   }
 
-  private scrollToLatestMessage(withRetry = true) {
-    if (document.getElementById(this.latestMessage!.id)) {
-      this.direction === 'bottom-to-top'
-        ? this.scrollToBottom()
-        : this.scrollToTop();
-    } else if (withRetry) {
-      // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
-      setTimeout(() => this.scrollToLatestMessage(false), 0);
-    }
-  }
-
-  private newMessageReceived(message: {
-    id: string;
-    created_at: Date;
-    user?: { id: string } | null;
-  }) {
-    const latestMessages =
-      this.channelService.activeChannel?.state?.latestMessages;
+  private newMessageReceived(message: MessageResponse) {
     if (
-      !this.latestMessage ||
-      this.latestMessage.created_at?.getTime() < message.created_at.getTime() ||
-      (this.mode === 'main' &&
-        latestMessages &&
-        this.latestMessage &&
-        latestMessages[latestMessages.length - 1]?.id !== this.latestMessage.id)
+      (this.mode === 'main' && message.parent_id) ||
+      (this.mode === 'thread' && message.parent_id !== this.parentMessage?.id)
     ) {
-      this.chatClientService.chatClient?.logger?.(
-        'info',
-        `Received new message`,
-        { tags: `message list ${this.mode}` }
-      );
-      const isNewChannel = !this.latestMessage;
-      this.latestMessage = message;
-      this.hasNewMessages = true;
-      this.isNewMessageSentByUser =
-        message.user?.id === this.chatClientService.chatClient?.user?.id;
-      if (this.isUserScrolled) {
-        this.newMessageCountWhileBeingScrolled++;
-      }
-      if (
-        !this.isNewMessageSentByUser &&
-        this.unreadCount !== undefined &&
-        !isNewChannel
-      ) {
-        this.unreadCount++;
-      }
+      return;
+    }
+    const isNewMessageSentByCurrentUser =
+      message.user?.id === this.chatClientService.chatClient?.user?.id;
+
+    let shouldDetectChanges = false;
+
+    if (!this.isNewMessageSentByUser && isNewMessageSentByCurrentUser) {
+      this.isNewMessageSentByUser = true;
+      shouldDetectChanges = true;
+    }
+
+    if (this.isUserScrolled) {
+      this.newMessageCountWhileBeingScrolled++;
+      shouldDetectChanges = true;
+    }
+    if (!this.isNewMessageSentByUser && this.unreadCount !== undefined) {
+      this.unreadCount++;
+      shouldDetectChanges = true;
+    }
+
+    if (shouldDetectChanges && this.isViewInited) {
       this.cdRef.detectChanges();
     }
   }

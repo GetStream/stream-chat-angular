@@ -452,3 +452,14 @@ export type ChannelQueryResult<
   channels: Channel<T>[];
   hasMorePage: boolean;
 };
+
+export type VirtualizedListScrollPosition = 'top' | 'bottom' | 'middle';
+
+export type VirtualizedListQueryState = {
+  state: 'loading-top' | 'loading-bottom' | 'success' | 'error';
+  error?: unknown;
+};
+
+export type VirtualizedListQueryDirection = 'top' | 'bottom';
+
+export type VirtualizedListVerticalItemPosition = 'top' | 'bottom' | 'middle';

@@ -78,7 +78,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
         ? await this.audioElement.nativeElement.play()
         : this.audioElement.nativeElement.pause();
       this.isError = false;
-    } catch (e) {
+    } catch (error) {
       this.isError = true;
     }
   }

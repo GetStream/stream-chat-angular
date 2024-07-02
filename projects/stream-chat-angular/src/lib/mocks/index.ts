@@ -232,9 +232,11 @@ export type MockChannelService = {
   activeChannelLastReadMessageId?: string;
   activeChannelUnreadCount?: number;
   activeChannel?: Channel<DefaultStreamChatGenerics>;
+  activeChannelMessages: StreamMessage[];
+  activeChannelThreadReplies: StreamMessage[];
   loadMoreMessages: (
     d: 'older' | 'newer'
-  ) => Promise<{ messages: StreamMessage[] }>;
+  ) => Promise<{ messages: StreamMessage[] }> | void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
   setAsActiveParentMessage: (m: StreamMessage | undefined) => void;
@@ -257,6 +259,9 @@ export const mockChannelService = (): MockChannelService => {
   const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
   const activeChannel = generateMockChannels(1)[0];
+  activeChannel.state.messages = messages;
+  activeChannel.state.latestMessages = messages;
+  const activeChannelMessages = messages;
   const activeChannel$ = new BehaviorSubject<
     Channel<DefaultStreamChatGenerics>
   >(activeChannel);
@@ -310,6 +315,8 @@ export const mockChannelService = (): MockChannelService => {
 
   return {
     activeChannelMessages$,
+    activeChannelMessages,
+    activeChannelThreadReplies: [],
     activeChannel$,
     loadMoreMessages,
     channels$,
@@ -328,6 +335,7 @@ export const mockChannelService = (): MockChannelService => {
     jumpToMessage,
     clearMessageJump,
     channelQueryState$,
+    activeChannel,
   };
 };
 

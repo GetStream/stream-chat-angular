@@ -63,7 +63,7 @@ export class ChannelListComponent implements OnDestroy {
     this.isLoadingMoreChannels = false;
   }
 
-  trackByChannelId(index: number, item: Channel<DefaultStreamChatGenerics>) {
+  trackByChannelId(_: number, item: Channel<DefaultStreamChatGenerics>) {
     return item.cid;
   }
 }

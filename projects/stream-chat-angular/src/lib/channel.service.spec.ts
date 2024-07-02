@@ -671,6 +671,18 @@ describe('ChannelService', () => {
     (activeChannel as MockChannel).handleEvent('message.deleted', { message });
 
     expect(spy).toHaveBeenCalledWith(jasmine.arrayContaining([message]));
+
+    spy.calls.reset();
+    activeChannel.state.messages.splice(
+      activeChannel.state.messages.findIndex((m) => m.id === message.id)
+    );
+    (activeChannel as MockChannel).handleEvent('message.deleted', {
+      message,
+      type: 'message.deleted',
+    });
+
+    expect(spy).toHaveBeenCalled();
+    expect(spy).not.toHaveBeenCalledWith(jasmine.arrayContaining([message]));
   });
 
   it('should move channel to the top of the list', async () => {
