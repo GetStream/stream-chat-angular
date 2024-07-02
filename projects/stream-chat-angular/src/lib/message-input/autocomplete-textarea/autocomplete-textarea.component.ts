@@ -221,11 +221,7 @@ export class AutocompleteTextareaComponent
       this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
       this.userMentions.next([...this.mentionedUsers]);
     }
-    return (
-      triggerChar +
-      item.autocompleteLabel +
-      (triggerChar === this.commandTriggerChar ? ' ' : '')
-    );
+    return triggerChar + item.autocompleteLabel + ' ';
   }
 
   autcompleteSearchTermChanged(searchTerm: string) {
