@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -59,9 +59,9 @@ jobs:
           STREAM_USER_ID: <dynamic user>
           STREAM_CHANNELS_FILTER: '{"type": "messaging"}'
         run: >
-          yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/master' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn vercel build ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn vercel deploy ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+          yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/v5' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel build ${{ github.ref == 'refs/heads/v5' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel deploy ${{ github.ref == 'refs/heads/v5' && '--prod' || '' }} --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
       - name: Copy docs from stream-chat-css
         run: npm run ${{ (github.ref == 'refs/heads/v5' || contains(github.head_ref, 'v5')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
       - name: Generate docs
