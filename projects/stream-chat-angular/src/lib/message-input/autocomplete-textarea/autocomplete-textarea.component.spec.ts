@@ -245,7 +245,7 @@ describe('AutocompleteTextareaComponent', () => {
         },
         '@'
       )
-    ).toBe('@Jack');
+    ).toBe('@Jack ');
   });
 
   it('should update mentioned users if sent is triggered', () => {
