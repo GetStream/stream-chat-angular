@@ -1,0 +1,26 @@
+# StreamI18nService
+
+The `StreamI18nService` can be used to customize the labels of the chat UI. Our [translation guide](../concepts/translation.mdx) covers this topic in detail.
+
+## Methods
+
+### setTranslation
+
+▸ **setTranslation**(`lang?`, `overrides?`): `void`
+
+Registers the translation to the [ngx-translate](https://github.com/ngx-translate/core) TranslateService.
+
+#### Parameters
+
+| Name         | Type     | Default value | Description                                                                       |
+| :----------- | :------- | :------------ | :-------------------------------------------------------------------------------- |
+| `lang`       | `string` | `'en'`        | The language key to register the translation to                                   |
+| `overrides?` | `Object` | `undefined`   | An object which keys are translation keys, and the values are custom translations |
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[lib/stream-i18n.service.ts:19](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/stream-i18n.service.ts#L19)

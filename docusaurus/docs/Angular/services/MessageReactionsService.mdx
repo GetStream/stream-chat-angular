@@ -8,13 +8,13 @@ The `MessageReactionsService` provides customization options to message [reactio
 
 • `Optional` **customReactionClickHandler**: (`details`: `MessageReactionClickDetails`) => `void`
 
-#### Type declaration
-
-▸ (`details`): `void`
-
 By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
 
 The event handler can retrieve all reactions of a message inside the active channel using the [`channelService.getMessageReactions` method](../../services/ChannelService/#getmessagereactions)
+
+#### Type declaration
+
+▸ (`details`): `void`
 
 ##### Parameters
 
@@ -28,7 +28,7 @@ The event handler can retrieve all reactions of a message inside the active chan
 
 #### Defined in
 
-[lib/message-reactions.service.ts:31](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L31)
+[projects/stream-chat-angular/src/lib/message-reactions.service.ts:30](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L30)
 
 ---
 
@@ -42,7 +42,7 @@ You can provide any string as a reaction. The emoji can be provided as a string,
 
 #### Defined in
 
-[lib/message-reactions.service.ts:18](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L18)
+[projects/stream-chat-angular/src/lib/message-reactions.service.ts:18](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L18)
 
 ## Accessors
 
@@ -58,7 +58,7 @@ Get the currently enabled reactions
 
 #### Defined in
 
-[lib/message-reactions.service.ts:45](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L45)
+[projects/stream-chat-angular/src/lib/message-reactions.service.ts:44](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L44)
 
 • `set` **reactions**(`reactions`): `void`
 
@@ -76,4 +76,4 @@ Sets the enabled reactions
 
 #### Defined in
 
-[lib/message-reactions.service.ts:38](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L38)
+[projects/stream-chat-angular/src/lib/message-reactions.service.ts:37](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions.service.ts#L37)

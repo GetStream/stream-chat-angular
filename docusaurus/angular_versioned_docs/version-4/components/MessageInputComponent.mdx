@@ -1,0 +1,173 @@
+The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+## Configuration
+
+The `MessageInput` component can use the [`Textarea`](./TextareaComponent.mdx) or the [`AutocompleteTextarea`](./AutocompleteTextareaComponent.mdx) component for displaying an HTML input for the users to type. You need to [provide your chosen component at module import](../concepts/opt-in-architecture.mdx).
+
+## Emoji picker
+
+The SDK doesn't have a built-in emoji picker, but it has support for providing your own template. Follow our [emoji picker guide](../code-examples/emoji-picker.mdx) to get to know more.
+
+## Customization
+
+If you want to provide your own message input component you'll have to provide it in the following places:
+
+- Replace the default message input inside the [channel](./ChannelComponent.mdx)
+- Replace the default message input inside the [thread](./ThreadComponent.mdx)
+- Provide your own [messageInputTemplate$](../services/CustomTemplatesService.mdx/#messageinputtemplate) to the `CustomTemplatesService`
+
+You can replace the textarea inside the message input following our [Custom textarea guide](../../code-examples/custom-textarea)
+
+See [our customization guide](../concepts/customization.mdx) for more information.
+
+:::note
+If you want to create your own message input, you can use the following building blocks:
+
+### Send and update messages
+
+You can use [`ChannelService`](../services/ChannelService.mdx) to send and update messages.
+
+### File uploads
+
+You can use the [`AttachmentService`](../services/AttachmentService.mdx) to manage file uploads.
+
+If more than one message input component can exist on your chat UI you should provide the `AttachmentService` on the component level:
+
+```typescript
+@Component({
+  selector: 'custom-message-input',
+  templateUrl: './message-input.component.html',
+  styles: [],
+  providers: [AttachmentService],
+})
+```
+
+### `Textarea`
+
+You can use the [`Textarea`](./TextareaComponent.mdx) or the [`AutocompleteTextarea`](./AutocompleteTextareaComponent.mdx) component to display the input HTML element for the users to type.
+
+:::
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### isFileUploadEnabled
+
+• **isFileUploadEnabled**: `undefined` \| `boolean`
+
+If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:61](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L61)
+
+---
+
+### areMentionsEnabled
+
+• **areMentionsEnabled**: `undefined` \| `boolean`
+
+If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:65](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L65)
+
+---
+
+### mentionScope
+
+• **mentionScope**: `undefined` \| `"channel"` \| `"application"`
+
+The scope for user mentions, either members of the current channel of members of the application. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:69](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L69)
+
+---
+
+### mode
+
+• **mode**: `"thread"` \| `"main"` = `'main'`
+
+Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:73](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L73)
+
+---
+
+### isMultipleFileUploadEnabled
+
+• **isMultipleFileUploadEnabled**: `undefined` \| `boolean`
+
+If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:77](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L77)
+
+---
+
+### message
+
+• **message**: `undefined` \| `StreamMessage`<`DefaultStreamChatGenerics`\>
+
+The message to edit
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:81](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L81)
+
+---
+
+### sendMessage$
+
+• **sendMessage$**: `undefined` \| `Observable`<`void`\>
+
+An observable that can be used to trigger message sending from the outside
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:85](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L85)
+
+---
+
+### inputMode
+
+• **inputMode**: `"desktop"` \| `"mobile"`
+
+In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input. If no value is provided, it is set from the [`MessageInputConfigService`](../services/MessageInputConfigService.mdx).
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:89](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L89)
+
+---
+
+### autoFocus
+
+• **autoFocus**: `boolean` = `true`
+
+Enables or disables auto focus on the textarea element
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:93](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L93)
+
+---
+
+### messageUpdate
+
+• `Readonly` **messageUpdate**: `EventEmitter`<{}\>
+
+Emits when a message was successfuly sent or updated
+
+#### Defined in
+
+[lib/message-input/message-input.component.ts:97](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L97)
+
+[//]: # "End of generated content"

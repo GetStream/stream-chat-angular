@@ -1,0 +1,527 @@
+# CustomTemplatesService
+
+A central location for registering your custom templates to override parts of the chat application.
+
+For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
+
+You can find the type definitions of the context that is provided for each template [on GitHub](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angu)
+
+## Type parameters
+
+| Name | Type                                                              |
+| :--- | :---------------------------------------------------------------- |
+| `T`  | extends `DefaultStreamChatGenerics` = `DefaultStreamChatGenerics` |
+
+## Properties
+
+### attachmentActionsTemplate$
+
+• **attachmentActionsTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how attachment actions are displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:277](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L277)
+
+---
+
+### attachmentListTemplate$
+
+• **attachmentListTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentListContext`\>\>
+
+The template used to display attachments of a [message](../components/MessageComponent.mdx) (instead of the [default attachment list](../components/AttachmentListComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:117](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L117)
+
+---
+
+### attachmentPreviewListTemplate$
+
+• **attachmentPreviewListTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentPreviewListContext`\>\>
+
+The template used to display attachments in the [message input](../components/MessageInputComponent.mdx) component (instead of the [default attachment preview](../components/AttachmentPreviewListComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:124](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L124)
+
+---
+
+### avatarTemplate$
+
+• **avatarTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AvatarContext`\>\>
+
+The template used to display avatars for channels and users (instead of the [default avatar](../components/AvatarComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:131](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L131)
+
+---
+
+### cardAttachmentTemplate$
+
+• **cardAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how a card attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:271](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L271)
+
+---
+
+### channelActionsTemplate$
+
+• **channelActionsTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ChannelActionsContext`<`DefaultStreamChatGenerics`\>\>\>
+
+The template for channel actions displayed in the [channel header](../components/ChannelHeaderComponent.mdx) (by default no channel action is displayed)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:110](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L110)
+
+---
+
+### channelHeaderInfoTemplate$
+
+• **channelHeaderInfoTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ChannelHeaderInfoContext`<`DefaultStreamChatGenerics`\>\>\>
+
+The template used to display additional information about a channel under the channel name inside the [channel header component](../components/ChannelHeaderComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:228](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L228)
+
+---
+
+### channelPreviewInfoTemplate$
+
+• **channelPreviewInfoTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ChannelPreviewInfoContext`<`DefaultStreamChatGenerics`\>\>\>
+
+Template used to display the channel information inside the [channel list item](../components/ChannelPreviewComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:336](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L336)
+
+---
+
+### channelPreviewTemplate$
+
+• **channelPreviewTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ChannelPreviewContext`<`DefaultStreamChatGenerics`\>\>\>
+
+Template used to display an item in the [channel list](../components/ChannelListComponent.mdx) (instead of the default [channal list item](../components/ChannelPreviewComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:68](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L68)
+
+---
+
+### commandAutocompleteItemTemplate$
+
+• **commandAutocompleteItemTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`CommandAutocompleteListItemContext`\>\>
+
+The autocomplete list item template for commands (used in the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:61](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L61)
+
+---
+
+### customAttachmentUploadTemplate$
+
+• **customAttachmentUploadTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`CustomAttachmentUploadContext`\>\>
+
+The template used for displaying file upload/attachment selector inside the [message input](../components/MessageInputComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:235](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L235)
+
+---
+
+### customMessageMetadataTemplate$
+
+• **customMessageMetadataTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`CustomMetadataContext`<`T`\>\>\>
+
+Template to display custom metadata inside [message component](../components/MessageComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:221](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L221)
+
+---
+
+### dateSeparatorTemplate$
+
+• **dateSeparatorTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`DateSeparatorContext`\>\>
+
+The template used to display the date separator inside the [message list](../components/MessageListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:289](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L289)
+
+---
+
+### deliveredStatusTemplate$
+
+• **deliveredStatusTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`DeliveredStatusContext`\>\>
+
+The template used for displaying the delivered state of the message inside the [message component](../components/MessageComponent.mdx)
+
+Displayed for the last message sent by the current user, if the message isn't yet read by anyone
+
+#### Defined in
+
+[lib/custom-templates.service.ts:196](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L196)
+
+---
+
+### editMessageFormTemplate$
+
+• **editMessageFormTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`void`\>\>
+
+The template used to display the [edit message form](../components/EditMessageFormComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:323](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L323)
+
+---
+
+### emojiPickerTemplate$
+
+• **emojiPickerTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`EmojiPickerContext`\>\>
+
+The template for [emoji picker](../code-examples/emoji-picker.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:89](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L89)
+
+---
+
+### emptyMainMessageListPlaceholder$
+
+• **emptyMainMessageListPlaceholder$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`void`\>\>
+
+The template to show if the main message list is empty
+
+#### Defined in
+
+[lib/custom-templates.service.ts:311](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L311)
+
+---
+
+### emptyThreadMessageListPlaceholder$
+
+• **emptyThreadMessageListPlaceholder$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`void`\>\>
+
+The template to show if the thread message list is empty
+
+#### Defined in
+
+[lib/custom-templates.service.ts:317](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L317)
+
+---
+
+### fileAttachmentTemplate$
+
+• **fileAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how a file attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:265](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L265)
+
+---
+
+### galleryAttachmentTemplate$
+
+• **galleryAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how image gallery is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:259](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L259)
+
+---
+
+### iconTemplate$
+
+• **iconTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`IconContext`\>\>
+
+Template for displaying icons (instead of the [default icon component](../components/IconComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:138](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L138)
+
+---
+
+### imageAttachmentTemplate$
+
+• **imageAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how a single image attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:241](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L241)
+
+---
+
+### loadingIndicatorTemplate$
+
+• **loadingIndicatorTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`LoadingIndicatorContext`\>\>
+
+Template for displaying the loading indicator (instead of the [default loading indicator](../components/LoadingIndicatorComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:145](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L145)
+
+---
+
+### mentionAutocompleteItemTemplate$
+
+• **mentionAutocompleteItemTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MentionAutcompleteListItemContext`\>\>
+
+The autocomplete list item template for mentioning users (used in the [`AutocompleteTextareaComponent`](../components/AutocompleteTextareaComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:55](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L55)
+
+---
+
+### mentionTemplate$
+
+• **mentionTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MentionTemplateContext`\>\>
+
+The template used for displaying a [mention inside a message](../code-examples/mention-actions.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:82](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L82)
+
+---
+
+### messageActionsBoxItemTemplate$
+
+• **messageActionsBoxItemTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MessageActionBoxItemContext`<`DefaultStreamChatGenerics`\>\>\>
+
+The template used for displaying an item in the [message actions box](../components/MessageActionsBoxComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:159](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L159)
+
+---
+
+### messageActionsBoxTemplate$
+
+• **messageActionsBoxTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MessageActionsBoxContext`\>\>
+
+Template for displaying the message actions box (instead of the [default message actions box](../components/MessageActionsBoxComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:152](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L152)
+
+---
+
+### messageBouncePromptTemplate$
+
+• **messageBouncePromptTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`void`\>\>
+
+The template used to display the [message bounce prompt](../components/MessageBouncePromptComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:329](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L329)
+
+---
+
+### messageInputTemplate$
+
+• **messageInputTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MessageInputContext`\>\>
+
+The message input template used when editing a message (instead of the [default message input](../components/MessageInputComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:75](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L75)
+
+---
+
+### messageReactionsTemplate$
+
+• **messageReactionsTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MessageReactionsContext`\>\>
+
+The template used to display the reactions of a [message](../components/MessageComponent.mdx), and the selector to add a reaction to a message (instead of the [default message reactions component](../components/MessageReactionsComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:166](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L166)
+
+---
+
+### messageTemplate$
+
+• **messageTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`MessageContext`\>\>
+
+The template used to display a message in the [message list](../components/MessageListComponent.mdx) (instead of the [default message component](../components/MessageComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:103](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L103)
+
+---
+
+### modalTemplate$
+
+• **modalTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ModalContext`\>\>
+
+The template used to display a modal window (instead of the [default modal](../components/ModalComponent.mdx))
+
+#### Defined in
+
+[lib/custom-templates.service.ts:173](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L173)
+
+---
+
+### newMessagesIndicatorTemplate$
+
+• **newMessagesIndicatorTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`UnreadMessagesIndicatorContext`\>\>
+
+The template used to display unread messages indicator inside the [message list](../components/MessageListComponent.mdx) when the channel is opened
+
+This UI element is used to separate unread messages from read messages
+
+#### Defined in
+
+[lib/custom-templates.service.ts:297](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L297)
+
+---
+
+### newMessagesNotificationTemplate$
+
+• **newMessagesNotificationTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`UnreadMessagesNotificationContext`\>\>
+
+The template used to display unread messages notification inside the [message list](../components/MessageListComponent.mdx) when the channel is opened
+
+Users can use this notification to jump to the first unread message when it's clicked
+
+#### Defined in
+
+[lib/custom-templates.service.ts:305](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L305)
+
+---
+
+### notificationTemplate$
+
+• **notificationTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`NotificationContext`\>\>
+
+The template used to override the [default notification component](../components/NotificationComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:180](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L180)
+
+---
+
+### readStatusTemplate$
+
+• **readStatusTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ReadStatusContext`\>\>
+
+The template used for displaying the sent state of the message inside the [message component](../components/MessageComponent.mdx)
+
+Displayed for the last message sent by the current user, if the message is read at least by one user
+
+#### Defined in
+
+[lib/custom-templates.service.ts:214](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L214)
+
+---
+
+### sendingStatusTemplate$
+
+• **sendingStatusTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`SendingStatusContext`\>\>
+
+The template used for displaying the sending state of the message inside the [message component](../components/MessageComponent.mdx)
+
+Displayed for the last message sent by the current user, if the message is currently being sent
+
+#### Defined in
+
+[lib/custom-templates.service.ts:205](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L205)
+
+---
+
+### systemMessageTemplate$
+
+• **systemMessageTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`SystemMessageContext`\>\>
+
+The template used to display [system messages](https://getstream.io/chat/docs/javascript/silent_messages/?language=javascript&q=system) indise the [message component](../components/MessageComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:283](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L283)
+
+---
+
+### threadHeaderTemplate$
+
+• **threadHeaderTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`ThreadHeaderContext`\>\>
+
+The template used for header of a [thread](../components/ThreadComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:187](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L187)
+
+---
+
+### typingIndicatorTemplate$
+
+• **typingIndicatorTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`TypingIndicatorContext`\>\>
+
+The typing indicator template used in the [message list](../components/MessageListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:96](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L96)
+
+---
+
+### videoAttachmentTemplate$
+
+• **videoAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how a video attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx)
+
+#### Defined in
+
+[lib/custom-templates.service.ts:253](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L253)
+
+---
+
+### voiceRecordingAttachmentTemplate$
+
+• **voiceRecordingAttachmentTemplate$**: `BehaviorSubject`<`undefined` \| `TemplateRef`<`AttachmentContext`\>\>
+
+The template that can be used to override how a voice recording attachment is displayed inside the [attachment list](../components/AttachmentListComponent.mdx), by default the [voice recording component](../components/VoiceRecordingComponent.mdx) is used
+
+#### Defined in
+
+[lib/custom-templates.service.ts:247](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/custom-templates.service.ts#L247)

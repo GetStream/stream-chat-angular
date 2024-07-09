@@ -15,16 +15,18 @@ A typical use case for the `MessageActionsBox` component would be to use in your
   selector: "app-custom-message",
   template: `
     <stream-message-actions-box
-      [isOpen]="isActionBoxOpen"
-      [isMine]="isMessageSentByCurrentUser"
+      [isMine]="isMine"
+      [enabledActions]="enabledActions"
+      [message]="message"
+      [messageTextHtmlElement]="messageTextHtmlElement"
     ></stream-message-actions-box>
     <!-- Other parts of the custom message component -->
+    <div #messageTextHtmlElement>{{ message.text }}</div>
   `,
 })
 export class CustomMessageComponent {
   @Input() message: StreamMessage;
-  isActionBoxOpen: boolean;
-  isMessageSentByCurrentUser: boolean;
+  @Input() enabledActions: string[];
 }
 ```
 
@@ -38,20 +40,6 @@ export class CustomMessageComponent {
 
 ## Inputs and outputs
 
-### isOpen
-
-• **isOpen**: `boolean` = `false`
-
-Indicates if the list should be opened or closed. Adding a UI element to open and close the list is the parent's component responsibility.
-
-**`deprecated`** No need for this since [theme-v2](../theming/introduction.mdx)
-
-#### Defined in
-
-[lib/message-actions-box/message-actions-box.component.ts:39](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L39)
-
----
-
 ### isMine
 
 • **isMine**: `boolean` = `false`
@@ -60,19 +48,31 @@ Indicates if the message actions are belonging to a message that was sent by the
 
 #### Defined in
 
-[lib/message-actions-box/message-actions-box.component.ts:43](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L43)
+[projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts:37](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L37)
 
 ---
 
 ### message
 
-• **message**: `undefined` \| `StreamMessage`<`DefaultStreamChatGenerics`\>
+• **message**: `undefined` \| `StreamMessage`\<`DefaultStreamChatGenerics`\>
 
 The message the actions will be executed on
 
 #### Defined in
 
-[lib/message-actions-box/message-actions-box.component.ts:47](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L47)
+[projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts:41](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L41)
+
+---
+
+### messageTextHtmlElement
+
+• **messageTextHtmlElement**: `undefined` \| `HTMLElement`
+
+The HTML element which contains the message text, it's used for the "copy message text" action
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts:45](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L45)
 
 ---
 
@@ -84,54 +84,6 @@ The list of [channel capabilities](https://getstream.io/chat/docs/javascript/cha
 
 #### Defined in
 
-[lib/message-actions-box/message-actions-box.component.ts:51](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L51)
-
----
-
-### customActions
-
-• **customActions**: `CustomMessageActionItem`<`DefaultStreamChatGenerics`\>[] = `[]`
-
-A list of custom message actions to be displayed in the action box
-
-In the next major release this will be released with `messageReactionsService.customActions$`
-
-More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-
-#### Defined in
-
-[lib/message-actions-box/message-actions-box.component.ts:59](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L59)
-
----
-
-### displayedActionsCount
-
-• `Readonly` **displayedActionsCount**: `EventEmitter`<`number`\>
-
-The number of authorized actions (it can be less or equal than the number of enabled actions)
-
-**`deprecated`** components should use `messageReactionsService.getAuthorizedMessageActionsCount` method
-
-More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-
-#### Defined in
-
-[lib/message-actions-box/message-actions-box.component.ts:67](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L67)
-
----
-
-### isEditing
-
-• `Readonly` **isEditing**: `EventEmitter`<`boolean`\>
-
-An event which emits `true` if the edit message modal is open, and `false` when it is closed.
-
-**`deprecated`** components should use `messageReactionsService.messageToEdit$` Observable
-
-More information: https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService
-
-#### Defined in
-
-[lib/message-actions-box/message-actions-box.component.ts:75](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L75)
+[projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts:49](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-actions-box/message-actions-box.component.ts#L49)
 
 [//]: # "End of generated content"
