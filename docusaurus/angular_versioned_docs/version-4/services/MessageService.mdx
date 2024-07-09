@@ -1,0 +1,48 @@
+# MessageService
+
+The message service contains configuration options related to displaying the message content
+
+## Properties
+
+### customLinkRenderer
+
+• `Optional` **customLinkRenderer**: (`url`: `string`) => `string`
+
+#### Type declaration
+
+▸ (`url`): `string`
+
+You can provide a custom method to display links
+
+##### Parameters
+
+| Name  | Type     | Description                      |
+| :---- | :------- | :------------------------------- |
+| `url` | `string` | the url the link should refer to |
+
+##### Returns
+
+`string`
+
+the HTML markup as a string for the link
+
+#### Defined in
+
+[lib/message.service.ts:25](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message.service.ts#L25)
+
+---
+
+### displayAs
+
+• **displayAs**: `"html"` \| `"text"` = `'text'`
+
+Decides if the message content should be formatted as text or HTML
+
+If you display messages as text the following parts are still be displayed as HTML:
+
+- user mentions -> you can customize this with your own template using the [`customTemplatesService.mentionTemplate$`](https://getstream.io/chat/docs/sdk/angular/services/CustomTemplatesService/#mentiontemplate)
+- links -> you can customize this by providing you own [`customLinkRenderer`](#customlinkrenderer) method
+
+#### Defined in
+
+[lib/message.service.ts:17](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message.service.ts#L17)

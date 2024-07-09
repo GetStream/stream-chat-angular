@@ -57,26 +57,25 @@ Supported Angular versions: **Angular 15-18**
 Run this command if you are using **Angular 18**:
 
 ```shell
-// --force is only required until this issue is solved: https://github.com/tonysamperi/ngx-float-ui/issues/26
-npm install stream-chat-angular@beta ngx-float-ui@18 --force
+npm install stream-chat-angular ngx-float-ui@beta
 ```
 
 Run this command if you are using **Angular 17**:
 
 ```shell
-npm install stream-chat-angular@beta ngx-float-ui@17
+npm install stream-chat-angular ngx-float-ui@17
 ```
 
 Run this command if you are using **Angular 16**:
 
 ```shell
-npm install stream-chat-angular@beta ngx-float-ui@16
+npm install stream-chat-angular ngx-float-ui@16
 ```
 
 Run this command if you are using **Angular 15**:
 
 ```shell
-npm install stream-chat-angular@beta @ngx-translate/core@14 ngx-float-ui@15
+npm install stream-chat-angular @ngx-translate/core@14 ngx-float-ui@15
 ```
 
 Supported node verisons: 18+

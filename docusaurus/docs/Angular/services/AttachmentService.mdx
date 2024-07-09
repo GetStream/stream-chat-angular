@@ -2,6 +2,8 @@
 
 The `AttachmentService` manages the uploads of a message input.
 
+You can read more about [uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript&q=size) in the Stream API documentation. You can use Stream's API or the dashboard to customize the [file](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#file-uploads) and [image upload](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#image-uploads) configuration.
+
 ## Type parameters
 
 | Name | Type                                                              |
@@ -12,25 +14,25 @@ The `AttachmentService` manages the uploads of a message input.
 
 ### attachmentUploadInProgressCounter$
 
-• **attachmentUploadInProgressCounter$**: `Observable`<`number`\>
+• **attachmentUploadInProgressCounter$**: `Observable`\<`number`\>
 
 Emits the number of uploads in progress.
 
 #### Defined in
 
-[lib/attachment.service.ts:22](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L22)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:25](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L25)
 
 ---
 
 ### attachmentUploads$
 
-• **attachmentUploads$**: `Observable`<`AttachmentUpload`<`DefaultStreamChatGenerics`\>[]\>
+• **attachmentUploads$**: `Observable`\<`AttachmentUpload`\<`DefaultStreamChatGenerics`\>[]\>
 
 Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](../components/AttachmentPreviewListComponent.mdx) to display the attachment previews.
 
 #### Defined in
 
-[lib/attachment.service.ts:26](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L26)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:29](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L29)
 
 ## Methods
 
@@ -44,9 +46,9 @@ Note: If you just want to use your own CDN for file uploads, you don't necessary
 
 #### Parameters
 
-| Name         | Type               |
-| :----------- | :----------------- |
-| `attachment` | `Attachment`<`T`\> |
+| Name         | Type                |
+| :----------- | :------------------ |
+| `attachment` | `Attachment`\<`T`\> |
 
 #### Returns
 
@@ -54,7 +56,7 @@ Note: If you just want to use your own CDN for file uploads, you don't necessary
 
 #### Defined in
 
-[lib/attachment.service.ts:103](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L103)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:120](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L120)
 
 ---
 
@@ -66,9 +68,9 @@ Maps attachments received from the Stream API to uploads. This is useful when ed
 
 #### Parameters
 
-| Name          | Type                 | Description                           |
-| :------------ | :------------------- | :------------------------------------ |
-| `attachments` | `Attachment`<`T`\>[] | Attachemnts received with the message |
+| Name          | Type                  | Description                           |
+| :------------ | :-------------------- | :------------------------------------ |
+| `attachments` | `Attachment`\<`T`\>[] | Attachemnts received with the message |
 
 #### Returns
 
@@ -76,71 +78,71 @@ Maps attachments received from the Stream API to uploads. This is useful when ed
 
 #### Defined in
 
-[lib/attachment.service.ts:189](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L189)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:206](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L206)
 
 ---
 
 ### deleteAttachment
 
-▸ **deleteAttachment**(`upload`): `Promise`<`void`\>
+▸ **deleteAttachment**(`upload`): `Promise`\<`void`\>
 
 Deletes an attachment, the attachment can have any state (`error`, `uploading` or `success`).
 
 #### Parameters
 
-| Name     | Type                                             |
-| :------- | :----------------------------------------------- |
-| `upload` | `AttachmentUpload`<`DefaultStreamChatGenerics`\> |
+| Name     | Type                                              |
+| :------- | :------------------------------------------------ |
+| `upload` | `AttachmentUpload`\<`DefaultStreamChatGenerics`\> |
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 #### Defined in
 
-[lib/attachment.service.ts:128](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L128)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:145](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L145)
 
 ---
 
 ### filesSelected
 
-▸ **filesSelected**(`fileList`): `Promise`<`void`\>
+▸ **filesSelected**(`fileList`): `Promise`\<`undefined` \| `boolean`\>
 
 Uploads the selected files, and creates preview for image files. The result is propagated throught the `attachmentUploads$` stream.
 
 #### Parameters
 
-| Name       | Type                 | Description                    |
-| :--------- | :------------------- | :----------------------------- |
-| `fileList` | `null` \| `FileList` | The files selected by the user |
+| Name       | Type                             | Description                                                                                                                                                           |
+| :--------- | :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fileList` | `null` \| `File`[] \| `FileList` | The files selected by the user, if you have Blobs instead of Files, you can convert them with this method: https://developer.mozilla.org/en-US/docs/Web/API/File/File |
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`undefined` \| `boolean`\>
 
-A promise with the result
+A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
 
 #### Defined in
 
-[lib/attachment.service.ts:54](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L54)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:62](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L62)
 
 ---
 
 ### mapToAttachments
 
-▸ **mapToAttachments**(): `Attachment`<`DefaultGenerics`\>[]
+▸ **mapToAttachments**(): `Attachment`\<`DefaultGenerics`\>[]
 
 Maps the current uploads to a format that can be sent along with the message to the Stream API.
 
 #### Returns
 
-`Attachment`<`DefaultGenerics`\>[]
+`Attachment`\<`DefaultGenerics`\>[]
 
 the attachments
 
 #### Defined in
 
-[lib/attachment.service.ts:158](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L158)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:175](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L175)
 
 ---
 
@@ -156,13 +158,13 @@ Resets the attachments uploads (for example after the message with the attachmen
 
 #### Defined in
 
-[lib/attachment.service.ts:45](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L45)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:53](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L53)
 
 ---
 
 ### retryAttachmentUpload
 
-▸ **retryAttachmentUpload**(`file`): `Promise`<`void`\>
+▸ **retryAttachmentUpload**(`file`): `Promise`\<`void`\>
 
 Retries to upload an attachment.
 
@@ -174,10 +176,10 @@ Retries to upload an attachment.
 
 #### Returns
 
-`Promise`<`void`\>
+`Promise`\<`void`\>
 
 A promise with the result
 
 #### Defined in
 
-[lib/attachment.service.ts:113](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment.service.ts#L113)
+[projects/stream-chat-angular/src/lib/attachment.service.ts:130](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment.service.ts#L130)

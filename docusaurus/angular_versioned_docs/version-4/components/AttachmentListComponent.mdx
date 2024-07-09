@@ -1,0 +1,163 @@
+import AttachmentsScreenshot from "../assets/attachments-screenshot.png";
+import VoiceRecordingScreenshot from "../assets/voice-recording-screenshot.png";
+import ImageSizingScreenshot1 from "../assets/image-sizing-screenshot-1.png";
+import ImageSizingScreenshot2 from "../assets/image-sizing-screenshot-2.png";
+import ImageSizingScreenshot3 from "../assets/image-sizing-screenshot-3.png";
+import AttachmentSizeWarning from "../assets/attachment-size-warning.png";
+
+The `AttachmentList` component displays the attachments of a message. The following attachments are supported:
+
+- Images (including GIFs) are displayed inline
+- Videos are displayed inline
+- Voice recordings are displayed inline (the Angular SDK doesn't support recording, only playback)
+- Other files can be downloaded
+- Links in a message are enriched with built-in open graph URL scraping
+
+**Example 1** - different type of attachments:
+
+<img src={AttachmentsScreenshot} width="500" />
+
+**Example 2** - voice recording:
+
+<img src={VoiceRecordingScreenshot} width="500" />
+
+## Basic Usage
+
+A typical use case for the `AttachmentList` component would be to use in your custom components that will completely override the message component.
+
+**Example 1** - a basic example:
+
+```typescript
+@Component({
+  selector: "app-custom-message",
+  template: `
+    <stream-attachment-list
+      *ngIf="hasAttachment"
+      [attachments]="message.attachments"
+    ></stream-attachment-list>
+    <!-- Other parts of the custom message component -->
+  `,
+})
+export class CustomMessageComponent {
+  @Input() message: StreamMessage;
+  hasAttachment: boolean;
+}
+```
+
+## Customization
+
+You can use the [`AttachmentConfigurationService`](../services/AttachmentConfigurationService.mdx) to override certain attributes of attachments.
+
+You can provide your own attachment list component by the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx)
+
+You can override attachment display by attachment types, here are the available options for this:
+
+- [Single image](../services/CustomTemplatesService.mdx/#imageattachmenttemplate): this template is used if a message has only one image attachment. Please note that your template is responsible for proper image sizing (see below).
+- [Gallery image](../services/CustomTemplatesService.mdx/#galleryattachmenttemplate): this template is used if a message has multiple image attachments, the template will receive all image attachments. Please note that your template is responsible for proper image sizing (see below).
+- [Video attachment](../services/CustomTemplatesService.mdx/#videoattachmenttemplate): this template is used to display video attachments. Please note that your template is responsible for proper image sizing (see below).
+- [File attachment](../services/CustomTemplatesService.mdx/#fileattachmenttemplate): this template is used to display file type attachments
+- [Voice recording](../services/CustomTemplatesService.mdx/#voicerecordingattachmenttemplate): this template is used to display voice recordings
+- [Card attachment](../services/CustomTemplatesService.mdx/#cardattachmenttemplate): this template is used to display GIFs or open graph URL data
+- [Attachment actions](../services/CustomTemplatesService.mdx/#attachmentactionstemplate): this template is used to display attachment actions
+
+### Image and video sizing
+
+The following section details how the width and height of images and videos uploaded from files are computed.
+
+#### Maximum size
+
+You can control the maximum size of images and videos with the [`--str-chat__attachment-max-width`](../theming/component-variables.mdx) CSS variable (available only in [theme-v2](../theming/introduction.mdx)). The value of this variable must be a value that can be computed to a valid pixel value using the [`getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle) method (for example: `300px`, `10rem`, `calc(300px - var(--margin))`, but not `100%`). If you provide an invalid value, the image and video sizing can break, which can lead to scrolling issues inside the message list (for example the message list isn't scrolled to the bottom when you open a channel).
+
+If you set an invalid value to the variable, you'll see a warning on the browser's console:
+
+<img src={AttachmentSizeWarning} width="800" />
+
+#### File size optimization
+
+Based on the CSS settings provided for images and videos, the SDK will load an image (or thumbnail image in case of a video file) with a reduced file size while still providing sufficient image quality for the given dimensions. This will result in less network traffic and faster image load for users.
+
+#### Aspect ratio
+
+The following description is applicable for [theme-v2](../theming/introduction.mdx).
+
+The SDK will try to display images and videos with their original aspect ratio, however this isn't always guaranteed (in those cases a cropped image will be displayed). Three notable exceptions are:
+
+1. if a message contains multiple lines of texts and/or multiple attachments, the image/video might be stretched to its `max-width`
+
+**Example 1** - message with one line of text
+
+<img src={ImageSizingScreenshot1} width="200" />
+
+**Example 2** - message with multiple lines of text
+
+<img src={ImageSizingScreenshot2} width="200" />
+
+2. in Safari, images/videos with portrait orientation are stretched to `max-width`
+
+**Example 3** - portrait images in Safari
+
+<img src={ImageSizingScreenshot3} width="200" />
+
+3. if the image/video can't be rendered with the original aspect ratio given the `max-width` and `max-height` constraints of the host HTML element
+
+:::important
+**File size optimization** and maintaining **aspect ratio** uses features provided by Stream's CDN. If you're using your **own CDN** you'll likely have to provide your own implementation for this. You can do this using the [`AttachmentConfigurationService`](../services/AttachmentConfigurationService.mdx).
+:::
+
+:::danger
+**If you're planning to rewrite attachment sizing with your own CSS code** it's important to note that:
+
+The sizing logic for images and videos inside the [`AttachmentConfigurationService`](../services/AttachmentConfigurationService.mdx) requires that host elements of images and videos (usually `img` and `video` elements) have `max-height`/`height` and `max-width` properties defined and that these values can be computed to a valid pixel value using the [`getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle) (for more information refer to the [Maximum size](#maximum-size) section).
+:::
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### messageId
+
+• **messageId**: `undefined` \| `string`
+
+The id of the message the attachments belong to
+
+#### Defined in
+
+[lib/attachment-list/attachment-list.component.ts:40](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L40)
+
+---
+
+### parentMessageId
+
+• **parentMessageId**: `undefined` \| `string`
+
+The parent id of the message the attachments belong to
+
+#### Defined in
+
+[lib/attachment-list/attachment-list.component.ts:44](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L44)
+
+---
+
+### attachments
+
+• **attachments**: `Attachment`<`DefaultStreamChatGenerics`\>[] = `[]`
+
+The attachments to display
+
+#### Defined in
+
+[lib/attachment-list/attachment-list.component.ts:48](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L48)
+
+---
+
+### imageModalStateChange
+
+• `Readonly` **imageModalStateChange**: `EventEmitter`<`"opened"` \| `"closed"`\>
+
+Emits the state of the image carousel window
+
+#### Defined in
+
+[lib/attachment-list/attachment-list.component.ts:52](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-list/attachment-list.component.ts#L52)
+
+[//]: # "End of generated content"
