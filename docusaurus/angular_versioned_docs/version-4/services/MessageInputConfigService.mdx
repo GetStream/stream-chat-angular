@@ -1,0 +1,63 @@
+# MessageInputConfigService
+
+The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/MessageInputComponent.mdx) components if your UI has more than one input component.
+
+## Properties
+
+### areMentionsEnabled
+
+• **areMentionsEnabled**: `undefined` \| `boolean` = `true`
+
+If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work.
+
+#### Defined in
+
+[lib/message-input/message-input-config.service.ts:17](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input-config.service.ts#L17)
+
+---
+
+### inputMode
+
+• **inputMode**: `"desktop"` \| `"mobile"` = `'desktop'`
+
+In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input.
+
+#### Defined in
+
+[lib/message-input/message-input-config.service.ts:30](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input-config.service.ts#L30)
+
+---
+
+### isFileUploadEnabled
+
+• **isFileUploadEnabled**: `undefined` \| `boolean` = `true`
+
+If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+#### Defined in
+
+[lib/message-input/message-input-config.service.ts:13](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input-config.service.ts#L13)
+
+---
+
+### isMultipleFileUploadEnabled
+
+• **isMultipleFileUploadEnabled**: `undefined` \| `boolean` = `true`
+
+If `false`, users can only upload one attachment per message
+
+#### Defined in
+
+[lib/message-input/message-input-config.service.ts:21](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input-config.service.ts#L21)
+
+---
+
+### mentionScope
+
+• **mentionScope**: `undefined` \| `"channel"` \| `"application"` = `'channel'`
+
+The scope for user mentions, either members of the current channel of members of the application
+
+#### Defined in
+
+[lib/message-input/message-input-config.service.ts:25](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/message-input-config.service.ts#L25)

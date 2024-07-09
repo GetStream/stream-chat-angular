@@ -1,0 +1,63 @@
+import WavebarScreenshot from "../assets/wavebar-screenshot.png";
+
+This component can be used to visualize the wave bar of a voice recording
+
+<img src={WavebarScreenshot} width="500" />
+
+## Usage
+
+The built-in [`AttachmentListComponent`](../../components/AttachmentListComponent) component displays this component. If you want to use this directly in your UI you can do it like this:
+
+```html
+<audio #audioElement></audio>
+<stream-voice-recording-wavebar
+  *ngIf="attachment?.waveform_data && attachment?.duration"
+  [waveFormData]="attachment?.waveform_data || []"
+  [duration]="attachment?.duration"
+  [audioElement]="audioElement"
+></stream-voice-recording-wavebar>
+```
+
+## Customization
+
+It's not possible to override only the wave data visualization, but you can override the [`VoiceRecordingComponent`](../services/CustomTemplatesService.mdx/#voicerecordingattachmenttemplate).
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### audioElement
+
+• `Optional` **audioElement**: `HTMLAudioElement`
+
+The audio element that plays the voice recording
+
+#### Defined in
+
+[lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts:28](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts#L28)
+
+---
+
+### waveFormData
+
+• **waveFormData**: `number`[] = `[]`
+
+The waveform data to visualize
+
+#### Defined in
+
+[lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts:32](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts#L32)
+
+---
+
+### duration
+
+• `Optional` **duration**: `number`
+
+The duration of the voice recording in seconds
+
+#### Defined in
+
+[lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts:36](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/voice-recording/voice-recording-wavebar/voice-recording-wavebar.component.ts#L36)
+
+[//]: # "End of generated content"

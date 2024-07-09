@@ -16,7 +16,6 @@ import {
   MentionAutcompleteListItemContext,
   CustomTemplatesService,
   CommandAutocompleteListItemContext,
-  MessageInputContext,
   EmojiPickerContext,
   MentionTemplateContext,
   MessageContext,
@@ -26,7 +25,6 @@ import {
   AvatarContext,
   AttachmentPreviewListContext,
   IconContext,
-  LoadingIndicatorContext,
   MessageActionBoxItemContext,
   MessageActionsBoxContext,
   MessageReactionsContext,
@@ -37,6 +35,7 @@ import {
   DateSeparatorContext,
   MessageActionsService,
   ChannelPreviewInfoContext,
+  MessageReactionsSelectorComponent,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -52,8 +51,6 @@ export class AppComponent implements AfterViewInit {
   private commandAutocompleteItemTemplate!: TemplateRef<CommandAutocompleteListItemContext>;
   @ViewChild('channelPreviewInfo')
   private channelPreviewInfoTemplate!: TemplateRef<ChannelPreviewInfoContext>;
-  @ViewChild('customMessageInputTemplate')
-  private customMessageInputTemplate!: TemplateRef<MessageInputContext>;
   @ViewChild('mentionTemplate')
   private mentionTemplate!: TemplateRef<MentionTemplateContext>;
   @ViewChild('emojiPickerTemplate')
@@ -73,13 +70,15 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('iconTemplate')
   private iconTemplate!: TemplateRef<IconContext>;
   @ViewChild('loadingIndicatorTemplate')
-  private loadingIndicatorTemplate!: TemplateRef<LoadingIndicatorContext>;
+  private loadingIndicatorTemplate!: TemplateRef<void>;
   @ViewChild('messageActionsBoxTemplate')
   private messageActionsBoxTemplate!: TemplateRef<MessageActionsBoxContext>;
   @ViewChild('messageActionItemTemplate')
   private messageActionItemTemplate!: TemplateRef<MessageActionBoxItemContext>;
   @ViewChild('messageReactionsTemplate')
   private messageReactionsTemplate!: TemplateRef<MessageReactionsContext>;
+  @ViewChild('messageReactionsSelectorTemplate')
+  private messageReactionsSelectorTemplate!: TemplateRef<MessageReactionsSelectorComponent>;
   @ViewChild('modalTemplate')
   private modalTemplate!: TemplateRef<ModalContext>;
   @ViewChild('notificationTemplate')
@@ -134,9 +133,6 @@ export class AppComponent implements AfterViewInit {
     this.customTemplatesService.channelPreviewInfoTemplate$.next(
       this.channelPreviewInfoTemplate
     );
-    this.customTemplatesService.messageInputTemplate$.next(
-      this.customMessageInputTemplate
-    );
     this.customTemplatesService.mentionTemplate$.next(this.mentionTemplate);
     this.customTemplatesService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
@@ -167,6 +163,9 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.messageReactionsTemplate$.next(
       this.messageReactionsTemplate
+    );
+    this.customTemplatesService.messageReactionsSelectorTemplate$.next(
+      this.messageReactionsSelectorTemplate
     );
     this.customTemplatesService.modalTemplate$.next(this.modalTemplate);
     this.customTemplatesService.notificationTemplate$.next(

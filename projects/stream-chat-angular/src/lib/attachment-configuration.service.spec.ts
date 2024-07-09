@@ -25,7 +25,7 @@ describe('AttachmentConfigurationService', () => {
       'max-width': '300px',
       'max-height': '300px',
       height: '',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     expect(
       service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
@@ -76,7 +76,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': 'none',
       'max-height': 'none',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
     service.getImageAttachmentConfiguration(
       attachment,
       'carousel',
@@ -93,7 +93,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       height: '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     expect(
       service.getImageAttachmentConfiguration(
@@ -117,7 +117,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': 'none',
       'max-height': 'none',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     expect(
       service.getImageAttachmentConfiguration(
@@ -142,7 +142,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       'max-height': '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     expect(
       service.getVideoAttachmentConfiguration(attachment, htmlElement)
@@ -197,7 +197,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       'max-height': '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
     service.getVideoAttachmentConfiguration(attachment, htmlElement);
 
     expect(spy).toHaveBeenCalledWith(attachment, htmlElement);
@@ -214,7 +214,6 @@ describe('AttachmentConfigurationService', () => {
       width: '',
     });
 
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     attachment = {
       image_url: 'link/to/GIF',
       giphy: {
@@ -223,9 +222,38 @@ describe('AttachmentConfigurationService', () => {
           width: '400',
           url: 'link/to/smaller/GIF',
         },
-      } as any,
+        original: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_height: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_height_still: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width_downsampled: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width_still: {
+          height: '',
+          url: '',
+          width: '',
+        },
+      },
     };
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
     expect(service.getGiphyAttachmentConfiguration(attachment)).toEqual({
       url: 'link/to/smaller/GIF',
@@ -238,8 +266,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customGiphyAttachmentConfigurationHandler = spy;
 
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-    const attachment = {
+    const attachment: Attachment = {
       image_url: 'link/to/GIF',
       giphy: {
         fixed_height_downsampled: {
@@ -247,9 +274,38 @@ describe('AttachmentConfigurationService', () => {
           width: '400',
           url: 'link/to/smaller/GIF',
         },
-      } as any,
+        original: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_height: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_height_still: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width_downsampled: {
+          height: '',
+          url: '',
+          width: '',
+        },
+        fixed_width_still: {
+          height: '',
+          url: '',
+          width: '',
+        },
+      },
     };
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
     service.getGiphyAttachmentConfiguration(attachment);
 
@@ -297,7 +353,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       height: '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     const result = service.getImageAttachmentConfiguration(
       attachment,
@@ -313,7 +369,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       'max-height': '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     const attachment: Attachment = {
       asset_url: 'http://url/to/video',
@@ -332,7 +388,7 @@ describe('AttachmentConfigurationService', () => {
     const htmlElement = {
       'max-width': '300px',
       'max-height': '300px',
-    } as any as HTMLElement;
+    } as unknown as HTMLElement;
 
     const url = service.getImageAttachmentConfiguration(
       attachment,

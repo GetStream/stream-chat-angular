@@ -85,7 +85,6 @@ export class AutocompleteTextareaComponent
   commandAutocompleteItemTemplate:
     | TemplateRef<CommandAutocompleteListItemContext>
     | undefined;
-  themeVersion: '1' | '2';
   private readonly autocompleteKey = 'autocompleteLabel';
   private readonly mentionTriggerChar = '@';
   private readonly commandTriggerChar = '/';
@@ -105,7 +104,10 @@ export class AutocompleteTextareaComponent
       items: { autocompleteLabel: string }[]
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
-      this.itemSelectedFromAutocompleteList(item, triggerChar),
+      this.itemSelectedFromAutocompleteList(
+        item as MentionAutcompleteListItem,
+        triggerChar
+      ),
   };
   private slashCommandConfig: Mentions = {
     triggerChar: this.commandTriggerChar,
@@ -117,9 +119,13 @@ export class AutocompleteTextareaComponent
       items: { autocompleteLabel: string }[]
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
-      this.itemSelectedFromAutocompleteList(item, triggerChar),
+      this.itemSelectedFromAutocompleteList(
+        item as MentionAutcompleteListItem,
+        triggerChar
+      ),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
+  private isViewInited = false;
 
   constructor(
     private channelService: ChannelService,
@@ -174,7 +180,6 @@ export class AutocompleteTextareaComponent
       this.userMentionConfig,
       this.slashCommandConfig,
     ];
-    this.themeVersion = this.themeService.themeVersion;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -196,10 +201,22 @@ export class AutocompleteTextareaComponent
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
       this.updateMentionedUsersFromText();
+    } else if (
+      changes.value &&
+      this.value &&
+      this.messageInput &&
+      this.isViewInited
+    ) {
+      setTimeout(() => {
+        if (this.messageInput.nativeElement.scrollHeight > 0) {
+          this.adjustTextareaHeight();
+        }
+      }, 0);
     }
   }
 
   ngAfterViewInit(): void {
+    this.isViewInited = true;
     if (this.messageInput.nativeElement.scrollHeight > 0) {
       this.adjustTextareaHeight();
     }
@@ -250,10 +267,8 @@ export class AutocompleteTextareaComponent
   }
 
   private adjustTextareaHeight() {
-    if (this.themeVersion === '2') {
-      this.messageInput.nativeElement.style.height = '';
-      this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-    }
+    this.messageInput.nativeElement.style.height = '';
+    this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
   }
 
   private transliterate(s: string) {

@@ -1,137 +1,6 @@
 <div
-  class="rfu-image-previewer"
-  *ngIf="(attachmentUploads$ | async)?.length && themeVersion === '1'"
->
-  <ng-container
-    *ngFor="
-      let attachmentUpload of attachmentUploads$ | async;
-      trackBy: trackByFile
-    "
-  >
-    <div
-      *ngIf="attachmentUpload.type === 'image'"
-      class="rfu-image-previewer__image"
-      [class.rfu-image-previewer__image--loaded]="
-        attachmentUpload.state === 'success'
-      "
-      data-testclass="attachment-image-preview"
-    >
-      <div
-        *ngIf="attachmentUpload.state === 'error'"
-        class="rfu-image-previewer__retry"
-        (click)="attachmentUploadRetried(attachmentUpload.file)"
-        (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
-        data-testclass="upload-retry"
-      >
-        <stream-icon-placeholder icon="retry"></stream-icon-placeholder>
-      </div>
-      <div class="rfu-thumbnail__wrapper">
-        <div class="rfu-thumbnail__overlay">
-          <div
-            class="rfu-icon-button"
-            data-testclass="file-delete"
-            role="button"
-            (click)="attachmentDeleted(attachmentUpload)"
-            (keyup.enter)="attachmentDeleted(attachmentUpload)"
-          >
-            <stream-icon-placeholder
-              icon="close-no-outline"
-            ></stream-icon-placeholder>
-          </div>
-        </div>
-        <img
-          *ngIf="attachmentUpload.url || attachmentUpload.previewUri"
-          src="{{
-            attachmentUpload.url
-              ? attachmentUpload.url
-              : attachmentUpload.previewUri
-          }}"
-          alt="{{ attachmentUpload.file.name }}"
-          class="rfu-thumbnail__image"
-          data-testclass="attachment-image"
-        />
-      </div>
-      <stream-loading-indicator-placeholder
-        data-testclass="loading-indicator"
-        color="rgba(255,255,255,0.7)"
-        *ngIf="attachmentUpload.state === 'uploading'"
-      ></stream-loading-indicator-placeholder>
-    </div>
-    <div
-      class="rfu-file-previewer"
-      *ngIf="
-        attachmentUpload.type === 'file' || attachmentUpload.type === 'video'
-      "
-      data-testclass="attachment-file-preview"
-    >
-      <ol>
-        <li
-          class="rfu-file-previewer__file"
-          [class.rfu-file-previewer__file--uploading]="
-            attachmentUpload.state === 'uploading'
-          "
-          [class.rfu-file-previewer__file--failed]="
-            attachmentUpload.state === 'error'
-          "
-        >
-          <stream-icon-placeholder icon="file"></stream-icon-placeholder>
-
-          <a
-            data-testclass="file-download-link"
-            href="{{ attachmentUpload.url }}"
-            (click)="attachmentUpload.url ? null : $event.preventDefault()"
-            (keyup.enter)="
-              attachmentUpload.url ? null : $event.preventDefault()
-            "
-            download
-          >
-            {{ attachmentUpload.file.name }}
-            <ng-container *ngIf="attachmentUpload.state === 'error'">
-              <div
-                data-testclass="upload-retry"
-                class="rfu-file-previewer__failed"
-                (click)="attachmentUploadRetried(attachmentUpload.file)"
-                (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
-                translate
-              >
-                streamChat.failed
-              </div>
-              <div
-                class="rfu-file-previewer__retry"
-                (click)="attachmentUploadRetried(attachmentUpload.file)"
-                (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
-                translate
-              >
-                streamChat.retry
-              </div>
-            </ng-container>
-          </a>
-
-          <span
-            data-testclass="file-delete"
-            class="rfu-file-previewer__close-button"
-            (click)="attachmentDeleted(attachmentUpload)"
-            (keyup.enter)="attachmentDeleted(attachmentUpload)"
-          >
-            <stream-icon-placeholder
-              icon="close-no-outline"
-            ></stream-icon-placeholder>
-          </span>
-          <div
-            *ngIf="attachmentUpload.state === 'uploading'"
-            class="rfu-file-previewer__loading-indicator"
-          >
-            <stream-loading-indicator-placeholder></stream-loading-indicator-placeholder>
-          </div>
-        </li>
-      </ol>
-    </div>
-  </ng-container>
-</div>
-
-<div
+  *ngIf="(attachmentUploads$ | async)?.length"
   class="str-chat__attachment-preview-list"
-  *ngIf="(attachmentUploads$ | async)?.length && themeVersion === '2'"
 >
   <div class="str-chat__attachment-list-scroll-container">
     <ng-container
@@ -157,7 +26,6 @@
         >
           <stream-loading-indicator-placeholder
             data-testclass="loading-indicator"
-            [size]="18"
           ></stream-loading-indicator-placeholder>
         </div>
         <ng-container
@@ -168,24 +36,25 @@
         ></ng-container>
         <img
           *ngIf="attachmentUpload.url || attachmentUpload.previewUri"
+          class="str-chat__attachment-preview-thumbnail"
+          data-testclass="attachment-image"
           src="{{
             attachmentUpload.url
               ? attachmentUpload.url
               : attachmentUpload.previewUri
           }}"
           alt="{{ attachmentUpload.file.name }}"
-          class="str-chat__attachment-preview-thumbnail"
-          data-testclass="attachment-image"
         />
       </div>
       <div
-        class="str-chat__attachment-preview-file"
         *ngIf="
           attachmentUpload.type === 'file' || attachmentUpload.type === 'video'
         "
+        class="str-chat__attachment-preview-file"
         data-testclass="attachment-file-preview"
       >
         <stream-icon-placeholder
+          class="str-chat__attachment-preview-file-icon"
           icon="unspecified-filetype"
         ></stream-icon-placeholder>
 
@@ -197,19 +66,18 @@
             *ngIf="attachmentUpload.state === 'success'"
             class="str-chat__attachment-preview-file-download"
             data-testclass="file-download-link"
+            download
             href="{{ attachmentUpload.url }}"
             (click)="attachmentUpload.url ? null : $event.preventDefault()"
             (keyup.enter)="
               attachmentUpload.url ? null : $event.preventDefault()
             "
-            download
           >
             <stream-icon-placeholder icon="download"></stream-icon-placeholder>
           </a>
           <stream-loading-indicator-placeholder
             *ngIf="attachmentUpload.state === 'uploading'"
             data-testclass="loading-indicator"
-            [size]="18"
           ></stream-loading-indicator-placeholder>
         </div>
         <ng-container
@@ -237,19 +105,19 @@
     (click)="attachmentDeleted(attachmentUpload)"
     (keyup.enter)="attachmentDeleted(attachmentUpload)"
   >
-    <stream-icon-placeholder icon="close-no-outline"></stream-icon-placeholder>
+    <stream-icon-placeholder icon="close"></stream-icon-placeholder>
   </div>
 </ng-template>
 
 <ng-template #retryButton let-attachmentUpload="attachmentUpload">
   <div
     *ngIf="attachmentUpload.state === 'error'"
+    data-testclass="upload-retry"
     class="str-chat__attachment-preview-error str-chat__attachment-preview-error-{{
       attachmentUpload.type === 'image' ? 'image' : 'file'
     }}"
     (click)="attachmentUploadRetried(attachmentUpload.file)"
     (keyup.enter)="attachmentUploadRetried(attachmentUpload.file)"
-    data-testclass="upload-retry"
   >
     <stream-icon-placeholder icon="retry"></stream-icon-placeholder>
   </div>

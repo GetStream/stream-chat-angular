@@ -391,7 +391,7 @@ describe('ChannelPreviewComponent', () => {
       nativeElement.querySelector('[data-testid="latest-message-status"]')
     ).not.toBeNull();
 
-    expect(iconComponent.icon).toBe('delivered-icon');
+    expect(iconComponent.icon).toBe('delivered');
   });
 
   it('should set last message status', () => {

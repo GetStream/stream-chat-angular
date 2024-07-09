@@ -1,0 +1,140 @@
+import MessageScreenshot from "../assets/message-screenshot.png";
+import MessageActionsScreenshot from "../assets/message-actions-screenshot.png";
+import MessageReactionsScreenshot from "../assets/message-reactions-screenshot.png";
+
+The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (for example edit or react)](../concepts/message-interactions.mdx).
+
+**Example 1** - example message:
+
+<img src={MessageScreenshot} width="500" />
+
+**Example 2** - message with reactions:
+
+<img src={MessageReactionsScreenshot} width="500" />
+
+**Example 3** - message actions:
+
+<img src={MessageActionsScreenshot} width="500" />
+
+## Customization
+
+The message list uses the `Message` component to display messages, if you want to replace that with your own custom component, you can do that by providing it to the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx/#messagetemplate). It's also possible to just override parts of the message component.
+
+The `Message` component uses the [`DateParserService`](../services/DateParserService.mdx) to create user-friendly dates, you can override the date-parsing methods with your own functions.
+
+The [`MessageService`](../services/MessageService.mdx) has additional customization options.
+
+:::note
+
+If you want to build your own `Message` component, you might find the following building blocks useful:
+
+### Avatar
+
+The `Message` component uses the [`Avatar`](./AvatarComponent.mdx) component to display the sender's photo.
+
+### Message actions
+
+The `Message` component uses the [`MessageActionsBox`](./MessageActionsBoxComponent.mdx) component to enable interaction with the message (edit).
+
+### Message reactions
+
+The `Message` component uses the [`MessageReactions`](./MessageReactionsComponent.mdx) component to display reactions of a message, and enable reacting to a message.
+
+### Attachments
+
+The `Message` component uses the [`AttachmentList`](./AttachmentListComponent.mdx) component to display the attachments of the message.
+
+### Read by
+
+The `Message` component uses the [`listUsers`](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/list-users.ts) utility function to display the list of people who have read a particular message in a user friendly way (for example _Bob, Sophie, Jack, Rose, John and 1 more_).
+
+### Loading indicator
+
+The `Message` component uses the [`LoadingIndicator`](./LoadingIndicatorComponent.mdx) component to display a spinner while the message is being sent.
+
+### Icons
+
+The `Message` component uses the [`Icon`](./IconComponent.mdx) component to display icons.
+:::
+
+## Mention template
+
+You can add interactions to mentions inside a message, follow our [mention actions guide](../code-examples/mention-actions.mdx) to get to know more.
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### message
+
+• **message**: `undefined` \| `StreamMessage`<`DefaultStreamChatGenerics`\>
+
+The message to be displayed
+
+#### Defined in
+
+[lib/message/message.component.ts:67](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L67)
+
+---
+
+### enabledMessageActions
+
+• **enabledMessageActions**: `string`[] = `[]`
+
+The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+
+#### Defined in
+
+[lib/message/message.component.ts:71](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L71)
+
+---
+
+### isLastSentMessage
+
+• **isLastSentMessage**: `undefined` \| `boolean`
+
+If `true`, the message status (sending, sent, who read the message) is displayed.
+
+#### Defined in
+
+[lib/message/message.component.ts:75](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L75)
+
+---
+
+### mode
+
+• **mode**: `"thread"` \| `"main"` = `'main'`
+
+Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+
+#### Defined in
+
+[lib/message/message.component.ts:79](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L79)
+
+---
+
+### isHighlighted
+
+• **isHighlighted**: `boolean` = `false`
+
+Highlighting is used to add visual emphasize to a message when jumping to the message
+
+#### Defined in
+
+[lib/message/message.component.ts:83](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L83)
+
+---
+
+### customActions
+
+• **customActions**: `CustomMessageActionItem`<`DefaultStreamChatGenerics`\>[] = `[]`
+
+A list of custom message actions to be displayed in the action box
+
+**`deprecated`** please use the [`MessageActionsService`](https://getstream.io/chat/docs/sdk/angular/services/MessageActionsService) to set this property.
+
+#### Defined in
+
+[lib/message/message.component.ts:89](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message/message.component.ts#L89)
+
+[//]: # "End of generated content"

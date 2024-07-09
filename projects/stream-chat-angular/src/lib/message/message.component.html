@@ -1,10 +1,11 @@
 <div
   #container
+  data-testid="message-container"
   class="str-chat__message-simple str-chat__message str-chat__message--{{
     message?.type
   }} str-chat__message--{{ message?.status }} {{
     message?.text ? 'str-chat__message--has-text' : 'has-no-text'
-  }}"
+  }} str-chat__message-menu-{{ areMessageOptionsOpen ? 'opened' : 'closed' }}"
   [class.str-chat__message--me]="isSentByCurrentUser"
   [class.str-chat__message--other]="!isSentByCurrentUser"
   [class.str-chat__message-simple--me]="isSentByCurrentUser"
@@ -16,121 +17,60 @@
     (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
     (message?.type === 'error' && message?.moderation_details)
   "
-  data-testid="message-container"
+  [class.str-chat__message-with-touch-support]="hasTouchSupport"
+  [class.str-chat__message-without-touch-support]="!hasTouchSupport"
 >
   <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
     <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
-      <ng-container *ngIf="themeVersion === '1'">
-        <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
-      </ng-container>
       <stream-avatar-placeholder
         data-testid="avatar"
         class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
-        [imageUrl]="message?.user?.image"
-        [name]="message?.user?.name || message?.user?.id"
         type="user"
         location="message-sender"
+        [imageUrl]="message?.user?.image"
+        [name]="message?.user?.name || message?.user?.id"
         [user]="message?.user || undefined"
       ></stream-avatar-placeholder>
       <div class="str-chat__message-inner">
         <div
+          *ngIf="!hasTouchSupport && areOptionsVisible"
           class="str-chat__message-simple__actions str-chat__message-options"
           data-testid="message-options"
-          [class.str-chat__message-actions-open]="isActionBoxOpen"
-          *ngIf="areOptionsVisible"
+          [class.str-chat__message-actions-open]="areMessageOptionsOpen"
         >
           <div
-            data-testid="message-actions-container"
             #messageActionsToggle
+            data-testid="message-actions-container"
             class="
               str-chat__message-actions-container
               str-chat__message-simple__actions__action
               str-chat__message-simple__actions__action--options
             "
-            [popper]="popperContent"
-            [popperTrigger]="popperTriggerClick"
-            [popperPlacement]="popperPlacementAuto"
-            [popperHideOnScroll]="false"
-            [popperHideOnClickOutside]="true"
-            [popperHideOnMouseLeave]="false"
-            [popperDisableAnimation]="true"
-            (popperOnHidden)="isActionBoxOpen = false"
+            [floatUiLoose]="messageMenuFloat"
+            [looseTrigger]="
+              messageActionsService.customActionClickHandler ? 'none' : 'click'
+            "
+            [hideOnScroll]="false"
+            [hideOnClickOutside]="true"
+            [hideOnMouseLeave]="false"
+            [disableAnimation]="false"
+            [preventOverflow]="true"
+            [positionFixed]="true"
+            (onSHown)="areMessageOptionsOpen = true"
+            (onHidden)="areMessageOptionsOpen = false"
           >
-            <popper-content #popperContent>
-              <ng-template
-                #defaultMessageActionsBox
-                let-isOpen="isOpen"
-                let-isMine="isMine"
-                let-enabledActions="enabledActions"
-                let-messageInput="message"
-                let-customActions="customActions"
-              >
-                <stream-message-actions-box
-                  (click)="messageActionsBoxClicked(popperContent)"
-                  *ngIf="isOpen"
-                  [isOpen]="isOpen"
-                  [isMine]="isMine"
-                  [enabledActions]="enabledActions"
-                  [customActions]="customActions"
-                  [message]="messageInput"
-                ></stream-message-actions-box>
-              </ng-template>
-              <ng-container
-                *ngTemplateOutlet="
-                  (customTemplatesService.messageActionsBoxTemplate$ | async) ||
-                    defaultMessageActionsBox;
-                  context: getMessageActionsBoxContext()
-                "
-              >
-              </ng-container>
-            </popper-content>
             <div
-              class="str-chat__message-actions-box-button"
-              data-testid="action-icon"
-              (click)="messageActionsClicked()"
-              (keyup.enter)="messageActionsClicked()"
               *ngIf="visibleMessageActionsCount > 0"
+              class="str-chat__message-actions-box-button"
+              data-testid="message-options-button"
+              (click)="messageOptionsButtonClicked()"
+              (keyup.enter)="messageOptionsButtonClicked()"
             >
               <stream-icon-placeholder
-                icon="action-icon"
+                icon="action"
                 class="str-chat__message-action-icon"
               ></stream-icon-placeholder>
             </div>
-          </div>
-          <div
-            *ngIf="
-              enabledMessageActions.indexOf('send-reply') !== -1 &&
-              mode === 'main'
-            "
-            class="
-              str-chat__message-simple__actions__action
-              str-chat__message-simple__actions__action--thread
-              str-chat__message-reply-in-thread-button
-            "
-            data-testid="reply-in-thread"
-            (click)="setAsActiveParentMessage()"
-            (keyup.enter)="setAsActiveParentMessage()"
-          >
-            <stream-icon-placeholder
-              class="str-chat__message-action-icon"
-              icon="reply-in-thread"
-            ></stream-icon-placeholder>
-          </div>
-          <div
-            *ngIf="canReactToMessage"
-            class="
-              str-chat__message-simple__actions__action
-              str-chat__message-simple__actions__action--reactions
-              str-chat__message-reactions-button
-            "
-            data-testid="reaction-icon"
-            (click)="isReactionSelectorOpen = !isReactionSelectorOpen"
-            (keyup.enter)="isReactionSelectorOpen = !isReactionSelectorOpen"
-          >
-            <stream-icon-placeholder
-              class="str-chat__message-action-icon"
-              icon="reaction-icon"
-            ></stream-icon-placeholder>
           </div>
         </div>
         <div class="str-chat__message-reactions-host">
@@ -138,16 +78,12 @@
             #defaultMessageReactions
             let-messageReactionCounts="messageReactionCounts"
             let-latestReactions="latestReactions"
-            let-isSelectorOpen="isSelectorOpen"
-            let-isSelectorOpenChangeHandler="isSelectorOpenChangeHandler"
             let-messageId="messageId"
             let-ownReactions="ownReactions"
           >
             <stream-message-reactions
               [messageReactionCounts]="messageReactionCounts"
               [latestReactions]="latestReactions"
-              [isSelectorOpen]="isSelectorOpen"
-              (isSelectorOpenChange)="isSelectorOpenChangeHandler($event)"
               [messageId]="messageId"
               [ownReactions]="ownReactions"
             ></stream-message-reactions>
@@ -160,21 +96,63 @@
             "
           ></ng-container>
         </div>
+        <float-ui-content #messageMenuFloat>
+          <ng-template
+            #defaultMessageActionsBox
+            let-isMine="isMine"
+            let-messageInput="message"
+            let-enabledActions="enabledActions"
+            let-messageTextHtmlElement="messageTextHtmlElement"
+          >
+            <stream-message-actions-box
+              [isMine]="isMine"
+              [message]="messageInput"
+              [enabledActions]="enabledActions"
+              [messageTextHtmlElement]="messageTextHtmlElement"
+              (click)="messageActionsBoxClicked(messageMenuFloat)"
+            ></stream-message-actions-box>
+          </ng-template>
+          <ng-container>
+            <ng-container
+              *ngTemplateOutlet="
+                (customTemplatesService.messageActionsBoxTemplate$ | async) ||
+                  defaultMessageActionsBox;
+                context: getMessageActionsBoxContext()
+              "
+            >
+            </ng-container>
+          </ng-container>
+        </float-ui-content>
         <div
           class="str-chat__message-bubble str-chat-angular__message-bubble"
           [class.str-chat-angular__message-bubble--attachment-modal-open]="
             imageAttachmentModalState === 'opened'
           "
+          data-testid="message-bubble"
+          [floatUiLoose]="messageMenuFloat"
+          #messageMenuTrigger="floatUiLoose"
+          #messageBubble
+          looseTrigger="none"
+          [hideOnScroll]="false"
+          [hideOnClickOutside]="true"
+          [hideOnMouseLeave]="false"
+          [disableAnimation]="true"
+          [preventOverflow]="true"
+          (onShown)="areMessageOptionsOpen = true"
+          (onHidden)="areMessageOptionsOpen = false"
+          [positionFixed]="true"
         >
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
-            <ng-container
-              *ngTemplateOutlet="attachmentsTemplate"
-            ></ng-container>
+            <div class="str-chat__attachments-container">
+              <ng-container
+                *ngTemplateOutlet="attachmentsTemplate"
+              ></ng-container>
+            </div>
           </ng-container>
           <div
+            *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
             class="str-chat__message-text"
             tabindex="0"
-            *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
             [class.str-chat__message-text--pointer-cursor]="
               (message?.status === 'failed' &&
                 message?.errorStatusCode !== 403) ||
@@ -201,8 +179,8 @@
                 ></ng-container>
               </ng-container>
               <div
-                data-testid="client-error-message"
                 *ngIf="message?.type === 'error'"
+                data-testid="client-error-message"
                 class="
                   str-chat__simple-message--error-message
                   str-chat__message--error-message
@@ -213,8 +191,8 @@
                 }}</ng-container>
               </div>
               <div
-                data-testid="error-message"
                 *ngIf="message?.status === 'failed'"
+                data-testid="error-message"
                 class="
                   str-chat__simple-message--error-message
                   str-chat__message--error-message
@@ -227,7 +205,7 @@
                   ) | translate
                 }}
               </div>
-              <div data-testid="text">
+              <div #messageTextElement data-testid="text">
                 <p>
                   <ng-container *ngIf="messageTextParts; else defaultContent">
                     <!-- eslint-disable-next-line @angular-eslint/template/use-track-by-function -->
@@ -268,37 +246,16 @@
             </div>
           </div>
           <stream-icon-placeholder
-            *ngIf="themeVersion === '2'"
             class="str-chat__message-error-icon"
             icon="error"
           ></stream-icon-placeholder>
         </div>
-        <ng-container
-          *ngTemplateOutlet="
-            replyCountButton;
-            context: { position: 'inside-message-bubble' }
-          "
-        ></ng-container>
-        <ng-container
-          *ngTemplateOutlet="
-            messageDateAndSender;
-            context: { position: 'inside-message-bubble' }
-          "
-        ></ng-container>
       </div>
       <ng-container
-        *ngTemplateOutlet="
-          replyCountButton;
-          context: { position: 'outside-message-bubble', message: message }
-        "
+        *ngTemplateOutlet="replyCountButton; context: { message: message }"
       ></ng-container>
 
-      <ng-container
-        *ngTemplateOutlet="
-          messageDateAndSender;
-          context: { position: 'outside-message-bubble' }
-        "
-      ></ng-container>
+      <ng-container *ngTemplateOutlet="messageDateAndSender"></ng-container>
     </ng-container>
   </ng-container>
 </div>
@@ -355,13 +312,12 @@
     <stream-avatar-placeholder
       data-testid="qouted-message-avatar"
       class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
+      type="user"
+      location="quoted-message-sender"
       [imageUrl]="message?.quoted_message?.user?.image"
       [name]="
         message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
       "
-      [size]="20"
-      type="user"
-      location="quoted-message-sender"
       [user]="message?.quoted_message?.user || undefined"
     ></stream-avatar-placeholder>
     <div class="quoted-message-inner str-chat__quoted-message-bubble">
@@ -405,34 +361,28 @@
   </div>
 </ng-template>
 
-<!-- We need these markups in slightly different positions in theme-v1 and theme-v2, this soultion makes that possible without duplicating the code -->
-<ng-template #messageDateAndSender let-position="position">
-  <ng-container
-    *ngIf="
-      (position === 'inside-message-bubble' && themeVersion === '1') ||
-      (position === 'outside-message-bubble' && themeVersion === '2')
-    "
-  >
+<ng-template #messageDateAndSender>
+  <ng-container>
     <div
-      class="str-chat__translation-notice"
       *ngIf="shouldDisplayTranslationNotice"
+      class="str-chat__translation-notice"
       data-testid="translation-notice"
     >
       <button
-        data-testid="see-original"
         *ngIf="displayedMessageTextContent === 'translation'"
+        data-testid="see-original"
+        translate
         (click)="displayOriginalMessage()"
         (keyup.enter)="displayOriginalMessage()"
-        translate
       >
         streamChat.See original (automatically translated)
       </button>
       <button
-        data-testid="see-translation"
         *ngIf="displayedMessageTextContent === 'original'"
+        data-testid="see-translation"
+        translate
         (click)="displayTranslatedMessage()"
         (keyup.enter)="displayTranslatedMessage()"
-        translate
       >
         streamChat.See translation
       </button>
@@ -456,12 +406,11 @@
         str-chat__message-metadata
       "
     >
-      <ng-container *ngIf="themeVersion === '2'">
-        <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
-      </ng-container>
+      <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
+
       <span
-        data-testid="sender"
         *ngIf="!isSentByCurrentUser"
+        data-testid="sender"
         class="str-chat__message-simple-name str-chat__message-sender-name"
       >
         {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
@@ -540,21 +489,22 @@
         "
         data-testid="delivered-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementTop"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        loosePlacement="top"
+        [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
+        [disableAnimation]="true"
+        [hideOnClickOutside]="true"
+        [positionFixed]="true"
+        [preventOverflow]="true"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
             {{ "streamChat.Delivered" | translate }}
           </div>
-        </popper-content>
+        </float-ui-content>
         <stream-icon-placeholder
           data-testid="delivered-icon"
-          icon="delivered-icon"
+          icon="delivered"
         ></stream-icon-placeholder>
       </span>
     </ng-template>
@@ -576,18 +526,19 @@
         "
         data-testid="sending-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementTop"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        loosePlacement="top"
+        [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
+        [disableAnimation]="true"
+        [hideOnClickOutside]="true"
+        [positionFixed]="true"
+        [preventOverflow]="true"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
             {{ "streamChat.Sending..." | translate }}
           </div>
-        </popper-content>
+        </float-ui-content>
         <stream-loading-indicator-placeholder
           data-testid="loading-indicator"
         ></stream-loading-indicator-placeholder>
@@ -611,33 +562,30 @@
         "
         data-testid="read-indicator"
         tabindex="0"
-        [popper]="popperContent"
-        [popperTrigger]="popperTriggerHover"
-        [popperPlacement]="popperPlacementTop"
-        [popperHideOnScroll]="false"
-        [popperHideOnClickOutside]="false"
-        (hover)="$event.stopPropagation()"
+        [floatUiLoose]="floatingContent"
+        loosePlacement="top"
+        [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
+        [disableAnimation]="true"
+        [hideOnClickOutside]="true"
+        [positionFixed]="true"
+        [preventOverflow]="true"
       >
-        <popper-content #popperContent>
+        <float-ui-content #floatingContent>
           <div
             class="str-chat__tooltip str-chat__tooltip-angular"
             data-testid="read-by-tooltip"
           >
             {{ readByText }}
           </div>
-        </popper-content>
-        <stream-icon-placeholder icon="read-icon"></stream-icon-placeholder>
+        </float-ui-content>
+        <stream-icon-placeholder icon="read"></stream-icon-placeholder>
       </span>
     </ng-template>
   </ng-container>
 </ng-template>
 
-<ng-template #replyCountButton let-position="position">
+<ng-template #replyCountButton>
   <div
-    *ngIf="
-      (position === 'inside-message-bubble' && themeVersion === '1') ||
-      (position === 'outside-message-bubble' && themeVersion === '2')
-    "
     class="
       str-chat__message-simple-reply-button
       str-chat__message-replies-count-button-wrapper
@@ -649,11 +597,6 @@
       data-testid="reply-count-button"
       (click)="setAsActiveParentMessage()"
     >
-      <stream-icon-placeholder
-        *ngIf="themeVersion === '1'"
-        stream-icon-placeholder
-        icon="reply"
-      ></stream-icon-placeholder>
       {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
       replies' | translate:replyCountParam)}}
     </button>

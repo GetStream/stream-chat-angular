@@ -1,0 +1,133 @@
+The `Textarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
+
+## Feature overview
+
+- Message send can be triggered with the `Enter` key, new line can be added with the `Shift+Enter` combination
+- The textarea will automatically grow with the text
+- The textarea will automatically insert emojis [from the emoji picker](../../code-examples/emoji-picker)
+
+If you want to enable autocomplete features, you can use the [`AutcompleteTextarea`](./AutocompleteTextareaComponent.mdx) component instead of this one.
+
+## Basic usage
+
+You can use the `Textarea` component if you want to create your own message input component to override the default one:
+
+```typescript
+@Component({
+  selector: "app-custom-message-input",
+  template: `
+    <stream-textarea
+      [(value)]="textareaValue"
+      (send)="messageSent()"
+    ></stream-textarea>
+    <!-- Other parts of the custom message input component -->
+  `,
+})
+export class CustomMessageInputComponent {
+  textareaValue = "";
+
+  messageSent() {
+    // Send your message
+  }
+}
+```
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### value
+
+• **value**: `string` = `''`
+
+The value of the input HTML element.
+
+#### Implementation of
+
+TextareaInterface.value
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:35](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L35)
+
+---
+
+### placeholder
+
+• **placeholder**: `string` = `''`
+
+Placeholder of the textarea
+
+#### Implementation of
+
+TextareaInterface.placeholder
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:39](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L39)
+
+---
+
+### inputMode
+
+• **inputMode**: `"desktop"` \| `"mobile"`
+
+See [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) for more information
+
+#### Implementation of
+
+TextareaInterface.inputMode
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:43](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L43)
+
+---
+
+### autoFocus
+
+• **autoFocus**: `boolean` = `true`
+
+Enables or disables auto focus on the textarea element
+
+#### Implementation of
+
+TextareaInterface.autoFocus
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:47](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L47)
+
+---
+
+### valueChange
+
+• `Readonly` **valueChange**: `EventEmitter`<`string`\>
+
+Emits the current value of the input element when a user types.
+
+#### Implementation of
+
+TextareaInterface.valueChange
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:51](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L51)
+
+---
+
+### send
+
+• `Readonly` **send**: `EventEmitter`<`void`\>
+
+Emits when a user triggers a message send event (this happens when they hit the `Enter` key).
+
+#### Implementation of
+
+TextareaInterface.send
+
+#### Defined in
+
+[lib/message-input/textarea/textarea.component.ts:55](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-input/textarea/textarea.component.ts#L55)
+
+[//]: # "End of generated content"

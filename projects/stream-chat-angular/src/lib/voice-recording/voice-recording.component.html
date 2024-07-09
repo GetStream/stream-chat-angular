@@ -1,7 +1,7 @@
 <div
   class="str-chat__message-attachment__voice-recording-widget"
-  [class.str-chat__message-attachment__voice-recording-widget--error]="isError"
   data-testid="voice-recording-widget"
+  [class.str-chat__message-attachment__voice-recording-widget--error]="isError"
 >
   <!-- Empty event handlers to trigger change detection -->
   <audio
@@ -44,10 +44,7 @@
           str-chat__message-attachment__voice-recording-widget__error-message
         "
       >
-        <stream-icon-placeholder
-          [size]="20"
-          icon="error"
-        ></stream-icon-placeholder>
+        <stream-icon-placeholder icon="error"></stream-icon-placeholder>
         <span data-testid="error-message">{{
           "streamChat.Error playing audio" | translate
         }}</span>
@@ -63,8 +60,8 @@
           class="str-chat__message-attachment__voice-recording-widget__timer"
         >
           <span
-            data-testid="duration"
             *ngIf="!!attachment?.duration; else fileSizeTemplate"
+            data-testid="duration"
           >
             {{
               secondsElapsed > 0 || !audioElement.paused
@@ -103,8 +100,8 @@
     </button>
     <ng-template #fileIcon>
       <stream-icon-placeholder
+        class="str-chat__attachment-type-icon"
         icon="audio-file"
-        [size]="40"
       ></stream-icon-placeholder>
     </ng-template>
   </div>

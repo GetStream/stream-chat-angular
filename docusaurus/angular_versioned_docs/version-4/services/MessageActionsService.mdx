@@ -1,0 +1,96 @@
+# MessageActionsService
+
+The message actions service provides customization options for the [message actions](../../components/MessageActionsBoxComponent)
+
+## Type parameters
+
+| Name | Type                                                              |
+| :--- | :---------------------------------------------------------------- |
+| `T`  | extends `DefaultStreamChatGenerics` = `DefaultStreamChatGenerics` |
+
+## Properties
+
+### customActionClickHandler
+
+• `Optional` **customActionClickHandler**: (`details`: `MessageActionsClickDetails`<`T`\>) => `void`
+
+#### Type declaration
+
+▸ (`details`): `void`
+
+By default the [`MessageComponent`](../../components/MessageComponent) will display the [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent). You can override that behavior by providing your own event handler.
+
+##### Parameters
+
+| Name      | Type                               |
+| :-------- | :--------------------------------- |
+| `details` | `MessageActionsClickDetails`<`T`\> |
+
+##### Returns
+
+`void`
+
+#### Defined in
+
+[lib/message-actions.service.ts:117](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions.service.ts#L117)
+
+---
+
+### customActions$
+
+• **customActions$**: `BehaviorSubject`<`CustomMessageActionItem`<`DefaultStreamChatGenerics`\>[]\>
+
+You can pass your own custom actions that will be displayed inside the built-in message actions component
+
+#### Defined in
+
+[lib/message-actions.service.ts:113](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions.service.ts#L113)
+
+---
+
+### defaultActions
+
+• `Readonly` **defaultActions**: `MessageActionItem`<`T`\>[]
+
+Default actions - these are the actions that are handled by the built-in component
+
+#### Defined in
+
+[lib/message-actions.service.ts:26](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions.service.ts#L26)
+
+---
+
+### messageToEdit$
+
+• **messageToEdit$**: `BehaviorSubject`<`undefined` \| `StreamMessage`<`T`\>\>
+
+The built-in components will handle changes to this observable.
+
+#### Defined in
+
+[lib/message-actions.service.ts:109](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions.service.ts#L109)
+
+## Methods
+
+### getAuthorizedMessageActionsCount
+
+▸ **getAuthorizedMessageActionsCount**(`message`, `enabledActions`): `number`
+
+This method returns how many authorized actions are available to the given message
+
+#### Parameters
+
+| Name             | Type                  |
+| :--------------- | :-------------------- |
+| `message`        | `StreamMessage`<`T`\> |
+| `enabledActions` | `string`[]            |
+
+#### Returns
+
+`number`
+
+the count
+
+#### Defined in
+
+[lib/message-actions.service.ts:132](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/message-actions.service.ts#L132)

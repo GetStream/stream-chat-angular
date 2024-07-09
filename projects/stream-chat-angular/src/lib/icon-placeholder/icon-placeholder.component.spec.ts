@@ -25,8 +25,7 @@ describe('IconPlaceholderComponent', () => {
   });
 
   it('should bind inputs', () => {
-    component.icon = 'action-icon';
-    component.size = 30;
+    component.icon = 'action';
     component.ngOnChanges();
     fixture.detectChanges();
 
@@ -34,13 +33,11 @@ describe('IconPlaceholderComponent', () => {
       By.directive(IconComponent)
     ).componentInstance as IconComponent;
 
-    expect(iconComponent.icon).toBe('action-icon');
-    expect(iconComponent.size).toBe(30);
+    expect(iconComponent.icon).toBe('action');
   });
 
   it('should ipdate inputs', () => {
-    component.icon = 'action-icon';
-    component.size = 30;
+    component.icon = 'action';
     fixture.detectChanges();
 
     component.icon = 'arrow-down';
@@ -51,9 +48,7 @@ describe('IconPlaceholderComponent', () => {
       .componentInstance as IconComponent;
 
     expect(iconComponent.icon).toBe('arrow-down');
-    expect(iconComponent.size).toBe(30);
 
-    component.size = 25;
     component.ngOnChanges();
     fixture.detectChanges();
 
@@ -61,6 +56,5 @@ describe('IconPlaceholderComponent', () => {
       .componentInstance as IconComponent;
 
     expect(iconComponent.icon).toBe('arrow-down');
-    expect(iconComponent.size).toBe(25);
   });
 });

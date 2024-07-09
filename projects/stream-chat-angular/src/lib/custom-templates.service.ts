@@ -17,14 +17,13 @@ import {
   DeliveredStatusContext,
   EmojiPickerContext,
   IconContext,
-  LoadingIndicatorContext,
   MentionAutcompleteListItemContext,
   MentionTemplateContext,
   MessageActionBoxItemContext,
   MessageActionsBoxContext,
   MessageContext,
-  MessageInputContext,
   MessageReactionsContext,
+  MessageReactionsSelectorContext,
   ModalContext,
   NotificationContext,
   ReadStatusContext,
@@ -67,13 +66,6 @@ export class CustomTemplatesService<
    */
   channelPreviewTemplate$ = new BehaviorSubject<
     TemplateRef<ChannelPreviewContext> | undefined
-  >(undefined);
-  /**
-   * The message input template used when editing a message (instead of the [default message input](../components/MessageInputComponent.mdx))
-   *
-   */
-  messageInputTemplate$ = new BehaviorSubject<
-    TemplateRef<MessageInputContext> | undefined
   >(undefined);
   /**
    * The template used for displaying a [mention inside a message](../code-examples/mention-actions.mdx)
@@ -143,7 +135,7 @@ export class CustomTemplatesService<
    *
    */
   loadingIndicatorTemplate$ = new BehaviorSubject<
-    TemplateRef<LoadingIndicatorContext> | undefined
+    TemplateRef<void> | undefined
   >(undefined);
   /**
    * Template for displaying the message actions box (instead of the [default message actions box](../components/MessageActionsBoxComponent.mdx))
@@ -165,6 +157,13 @@ export class CustomTemplatesService<
    */
   messageReactionsTemplate$ = new BehaviorSubject<
     TemplateRef<MessageReactionsContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display the reactions of a [message](../components/MessageComponent.mdx), and the selector to add a reaction to a message (instead of the [default message reactions component](../components/MessageReactionsComponent.mdx))
+   *
+   */
+  messageReactionsSelectorTemplate$ = new BehaviorSubject<
+    TemplateRef<MessageReactionsSelectorContext> | undefined
   >(undefined);
   /**
    * The template used to display a modal window (instead of the [default modal](../components/ModalComponent.mdx))
@@ -317,12 +316,6 @@ export class CustomTemplatesService<
   emptyThreadMessageListPlaceholder$ = new BehaviorSubject<
     TemplateRef<void> | undefined
   >(undefined);
-  /**
-   * The template used to display the [edit message form](../components/EditMessageFormComponent.mdx)
-   */
-  editMessageFormTemplate$ = new BehaviorSubject<TemplateRef<void> | undefined>(
-    undefined
-  );
   /**
    * The template used to display the [message bounce prompt](../components/MessageBouncePromptComponent.mdx)
    */

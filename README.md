@@ -10,10 +10,10 @@
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
 - [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/)
-- [Demo Apps](https://getstream.io/chat/demos/)
 - [Docs](https://getstream.io/chat/docs/sdk/angular/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
 - [Demo application](https://angular-chat-demo-getstreamio.vercel.app/)
+- [Codesandbox](https://codesandbox.io/p/devbox/stream-chat-angular-sample-app-gkczc5?file=%2Fsrc%2Fapp%2Fapp.component.ts%3A11%2C32)
 
 With our component library, you can build a variety of chat use cases, including:
 
@@ -52,41 +52,33 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
-Run the following command if you are using **Angular 17**
+Supported Angular versions: **Angular 15-18**
+
+Run this command if you are using **Angular 18**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core
+npm install stream-chat-angular ngx-float-ui@beta
 ```
 
-Run the following command if you are using **Angular 16**:
+Run this command if you are using **Angular 17**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core
+npm install stream-chat-angular ngx-float-ui@17
 ```
 
-Run the following command if you are using **Angular 15**:
+Run this command if you are using **Angular 16**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@15
+npm install stream-chat-angular ngx-float-ui@16
 ```
 
-Run the following command if you are using **Angular 14**:
+Run this command if you are using **Angular 15**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 ngx-popperjs@14
+npm install stream-chat-angular @ngx-translate/core@14 ngx-float-ui@15
 ```
 
-Run the following command if you are using **Angular 13**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@13 --legacy-peer-deps
-```
-
-Run this command if you are using **Angular 12**:
-
-```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions@1.4.0 ngx-popperjs@12 --legacy-peer-deps
-```
+Supported node verisons: 18+
 
 ## Sample App
 
@@ -108,8 +100,6 @@ Run `npm install` to install dependencies.
 
 Run `npm start` and navigate to `http://localhost:4200/`.
 
-Preferred Node version: v16.
-
 ## Customization examples
 
 This repository includes a sample app that showcases how you can provide your own template for different components within the SDK:
@@ -127,8 +117,6 @@ STREAM_USER_TOKEN=<Your user token>
 Run `npm install` to install dependencies.
 
 Run `npm run start:customizations-example` and navigate to `http://localhost:4200/`.
-
-Preferred Node version: v16.
 
 ## Local development
 
@@ -151,5 +139,3 @@ A note about the documentation:
 - Documentations for Angular services are generated from doc comments in the source files (not under source control)
 - Documentations for inputs and outputs of Angular components are generated from doc comments in the source files (not under source control)
 - Everything else in the documentation is written in `mdx` files located in the `docusaurus` folder
-
-Preferred Node version: v16.

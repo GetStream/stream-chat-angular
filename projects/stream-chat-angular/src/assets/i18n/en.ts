@@ -53,7 +53,7 @@ export const en = {
     'Pick your emoji': 'Pick your emoji',
     Pin: 'Pin',
     'Pinned by': 'Pinned by',
-    Reply: 'Reply',
+    Reply: 'Quote Reply',
     'Reply to Message': 'Reply to Message',
     Search: 'Search',
     'Searching...': 'Searching...',
@@ -119,5 +119,6 @@ export const en = {
     'Send Anyway': 'Send Anyway',
     Edited: 'Edited',
     'Error playing audio': 'Error playing audio',
+    'Copy text': 'Copy text',
   },
 };

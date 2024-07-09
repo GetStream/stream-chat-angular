@@ -68,16 +68,6 @@ describe('AvatarComponent', () => {
     expect(img!.src).toBe(imageUrl);
   });
 
-  it('should display image with the provided #size', () => {
-    const size = 20;
-    component.size = size;
-    component.imageUrl = imageUrl;
-    fixture.detectChanges();
-    const img = queryImg();
-
-    expect(img?.offsetHeight).toBe(size);
-  });
-
   it(`should display fallback image if #imageUrl couldn't be loaded`, async () => {
     component.imageUrl = imageUrl + 'not-existing';
     fixture.detectChanges();
@@ -101,7 +91,6 @@ describe('AvatarComponent', () => {
     expect(img).toBeNull();
     expect(fallbackImg).not.toBeNull();
     expect(fallbackImg!.textContent?.replace(/ /g, '')).toBe('J');
-    expect(fallbackImg!.parentElement?.offsetHeight).toBe(component.size);
   });
 
   it('should display initials correctly', () => {

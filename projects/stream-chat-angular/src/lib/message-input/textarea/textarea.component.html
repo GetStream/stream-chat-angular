@@ -1,9 +1,6 @@
 <textarea
-  [value]="value || ''"
-  [autofocus]="autoFocus"
-  data-testid="textarea"
   #input
-  placeholder="{{ placeholder | translate }}"
+  data-testid="textarea"
   class="
     rta__textarea
     str-chat__textarea__textarea
@@ -11,6 +8,9 @@
     str-chat__message-textarea
   "
   rows="1"
+  [value]="value || ''"
+  [autofocus]="autoFocus"
+  placeholder="{{ placeholder | translate }}"
   (input)="inputChanged()"
   (keydown.enter)="enterHit($event)"
 ></textarea>

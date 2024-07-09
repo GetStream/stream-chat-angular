@@ -1,0 +1,42 @@
+import ChannelPreview from "../assets/channel-preview.png";
+import ChannelPreviewInfo from "../assets/channel-preview-info.png";
+
+The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name (or list of members if name isn't defined) and latest message of the channel.
+
+<img src={ChannelPreview} width="500" />
+
+## Basic usage
+
+The `ChannelPreview` component is displayed inside the built-in [channel list component](../../components/ChannelListComponent). If you're building you own channel list, this is how you can use this component:
+
+```html
+<stream-channel-preview [channel]="channel"></stream-channel-preview>
+```
+
+## Customization
+
+1. You can provide your own template for the channel preview info (marked with the red rectangle on the screenshot) by providing your own template for the [`customTemplatesService.channelPreviewInfoTemplate$`](../../services/CustomTemplatesService/#channelpreviewinfotemplate).
+
+<img src={ChannelPreviewInfo} width="500" />
+
+2. If you want to customize the channel avatar, please refer to the [avatar customization section](../../components/AvatarComponent/#customization)
+
+3. You can replace the whole component by providing your own template for the [`customTemplatesService.channelPreviewInfoTemplate$`](../../services/CustomTemplatesService/#channelpreviewtemplate).
+
+4. The [`MessageService`](../services/MessageService.mdx) provides some customization options for message display the are applied to both the message and channel preview components
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### channel
+
+• **channel**: `undefined` \| `Channel`<`DefaultStreamChatGenerics`\>
+
+The channel to be displayed
+
+#### Defined in
+
+[lib/channel-preview/channel-preview.component.ts:28](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/channel-preview/channel-preview.component.ts#L28)
+
+[//]: # "End of generated content"

@@ -16,12 +16,11 @@ export class MessageReactionsService {
    * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](../../services/CustomTemplatesService/#messagereactionstemplate)
    */
   reactions$ = new BehaviorSubject<{ [key in MessageReactionType]: string }>({
-    like: '👍',
-    angry: '😠',
-    love: '❤️',
     haha: '😂',
-    wow: '😮',
+    like: '👍',
+    love: '❤️',
     sad: '😞',
+    wow: '😮',
   });
   /**
    * By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.

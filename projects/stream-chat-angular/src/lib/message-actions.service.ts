@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import {
   CustomMessageActionItem,
   DefaultStreamChatGenerics,
+  MessageActionHandlerExtraParams,
   MessageActionItem,
   MessageActionsClickDetails,
+  MessageReactionActionItem,
   StreamMessage,
 } from './types';
 import { ChatClientService } from './chat-client.service';
@@ -23,12 +25,22 @@ export class MessageActionsService<
   /**
    * Default actions - these are the actions that are handled by the built-in component
    */
-  readonly defaultActions: MessageActionItem<T>[] = [
+  readonly defaultActions: (
+    | MessageActionItem<T>
+    | MessageReactionActionItem<T>
+  )[] = [
+    {
+      actionName: 'react',
+      isVisible: (enabledActions: string[]) => {
+        return enabledActions.indexOf('send-reaction') !== -1;
+      },
+    },
     {
       actionName: 'mark-unread',
       actionLabelOrTranslationKey: 'streamChat.Mark as unread',
-      actionHandler: (message: StreamMessage<T>) =>
-        this.channelService.markMessageUnread(message.id),
+      actionHandler: (message: StreamMessage<T>) => {
+        void this.channelService.markMessageUnread(message.id);
+      },
       isVisible: (
         enabledActions: string[],
         isMine: boolean,
@@ -38,25 +50,40 @@ export class MessageActionsService<
     {
       actionName: 'quote',
       actionLabelOrTranslationKey: 'streamChat.Reply',
-      actionHandler: (message: StreamMessage<T>) =>
-        this.channelService.selectMessageToQuote(message),
+      actionHandler: (message: StreamMessage<T>) => {
+        this.channelService.selectMessageToQuote(message);
+      },
       isVisible: (enabledActions: string[]) =>
         enabledActions.indexOf('quote-message') !== -1,
+    },
+    {
+      actionName: 'thread-reply',
+      actionLabelOrTranslationKey: 'streamChat.Thread',
+      actionHandler: (message: StreamMessage<T>) => {
+        void this.channelService.setAsActiveParentMessage(message);
+      },
+      isVisible: (
+        enabledActions: string[],
+        isMine: boolean,
+        message: StreamMessage<T>
+      ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
     {
       actionName: 'pin',
       actionLabelOrTranslationKey: (message: StreamMessage<T>) =>
         message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-      actionHandler: (message: StreamMessage<T>) =>
+      actionHandler: (message: StreamMessage<T>) => {
         message.pinned
-          ? this.channelService.unpinMessage(message)
-          : this.channelService.pinMessage(message),
+          ? void this.channelService.unpinMessage(message)
+          : void this.channelService.pinMessage(message);
+      },
       isVisible: (enabledActions: string[]) =>
         enabledActions.indexOf('pin-message') !== -1,
     },
     {
       actionName: 'flag',
       actionLabelOrTranslationKey: 'streamChat.Flag',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       actionHandler: async (message: StreamMessage<T>) => {
         try {
           await this.chatClientService.flagMessage(message.id);
@@ -86,6 +113,7 @@ export class MessageActionsService<
     {
       actionName: 'delete',
       actionLabelOrTranslationKey: 'streamChat.Delete',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       actionHandler: async (message: StreamMessage<T>) => {
         try {
           await this.channelService.deleteMessage(message);
@@ -102,6 +130,49 @@ export class MessageActionsService<
         enabledActions.indexOf('delete-any') !== -1 ||
         enabledActions.indexOf('delete-any-message') !== -1,
     },
+    {
+      actionName: 'copy-message-text',
+      actionLabelOrTranslationKey: 'streamChat.Copy text',
+      isVisible: (_: string[], __: boolean, message: StreamMessage<T>) => {
+        const isClipboardSupported = navigator?.clipboard?.write !== undefined;
+        if (!isClipboardSupported && !this.hasDisplayedClipboardWarning) {
+          console.warn(
+            `[Stream Chat] Copy action is disabled because clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`
+          );
+          this.hasDisplayedClipboardWarning = true;
+        }
+        return (
+          !!message.text &&
+          (message.type === 'regular' || message.type === 'reply') &&
+          isClipboardSupported
+        );
+      },
+      actionHandler: (
+        message: StreamMessage<T>,
+        extraParams: MessageActionHandlerExtraParams
+      ) => {
+        const fallbackContent = message.text || '';
+        // Android Chrome can only copy plain text: https://issues.chromium.org/issues/40851502
+        void navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob(
+              [
+                extraParams.messageTextHtmlElement?.innerText ||
+                  fallbackContent,
+              ],
+              { type: 'text/plain' }
+            ),
+            'text/html': new Blob(
+              [
+                extraParams.messageTextHtmlElement?.innerHTML ||
+                  fallbackContent,
+              ],
+              { type: 'text/html' }
+            ),
+          }),
+        ]);
+      },
+    },
   ];
   /**
    * The built-in components will handle changes to this observable.
@@ -115,16 +186,40 @@ export class MessageActionsService<
    * By default the [`MessageComponent`](../../components/MessageComponent) will display the [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent). You can override that behavior by providing your own event handler.
    */
   customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
+  private hasDisplayedClipboardWarning = false;
 
   constructor(
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
     private channelService: ChannelService
-  ) {}
+  ) {
+    combineLatest([
+      this.messageToEdit$,
+      this.channelService.activeChannel$,
+    ]).subscribe(([messageToEdit, activeChannel]) => {
+      if (
+        messageToEdit &&
+        (!activeChannel || activeChannel?.cid !== messageToEdit.cid)
+      ) {
+        this.messageToEdit$.next(undefined);
+      }
+    });
+    combineLatest([
+      this.messageToEdit$,
+      this.channelService.activeParentMessageId$,
+    ]).subscribe(([messageToEdit, parentMessageId]) => {
+      if (
+        messageToEdit &&
+        messageToEdit.parent_id &&
+        messageToEdit.parent_id !== parentMessageId
+      ) {
+        this.messageToEdit$.next(undefined);
+      }
+    });
+  }
 
   /**
    * This method returns how many authorized actions are available to the given message
-   *
    * @param message
    * @param enabledActions
    * @returns the count

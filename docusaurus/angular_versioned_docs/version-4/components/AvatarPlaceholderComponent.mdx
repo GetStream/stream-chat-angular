@@ -1,0 +1,113 @@
+The `AvatarPlaceholder` component displays the [default avatar](./AvatarComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### name
+
+• **name**: `undefined` \| `string`
+
+An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:23](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L23)
+
+---
+
+### imageUrl
+
+• **imageUrl**: `undefined` \| `string`
+
+The URL of the image to be displayed. If the image can't be displayed the first letter of the name input is displayed.
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:27](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L27)
+
+---
+
+### size
+
+• **size**: `number` = `32`
+
+The size in pixels of the avatar image.
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:31](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L31)
+
+---
+
+### location
+
+• **location**: `undefined` \| `AvatarLocation`
+
+The location the avatar will be displayed in
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:35](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L35)
+
+---
+
+### channel
+
+• `Optional` **channel**: `Channel`<`DefaultStreamChatGenerics`\>
+
+The channel the avatar belongs to (if avatar of a channel is displayed)
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:39](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L39)
+
+---
+
+### user
+
+• `Optional` **user**: `User`<`DefaultStreamChatGenerics`\>
+
+The user the avatar belongs to (if avatar of a user is displayed)
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:43](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L43)
+
+---
+
+### type
+
+• **type**: `undefined` \| `AvatarType`
+
+The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:47](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L47)
+
+---
+
+### initialsType
+
+• **initialsType**: `"first-letter-of-first-word"` \| `"first-letter-of-each-word"` = `'first-letter-of-first-word'`
+
+If channel/user image isn't provided the initials of the name of the channel/user is shown instead, you can choose how the initals should be computed
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:51](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L51)
+
+---
+
+### showOnlineIndicator
+
+• **showOnlineIndicator**: `boolean` = `true`
+
+If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
+
+#### Defined in
+
+[lib/avatar-placeholder/avatar-placeholder.component.ts:57](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/avatar-placeholder/avatar-placeholder.component.ts#L57)
+
+[//]: # "End of generated content"
