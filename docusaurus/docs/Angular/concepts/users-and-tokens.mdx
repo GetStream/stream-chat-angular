@@ -32,7 +32,7 @@ this.chatService.init(environment.apiKey, undefined, "anonymous");
 
 ## Generating tokens
 
-Regular users require a valid JWT token to access the Stream API. Tokens can't be created securely on the client-side, so you should generate tokens on your server-side. All important information about [tokens can be found in the client documentation](https://getstream.io/chat/docs/javascript/tokens_and_authentication/?language=javascript).
+Regular users (all users except guests and anonymous users) require a valid JWT token to access the Stream API. Tokens can't be created securely on the client-side, so you should generate tokens on your server-side. All important information about [tokens can be found in the client documentation](https://getstream.io/chat/docs/javascript/tokens_and_authentication/?language=javascript).
 
 Here is how you can provide the generated token to the Angular SDK:
 
@@ -40,11 +40,7 @@ Here is how you can provide the generated token to the Angular SDK:
 // Option 1: using a static token
 this.chatService.init(
   "<API key>",
-  {
-    id: "<user id>",
-    name: "Sara",
-    image: "url/to/image",
-  },
+  "<user or id>",
   // Example static token
   "eyJhbGcIOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 );
@@ -52,20 +48,27 @@ this.chatService.init(
 // Option 2. using a token provider
 this.chatService.init(
   "<API key>",
-  {
-    id: "<user id>",
-    name: "Sara",
-    image: "url/to/image",
-  },
+  "<user or id>",
   // Example token provider
   // The SDK will call your token provider when you connect, or when the token is expired and it needs a new one
   // With token providers you can use short-living tokens, so we advise using this method in your production applications
   () => async {
-    const token = await <HTTP call to your own backend to obtain a new token>
+    const token = await (<HTTP call to your own backend to obtain a new token>).token;
 
     return token;
   }
 );
+```
+
+This is how you can use [developer tokens](https://getstream.io/chat/docs/javascript/tokens_and_authentication/?language=javascript#developer-tokens) with the Angular SDK:
+
+```ts
+import { StreamChat } from "stream-chat";
+
+const apiKey = "<API key>";
+const userId = "<user id>";
+const devToken = StreamChat.getInstance(apiKey).devToken(userId);
+this.chatService.init(apiKey, userId, devToken);
 ```
 
 ## Disconnecting users
