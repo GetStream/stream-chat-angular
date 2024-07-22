@@ -5,6 +5,7 @@ import {
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
 } from '@angular/core';
@@ -27,7 +28,7 @@ import {
   styleUrls: ['./avatar.component.scss'],
 })
 export class AvatarComponent
-  implements OnChanges, OnInit, OnChanges, AfterViewInit
+  implements OnChanges, OnInit, OnChanges, AfterViewInit, OnDestroy
 {
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
@@ -107,6 +108,10 @@ export class AvatarComponent
     if (changes.type || changes.channel) {
       this.setFallbackChannelImage();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   private setFallbackChannelImage() {

@@ -314,11 +314,8 @@ export class ChannelService<
   /**
    * @internal
    */
-  static readonly MAX_MESSAGE_COUNT_IN_MESSAGE_LIST = 250;
-  /**
-   * @internal
-   */
   static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
+  messagePageSize = 25;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
   );
@@ -347,7 +344,6 @@ export class ChannelService<
   private latestMessageDateByUserByChannelsSubject = new BehaviorSubject<{
     [key: string]: Date;
   }>({});
-  private messagePageSize = 25;
   private readonly attachmentMaxSizeFallbackInMB = 100;
   private messageToQuoteSubject = new BehaviorSubject<
     StreamMessage<T> | undefined
@@ -516,28 +512,6 @@ export class ChannelService<
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
-  }
-
-  /**
-   * internal
-   */
-  removeOldMessageFromMessageList() {
-    const channel = this.activeChannelSubject.getValue();
-    const channelMessages = channel?.state.latestMessages;
-    const targetLength = Math.ceil(
-      ChannelService.MAX_MESSAGE_COUNT_IN_MESSAGE_LIST / 2
-    );
-    if (
-      !channel ||
-      !channelMessages ||
-      channelMessages !== channel?.state.latestMessages ||
-      channelMessages.length <= targetLength
-    ) {
-      return;
-    }
-    const messages = channelMessages;
-    messages.splice(0, messages.length - targetLength);
-    this.activeChannelMessagesSubject.next(messages);
   }
 
   /**
@@ -1647,6 +1621,13 @@ export class ChannelService<
   }
 
   /**
+   * The current thread replies
+   */
+  get activeChannelThreadReplies() {
+    return this.activeThreadMessagesSubject.getValue() || [];
+  }
+
+  /**
    * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript#paginating-reactions).
    * @param messageId
    * @returns all reactions of a message
@@ -1750,7 +1731,7 @@ export class ChannelService<
       const messageIndex = messages.findIndex(
         (m) => m.id === event?.message?.id
       );
-      if (messageIndex !== -1) {
+      if (messageIndex !== -1 || event.type === 'message.deleted') {
         isThreadReply
           ? this.activeThreadMessagesSubject.next([...messages])
           : this.activeChannelMessagesSubject.next([...messages]);

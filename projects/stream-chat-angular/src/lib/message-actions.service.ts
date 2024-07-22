@@ -43,7 +43,7 @@ export class MessageActionsService<
       },
       isVisible: (
         enabledActions: string[],
-        isMine: boolean,
+        _: boolean,
         message: StreamMessage<T>
       ) => enabledActions.indexOf('read-events') !== -1 && !message.parent_id,
     },
@@ -64,7 +64,7 @@ export class MessageActionsService<
       },
       isVisible: (
         enabledActions: string[],
-        isMine: boolean,
+        _: boolean,
         message: StreamMessage<T>
       ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
@@ -91,7 +91,7 @@ export class MessageActionsService<
             'streamChat.Message has been successfully flagged',
             'success'
           );
-        } catch (err) {
+        } catch (error) {
           this.notificationService.addTemporaryNotification(
             'streamChat.Error adding flag'
           );

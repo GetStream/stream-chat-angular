@@ -57,7 +57,12 @@
     </button>
   </div>
 </ng-template>
-<div #scrollContainer data-testid="scroll-container" class="str-chat__list">
+<div
+  #scrollContainer
+  data-testid="scroll-container"
+  class="str-chat__list"
+  style="overscroll-behavior-y: none"
+>
   <ng-container *ngIf="mode === 'main' && isEmpty && emptyListTemplate">
     <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
   </ng-container>
@@ -83,12 +88,16 @@
       <ng-container *ngIf="mode === 'thread' && isEmpty && emptyListTemplate">
         <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
       </ng-container>
-      <stream-loading-indicator
+      <stream-loading-indicator-placeholder
         *ngIf="
-          isLoading && direction === 'bottom-to-top' && displayLoadingIndicator
+          ((loadingState === 'loading-top' && direction === 'bottom-to-top') ||
+            (loadingState === 'loading-bottom' &&
+              direction === 'top-to-bottom')) &&
+            displayLoadingIndicator;
+          else loadingIndicatorPlaceholder
         "
         data-testid="top-loading-indicator"
-      ></stream-loading-indicator>
+      ></stream-loading-indicator-placeholder>
       <ng-container *ngIf="messages$ | async as messages">
         <ng-container
           *ngFor="
@@ -159,12 +168,20 @@
           </ng-container>
         </ng-container>
       </ng-container>
-      <stream-loading-indicator
+      <stream-loading-indicator-placeholder
         *ngIf="
-          isLoading && direction === 'top-to-bottom' && displayLoadingIndicator
+          ((loadingState === 'loading-bottom' &&
+            direction === 'bottom-to-top') ||
+            (loadingState === 'loading-top' &&
+              direction === 'top-to-bottom')) &&
+            displayLoadingIndicator;
+          else loadingIndicatorPlaceholder
         "
         data-testid="bottom-loading-indicator"
-      ></stream-loading-indicator>
+      ></stream-loading-indicator-placeholder>
+      <ng-template #loadingIndicatorPlaceholder>
+        <div class="str-chat__loading-indicator-placeholder"></div>
+      </ng-template>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
       <!-- eslint-disable-next-line @angular-eslint/template/no-any -->
