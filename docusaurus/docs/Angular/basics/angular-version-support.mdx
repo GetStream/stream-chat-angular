@@ -4,4 +4,35 @@ title: Angular version support
 sidebar_position: 2
 ---
 
-The current version of the SDK supports all Angular versions starting from Angular 12. However since [Angular itself doesn't support versions 12-14 anymore](https://angular.io/guide/releases#actively-supported-versions) the SDK will drop support for these in Q2 2024 (this will be released in a major release). Moving forward our version support policy will be matched more closely with the Angular's official [support window](https://angular.io/guide/releases#support-window). You can update your Angular application following the official [Angular update guide](https://update.angular.io/).
+The current version of the SDK supports Angular versions 15-18. This is how you can install it:
+
+Run this command if you are using **Angular 18**:
+
+```shell
+npm install stream-chat-angular ngx-float-ui@beta
+```
+
+Run this command if you are using **Angular 17**:
+
+```shell
+npm install stream-chat-angular ngx-float-ui@17
+```
+
+Run this command if you are using **Angular 16**:
+
+```shell
+npm install stream-chat-angular ngx-float-ui@16
+```
+
+Run this command if you are using **Angular 15**:
+
+```shell
+npm install stream-chat-angular @ngx-translate/core@14 ngx-float-ui@15
+```
+
+Supported node verisons: 18+
+
+## Angular version support policy:
+
+- We're doing our best to introduce support for the latest Angular version as soon as it becomes stable
+- To be able to use new features of Angular, we need to remove support for older Angular versions, however we always make sure to support [all actively supported Angular versions](https://angular.dev/reference/versions#actively-supported-versions)
