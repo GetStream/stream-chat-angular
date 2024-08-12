@@ -5,6 +5,7 @@ title: Channel list state
 ---
 
 import ChannelList from "../assets/channel-list.png";
+import MultiChannelList from "../assets/multi-channel-list.png";
 
 This guide describes the behaviour of the channel list, and shows how you can customize it. The channel list is controlled by the [`ChannelService`](../../services/ChannelService/).
 
@@ -282,20 +283,7 @@ It's important to note that you should make sure that the channel you add is wat
 
 Sometimes we need to show multiple separate channel lists. For example: we want to show 1:1 conversations and team chats in two separate tabs.
 
-<iframe
-  loading="lazy"
-  src="https://zptmyv-4200.csb.app/"
-  style={{
-    width: "100%",
-    height: "500px",
-    border: "0",
-    borderRadius: "4px",
-    overflow: "hidden",
-  }}
-  title="Stream Chat Angular Multi-channel list Example"
-  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-/>
+<img src={MultiChannelList} />
 
 Here are the necessary steps to achieve this:
 
