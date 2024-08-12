@@ -319,8 +319,15 @@ describe('ChatClientService', () => {
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith('messageId');
   });
 
-  it('should query members', async () => {
-    mockChatClient.queryUsers.and.returnValue({ users: [{}, {}] });
+  it('should query users', async () => {
+    mockChatClient.queryUsers.and.returnValue({
+      users: [
+        {
+          id: mockCurrentUser().id,
+        },
+        { id: 'zizi' },
+      ],
+    });
     const result = await service.autocompleteUsers('zi');
 
     expect(mockChatClient.queryUsers).toHaveBeenCalledWith(
@@ -332,7 +339,7 @@ describe('ChatClientService', () => {
       })
     );
 
-    expect(result.length).toBe(2);
+    expect(result.length).toBe(1);
   });
 
   it('should initialize pending invites', async () => {

@@ -1857,7 +1857,13 @@ describe('ChannelService', () => {
     await init();
     const channel = generateMockChannels(1)[0];
     channel.cid = 'new-channel';
-    spyOn(channel, 'queryMembers').and.callThrough();
+    spyOn(channel, 'queryMembers').and.resolveTo({
+      members: [
+        { user_id: mockCurrentUser().id },
+        { user_id: 'jack' },
+      ] as unknown as ChannelMemberResponse<DefaultStreamChatGenerics>[],
+      duration: '0ms',
+    });
     const users = Array.from({ length: 101 }, (_, i) => ({ id: `${i}` }));
     channel.state.members = {} as any as Record<
       string,
