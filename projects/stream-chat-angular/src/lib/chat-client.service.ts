@@ -230,9 +230,8 @@ export class ChatClientService<
         { id: { $autocomplete: searchTerm } },
         { name: { $autocomplete: searchTerm } },
       ],
-      id: { $ne: this.chatClient.userID! },
     } as UserFilters<T>); // TODO: find out why we need this typecast
-    return result.users;
+    return result.users.filter((u) => u.id !== this.chatClient?.user?.id);
   }
 
   private updatePendingInvites(e: Event<T>) {

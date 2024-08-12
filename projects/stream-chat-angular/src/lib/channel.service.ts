@@ -1063,9 +1063,11 @@ export class ChannelService<
       }
       const result = await activeChannel.queryMembers({
         name: { $autocomplete: searchTerm },
-        id: { $ne: this.chatClientService.chatClient.userID! },
       } as UserFilters<T>); // TODO: find out why we need typecast here
-      return Object.values(result.members);
+
+      return result.members.filter(
+        (m) => m.user_id !== this.chatClientService.chatClient?.user?.id
+      );
     }
   }
 

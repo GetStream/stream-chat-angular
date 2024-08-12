@@ -188,6 +188,11 @@ export const generateMockChannels = (length = 25) => {
               id: 'jack',
             },
           },
+          john: {
+            user: {
+              id: 'john',
+            },
+          },
         },
       }),
       getConfig: () => ({
