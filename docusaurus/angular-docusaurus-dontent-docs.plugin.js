@@ -5,13 +5,13 @@ module.exports = {
       {
         lastVersion: "current",
         versions: {
-          5: {
-            label: "v5 (beta)",
-            banner: "unreleased",
-            path: "5",
-          },
           current: {
+            label: "v5",
+          },
+          4: {
             label: "v4",
+            banner: "unmaintained",
+            path: "4",
           },
         },
       },
