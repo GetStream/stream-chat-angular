@@ -31,7 +31,7 @@
     "preanalyze:sample-app": "npm run build:sample-app",
     "analyze:sample-app": "webpack-bundle-analyzer dist/sample-app/stats.json",
     "generate-docs": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs && npm run copy-css-docs",
-    "generate-docs:v5": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs:v5 && npm run copy-css-docs:v5",
+    "generate-docs:v4": "npm run typedoc:services && npm run typedoc:components && npm run copy-docs:v4 && npm run copy-css-docs:v4",
     "typedoc:services": "typedoc --cleanOutputDir true --excludeConstructors true --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --out temp-service-docs --exclude '!**/*service.ts' --excludeNotDocumented --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "typedoc:components": "typedoc --cleanOutputDir true --excludeConstructors true --sort source-order --hideBreadcrumbs true --hideInPageTOC true --excludePrivate true --excludeNotDocumented --out temp-component-docs --exclude '!**/*component.ts' --tsconfig projects/stream-chat-angular/tsconfig.lib.json projects/stream-chat-angular/src/public-api.ts",
     "copy-docs": "ts-node copy-generated-service-docs.ts docusaurus/docs/Angular/services & (ts-node remove-generated-component-docs-content docusaurus/docs/Angular/components && ts-node copy-generated-component-docs.ts docusaurus/docs/Angular/components)",

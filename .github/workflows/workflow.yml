@@ -50,18 +50,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Deploy sample app to Vercel
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-          STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
-          STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}
-          STREAM_USER_ID: <dynamic user>
-          STREAM_CHANNELS_FILTER: '{"type": "messaging"}'
-        run: >
-          yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/v5' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn vercel build ${{ github.ref == 'refs/heads/v5' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn vercel deploy ${{ github.ref == 'refs/heads/v5' && '--prod' || '' }} --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
       - name: Copy docs from stream-chat-css
         run: npm run ${{ (github.ref == 'refs/heads/v5' || contains(github.head_ref, 'v5')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
       - name: Generate docs
