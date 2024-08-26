@@ -1,0 +1,63 @@
+import MessageReactionsSelectorScreenshot from "../assets/message-reactions-selector-screenshot.png";
+
+The `MessageReactionsSelectorComponent` makes it possible for users to react to a message, the reaction options can be set using the [`MessageReactionsService`](../../services/MessageReactionsService). You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
+
+**Example** - reacting to a message
+
+<img src={MessageReactionsSelectorScreenshot} width="500" />
+
+The `MessageReactionsSelectorComponent` is displayed inside the built-in [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent).
+
+## Basic usage
+
+A typical use case for the `MessageReactionsSelectorComponent` would be to use in your custom components that will completely override the message component.
+
+```typescript
+@Component({
+  selector: "app-custom-message",
+  template: `
+    <stream-message-reactions-selector
+      [messageId]="message.id"
+      [ownReactions]="message.own_reactions"
+    ></stream-message-reactions-selector>
+    <!-- Other parts of the custom message component -->
+  `,
+})
+export class CustomMessageComponent {
+  @Input() message: StreamMessage;
+}
+```
+
+## Customization
+
+You can override the default reaction options using the [`MessageReactionsService`](../services/MessageReactionsService.mdx).
+
+You can provide your own message reaction selector component by the [`CustomTemplatesService`](../services/CustomTemplatesService.mdx).
+
+[//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### ownReactions
+
+• **ownReactions**: `ReactionResponse`\<`DefaultStreamChatGenerics`\>[] = `[]`
+
+List of the user's own reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/message-reactions-selector/message-reactions-selector.component.ts:29](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions-selector/message-reactions-selector.component.ts#L29)
+
+---
+
+### messageId
+
+• **messageId**: `undefined` \| `string`
+
+The id of the message the reactions belong to
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/message-reactions-selector/message-reactions-selector.component.ts:33](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/message-reactions-selector/message-reactions-selector.component.ts#L33)
+
+[//]: # "End of generated content"

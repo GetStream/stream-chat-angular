@@ -1,0 +1,389 @@
+---
+id: upgrade-v4
+title: Upgrade from v4
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import MessageMenuBefore from "../assets/message-menu-before.png";
+import MessageMenuAfterDesktop from "../assets/message-menu-after-desktop.png";
+import MessageMenuAfterMobile from "../assets/message-menu-after-mobile.png";
+import ImageShowcase from "@site/src/components/ImageShowcase";
+import MessageEditBefore from "../assets/message-edit-before.png";
+import MessageEditAfter from "../assets/message-edit-after.png";
+
+## Highlights
+
+- New message menu and message edit UIs to improve usability
+- Provide more CSS customization options for the avatar and icon components (to avoid providing a custom component for even basic customization)
+- Drop support for [Angular 12-14](https://getstream.io/chat/docs/sdk/angular/basics/angular-version-support/) and [theme-v1](https://getstream.io/chat/docs/sdk/angular/concepts/themeing/)
+
+Want to see it all in action? Check out [the demo application](https://angular-chat-demo-getstreamio.vercel.app/) or try it out in your own application using the instructions below.
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption:
+        "Before (mobile) - Opening message menu or an image attachment used to take two taps",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterMobile,
+      caption:
+        "After (mobile) - Message menu is triggered by long press anywhere in the message bubble (attachment or the blue area), no more double tap required for opening image attachments",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageEditBefore,
+      caption: "Message edit UI - before",
+      alt: "Message edit - before",
+    },
+    {
+      image: MessageEditAfter,
+      caption: "Message edit UI - after",
+      alt: "Message edit - after",
+    },
+  ]}
+/>
+
+## Get started
+
+<Tabs groupId="examples">
+<TabItem value="Angular18" label="Angular 18">
+
+```shell
+npm install stream-chat-angular ngx-float-ui@18
+
+# or
+yarn add stream-chat-angular stream-chat @ngx-translate/core angular-mentions ngx-float-ui@18 @floating-ui/dom
+```
+
+</TabItem>
+<TabItem value="Angular17" label="Angular 17">
+
+```shell
+npm install stream-chat-angular ngx-float-ui@17
+
+# or
+yarn add stream-chat-angular stream-chat @ngx-translate/core angular-mentions ngx-float-ui@17 @floating-ui/dom
+```
+
+</TabItem>
+<TabItem value="Angular16" label="Angular 16">
+
+```shell
+npm install stream-chat-angular ngx-float-ui@16
+
+# or
+yarn add stream-chat-angular stream-chat @ngx-translate/core angular-mentions ngx-float-ui@16 @floating-ui/dom
+```
+
+</TabItem>
+<TabItem value="Angular15" label="Angular 15">
+
+```shell
+npm install stream-chat-angular @ngx-translate/core@14 ngx-float-ui@15
+
+# or
+yarn add stream-chat-angular stream-chat @ngx-translate/core@14 angular-mentions ngx-float-ui@15 @floating-ui/dom
+```
+
+</TabItem>
+</Tabs>
+
+## Breaking changes
+
+### Angular version support
+
+Angular versions 12-14 are no longer supported. You can use the [Angular update guide](https://update.angular.io/) to update your application.
+
+### Theme v1 is removed
+
+Theme-v1 was deprecated in version 4. Most customers already use theme-v2 which used to be imported from this path:
+
+```scss
+@import "stream-chat-angular/src/assets/styles/v2/scss/index.scss";
+```
+
+From version 5 this path should be used:
+
+```scss
+@import "stream-chat-angular/src/assets/styles/scss/index.scss";
+
+// or if you're using CSS
+@import "stream-chat-angular/src/assets/styles/css/index.css";
+```
+
+In case you run into an SCSS issue related to icons, you should extend the stylesheet import like this:
+
+```scss
+@use "stream-chat-angular/src/assets/styles/scss/variables" with
+  ($assetsPath: "../node_modules/stream-chat-angular/src/assets/assets");
+@import "stream-chat-angular/src/assets/styles/scss/index.scss";
+```
+
+No futher action is required for customers who were already using theme-v2.
+
+Customers who used to use theme-v1 now need to use theme-v2. Updating from theme-v1 to theme-v2 will require to rewrite your custom CSS code as the new theme has a new variable system, and all the components were restructured. To help you get started please refer our [theming guide](../theming/introduction.mdx).
+
+### New message menu UI
+
+The old message menu UI caused usability issues on mobile devices. The new UI address these issues, and adds some other improvements as well.
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption:
+        "Before (mobile) - Opening message menu or an image attachment used to take two taps",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterMobile,
+      caption:
+        "After (mobile) - Message menu is triggered by long press anywhere in the message bubble (attachment or the blue area), no more double tap required for opening image attachments",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageMenuBefore,
+      caption: "Before (desktop)",
+      alt: "Message menu - before",
+    },
+    {
+      image: MessageMenuAfterDesktop,
+      caption: "After (desktop)",
+      alt: "Message menu - after",
+    },
+  ]}
+/>
+
+With the new UI these component-level changes are introduced:
+
+- The [`MessageListComponent`](../../components/MessageListComponent) no longer supports the `messageOptionsTrigger` parameter as this was a workaround for mobile UX problems. On desktop devices the message menu will be triggered by hovering anywhere in the message area. On mobile devices the message menu will be triggered by a longpress insde the message bubble area.
+- The [`MessageReactionsComponent`](../../components/MessageReactionsComponent) was split into two components. The `MessageReactionsComponent` is only responsible for displaying the existing reactions, and with that the `isSelectorOpen` input and `isSelectorOpenChange` output was removed. The [`MessageReactionsSelector`](../../components/MessageReactionsSelectorComponent) is a new component, that's responsible for adding/removing message reactions.
+
+### New message edit UI
+
+The modal-based edit message UI is replaced with a more modern approach: the message will be edited inside the main/thread [message input](../../components/MessageInputComponent).
+
+<ImageShowcase
+  border
+  items={[
+    {
+      image: MessageEditBefore,
+      caption: "Message edit UI - before",
+      alt: "Message edit - before",
+    },
+    {
+      image: MessageEditAfter,
+      caption: "Message edit UI - after",
+      alt: "Message edit - after",
+    },
+  ]}
+/>
+
+These are the component-level changes related to this feature:
+
+- The `EditMessageForm` component has been removed
+- The `editMessageFormTemplate$` and `messageInputTemplate$` have been removed from the [`CustomTemplatesService`](../../services/CustomTemplatesService)
+
+If you don't want to have this UI, you can set the [`watchForMessageToEdit`](../../components/MessageInputComponent/#watchformessagetoedit) input to `false` on the `MessageInputComponent`:
+
+```html
+<stream-message-input [watchForMessageToEdit]="false"></stream-message-input>
+```
+
+The `stream-message-input` still has all inputs/outputs you need to create a custom message edit UI:
+
+```html
+<stream-message-input
+  [watchForMessageToEdit]="false"
+  [displaySendButton]="false"
+  [message]="messageToEdit"
+  [sendMessage$]="sendMessage$Input"
+  (messageUpdate)="messageUpdateHandler()"
+></stream-message-input>
+```
+
+### Signature change for custom channel list event handlers
+
+The `channelListSetter`'s signature changed for the following custom event handlers of the `ChannelService`:
+
+- `customNewMessageNotificationHandler`
+- `customAddedToChannelNotificationHandler`
+- `customRemovedFromChannelNotificationHandler`
+- `customChannelDeletedHandler`
+- `customChannelUpdatedHandler`
+- `customChannelTruncatedHandler`
+- `customChannelHiddenHandler`
+- `customChannelVisibleHandler`
+- `customNewMessageHandler`
+
+If you're adding a new channel to the list from these handlers, you need to make sure to provide a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
+
+Example code:
+
+```typescript
+private async customEventHandler(
+  clientEvent: ClientEvent,
+  channelListSetter: (channels: Channel<DefaultStreamChatGenerics>[]) => void
+) {
+  const channelResponse = clientEvent!.event!.channel!;
+  // Change 1: create a channel from `ChannelResponse`
+  const newChanel = this.chatService.chatClient.channel(
+    channelResponse.type,
+    channelResponse.id
+  );
+  try {
+    // Change 2: call .watch() before adding it to the channel list
+    await newChanel.watch();
+    const existingChannels = this.channelService.channels;
+    channelListSetter([newChanel, ...existingChannels]);
+  } catch (error) {
+    console.error('Failed to watch channel', error);
+  }
+}
+```
+
+If you need more information, we have a [channel list guide](../../concepts/channel-list/) you can check out.
+
+### Removed deprecated features
+
+#### `MessageListComponent`
+
+- No longer accepts the `customMessageActions` input. You can use the [`MessageActionsService`](../../services/MessageActionsService/#customactions) for configuring custom message actions.
+
+[Go to documentation](../../components/MessageListComponent)
+
+#### `MessageComponent`
+
+- No longer accepts the `customActions` input. You can use the [`MessageActionsService`](../../services/MessageActionsService/#customactions) for configuring custom message actions.
+
+[Go to documentation](../../components/MessageComponent)
+
+#### `MessageActionsBoxComponent`
+
+- No longer accepts the `isOpen` input. The `Message` component will take care of hiding/showing the action box component.
+- The `customActions` input has been removed. You can use the [`MessageActionsService`](../../services/MessageActionsService/#customactions) for configuring custom message actions.
+- The `displayedActionsCount` output has been removed. Moving forward the [`MessageActionsService`](../../services/MessageActionsService/#customactions) will be able to provide this information.
+- The `isEditing` output has been removed. Moving forward the [`MessageActionsService`](../../services/MessageActionsService/#customactions) will be able to provide this information.
+
+[Go to documentation](../../components/MessageActionsBoxComponent)
+
+#### `messageActionsBoxTemplate$`
+
+- No longer accepts the `isOpen` input. The `Message` component will take care of hiding/showing the action box component.
+- The `customActions` input has been removed. You can use the [`MessageActionsService`](../../services/MessageActionsService/#customactions) for configuring custom message actions.
+- The `displayedActionsCountChangeHandler` input has been removed. Moving forward the [`MessageActionsService`](../../services/MessageActionsService/#customactions) will be able to provide this information.
+
+[Go to documentation](../../services/CustomTemplatesService/#messageactionsboxtemplate)
+
+#### `ImageLoadService`
+
+The `ImageLoadService` is now removed. It's no longer required since the SDK uses a more [advanced image sizing method](../../components/AttachmentListComponent/#image-and-video-sizing).
+
+#### `ChannelListToggleService`
+
+The `ChannelListToggleService` is now removed as it was only used in theme-v1. For theme-v2 please refer to the [responsive layout guide](../code-examples/responsive-layout.mdx).
+
+### Channel query error handling
+
+In previous versions if an error occured during channel load, the `channelService.channels$` Observable emitted an error, which would close the stream. Users would have to reload the page to be able to reinitialize the `ChannelService`. This isn't a sensible default behavior. From version 5 the `channels$` Observable will never emit an error, the channel query result can be observed using the [`channelService.channelQueryState$`](../../services/ChannelService/#channelquerystate). With this change the `options.keepAliveChannels$OnError` is no longer necessary, and has been removed.
+
+### Type changes
+
+- Event handlers with `Function` type are changed to `() => void`
+- Event handlers with `any` return types are changed to `void` return type
+- The action handler signature of (custom) message actions was changed from `(message: StreamMessage, isMine: boolean) => void` to `(message: StreamMessage, extraParams: MessageActionHandlerExtraParams) => void`. The `isMine` flag is part of the `MessageActionHandlerExtraParams` object.
+- The `MessageActionBoxItemContext` is changed, `isMine` is removed, and `params: MessageActionHandlerExtraParams` is added. The `isMine` flag is part of the `MessageActionHandlerExtraParams` object.
+
+### Default reactions
+
+To better align with other SDKs, the default reaction set has been changed: the `angry` reaction is removed. You can provide your own reaction set using the [`MessageReactionsService`](../../services/MessageReactionsService/#reactions)
+
+### Component customization
+
+#### Avatar
+
+To allow better customization for avatar, the `size` input has been removed, and was replaced with the [`--str-chat__avatar-size` CSS variable](../../theming/component-variables/#avatar).
+
+With this change the `size` input is no longer supported on the [`AvatarPlaceholderComponent`](../../components/AvatarPlaceholderComponent), [`AvatarComponent`](../../components/AvatarComponent), and the [`avatarTemplate$`](../../services/CustomTemplatesService/#avatartemplate).
+
+#### Icon
+
+In previous versions it was hard to customize icon size and color from CSS, and using custom icons required overriding the built-in icon component. To solve these issues stream-chat-angular@5 introduces a better customization system for icons.
+
+Please refer to the [theming guide](../../theming/themingv2/#custom-icons) that explains how to customize icons.
+
+With this change the `size` input is no longer necessary and has been removed from the the [`IconPlaceholderComponent`](../../components/IconPlaceHolderComponent), [`IconComponent`](../../components/IconComponent), and the [`iconTemplate$`](../../services/CustomTemplatesService/#icontemplate).
+
+The icon names have also been consolidated, so if you're using a custom icon component, you need to update it accordingly:
+
+| Previous name          | Change                                |
+| ---------------------- | ------------------------------------- |
+| `action-icon`          | Renamed to `action`                   |
+| `delivered-icon`       | Renamed to `delivered`                |
+| `read-icon`            | Renamed to `read`                     |
+| `reaction-icon`        | Renamed to `reaction`                 |
+| `connection-error`     | Removed, it was only used in theme-v1 |
+| `send`                 | Unchanged                             |
+| `file-upload`          | Removed, it was only used in theme-v1 |
+| `retry`                | Unchanged                             |
+| `close`                | Unchanged                             |
+| `file`                 | Removed, it was only used in theme-v1 |
+| `audio-file`           | Unchanged                             |
+| `reply`                | Removed, it was only used in theme-v1 |
+| `close-no-outline`     | Removed, use `close` instead          |
+| `reply-in-thread`      | Unchanged                             |
+| `arrow-left`           | Unchanged                             |
+| `arrow-right`          | Unchanged                             |
+| `menu`                 | Removed, it was only used in theme-v1 |
+| `arrow-up`             | Unchanged                             |
+| `arrow-down`           | Unchanged                             |
+| `chat-bubble`          | Unchanged                             |
+| `attach`               | Unchanged                             |
+| `unspecified-filetype` | Unchanged                             |
+| `download`             | Unchanged                             |
+| `error`                | Unchanged                             |
+| `play`                 | Unchanged                             |
+| `pause`                | Unchanged                             |
+
+#### Loading indicator
+
+To allow better customization for loading indicator, the `size` input has been removed, and was replaced with the [`--str-chat__loading-indicator-size` CSS variable](../../theming/component-variables/#loadingindicator).
+
+With this change the `size` input is no longer supported on the [`LoadingIndicatorPlaceholderComponent`](../../components/LoadingIndicatorPlaceholderComponent), [`LoadingIndicatorComponent`](../../components/LoadingIndicatorComponent), and the [`loadingIndicatorTemplate$`](../../services/CustomTemplatesService/#loadingindicatortemplate). The `loadingIndicatorTemplate$` now accepts `TemplateRef<void>` instead of `TemplateRef<LoadingIndicatorContext>`
+
+### Channel invites
+
+Keeping track of pending channel invites is no longer automatic. If you're using channel invites and want to enable this behavior you need to initialize the [`ChatClientService`](../services/ChatClientService.mdx) with the following flag:
+
+```typescript
+this.chatService.init("<API key>", "<user>", "<token provider>", {
+  trackPendingChannelInvites: true,
+});
+```
+
+## Other changes
+
+### Unused packages
+
+The `ngx-popperjs` package is no longer used, so you can remove the related packages from your `package.json` file:
+
+- `@popperjs/core`
+- `ngx-popperjs`

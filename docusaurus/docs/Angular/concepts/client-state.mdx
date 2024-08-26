@@ -1,0 +1,59 @@
+---
+id: client-state
+title: Client state
+sidebar_position: 1
+---
+
+## Creating a client
+
+To connect a user, you need to have a client. This is how you can create one:
+
+```ts
+import { ChatClientService } from "stream-chat-angular";
+
+export class AppComponent {
+  constructor(private chatService: ChatClientService) {
+    this.chatService.init(
+      "<API key>",
+      "<user or id>",
+      "<token or provider>",
+      "<client options>"
+    );
+  }
+}
+```
+
+The Angular SDK uses the [stream-chat-js client](https://github.com/GetStream/stream-chat-js) under the hood, but most of the time you don't need to interact with the client directly, instead, you'll use the [`ChatClientService`](../../services/ChatClientService) or [`ChannelService`](../../services/ChannelService). However, it's still possible to access the client directly:
+
+```ts
+import { StreamChat } from "stream-chat";
+
+// only possible to do after chatService.init was called
+const client: StreamChat = this.chatService.chatClient;
+
+// independently from chatService
+const client: StreamChat = StreamChat.getInstance("<API key>");
+```
+
+The `StreamChat` client uses singleton pattern to ensure only one instance is created, so you'll get the same instance with both methods
+
+You can refer the [stream-chat-js client documentation](https://getstream.io/chat/docs/javascript/?language=javascript) to understand the most important concepts of the Stream API.
+
+## Client options
+
+Optionally you can provide configuration options to the client using the `init` method. Here is a simple example that sets the timeout for HTTP requests, and provide `console.log` for logging.
+
+```ts
+this.chatService.init("<API key>", "<user or id>", "<token or provider>", {
+  timeout: 10000,
+  logger: console.log,
+});
+```
+
+## Connecting and disconnecting users
+
+Please refer to the [Users and tokens guide](../../concepts/users-and-tokens/).
+
+## Reference
+
+For more information, please refer to the [`ChatClientService` reference documentation](../../services/ChatClientService).

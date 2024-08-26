@@ -12,19 +12,19 @@ The `AttachmentConfigurationService` provides customization for certain attribut
 
 ### customGiphyAttachmentConfigurationHandler
 
-• `Optional` **customGiphyAttachmentConfigurationHandler**: (`a`: `Attachment`<`T`\>) => `AttachmentConfigration`
+• `Optional` **customGiphyAttachmentConfigurationHandler**: (`a`: `Attachment`\<`T`\>) => `AttachmentConfigration`
+
+A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
 
 #### Type declaration
 
 ▸ (`a`): `AttachmentConfigration`
 
-A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
-
 ##### Parameters
 
-| Name | Type               |
-| :--- | :----------------- |
-| `a`  | `Attachment`<`T`\> |
+| Name | Type                |
+| :--- | :------------------ |
+| `a`  | `Attachment`\<`T`\> |
 
 ##### Returns
 
@@ -32,25 +32,25 @@ A custom handler can be provided to override the default giphy attachment (GIFs 
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:37](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L37)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:37](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L37)
 
 ---
 
 ### customImageAttachmentConfigurationHandler
 
-• `Optional` **customImageAttachmentConfigurationHandler**: (`a`: `Attachment`<`T`\>, `type`: `"gallery"` \| `"single"` \| `"carousel"`, `containerElement`: `HTMLElement`) => `ImageAttachmentConfiguration`
+• `Optional` **customImageAttachmentConfigurationHandler**: (`a`: `Attachment`\<`T`\>, `type`: `"gallery"` \| `"single"` \| `"carousel"`, `containerElement`: `HTMLElement`) => `ImageAttachmentConfiguration`
+
+A custom handler can be provided to override the default image attachment (images uploaded from files) configuration. By default the SDK uses fixed image height (a size that's known before image is loaded), if you override that with dynamic image height (for example: height: 100%) the scrolling logic inside the message list can break.
 
 #### Type declaration
 
 ▸ (`a`, `type`, `containerElement`): `ImageAttachmentConfiguration`
 
-A custom handler can be provided to override the default image attachment (images uploaded from files) configuration. By default the SDK uses fixed image height (a size that's known before image is loaded), if you override that with dynamic image height (for example: height: 100%) the scrolling logic inside the message list can break.
-
 ##### Parameters
 
 | Name               | Type                                      |
 | :----------------- | :---------------------------------------- |
-| `a`                | `Attachment`<`T`\>                        |
+| `a`                | `Attachment`\<`T`\>                       |
 | `type`             | `"gallery"` \| `"single"` \| `"carousel"` |
 | `containerElement` | `HTMLElement`                             |
 
@@ -60,25 +60,25 @@ A custom handler can be provided to override the default image attachment (image
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:22](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L22)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:22](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L22)
 
 ---
 
 ### customScrapedImageAttachmentConfigurationHandler
 
-• `Optional` **customScrapedImageAttachmentConfigurationHandler**: (`a`: `Attachment`<`T`\>) => `AttachmentConfigration`
+• `Optional` **customScrapedImageAttachmentConfigurationHandler**: (`a`: `Attachment`\<`T`\>) => `AttachmentConfigration`
+
+A custom handler can be provided to override the default scraped image attachment (images found in links inside messages) configuration. By default the SDK uses fixed height (a size that's known before image is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
 
 #### Type declaration
 
 ▸ (`a`): `AttachmentConfigration`
 
-A custom handler can be provided to override the default scraped image attachment (images found in links inside messages) configuration. By default the SDK uses fixed height (a size that's known before image is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
-
 ##### Parameters
 
-| Name | Type               |
-| :--- | :----------------- |
-| `a`  | `Attachment`<`T`\> |
+| Name | Type                |
+| :--- | :------------------ |
+| `a`  | `Attachment`\<`T`\> |
 
 ##### Returns
 
@@ -86,26 +86,26 @@ A custom handler can be provided to override the default scraped image attachmen
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:43](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L43)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:43](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L43)
 
 ---
 
 ### customVideoAttachmentConfigurationHandler
 
-• `Optional` **customVideoAttachmentConfigurationHandler**: (`a`: `Attachment`<`T`\>, `containerElement`: `HTMLElement`) => `VideoAttachmentConfiguration`
+• `Optional` **customVideoAttachmentConfigurationHandler**: (`a`: `Attachment`\<`T`\>, `containerElement`: `HTMLElement`) => `VideoAttachmentConfiguration`
+
+A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
 
 #### Type declaration
 
 ▸ (`a`, `containerElement`): `VideoAttachmentConfiguration`
 
-A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
-
 ##### Parameters
 
-| Name               | Type               |
-| :----------------- | :----------------- |
-| `a`                | `Attachment`<`T`\> |
-| `containerElement` | `HTMLElement`      |
+| Name               | Type                |
+| :----------------- | :------------------ |
+| `a`                | `Attachment`\<`T`\> |
+| `containerElement` | `HTMLElement`       |
 
 ##### Returns
 
@@ -113,7 +113,7 @@ A custom handler can be provided to override the default video attachment (video
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:30](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L30)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:30](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L30)
 
 ---
 
@@ -125,7 +125,7 @@ You can turn on/off thumbnail generation for video attachments
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:49](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L49)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:49](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L49)
 
 ## Methods
 
@@ -137,9 +137,9 @@ Handles the configuration for giphy attachments, it's possible to provide your o
 
 #### Parameters
 
-| Name         | Type               | Description                 |
-| :----------- | :----------------- | :-------------------------- |
-| `attachment` | `Attachment`<`T`\> | The attachment to configure |
+| Name         | Type                | Description                 |
+| :----------- | :------------------ | :-------------------------- |
+| `attachment` | `Attachment`\<`T`\> | The attachment to configure |
 
 #### Returns
 
@@ -147,7 +147,7 @@ Handles the configuration for giphy attachments, it's possible to provide your o
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:180](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L180)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:180](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L180)
 
 ---
 
@@ -161,7 +161,7 @@ Handles the configuration for image attachments, it's possible to provide your o
 
 | Name         | Type                                      | Description                                                                                                                                                                                     |
 | :----------- | :---------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `attachment` | `Attachment`<`T`\>                        | The attachment to configure                                                                                                                                                                     |
+| `attachment` | `Attachment`\<`T`\>                       | The attachment to configure                                                                                                                                                                     |
 | `location`   | `"gallery"` \| `"single"` \| `"carousel"` | Specifies where the image is being displayed                                                                                                                                                    |
 | `element`    | `HTMLElement`                             | The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN. |
 
@@ -171,7 +171,7 @@ Handles the configuration for image attachments, it's possible to provide your o
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:57](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L57)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:57](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L57)
 
 ---
 
@@ -183,9 +183,9 @@ Handles the configuration for scraped image attachments, it's possible to provid
 
 #### Parameters
 
-| Name         | Type               | Description                 |
-| :----------- | :----------------- | :-------------------------- |
-| `attachment` | `Attachment`<`T`\> | The attachment to configure |
+| Name         | Type                | Description                 |
+| :----------- | :------------------ | :-------------------------- |
+| `attachment` | `Attachment`\<`T`\> | The attachment to configure |
 
 #### Returns
 
@@ -193,7 +193,7 @@ Handles the configuration for scraped image attachments, it's possible to provid
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:200](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L200)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:200](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L200)
 
 ---
 
@@ -205,10 +205,10 @@ Handles the configuration for video attachments, it's possible to provide your o
 
 #### Parameters
 
-| Name         | Type               | Description                                                                                                                                                                                     |
-| :----------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `attachment` | `Attachment`<`T`\> | The attachment to configure                                                                                                                                                                     |
-| `element`    | `HTMLElement`      | The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN. |
+| Name         | Type                | Description                                                                                                                                                                                     |
+| :----------- | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `attachment` | `Attachment`\<`T`\> | The attachment to configure                                                                                                                                                                     |
+| `element`    | `HTMLElement`       | The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN. |
 
 #### Returns
 
@@ -216,4 +216,4 @@ Handles the configuration for video attachments, it's possible to provide your o
 
 #### Defined in
 
-[lib/attachment-configuration.service.ts:123](https://github.com/GetStream/stream-chat-angular/blob/2451bc8/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L123)
+[projects/stream-chat-angular/src/lib/attachment-configuration.service.ts:123](https://github.com/GetStream/stream-chat-angular/blob/11eff40f981f3028e1dd8041e8d3a01b1cfa2de9/projects/stream-chat-angular/src/lib/attachment-configuration.service.ts#L123)
