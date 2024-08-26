@@ -1,4 +1,4 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { first, take } from 'rxjs/operators';
 import {
@@ -208,6 +208,7 @@ describe('ChannelService', () => {
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
 
     tick();
+    flush();
 
     expect(spy).toHaveBeenCalledWith(channels);
     expect(activeChannelSpy).toHaveBeenCalledWith(channels[0]);
@@ -577,6 +578,10 @@ describe('ChannelService', () => {
 
   it('should watch for new message events', async () => {
     await init();
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
     const prevCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
@@ -979,6 +984,7 @@ describe('ChannelService', () => {
 
   it('should add the new channel to the top of the list, and start watching it, if user is added to a channel', fakeAsync(async () => {
     await init();
+    flush();
     const newChannel = generateMockChannels()[0];
     newChannel.cid = 'newchannel';
     newChannel.id = 'newchannel';
@@ -1018,6 +1024,7 @@ describe('ChannelService', () => {
       event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
     tick();
+    flush();
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
     const firstChannel = channels[0];
@@ -1047,6 +1054,7 @@ describe('ChannelService', () => {
       event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
     });
     tick();
+    flush();
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
@@ -2205,6 +2213,7 @@ describe('ChannelService', () => {
 
   it('should relaod active channel if active channel is not present after state reconnect', fakeAsync(async () => {
     await init();
+    flush();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     let channels!: Channel<DefaultStreamChatGenerics>[];
@@ -2214,6 +2223,7 @@ describe('ChannelService', () => {
     mockChatClient.queryChannels.and.resolveTo(channels);
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     tick();
+    flush();
     const spy = jasmine.createSpy();
     service.activeChannel$.subscribe(spy);
 
@@ -2239,6 +2249,7 @@ describe('ChannelService', () => {
     activeChannel.state.messages.push(newMessage);
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     tick();
+    flush();
 
     expect(spy).not.toHaveBeenCalled();
     expect(service.deselectActiveChannel).not.toHaveBeenCalled();
@@ -2537,5 +2548,77 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(activeChannel);
 
     expect(activeChannel.markRead).toHaveBeenCalledWith();
+  });
+
+  it('should throttle mark read API calls', async () => {
+    await init();
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
+
+    const activeChannel = service.activeChannel!;
+    spyOn(activeChannel, 'markRead');
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throttle mark read API calls - channel change', async () => {
+    await init();
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
+
+    const activeChannel = service.activeChannel!;
+    spyOn(activeChannel, 'markRead');
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    service.setAsActiveChannel(service.channels[1]);
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throttle mark read API calls - reset', async () => {
+    await init();
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
+
+    const activeChannel = service.activeChannel!;
+    spyOn(activeChannel, 'markRead');
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(1);
+
+    service.reset();
+
+    expect(activeChannel.markRead).toHaveBeenCalledTimes(2);
   });
 });

@@ -409,6 +409,9 @@ export class ChannelService<
   private dismissErrorNotification?: Function;
   private nextPageConfiguration?: NextPageConfiguration;
   private areReadEventsPaused = false;
+  private markReadThrottleTime = 1050;
+  private markReadTimeout?: ReturnType<typeof setTimeout>;
+  private scheduledMarkReadRequest?: () => void;
 
   constructor(
     private chatClientService: ChatClientService<T>,
@@ -549,6 +552,7 @@ export class ChannelService<
       return;
     }
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
+    this.flushMarkReadQueue();
     this.areReadEventsPaused = false;
     const readState =
       channel.state.read[this.chatClientService.chatClient.user?.id || ''];
@@ -581,6 +585,7 @@ export class ChannelService<
       return;
     }
     this.stopWatchForActiveChannelEvents(activeChannel);
+    this.flushMarkReadQueue();
     this.activeChannelMessagesSubject.next([]);
     this.activeChannelSubject.next(undefined);
     this.activeParentMessageIdSubject.next(undefined);
@@ -2188,14 +2193,41 @@ export class ChannelService<
     this.usersTypingInThreadSubject.next([]);
   }
 
-  private markRead(channel: Channel<T>) {
+  private markRead(channel: Channel<T>, isThrottled = true) {
     if (
       this.canSendReadEvents &&
       this.shouldMarkActiveChannelAsRead &&
-      !this.areReadEventsPaused
+      !this.areReadEventsPaused &&
+      channel.countUnread() > 0
     ) {
-      void channel.markRead();
+      if (isThrottled) {
+        this.markReadThrottled(channel);
+      } else {
+        void channel.markRead();
+      }
     }
+  }
+
+  private markReadThrottled(channel: Channel<T>) {
+    if (!this.markReadTimeout) {
+      this.markRead(channel, false);
+      this.markReadTimeout = setTimeout(() => {
+        this.flushMarkReadQueue();
+      }, this.markReadThrottleTime);
+    } else {
+      clearTimeout(this.markReadTimeout);
+      this.scheduledMarkReadRequest = () => this.markRead(channel, false);
+      this.markReadTimeout = setTimeout(() => {
+        this.flushMarkReadQueue();
+      }, this.markReadThrottleTime);
+    }
+  }
+
+  private flushMarkReadQueue() {
+    this.scheduledMarkReadRequest?.();
+    this.scheduledMarkReadRequest = undefined;
+    clearTimeout(this.markReadTimeout);
+    this.markReadTimeout = undefined;
   }
 
   private setNextPageConfiguration(channelQueryResult: Channel<T>[]) {
