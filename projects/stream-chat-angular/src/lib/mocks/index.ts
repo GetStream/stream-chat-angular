@@ -98,7 +98,7 @@ export const generateMockChannels = (length = 25) => {
       sendAction: () => {},
       deleteImage: () => {},
       deleteFile: () => {},
-      countUnread: () => {},
+      countUnread: () => 3,
       markRead: () => {},
       getReplies: () => {},
       keystroke: () => {},

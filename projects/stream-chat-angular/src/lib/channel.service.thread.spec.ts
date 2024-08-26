@@ -1,4 +1,4 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { first } from 'rxjs/operators';
 import {
@@ -235,6 +235,7 @@ describe('ChannelService - threads', () => {
     spy.calls.reset();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
     tick();
+    flush();
 
     expect(spy).toHaveBeenCalledWith(undefined);
   }));
@@ -314,6 +315,10 @@ describe('ChannelService - threads', () => {
 
   it('should watch for new message events', async () => {
     await init();
+    // wait for mark read throttle time
+    await new Promise((resolve) => {
+      setTimeout(resolve, service['markReadThrottleTime']);
+    });
     const spy = jasmine.createSpy();
     const parentMessage = mockMessage();
     await service.setAsActiveParentMessage(parentMessage);
