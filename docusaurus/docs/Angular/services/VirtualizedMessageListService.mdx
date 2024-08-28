@@ -1,0 +1,81 @@
+# VirtualizedMessageListService
+
+The `VirtualizedMessageListService` removes messages from the message list that are currently not in view
+
+## Hierarchy
+
+- [`VirtualizedListService`](VirtualizedListService.md)<`StreamMessage`\>
+
+  ↳ **`VirtualizedMessageListService`**
+
+## Properties
+
+### queryState$
+
+• **queryState$**: `Observable`\<`VirtualizedListQueryState`\>
+
+The result of the last query used to load more items
+
+#### Inherited from
+
+[VirtualizedListService](VirtualizedListService.md).[queryState$](VirtualizedListService.md#querystate$)
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:46](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L46)
+
+---
+
+### virtualizedItems$
+
+• **virtualizedItems$**: `Observable`\<`StreamMessage`\<`DefaultStreamChatGenerics`\>[]\>
+
+The items that should be currently displayed, a subset of all items
+
+#### Inherited from
+
+[VirtualizedListService](VirtualizedListService.md).[virtualizedItems$](VirtualizedListService.md#virtualizeditems$)
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:42](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L42)
+
+## Accessors
+
+### virtualizedItems
+
+• `get` **virtualizedItems**(): `T`[]
+
+The current value of virtualized items
+
+#### Returns
+
+`T`[]
+
+#### Inherited from
+
+VirtualizedListService.virtualizedItems
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:355](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L355)
+
+## Methods
+
+### dispose
+
+▸ **dispose**(): `void`
+
+Remove all subscriptions, call this once you're done using an instance of this service
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[VirtualizedListService](VirtualizedListService.md).[dispose](VirtualizedListService.md#dispose)
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:362](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L362)

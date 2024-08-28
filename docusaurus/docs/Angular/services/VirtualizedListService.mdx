@@ -1,0 +1,85 @@
+# VirtualizedListService
+
+The `VirtualizedListService` removes items from a list that are not currently displayed. This is a high-level overview of how it works:
+
+- Create a new instance for each list that needs virtualization
+- Input: Provide a reactive stream that emits all items in the list
+- Input: Provide a reactive stream that emit the current scroll position (top, middle or bottom)
+- Input: maximum number of items that are allowed in the list (in practice the service can make the virtualized list half this number, you should take this into account when choosing the value)
+- Output: The service will emit the current list of displayed items via the virtualized items reactive stream
+- For simplicity, the service won't track the height of the items, nor it needs an exact scroll location -> this is how removing items work:
+  - If scroll location is bottom/top items around the current bottom/top item will be emitted in the virtualized items stream
+  - If scroll location is middle, the service won't remove items, if new items are received, those will be appended to the virtualized list (this means that in theory the list can grow very big if a lot of new items are received while the user is scrolled somewhere, this is a trade-off for the simplicity of no height tracking)
+  - Since there is no height tracking, you should make sure to provide a maximum number that is big enough to fill the biggest expected screen size twice
+- If the user scrolls to the bottom/top and there are no more local items to show, the service will trigger a query to load more items
+  - Input: you should provide the page size to use, in order for the service to determine if loading is necessary
+
+The `VirtualizedMessageListService` provides an implementation for the message list component.
+
+## Type parameters
+
+| Name |
+| :--- |
+| `T`  |
+
+## Hierarchy
+
+- **`VirtualizedListService`**
+
+  ↳ [`VirtualizedMessageListService`](VirtualizedMessageListService.md)
+
+## Properties
+
+### queryState$
+
+• **queryState$**: `Observable`\<`VirtualizedListQueryState`\>
+
+The result of the last query used to load more items
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:46](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L46)
+
+---
+
+### virtualizedItems$
+
+• **virtualizedItems$**: `Observable`\<`T`[]\>
+
+The items that should be currently displayed, a subset of all items
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:42](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L42)
+
+## Accessors
+
+### virtualizedItems
+
+• `get` **virtualizedItems**(): `T`[]
+
+The current value of virtualized items
+
+#### Returns
+
+`T`[]
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:355](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L355)
+
+## Methods
+
+### dispose
+
+▸ **dispose**(): `void`
+
+Remove all subscriptions, call this once you're done using an instance of this service
+
+#### Returns
+
+`void`
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/virtualized-list.service.ts:362](https://github.com/GetStream/stream-chat-angular/blob/8773d66dd38e3f3372796065f6859cb7c27e2a23/projects/stream-chat-angular/src/lib/virtualized-list.service.ts#L362)
