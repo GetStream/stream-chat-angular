@@ -579,6 +579,7 @@ export class ChannelService<
     ) {
       this.activeChannelLastReadMessageId = undefined;
     }
+    this.skipOwnMessagesForLastReadMessageId(channel);
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
@@ -1576,6 +1577,7 @@ export class ChannelService<
             if (this.activeChannelUnreadCount === 0) {
               this.activeChannelLastReadMessageId = undefined;
             }
+            this.skipOwnMessagesForLastReadMessageId(this.activeChannel);
             this.activeChannelSubject.next(this.activeChannel);
           });
         })
@@ -2288,6 +2290,33 @@ export class ChannelService<
           'error'
         );
       throw error;
+    }
+  }
+
+  private skipOwnMessagesForLastReadMessageId(channel: Channel<T> | undefined) {
+    if (!channel) {
+      return;
+    }
+    if (this.activeChannelLastReadMessageId) {
+      const lastReadMessageIdIndex = channel.state.latestMessages.findIndex(
+        (m) => m.id === this.activeChannelLastReadMessageId
+      );
+      if (lastReadMessageIdIndex !== -1) {
+        for (
+          let i = lastReadMessageIdIndex + 1;
+          i < channel.state.latestMessages.length;
+          i++
+        ) {
+          const message = channel.state.latestMessages[i];
+          if (
+            message.user?.id === this.chatClientService?.chatClient?.user?.id
+          ) {
+            this.activeChannelLastReadMessageId = message.id;
+          } else {
+            break;
+          }
+        }
+      }
     }
   }
 }
