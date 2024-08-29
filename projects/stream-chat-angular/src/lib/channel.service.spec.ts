@@ -2365,22 +2365,6 @@ describe('ChannelService', () => {
     expect(service.activeChannelUnreadCount).toBe(0);
   });
 
-  it(`should set last read message id to undefined if unread count is 0`, () => {
-    const activeChannel = generateMockChannels()[0];
-    activeChannel.id = 'next-active-channel';
-    activeChannel.state.read[user.id] = {
-      last_read: new Date(),
-      last_read_message_id: 'last-read-message-id',
-      unread_messages: 0,
-      user: user,
-    };
-
-    service.setAsActiveChannel(activeChannel);
-
-    expect(service.activeChannelLastReadMessageId).toBe(undefined);
-    expect(service.activeChannelUnreadCount).toBe(0);
-  });
-
   it('should be able to select empty channel as active channel', () => {
     const channel = generateMockChannels()[0];
     channel.id = 'new-empty-channel';
@@ -2585,18 +2569,6 @@ describe('ChannelService', () => {
 
     expect(service.activeChannelLastReadMessageId).toBe('last-read-message');
     expect(service.activeChannelUnreadCount).toBe(12);
-
-    events$.next({
-      eventType: 'notification.mark_unread',
-      event: {
-        channel_id: service.activeChannel?.id,
-        unread_messages: 0,
-        last_read_message_id: 'last-read-message',
-      } as Event<DefaultStreamChatGenerics>,
-    });
-
-    expect(service.activeChannelLastReadMessageId).toBe(undefined);
-    expect(service.activeChannelUnreadCount).toBe(0);
   });
 
   it('should halt marking the channel as read if an unread call was made in that session', async () => {

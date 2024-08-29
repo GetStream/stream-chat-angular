@@ -571,14 +571,13 @@ export class ChannelService<
     const readState =
       channel.state.read[this.chatClientService.chatClient.user?.id || ''];
     this.activeChannelLastReadMessageId = readState?.last_read_message_id;
-    this.activeChannelUnreadCount = readState?.unread_messages || 0;
     if (
       channel.state.latestMessages[channel.state.latestMessages.length - 1]
-        ?.id === this.activeChannelLastReadMessageId ||
-      this.activeChannelUnreadCount === 0
+        ?.id === this.activeChannelLastReadMessageId
     ) {
       this.activeChannelLastReadMessageId = undefined;
     }
+    this.activeChannelUnreadCount = readState?.unread_messages || 0;
     this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
@@ -1573,9 +1572,6 @@ export class ChannelService<
           this.ngZone.run(() => {
             this.activeChannelLastReadMessageId = e.last_read_message_id;
             this.activeChannelUnreadCount = e.unread_messages;
-            if (this.activeChannelUnreadCount === 0) {
-              this.activeChannelLastReadMessageId = undefined;
-            }
             this.activeChannelSubject.next(this.activeChannel);
           });
         })
