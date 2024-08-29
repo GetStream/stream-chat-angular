@@ -2197,8 +2197,7 @@ export class ChannelService<
     if (
       this.canSendReadEvents &&
       this.shouldMarkActiveChannelAsRead &&
-      !this.areReadEventsPaused &&
-      channel.countUnread() > 0
+      !this.areReadEventsPaused
     ) {
       if (isThrottled) {
         this.markReadThrottled(channel);
