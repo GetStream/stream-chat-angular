@@ -28,6 +28,7 @@ import { debounceTime } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
+import { ThemeService } from '../../theme.service';
 
 /**
  * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
