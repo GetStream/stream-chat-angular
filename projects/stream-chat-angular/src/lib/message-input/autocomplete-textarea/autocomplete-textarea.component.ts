@@ -133,7 +133,6 @@ export class AutocompleteTextareaComponent
     private transliterationService: TransliterationService,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
-    private themeService: ThemeService,
     private cdRef: ChangeDetectorRef
   ) {
     this.searchTerm$.pipe(debounceTime(300)).subscribe((searchTerm) => {
@@ -200,7 +199,7 @@ export class AutocompleteTextareaComponent
     }
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
-      this.chatClientService.chatClient.logger(
+      this.chatClientService?.chatClient?.logger?.(
         'info',
         '[Autocomplete textarea] Value reset, adjusting textarea height to auto'
       );
@@ -211,7 +210,7 @@ export class AutocompleteTextareaComponent
       this.messageInput &&
       this.isViewInited
     ) {
-      this.chatClientService.chatClient.logger(
+      this.chatClientService?.chatClient?.logger?.(
         'info',
         '[Autocomplete textarea] Value changed'
       );
@@ -225,7 +224,7 @@ export class AutocompleteTextareaComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    this.chatClientService.chatClient.logger(
+    this.chatClientService?.chatClient?.logger?.(
       'info',
       '[Autocomplete textarea] View inited'
     );
@@ -263,7 +262,7 @@ export class AutocompleteTextareaComponent
 
   inputChanged() {
     this.valueChange.emit(this.messageInput.nativeElement.value);
-    this.chatClientService.chatClient.logger(
+    this.chatClientService?.chatClient?.logger?.(
       'info',
       '[Autocomplete textarea] Input changed'
     );
@@ -285,12 +284,12 @@ export class AutocompleteTextareaComponent
   private adjustTextareaHeight() {
     const necessaryHeight = `${this.messageInput.nativeElement.scrollHeight}px`;
     if (this.messageInput.nativeElement.style.height === necessaryHeight) {
-      this.chatClientService.chatClient.logger(
+      this.chatClientService?.chatClient?.logger?.(
         'info',
         `[Autocomplete textarea] No need to adjust textarea height`
       );
     } else {
-      this.chatClientService.chatClient.logger(
+      this.chatClientService?.chatClient?.logger?.(
         'info',
         `[Autocomplete textarea] Adjusting textarea height to ${necessaryHeight}`
       );
