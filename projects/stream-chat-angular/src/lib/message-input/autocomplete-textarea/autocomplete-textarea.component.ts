@@ -200,6 +200,10 @@ export class AutocompleteTextareaComponent
     }
     if (changes.value && !this.value && this.messageInput) {
       this.messageInput.nativeElement.style.height = 'auto';
+      this.chatClientService?.chatClient?.logger?.(
+        'info',
+        '[Autocomplete textarea] Value reset, adjusting textarea height to auto'
+      );
       this.updateMentionedUsersFromText();
     } else if (
       changes.value &&
@@ -207,6 +211,10 @@ export class AutocompleteTextareaComponent
       this.messageInput &&
       this.isViewInited
     ) {
+      this.chatClientService?.chatClient?.logger?.(
+        'info',
+        '[Autocomplete textarea] Value changed'
+      );
       setTimeout(() => {
         if (this.messageInput.nativeElement.scrollHeight > 0) {
           this.adjustTextareaHeight();
@@ -217,6 +225,10 @@ export class AutocompleteTextareaComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
+    this.chatClientService?.chatClient?.logger?.(
+      'info',
+      '[Autocomplete textarea] View inited'
+    );
     if (this.messageInput.nativeElement.scrollHeight > 0) {
       this.adjustTextareaHeight();
     }
@@ -250,6 +262,10 @@ export class AutocompleteTextareaComponent
   }
 
   inputChanged() {
+    this.chatClientService?.chatClient?.logger?.(
+      'info',
+      '[Autocomplete textarea] Input changed'
+    );
     this.valueChange.emit(this.messageInput.nativeElement.value);
     this.adjustTextareaHeight();
   }
@@ -267,6 +283,10 @@ export class AutocompleteTextareaComponent
   }
 
   private adjustTextareaHeight() {
+    this.chatClientService?.chatClient?.logger?.(
+      'info',
+      `[Autocomplete textarea] Textarea height set from ${this.messageInput.nativeElement.style.height} to ${this.messageInput.nativeElement.scrollHeight}px`
+    );
     this.messageInput.nativeElement.style.height = '';
     this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
   }
