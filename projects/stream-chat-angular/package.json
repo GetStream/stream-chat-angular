@@ -8,6 +8,14 @@
     "type": "git",
     "url": "https://github.com/GetStream/stream-chat-angular.git"
   },
+  "exports": {
+    "./src/assets/styles/scss/index.scss": {
+      "style": "./src/assets/styles/scss/index.scss"
+    },
+    "./src/assets/styles/css/index.css": {
+      "style": "./src/assets/styles/css/index.css"
+    }
+  },
   "peerDependencies": {
     "@angular/common": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0",
     "@angular/core": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0",
