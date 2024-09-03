@@ -130,6 +130,14 @@ In case you run into an SCSS issue related to icons, you should extend the style
 @import "stream-chat-angular/src/assets/styles/scss/index.scss";
 ```
 
+If Angular can't find the stylesheet, you should include `node_modules` in your `angular.json` in the `build.options` section:
+
+```
+"stylePreprocessorOptions": {
+  "includePaths": ["./node_modules"]
+}
+```
+
 No futher action is required for customers who were already using theme-v2.
 
 Customers who used to use theme-v1 now need to use theme-v2. Updating from theme-v1 to theme-v2 will require to rewrite your custom CSS code as the new theme has a new variable system, and all the components were restructured. To help you get started please refer our [theming guide](../theming/introduction.mdx).
