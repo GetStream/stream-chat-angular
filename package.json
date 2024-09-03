@@ -48,11 +48,7 @@
     "branches": [
       "master",
       {
-        "name": "beta",
-        "prerelease": true
-      },
-      {
-        "name": "v5",
+        "name": "5.x.x-beta",
         "prerelease": true,
         "channel": "beta"
       }

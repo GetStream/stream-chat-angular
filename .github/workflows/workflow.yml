@@ -3,13 +3,11 @@ on:
   push:
     branches:
       - master
-      - beta
-      - v5
+      - 5.x.x-beta
   pull_request:
     branches:
       - master
-      - beta
-      - v5
+      - 5.x.x-beta
 jobs:
   workflow:
     runs-on: ubuntu-latest
