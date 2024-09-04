@@ -94,7 +94,7 @@ export class TextareaComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    if (this.messageInput.nativeElement.scrollHeight > 0) {
+    if (this.messageInput.nativeElement.scrollHeight > 0 && this.value) {
       this.adjustTextareaHeight();
     }
   }
