@@ -1,6 +1,6 @@
 {
   "name": "stream-chat-angular",
-  "version": "5.1.6",
+  "version": "5.1.7-5.x.x-beta.2",
   "description": "Angular components to create chat conversations or livestream style chat",
   "author": "GetStream",
   "homepage": "https://getstream.io/chat/",
@@ -8,20 +8,28 @@
     "type": "git",
     "url": "https://github.com/GetStream/stream-chat-angular.git"
   },
+  "exports": {
+    "./src/assets/styles/scss/index.scss": {
+      "style": "./src/assets/styles/scss/index.scss"
+    },
+    "./src/assets/styles/css/index.css": {
+      "style": "./src/assets/styles/css/index.css"
+    }
+  },
   "peerDependencies": {
     "@angular/common": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0",
     "@angular/core": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0",
-    "@floating-ui/dom": "^1.6.3",
     "@ngx-translate/core": "^14.0.0 || ^15.0.0",
-    "angular-mentions": "^1.4.0",
-    "ngx-float-ui": "^15.0.0|| ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.1-rc.0",
     "rxjs": "^7.4.0",
     "stream-chat": "^8.26.0"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.6.3",
     "@stream-io/transliterate": "^1.5.2",
+    "angular-mentions": "^1.4.0",
     "dayjs": "^1.11.10",
     "emoji-regex": "^10.3.0",
+    "ngx-float-ui": "^15.0.0|| ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.1-rc.0",
     "pretty-bytes": "^6.1.1",
     "tslib": "^2.3.0",
     "uuid": "^9.0.1"

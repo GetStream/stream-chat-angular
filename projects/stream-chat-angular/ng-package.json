@@ -10,6 +10,9 @@
     "@stream-io/transliterate",
     "uuid",
     "pretty-bytes",
-    "emoji-regex"
+    "emoji-regex",
+    "@floating-ui/dom",
+    "angular-mentions",
+    "ngx-float-ui"
   ]
 }
