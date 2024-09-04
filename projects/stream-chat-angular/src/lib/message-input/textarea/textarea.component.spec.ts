@@ -163,7 +163,7 @@ describe('TextareaComponent', () => {
 
   it('should set initial height of the textarea based on value received', () => {
     const textarea = queryTextarea();
-    textarea!.value = 'This is my \n multiline message';
+    component.value = 'This is my \n multiline message';
     component.ngAfterViewInit();
     fixture.detectChanges();
 
