@@ -125,6 +125,24 @@ describe('AutocompleteTextareaComponent', () => {
     expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
+  it(`should emit #send if enter is hit and #inputMode is desktop, but isComposing is true`, () => {
+    const spy = jasmine.createSpy();
+    component.send.subscribe(spy);
+    const textarea = queryTextarea();
+    const message = 'This is my message';
+    textarea!.value = message;
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      isComposing: true,
+    });
+    spyOn(event, 'preventDefault');
+    textarea?.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalledWith();
+    expect(event.preventDefault).not.toHaveBeenCalledWith();
+  });
+
   it(`shouldn't emit #send if enter is hit and #inputMode is mobile`, () => {
     component.inputMode = 'mobile';
     const spy = jasmine.createSpy();

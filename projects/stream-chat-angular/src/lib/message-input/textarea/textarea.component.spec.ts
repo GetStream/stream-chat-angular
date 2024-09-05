@@ -166,4 +166,20 @@ describe('TextareaComponent', () => {
 
     expect(height).toBeGreaterThan(0);
   });
+
+  it(`shouldn't emit #send if enter is hit and #inputMode is mobile`, () => {
+    component.inputMode = 'mobile';
+    const spy = jasmine.createSpy();
+    component.send.subscribe(spy);
+    const textarea = queryTextarea();
+    const message = 'This is my message';
+    textarea!.value = message;
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+    spyOn(event, 'preventDefault');
+    textarea?.dispatchEvent(event);
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
 });
