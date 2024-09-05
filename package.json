@@ -49,7 +49,10 @@
   "release": {
     "branches": [
       "master",
-      "4.x.x",
+      {
+        "name": "4.x.x",
+        "prerelease": true
+      },
       {
         "name": "beta",
         "prerelease": true
