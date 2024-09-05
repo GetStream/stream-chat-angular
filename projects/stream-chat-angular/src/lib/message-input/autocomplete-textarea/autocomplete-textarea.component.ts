@@ -254,7 +254,7 @@ export class AutocompleteTextareaComponent
   }
 
   enterHit(event: Event) {
-    if (this.inputMode === 'desktop') {
+    if (this.inputMode === 'desktop' && !(event as KeyboardEvent).isComposing) {
       event.preventDefault();
       this.updateMentionedUsersFromText();
       this.send.next();
