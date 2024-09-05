@@ -109,7 +109,7 @@ export class TextareaComponent
   }
 
   enterHit(event: Event) {
-    if (this.inputMode === 'desktop') {
+    if (this.inputMode === 'desktop' && !(event as KeyboardEvent).isComposing) {
       event.preventDefault();
       this.send.next();
     }
