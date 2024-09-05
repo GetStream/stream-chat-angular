@@ -42,7 +42,7 @@
           (unreadCount === 1
             ? "streamChat.\{\{count\}\} unread message"
             : "streamChat.\{\{count\}\} unread messages"
-          ) | translate: { count: unreadCount }
+          ) | translate : { count: unreadCount }
         }}
       </ng-container>
       <ng-template #noUnreadCount>
@@ -198,9 +198,9 @@
             {{
               users.length === 1
                 ? ("streamChat.user is typing"
-                  | translate: { user: getTypingIndicatorText(users) })
+                  | translate : { user: getTypingIndicatorText(users) })
                 : ("streamChat.users are typing"
-                  | translate: { users: getTypingIndicatorText(users) })
+                  | translate : { users: getTypingIndicatorText(users) })
             }}
           </div>
         </div>
@@ -218,11 +218,7 @@
   <button
     *ngIf="isUserScrolled && isJumpToLatestButtonVisible"
     data-testid="scroll-to-latest"
-    class="
-      str-chat__message-notification-scroll-to-latest
-      str-chat__message-notification-scroll-to-latest-right
-      str-chat__circle-fab
-    "
+    class="str-chat__message-notification-scroll-to-latest str-chat__message-notification-scroll-to-latest-right str-chat__circle-fab"
     (keyup.enter)="jumpToLatestMessage()"
     (click)="jumpToLatestMessage()"
   >
@@ -232,11 +228,7 @@
     ></stream-icon>
     <div
       *ngIf="newMessageCountWhileBeingScrolled > 0"
-      class="
-        str-chat__message-notification
-        str-chat__message-notification-scroll-to-latest-unread-count
-        str-chat__jump-to-latest-unread-count
-      "
+      class="str-chat__message-notification str-chat__message-notification-scroll-to-latest-unread-count str-chat__jump-to-latest-unread-count"
     >
       {{ newMessageCountWhileBeingScrolled }}
     </div>
@@ -329,7 +321,7 @@
         (unreadCount === 1
           ? "streamChat.\{\{count\}\} unread message"
           : "streamChat.\{\{count\}\} unread messages"
-        ) | translate: { count: unreadCount }
+        ) | translate : { count: unreadCount }
       }}
     </ng-container>
     <ng-template #noUnreadCount>

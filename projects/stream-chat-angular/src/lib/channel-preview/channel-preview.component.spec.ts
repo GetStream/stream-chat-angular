@@ -307,7 +307,7 @@ describe('ChannelPreviewComponent', () => {
       component.channel = channel;
       fixture.detectChanges();
       const deletedMessage = mockMessage();
-      deletedMessage.deleted_at = new Date().toISOString();
+      deletedMessage.deleted_at = new Date();
       channel.state.latestMessages[channel.state.latestMessages.length - 1] =
         deletedMessage;
       channel.handleEvent('message.updated', { message: deletedMessage });

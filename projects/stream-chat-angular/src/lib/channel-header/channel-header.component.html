@@ -10,9 +10,7 @@
   <div class="str-chat__header-livestream-left str-chat__channel-header-end">
     <p
       data-testid="name"
-      class="
-        str-chat__header-livestream-left--title str-chat__channel-header-title
-      "
+      class="str-chat__header-livestream-left--title str-chat__channel-header-title"
     >
       {{ displayText }}
     </p>
@@ -25,10 +23,7 @@
     <ng-template #defaultChannelInfo>
       <p
         data-testid="info"
-        class="
-          str-chat__header-livestream-left--members
-          str-chat__channel-header-info
-        "
+        class="str-chat__header-livestream-left--members str-chat__channel-header-info"
       >
         {{'streamChat.{{ memberCount }} members' | translate:memberCountParam}}
         {{canReceiveConnectEvents ? ('streamChat.{{ watcherCount }} online' |

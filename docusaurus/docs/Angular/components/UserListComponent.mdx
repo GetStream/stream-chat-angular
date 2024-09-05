@@ -1,0 +1,21 @@
+The `UserListComponent` can display a list of Stream users with pagination. This can be useful if you want to build a user list in your application.
+
+## Usage
+
+The user list component relies on data provided by the parent component:
+
+```html
+<stream-user-list
+  [users]="<list of users to display>"
+  [isLoading]="<set to true to display loading indicator>"
+  [hasMore]="<whether or not the list has more pages to retrieve>"
+  (loadMore)="<use this output to fetch the next page of users>"
+></stream-user-list>
+```
+
+## Customization
+
+The component is built on top of the [`PaginatedListComponent`](../../components/PaginatedListComponent.mdx), you can use that component to build your own user list component.
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

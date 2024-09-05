@@ -21,7 +21,7 @@
     "@angular/core": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0",
     "@ngx-translate/core": "^14.0.0 || ^15.0.0",
     "rxjs": "^7.4.0",
-    "stream-chat": "^8.26.0"
+    "stream-chat": "^8.29.0"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.6.3",

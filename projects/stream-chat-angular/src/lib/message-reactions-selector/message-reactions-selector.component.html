@@ -1,11 +1,7 @@
 <div
   #selectorContainer
   data-testid="reaction-selector"
-  class="
-    str-chat__reaction-selector
-    str-chat-angular-v5__reaction-selector
-    str-chat__message-reaction-selector
-  "
+  class="str-chat__reaction-selector str-chat-angular-v5__reaction-selector str-chat__message-reaction-selector"
 >
   <ul
     class="str-chat__message-reactions-list str-chat__message-reactions-options"
@@ -15,11 +11,7 @@
         let reactionType of reactionOptions;
         trackBy: trackByMessageReaction
       "
-      class="
-        str-chat__message-reactions-option
-        str-chat__message-reactions-list-item
-        str-chat__emoji
-      "
+      class="str-chat__message-reactions-option str-chat__message-reactions-list-item str-chat__emoji"
       data-testclass="emoji-option"
       [attr.data-testid]="reactionType"
       [class.str-chat__message-reactions-option-selected]="
@@ -29,11 +21,7 @@
       (keyup.enter)="react(reactionType)"
     >
       <span
-        class="
-          emoji
-          str-chat__emoji-selector-emoji-angular
-          str-chat__message-reaction-emoji
-        "
+        class="emoji str-chat__emoji-selector-emoji-angular str-chat__message-reaction-emoji"
       >
         {{ getEmojiByReaction(reactionType) }}
       </span>

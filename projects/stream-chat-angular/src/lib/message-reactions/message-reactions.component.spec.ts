@@ -4,16 +4,19 @@ import {
   TestBed,
   tick,
 } from '@angular/core/testing';
-import { ReactionResponse } from 'stream-chat';
+import { QueryReactionsAPIResponse, ReactionResponse } from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { MessageReactionsComponent } from './message-reactions.component';
-import { ChannelService } from '../channel.service';
 import { SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { MessageReactionsService } from '../message-reactions.service';
 import { ModalComponent } from '../modal/modal.component';
 import { BehaviorSubject } from 'rxjs';
+import { UserListComponent } from '../user-list/user-list.component';
+import { PaginatedListComponent } from '../paginated-list/paginated-list.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { By } from '@angular/platform-browser';
 
 describe('MessageReactionsComponent', () => {
   let component: MessageReactionsComponent;
@@ -21,14 +24,15 @@ describe('MessageReactionsComponent', () => {
   let nativeElement: HTMLElement;
   let queryReactionList: () => HTMLElement | null;
   let queryEmojis: () => HTMLElement[];
-  let queryReactionsCount: () => HTMLElement | null;
   let queryReactionCountsFromReactionList: () => HTMLElement[];
-  const channelServiceMock = {
-    getMessageReactions: () => Promise.resolve([] as ReactionResponse[]),
-  };
   const reactionsServiceMock = {
     reactions$: new BehaviorSubject({}),
     reactions: {},
+    queryReactions: (_: string, __: string, ___?: string) =>
+      Promise.resolve({
+        reactions: [],
+        next: undefined,
+      } as unknown as QueryReactionsAPIResponse),
   };
 
   beforeEach(async () => {
@@ -49,11 +53,13 @@ describe('MessageReactionsComponent', () => {
         AvatarComponent,
         AvatarPlaceholderComponent,
         ModalComponent,
+        UserListComponent,
+        PaginatedListComponent,
       ],
       providers: [
-        { provide: ChannelService, useValue: channelServiceMock },
         { provide: MessageReactionsService, useValue: reactionsServiceMock },
       ],
+      imports: [TranslateModule.forRoot()],
     }).compileComponents();
   });
 
@@ -68,8 +74,6 @@ describe('MessageReactionsComponent', () => {
       nativeElement.querySelector('[data-testid="reaction-list"]');
     queryEmojis = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="emoji"]'));
-    queryReactionsCount = () =>
-      nativeElement.querySelector('[data-testid="reactions-count"]');
     fixture.detectChanges();
     queryReactionCountsFromReactionList = () =>
       Array.from(
@@ -79,7 +83,7 @@ describe('MessageReactionsComponent', () => {
       );
   });
 
-  it('should display message reactions', () => {
+  it('should display message reactions - deprecated', () => {
     component.messageReactionCounts = {
       angry: 1,
       haha: 2,
@@ -97,32 +101,16 @@ describe('MessageReactionsComponent', () => {
     expect(reactionCounts[2].textContent).toContain('1');
   });
 
-  it('should display total count', () => {
-    component.messageReactionCounts = {
-      haha: 1,
-      love: 2,
-      wow: 1,
-      sad: 3,
-    };
-    component.ngOnChanges({
-      messageReactionCounts: {} as SimpleChange,
-    });
-    fixture.detectChanges();
-
-    expect(queryReactionsCount()?.textContent?.replace(/ /g, '')).toBe('7');
-  });
-
   it(`shouldn't display bubble, if there are no reactions`, () => {
     expect(queryReactionList()).toBeNull();
   });
 
-  it('should display reaction details', fakeAsync(() => {
+  it('should display reaction details - deprecated', fakeAsync(() => {
     component.messageReactionCounts = {
       wow: 3,
       sad: 2,
     };
     component.messageId = 'id';
-    component.latestReactions = [];
     component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -131,10 +119,11 @@ describe('MessageReactionsComponent', () => {
       { type: 'wow', user: { id: 'benid', name: 'Ben' } },
       { type: 'wow', user: { id: 'jackid' } },
       { type: 'wow' },
-      { type: 'sad', user: { id: 'jim' } },
-      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
     ] as ReactionResponse[];
-    spyOn(channelServiceMock, 'getMessageReactions').and.resolveTo(reactions);
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
+      reactions,
+      next: undefined,
+    } as unknown as QueryReactionsAPIResponse);
 
     const wowEmoji = queryEmojis()[0];
     wowEmoji.click();
@@ -152,36 +141,60 @@ describe('MessageReactionsComponent', () => {
     tick();
     fixture.detectChanges();
 
-    let users = nativeElement.querySelectorAll(
-      '[data-testclass="reaction-user-username"]'
-    );
+    let userListComponent = fixture.debugElement.query(
+      By.css('[data-testid="wow-user-list"]')
+    ).componentInstance as UserListComponent;
 
-    expect(users.length).toBe(3);
-    expect(users[0].textContent).toBe('Ben');
-    expect(users[1].textContent).toBe('Sara');
-    expect(users[2].textContent).toBe('');
+    expect(userListComponent.users.length).toBe(3);
 
+    spy.and.resolveTo({
+      reactions: [
+        { type: 'sad', user: { id: 'jim' } },
+        { type: 'sad', user: { id: 'ben', name: 'Ben' } },
+      ],
+      next: undefined,
+    } as unknown as QueryReactionsAPIResponse);
     nativeElement
       .querySelector<HTMLDivElement>(
         '[data-testid="reaction-details-selector-sad"]'
       )
       ?.click();
+    tick();
     fixture.detectChanges();
-    users = nativeElement.querySelectorAll(
-      '[data-testclass="reaction-user-username"]'
-    );
+    userListComponent = fixture.debugElement.query(
+      By.css('[data-testid="sad-user-list"]')
+    ).componentInstance as UserListComponent;
 
-    expect(users.length).toBe(2);
+    expect(userListComponent.users.length).toBe(2);
   }));
 
-  it(`shouldn't display reaction details if there are more than 1200 reactions`, () => {
-    component.messageReactionCounts = {
-      wow: 3,
-      sad: 1198,
+  it('should query reactions with proper parameters', async () => {
+    component.messageId = 'my-message';
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
+      reactions: [],
+      next: 'next-page',
+    } as unknown as QueryReactionsAPIResponse);
+
+    await component.reactionSelected('wow');
+
+    expect(spy).toHaveBeenCalledWith('my-message', 'wow', undefined);
+
+    spy.calls.reset();
+
+    await component.loadNextPageOfReactions();
+
+    expect(spy).toHaveBeenCalledWith('my-message', 'wow', 'next-page');
+  });
+
+  it('should bind pagination params to user list', fakeAsync(() => {
+    component.messageId = 'messageId';
+    component.messageReactionGroups = {
+      wow: {
+        count: 4,
+        sum_scores: 4,
+      },
     };
-    component.messageId = 'id';
-    component.latestReactions = [];
-    component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
+    component.ngOnChanges({ messageReactionGroups: {} as SimpleChange });
     fixture.detectChanges();
 
     const reactions = [
@@ -189,16 +202,34 @@ describe('MessageReactionsComponent', () => {
       { type: 'wow', user: { id: 'benid', name: 'Ben' } },
       { type: 'wow', user: { id: 'jackid' } },
       { type: 'wow' },
-      { type: 'sad', user: { id: 'jim' } },
-      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
     ] as ReactionResponse[];
-    spyOn(channelServiceMock, 'getMessageReactions').and.resolveTo(reactions);
+    spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
+      reactions: reactions,
+      next: 'next-page',
+    } as unknown as QueryReactionsAPIResponse);
 
-    const wowEmoji = queryEmojis()[0];
-    wowEmoji.click();
+    void component.reactionSelected('wow');
+    fixture.detectChanges();
 
-    expect(component.selectedReactionType).toBe(undefined);
-  });
+    const userListComponent = fixture.debugElement.query(
+      By.css('[data-testid="wow-user-list"]')
+    ).componentInstance as UserListComponent;
+
+    expect(userListComponent.isLoading).toBeTrue();
+    expect(userListComponent.hasMore).toBeFalse();
+    expect(userListComponent.users).toEqual([]);
+
+    tick();
+    fixture.detectChanges();
+
+    expect(userListComponent.isLoading).toBeFalse();
+    expect(userListComponent.hasMore).toBeTrue();
+    expect(userListComponent.users).toEqual([
+      { id: 'saraid', name: 'Sara' },
+      { id: 'benid', name: 'Ben' },
+      { id: 'jackid' },
+    ]);
+  }));
 
   it(`should call custom reaction details handler if that's provided`, () => {
     const messageReactionsService = TestBed.inject(MessageReactionsService);
@@ -209,7 +240,6 @@ describe('MessageReactionsComponent', () => {
       sad: 2,
     };
     component.messageId = 'id';
-    component.latestReactions = [];
     component.ngOnChanges({ messageReactionCounts: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -228,15 +258,13 @@ describe('MessageReactionsComponent', () => {
       sad: 2,
     };
     component.messageId = 'id';
-    component.latestReactions = [];
     component.ngOnChanges({
       messageId: {} as SimpleChange,
       messageReactionCounts: {} as SimpleChange,
-      latestReactions: {} as SimpleChange,
     });
     fixture.detectChanges();
 
-    spyOn(channelServiceMock, 'getMessageReactions').and.rejectWith(
+    spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
       new Error('Failed to get reactions')
     );
 
@@ -252,13 +280,6 @@ describe('MessageReactionsComponent', () => {
       wow: 3,
       sad: 2,
     };
-    component.latestReactions = [
-      { type: 'wow', user: { id: 'saraid', name: 'Sara' } },
-      { type: 'wow', user: { id: 'jackid' } },
-      { type: 'wow' },
-      { type: 'sad', user: { id: 'jim' } },
-      { type: 'sad', user: { id: 'ben', name: 'Ben' } },
-    ] as ReactionResponse[];
     component.ownReactions = [
       { type: 'wow', user: { id: 'jackid' } },
     ] as ReactionResponse[];
@@ -292,5 +313,130 @@ describe('MessageReactionsComponent', () => {
     expect(queryEmojis().length).toBe(2);
     expect(reactionCounts[0].textContent).toContain('1');
     expect(reactionCounts[1].textContent).toContain('2');
+  });
+
+  it('should display and order message reactions', () => {
+    component.messageReactionGroups = {
+      love: {
+        count: 12,
+        sum_scores: 12,
+        first_reaction_at: '2024-09-05T13:17:05.138248Z',
+        last_reaction_at: '2024-09-05T13:17:11.454912Z',
+      },
+      sad: {
+        count: 10,
+        sum_scores: 10,
+        first_reaction_at: '2024-09-05T13:17:05.673605Z',
+        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+      },
+      wow: {
+        count: 20,
+        sum_scores: 20,
+        first_reaction_at: '2024-09-05T13:17:05.059252Z',
+        last_reaction_at: '2024-09-05T13:17:13.066055Z',
+      },
+      haha: {
+        count: 9,
+        sum_scores: 9,
+        first_reaction_at: '2024-09-05T13:17:05.522053Z',
+        last_reaction_at: '2024-09-05T13:17:10.87445Z',
+      },
+      like: {
+        count: 7,
+        sum_scores: 7,
+        first_reaction_at: '2024-09-05T13:17:04.977203Z',
+        last_reaction_at: '2024-09-05T13:17:14.856949Z',
+      },
+    };
+    component.ngOnChanges({
+      messageReactionGroups: {} as SimpleChange,
+    });
+    fixture.detectChanges();
+    const reactionCounts = queryReactionCountsFromReactionList();
+
+    expect(component.existingReactions).toEqual([
+      'like',
+      'wow',
+      'love',
+      'haha',
+      'sad',
+    ]);
+
+    expect(queryEmojis().length).toBe(5);
+    expect(reactionCounts[0].textContent).toContain('7');
+    expect(reactionCounts[1].textContent).toContain('20');
+    expect(reactionCounts[2].textContent).toContain('12');
+    expect(reactionCounts[3].textContent).toContain('9');
+    expect(reactionCounts[4].textContent).toContain('10');
+
+    component.messageReactionGroups = {
+      ...component.messageReactionGroups,
+      sad: {
+        count: 10,
+        sum_scores: 10,
+        first_reaction_at: '2024-09-05T12:17:05.673605Z',
+        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+      },
+    };
+    component.ngOnChanges({ messageReactionGroups: {} as SimpleChange });
+
+    expect(component.existingReactions).toEqual([
+      'sad',
+      'like',
+      'wow',
+      'love',
+      'haha',
+    ]);
+  });
+
+  it('#messageReactionGroups should have a higher priority than #messageReactionCounts', () => {
+    component.messageReactionGroups = {
+      love: {
+        count: 12,
+        sum_scores: 12,
+        first_reaction_at: '2024-09-05T13:17:05.138248Z',
+        last_reaction_at: '2024-09-05T13:17:11.454912Z',
+      },
+      sad: {
+        count: 10,
+        sum_scores: 10,
+        first_reaction_at: '2024-09-05T13:17:05.673605Z',
+        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+      },
+      wow: {
+        count: 20,
+        sum_scores: 20,
+        first_reaction_at: '2024-09-05T13:17:05.059252Z',
+        last_reaction_at: '2024-09-05T13:17:13.066055Z',
+      },
+      haha: {
+        count: 9,
+        sum_scores: 9,
+        first_reaction_at: '2024-09-05T13:17:05.522053Z',
+        last_reaction_at: '2024-09-05T13:17:10.87445Z',
+      },
+      like: {
+        count: 7,
+        sum_scores: 7,
+        first_reaction_at: '2024-09-05T13:17:04.977203Z',
+        last_reaction_at: '2024-09-05T13:17:14.856949Z',
+      },
+    };
+    component.messageReactionCounts = {
+      love: 13,
+      haha: 9,
+    };
+    component.ngOnChanges({
+      messageReactionGroups: {} as SimpleChange,
+      messageReactionCounts: {} as SimpleChange,
+    });
+
+    expect(component.existingReactions).toEqual([
+      'like',
+      'wow',
+      'love',
+      'haha',
+      'sad',
+    ]);
   });
 });

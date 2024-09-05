@@ -40,9 +40,7 @@
 
     <ng-container *ngIf="isError; else state">
       <div
-        class="
-          str-chat__message-attachment__voice-recording-widget__error-message
-        "
+        class="str-chat__message-attachment__voice-recording-widget__error-message"
       >
         <stream-icon-placeholder icon="error"></stream-icon-placeholder>
         <span data-testid="error-message">{{
@@ -52,9 +50,7 @@
     </ng-container>
     <ng-template #state>
       <div
-        class="
-          str-chat__message-attachment__voice-recording-widget__audio-state
-        "
+        class="str-chat__message-attachment__voice-recording-widget__audio-state"
       >
         <div
           class="str-chat__message-attachment__voice-recording-widget__timer"
@@ -96,7 +92,7 @@
       data-testid="playback-rate-button"
       (click)="setPlaybackRate()"
     >
-      {{ audioElement?.playbackRate | number: "1.1-1" }}x
+      {{ audioElement?.playbackRate | number : "1.1-1" }}x
     </button>
     <ng-template #fileIcon>
       <stream-icon-placeholder

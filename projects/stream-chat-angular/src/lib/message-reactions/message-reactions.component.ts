@@ -10,8 +10,11 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { ReactionResponse, UserResponse } from 'stream-chat';
-import { ChannelService } from '../channel.service';
+import {
+  ReactionGroupResponse,
+  ReactionResponse,
+  UserResponse,
+} from 'stream-chat';
 import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -34,10 +37,18 @@ export class MessageReactionsComponent
   /**
    * The number of reactions grouped by [reaction types](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-reactions/message-reactions.component.ts)
    */
+  @Input() messageReactionGroups:
+    | { [key: string]: ReactionGroupResponse }
+    | undefined = undefined;
+  /**
+   * The number of reactions grouped by [reaction types](https://github.com/GetStream/stream-chat-angular/tree/master/projects/stream-chat-angular/src/lib/message-reactions/message-reactions.component.ts)
+   * @deprecated use `messageReactionGroups`
+   */
   @Input() messageReactionCounts: { [key in MessageReactionType]?: number } =
     {};
   /**
    * List of reactions of a [message](../types/stream-message.mdx), used to display the users of a reaction type.
+   * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
   @Input() latestReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
   /**
@@ -52,14 +63,15 @@ export class MessageReactionsComponent
   reactions: ReactionResponse[] = [];
   shouldHandleReactionClick = true;
   existingReactions: string[] = [];
-  reactionsCount: number = 0;
   reactionOptions: string[] = [];
+  usersByReactions: {
+    [key: string]: { users: UserResponse[]; next?: string };
+  } = {};
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
 
   constructor(
     private cdRef: ChangeDetectorRef,
-    private channelService: ChannelService,
     private messageReactionsService: MessageReactionsService,
     public customTemplatesService: CustomTemplatesService
   ) {}
@@ -77,17 +89,19 @@ export class MessageReactionsComponent
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.messageReactionCounts) {
+    if (changes.messageReactionCounts || changes.messageReactionGroups) {
+      if (this.messageReactionCounts && !this.messageReactionGroups) {
+        this.messageReactionGroups = {};
+        Object.keys(this.messageReactionCounts).forEach((k) => {
+          this.messageReactionGroups![k] = {
+            count: this.messageReactionCounts?.[k] ?? 0,
+            sum_scores: this.messageReactionCounts?.[k] ?? 0,
+            first_reaction_at: undefined,
+            last_reaction_at: undefined,
+          };
+        });
+      }
       this.setExistingReactions();
-    }
-    if (changes.messageReactionCounts && this.messageReactionCounts) {
-      const reactionsCount = Object.keys(this.messageReactionCounts).reduce(
-        (acc, key) => acc + (this.messageReactionCounts[key] || 0),
-        0
-      );
-      this.shouldHandleReactionClick =
-        reactionsCount <= ChannelService.MAX_MESSAGE_REACTIONS_TO_FETCH ||
-        !!this.messageReactionsService.customReactionClickHandler;
     }
   }
 
@@ -103,10 +117,7 @@ export class MessageReactionsComponent
     return this.messageReactionsService.reactions[reactionType];
   }
 
-  reactionSelected(reactionType: string) {
-    if (!this.shouldHandleReactionClick) {
-      return;
-    }
+  async reactionSelected(reactionType: string) {
     if (!this.messageId) {
       return;
     }
@@ -117,62 +128,46 @@ export class MessageReactionsComponent
       });
     } else {
       this.selectedReactionType = reactionType;
-      void this.fetchAllReactions();
+      if (!this.usersByReactions[this.selectedReactionType]) {
+        this.usersByReactions[this.selectedReactionType] = {
+          users: [],
+        };
+        await this.loadNextPageOfReactions();
+      }
     }
   }
 
-  getUsersByReaction(reactionType: MessageReactionType) {
-    return this.latestReactions
-      .filter((r) => r.type === reactionType)
-      .map((r) => r.user?.name || r.user?.id)
-      .filter((i) => !!i)
-      .join(', ');
-  }
-
-  getAllUsersByReaction(
-    reactionType?: MessageReactionType
-  ): UserResponse<DefaultStreamChatGenerics>[] {
-    if (!reactionType) {
-      return [];
+  async loadNextPageOfReactions() {
+    if (!this.messageId || !this.selectedReactionType) {
+      return;
     }
 
-    const users = this.reactions
-      .filter((r) => r.type === reactionType)
-      .map((r) => r.user)
-      .filter((i) => !!i) as UserResponse[];
-
-    users.sort((u1, u2) => {
-      const name1 = u1.name?.toLowerCase();
-      const name2 = u2.name?.toLowerCase();
-
-      if (!name1) {
-        return 1;
-      }
-
-      if (!name2) {
-        return -1;
-      }
-
-      if (name1 === name2) {
-        return 0;
-      }
-
-      if (name1 < name2) {
-        return -1;
-      } else {
-        return 1;
-      }
-    });
-
-    return users;
+    this.isLoading = true;
+    try {
+      const response = await this.messageReactionsService.queryReactions(
+        this.messageId,
+        this.selectedReactionType,
+        this.usersByReactions[this.selectedReactionType].next
+      );
+      this.usersByReactions[this.selectedReactionType].users = [
+        ...this.usersByReactions[this.selectedReactionType].users,
+        ...(response.reactions
+          .map((r) => r.user)
+          .filter((u) => !!u) as UserResponse[]),
+      ];
+      this.usersByReactions[this.selectedReactionType].next = response.next;
+    } catch (_) {
+      this.selectedReactionType = undefined;
+    } finally {
+      this.isLoading = false;
+    }
+    if (this.isViewInited) {
+      this.cdRef.detectChanges();
+    }
   }
 
   trackByMessageReaction(_: number, item: MessageReactionType) {
     return item;
-  }
-
-  trackByUserId(_: number, item: UserResponse) {
-    return item.id;
   }
 
   isOwnReaction(reactionType: MessageReactionType) {
@@ -181,32 +176,24 @@ export class MessageReactionsComponent
 
   isOpenChange = (isOpen: boolean) => {
     this.selectedReactionType = isOpen ? this.selectedReactionType : undefined;
+    if (!isOpen) {
+      this.usersByReactions = {};
+    }
   };
 
-  private async fetchAllReactions() {
-    if (!this.messageId) {
-      return;
-    }
-    this.isLoading = true;
-    try {
-      this.reactions = await this.channelService.getMessageReactions(
-        this.messageId
-      );
-    } catch (error) {
-      this.selectedReactionType = undefined;
-    } finally {
-      this.isLoading = false;
-      this.cdRef.detectChanges();
-    }
-  }
-
   private setExistingReactions() {
-    this.existingReactions = Object.keys(this.messageReactionCounts)
+    this.existingReactions = Object.keys(this.messageReactionGroups ?? {})
       .filter((k) => this.reactionOptions.indexOf(k) !== -1)
-      .filter((k) => this.messageReactionCounts[k]! > 0);
-    this.reactionsCount = this.existingReactions.reduce(
-      (total, reaction) => total + this.messageReactionCounts[reaction]!,
-      0
-    );
+      .filter((k) => this.messageReactionGroups![k].count > 0)
+      .sort((r1, r2) => {
+        const date1 = this.messageReactionGroups![r1].first_reaction_at
+          ? new Date(this.messageReactionGroups![r1].first_reaction_at!)
+          : new Date();
+        const date2 = this.messageReactionGroups![r2].first_reaction_at
+          ? new Date(this.messageReactionGroups![r2].first_reaction_at!)
+          : new Date();
+
+        return date1.getTime() - date2.getTime();
+      });
   }
 }

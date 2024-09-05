@@ -672,7 +672,7 @@ describe('ChannelService', () => {
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const message =
       activeChannel.state.messages[activeChannel.state.messages.length - 1];
-    message.deleted_at = new Date().toISOString();
+    message.deleted_at = new Date();
     (activeChannel as MockChannel).handleEvent('message.deleted', { message });
 
     expect(spy).toHaveBeenCalledWith(jasmine.arrayContaining([message]));
@@ -2153,7 +2153,13 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      { limit: 20, state: true, presence: true, watch: true, message_limit: 25 }
+      {
+        limit: 20,
+        state: true,
+        presence: true,
+        watch: true,
+        message_limit: 25,
+      }
     );
   });
 

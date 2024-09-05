@@ -65,3 +65,5 @@ export * from './lib/message-reactions-selector/message-reactions-selector.compo
 export * from './lib/channel-query';
 export * from './lib/virtualized-list.service';
 export * from './lib/virtualized-message-list.service';
+export * from './lib/user-list/user-list.component';
+export * from './lib/paginated-list/paginated-list.component';

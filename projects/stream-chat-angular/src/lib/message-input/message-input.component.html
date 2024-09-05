@@ -27,10 +27,7 @@
   </div>
   <ng-container *ngIf="canSendMessages; else notAllowed">
     <div
-      class="
-        str-chat__message-input-inner
-        str-chat-angular__message-input-inner
-      "
+      class="str-chat__message-input-inner str-chat-angular__message-input-inner"
     >
       <ng-container
         *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
@@ -69,10 +66,7 @@
         >
           <stream-avatar-placeholder
             data-testid="qouted-message-avatar"
-            class="
-              str-chat-angular__avatar-host
-              str-chat__message-sender-avatar
-            "
+            class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
             type="user"
             location="quoted-message-sender"
             [imageUrl]="quotedMessage.user?.image"
@@ -80,10 +74,7 @@
             [user]="quotedMessage.user || undefined"
           ></stream-avatar-placeholder>
           <div
-            class="
-              quoted-message-preview-content-inner
-              str-chat__quoted-message-bubble
-            "
+            class="quoted-message-preview-content-inner str-chat__quoted-message-bubble"
           >
             <stream-attachment-list
               *ngIf="

@@ -228,8 +228,8 @@ export class MessageComponent
       this.hasAttachment =
         !!this.message?.attachments && !!this.message.attachments.length;
       this.hasReactions =
-        !!this.message?.reaction_counts &&
-        Object.keys(this.message.reaction_counts).length > 0;
+        !!this.message?.reaction_groups &&
+        Object.keys(this.message.reaction_groups).length > 0;
       this.replyCountParam = { replyCount: this.message?.reply_count };
     }
     if (changes.enabledMessageActions) {
@@ -383,6 +383,7 @@ export class MessageComponent
       latestReactions: this.message?.latest_reactions || [],
       messageId: this.message?.id,
       ownReactions: this.message?.own_reactions || [],
+      messageReactionGroups: this.message?.reaction_groups || {},
     };
   }
 

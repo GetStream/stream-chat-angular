@@ -397,7 +397,7 @@ describe('ChannelService - threads', () => {
       messages: [messageToDelete],
     } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
     await service.setAsActiveParentMessage(parentMessage);
-    messageToDelete.deleted_at = new Date().toISOString();
+    messageToDelete.deleted_at = new Date();
     activeChannel.state.threads = { [parentMessage.id]: [messageToDelete] };
     (activeChannel as MockChannel).handleEvent('message.deleted', {
       message: messageToDelete,

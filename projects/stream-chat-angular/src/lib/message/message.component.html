@@ -41,11 +41,7 @@
           <div
             #messageActionsToggle
             data-testid="message-actions-container"
-            class="
-              str-chat__message-actions-container
-              str-chat__message-simple__actions__action
-              str-chat__message-simple__actions__action--options
-            "
+            class="str-chat__message-actions-container str-chat__message-simple__actions__action str-chat__message-simple__actions__action--options"
             [floatUiLoose]="messageMenuFloat"
             [looseTrigger]="
               messageActionsService.customActionClickHandler ? 'none' : 'click'
@@ -80,12 +76,14 @@
             let-latestReactions="latestReactions"
             let-messageId="messageId"
             let-ownReactions="ownReactions"
+            let-messageReactionGroups="messageReactionGroups"
           >
             <stream-message-reactions
               [messageReactionCounts]="messageReactionCounts"
               [latestReactions]="latestReactions"
               [messageId]="messageId"
               [ownReactions]="ownReactions"
+              [messageReactionGroups]="messageReactionGroups"
             ></stream-message-reactions>
           </ng-template>
           <ng-container
@@ -165,9 +163,7 @@
           >
             <div
               data-testid="inner-message"
-              class="
-                str-chat__message-text-inner str-chat__message-simple-text-inner
-              "
+              class="str-chat__message-text-inner str-chat__message-simple-text-inner"
               [class.str-chat__message-light-text-inner--has-attachment]="
                 hasAttachment
               "
@@ -181,10 +177,7 @@
               <div
                 *ngIf="message?.type === 'error'"
                 data-testid="client-error-message"
-                class="
-                  str-chat__simple-message--error-message
-                  str-chat__message--error-message
-                "
+                class="str-chat__simple-message--error-message str-chat__message--error-message"
               >
                 <ng-container *ngIf="!message?.moderation_details">{{
                   "streamChat.Error · Unsent" | translate
@@ -193,10 +186,7 @@
               <div
                 *ngIf="message?.status === 'failed'"
                 data-testid="error-message"
-                class="
-                  str-chat__simple-message--error-message
-                  str-chat__message--error-message
-                "
+                class="str-chat__simple-message--error-message str-chat__message--error-message"
               >
                 {{
                   (message?.errorStatusCode === 403
@@ -400,11 +390,7 @@
       </div>
     </ng-container>
     <div
-      class="
-        str-chat__message-data
-        str-chat__message-simple-data
-        str-chat__message-metadata
-      "
+      class="str-chat__message-data str-chat__message-simple-data str-chat__message-metadata"
     >
       <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
 
@@ -482,11 +468,7 @@
     <ng-template #defaultDeliveredStatus>
       <span
         *ngIf="mode === 'main'"
-        class="
-          str-chat__message-simple-status
-          str-chat__message-simple-status-angular
-          str-chat__message-status
-        "
+        class="str-chat__message-simple-status str-chat__message-simple-status-angular str-chat__message-status"
         data-testid="delivered-indicator"
         tabindex="0"
         [floatUiLoose]="floatingContent"
@@ -519,11 +501,7 @@
     </ng-template>
     <ng-template #defaultSendingStatus>
       <span
-        class="
-          str-chat__message-simple-status
-          str-chat__message-simple-status-angular
-          str-chat__message-status
-        "
+        class="str-chat__message-simple-status str-chat__message-simple-status-angular str-chat__message-status"
         data-testid="sending-indicator"
         tabindex="0"
         [floatUiLoose]="floatingContent"
@@ -555,11 +533,7 @@
     </ng-template>
     <ng-template #defaultReadStatus let-readByText="readByText">
       <span
-        class="
-          str-chat__message-simple-status
-          str-chat__message-simple-status-angular
-          str-chat__message-status
-        "
+        class="str-chat__message-simple-status str-chat__message-simple-status-angular str-chat__message-status"
         data-testid="read-indicator"
         tabindex="0"
         [floatUiLoose]="floatingContent"
@@ -586,10 +560,7 @@
 
 <ng-template #replyCountButton>
   <div
-    class="
-      str-chat__message-simple-reply-button
-      str-chat__message-replies-count-button-wrapper
-    "
+    class="str-chat__message-simple-reply-button str-chat__message-replies-count-button-wrapper"
   >
     <button
       *ngIf="shouldDisplayThreadLink"

@@ -1636,6 +1636,7 @@ export class ChannelService<
 
   /**
    * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript#paginating-reactions).
+   * @deprecated use [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions) instead
    * @param messageId
    * @returns all reactions of a message
    */
@@ -1768,6 +1769,7 @@ export class ChannelService<
       message.reaction_scores = { ...e.message?.reaction_scores };
       message.latest_reactions = [...(e.message?.latest_reactions || [])];
       message.own_reactions = [...(e.message?.own_reactions || [])];
+      message.reaction_groups = { ...e.message?.reaction_groups };
 
       messages[messageIndex] = { ...message };
       isThreadMessage
