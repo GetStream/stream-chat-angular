@@ -3,6 +3,7 @@ import {
   Component,
   TemplateRef,
   ViewChild,
+  ViewContainerRef,
 } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -14,6 +15,7 @@ import {
   CustomTemplatesService,
   ThemeService,
   AvatarContext,
+  AttachmentService,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 import names from 'starwars-names';
@@ -32,6 +34,8 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
   theme$: Observable<string>;
   counter = 0;
+  @ViewChild('input', { read: ViewContainerRef })
+  inputRef?: ViewContainerRef;
 
   constructor(
     private chatService: ChatClientService,
@@ -75,6 +79,8 @@ export class AppComponent implements AfterViewInit {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
     );
+    const attachmentService = this.inputRef?.injector.get(AttachmentService);
+    console.log(attachmentService);
   }
 
   closeMenu() {
