@@ -78,13 +78,13 @@ export class AppComponent implements AfterViewInit {
   }
 
   closeMenu() {
-    let isChannelQuieryInProgress = false;
+    let isChannelQueryInProgress = false;
     this.channelService.channelQueryState$.pipe(take(1)).subscribe((state) => {
       if (state?.state === 'in-progress') {
-        isChannelQuieryInProgress = true;
+        isChannelQueryInProgress = true;
       }
     });
-    if (!isChannelQuieryInProgress) {
+    if (!isChannelQueryInProgress) {
       this.isMenuOpen = false;
     }
   }
