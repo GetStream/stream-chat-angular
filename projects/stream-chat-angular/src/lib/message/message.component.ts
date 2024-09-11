@@ -601,6 +601,14 @@ export class MessageComponent
           return;
         } else {
           this.shouldPreventMessageMenuClose = !options.fromTouch;
+          // Fix for iOS Safari: iOS Safari won't close the input if we open message menu
+          // The virtual keyboard can hide parts of the message menu, so we close the input here
+          if (
+            document.activeElement &&
+            typeof (document.activeElement as HTMLInputElement).blur !==
+              'undefined'
+          )
+            (document.activeElement as HTMLInputElement).blur();
           this.messageMenuTrigger?.show();
         }
         if (this.isViewInited) {
