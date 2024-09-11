@@ -5,7 +5,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import {
   ChatClientService,
   ChannelService,
@@ -78,6 +78,14 @@ export class AppComponent implements AfterViewInit {
   }
 
   closeMenu() {
-    this.isMenuOpen = false;
+    let isChannelQuieryInProgress = false;
+    this.channelService.channelQueryState$.pipe(take(1)).subscribe((state) => {
+      if (state?.state === 'in-progress') {
+        isChannelQuieryInProgress = true;
+      }
+    });
+    if (!isChannelQuieryInProgress) {
+      this.isMenuOpen = false;
+    }
   }
 }
