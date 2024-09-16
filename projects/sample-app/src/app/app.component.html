@@ -3,9 +3,9 @@
     class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }} thread-{{
       isThreadOpen ? 'open' : 'close'
     }}"
-    (click)="closeMenu()"
+    (click)="closeMenu($event)"
   ></stream-channel-list>
-  <stream-channel class="channel" (click)="closeMenu()">
+  <stream-channel class="channel" (click)="closeMenu($event)">
     <stream-channel-header>
       <button
         class="menu-button"
