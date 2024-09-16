@@ -163,14 +163,12 @@
 
 <ng-template
   #messageReactionsTemplate
-  let-messageReactionCounts="messageReactionCounts"
-  let-latestReactions="latestReactions"
+  let-messageReactionGroups="messageReactionGroups"
   let-messageId="messageId"
   let-ownReactions="ownReactions"
 >
   <stream-message-reactions
-    [messageReactionCounts]="messageReactionCounts"
-    [latestReactions]="latestReactions"
+    [messageReactionGroups]="messageReactionGroups"
     [messageId]="messageId"
     [ownReactions]="ownReactions"
   ></stream-message-reactions>

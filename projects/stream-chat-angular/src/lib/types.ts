@@ -12,6 +12,7 @@ import type {
   LiteralStringForUnion,
   MessageResponseBase,
   Mute,
+  ReactionGroupResponse,
   ReactionResponse,
   User,
   UserResponse,
@@ -202,6 +203,9 @@ export type AvatarLocation =
   | 'quoted-message-sender'
   | 'autocomplete-item'
   | 'typing-indicator'
+  /**
+   * @deprecated this will be renamed to user-list in the next major release
+   */
   | 'reaction';
 
 export type AvatarContext = {
@@ -306,9 +310,14 @@ export type MessageReactionsSelectorContext = {
 
 export type MessageReactionsContext = {
   messageId: string | undefined;
+  /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
+  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript&q=queryReactions#query-reactions) */
   latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+  messageReactionGroups: {
+    [key in MessageReactionType]: ReactionGroupResponse;
+  };
 };
 
 export type ModalContext = {

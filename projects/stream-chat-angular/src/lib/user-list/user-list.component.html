@@ -1,0 +1,24 @@
+<stream-paginated-list
+  [items]="users"
+  [hasMore]="hasMore"
+  (loadMore)="loadMore.emit()"
+  [isLoading]="isLoading"
+  [trackBy]="trackByUserId"
+>
+  <ng-template let-user="item">
+    <div class="str-chat__user-list-item">
+      <stream-avatar-placeholder
+        data-testclass="avatar"
+        class="str-chat__avatar str-chat__avatar--circle"
+        type="user"
+        location="reaction"
+        [imageUrl]="user.image"
+        [name]="user.name"
+        [user]="user"
+      ></stream-avatar-placeholder>
+      <span data-testclass="username" class="str-chat__user-item--name">{{
+        user.name
+      }}</span>
+    </div>
+  </ng-template>
+</stream-paginated-list>

@@ -12,7 +12,7 @@
         *ngIf="notification.text !== undefined"
         data-testclass="notification-content"
       >
-        {{ notification.text | translate: notification.translateParams }}
+        {{ notification.text | translate : notification.translateParams }}
       </div>
       <ng-container *ngIf="notification.template !== undefined">
         <ng-container

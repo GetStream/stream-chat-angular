@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { MessageReactionClickDetails, MessageReactionType } from './types';
 import { BehaviorSubject } from 'rxjs';
+import { ChatClientService } from './chat-client.service';
+import { NotificationService } from './notification.service';
 
 /**
  * The `MessageReactionsService` provides customization options to message [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript).
@@ -25,11 +27,14 @@ export class MessageReactionsService {
   /**
    * By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
    *
-   * The event handler can retrieve all reactions of a message inside the active channel using the [`channelService.getMessageReactions` method](../../services/ChannelService/#getmessagereactions)
+   * The event handler can retrieve all reactions of a message using the [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
   customReactionClickHandler?: (details: MessageReactionClickDetails) => void;
 
-  constructor() {}
+  constructor(
+    private chatClientService: ChatClientService,
+    private notificationService: NotificationService
+  ) {}
 
   /**
    * Sets the enabled reactions
@@ -43,5 +48,36 @@ export class MessageReactionsService {
    */
   get reactions() {
     return this.reactions$.getValue();
+  }
+
+  /**
+   * Query reactions of a specific message, more info in the [API documentation](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript#query-reactions)
+   * @param messageId
+   * @param type
+   * @param next
+   * @returns the reactions and the cursor for the next/prev pages
+   */
+  async queryReactions(messageId: string, type: string, next?: string) {
+    if (!this.chatClientService.chatClient) {
+      throw new Error(
+        'Intialize the ChatClientService before querying reactions'
+      );
+    } else {
+      try {
+        const response = await this.chatClientService.chatClient.queryReactions(
+          messageId,
+          { type },
+          { created_at: -1 },
+          { next }
+        );
+
+        return response;
+      } catch (error) {
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Error loading reactions'
+        );
+        throw error;
+      }
+    }
   }
 }

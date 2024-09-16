@@ -99,7 +99,9 @@ export class ChatClientService<
     apiKey: string,
     userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
     userTokenOrProvider: TokenOrProvider,
-    clientOptions?: StreamChatOptions & { trackPendingChannelInvites?: boolean }
+    clientOptions?: StreamChatOptions & {
+      trackPendingChannelInvites?: boolean;
+    }
   ): ConnectAPIResponse<T> {
     if (this.chatClient && this.chatClient.key !== apiKey) {
       this.appSettingsSubject.next(undefined);

@@ -2,6 +2,6 @@
   <div class="message">{{ message?.text }}</div>
   <div class="sender-info">
     {{ message?.user?.name || message?.user?.id }} |
-    {{ message?.created_at | date: "long" }}
+    {{ message?.created_at | date : "long" }}
   </div>
 </div>

@@ -163,7 +163,7 @@ describe('MessageComponent', () => {
   it('should apply the correct CSS classes based on #message', () => {
     component.message = {
       ...component.message,
-      ...{ reaction_counts: { wow: 1 } },
+      ...{ reaction_groups: { wow: { count: 1, sum_scores: 1 } } },
     } as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -187,7 +187,7 @@ describe('MessageComponent', () => {
     ).toBeFalse();
 
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
-    component.message.reaction_counts = {};
+    component.message.reaction_groups = {};
     component.message.reply_count = 3;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -717,7 +717,7 @@ describe('MessageComponent', () => {
   it('should display deleted message placeholder', () => {
     expect(queryDeletedMessageContainer()).toBeNull();
 
-    component.message = { ...message, deleted_at: new Date().toISOString() };
+    component.message = { ...message, deleted_at: new Date() };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 

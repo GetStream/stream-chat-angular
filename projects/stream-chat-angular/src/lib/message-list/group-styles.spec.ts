@@ -78,7 +78,7 @@ describe('getGroupStyles', () => {
   });
 
   it('should handle deleted messages', () => {
-    messages[2].deleted_at = new Date().toISOString();
+    messages[2].deleted_at = new Date();
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
       'bottom'
@@ -118,7 +118,9 @@ describe('getGroupStyles', () => {
     const lastReadMessageId = messages[0].id;
 
     expect(
-      getGroupStyles(messages[0], undefined, messages[1], { lastReadMessageId })
+      getGroupStyles(messages[0], undefined, messages[1], {
+        lastReadMessageId,
+      })
     ).toBe('single');
 
     expect(

@@ -27,6 +27,8 @@ import { VoiceRecordingWavebarComponent } from './voice-recording/voice-recordin
 import { NgxFloatUiModule } from 'ngx-float-ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { MessageReactionsSelectorComponent } from './message-reactions-selector/message-reactions-selector.component';
+import { PaginatedListComponent } from './paginated-list/paginated-list.component';
+import { UserListComponent } from './user-list/user-list.component';
 
 @NgModule({
   declarations: [
@@ -54,6 +56,8 @@ import { MessageReactionsSelectorComponent } from './message-reactions-selector/
     VoiceRecordingComponent,
     VoiceRecordingWavebarComponent,
     MessageReactionsSelectorComponent,
+    UserListComponent,
+    PaginatedListComponent,
   ],
   imports: [
     CommonModule,
@@ -86,6 +90,8 @@ import { MessageReactionsSelectorComponent } from './message-reactions-selector/
     VoiceRecordingComponent,
     VoiceRecordingWavebarComponent,
     MessageReactionsSelectorComponent,
+    UserListComponent,
+    PaginatedListComponent,
   ],
 })
 export class StreamChatModule {}

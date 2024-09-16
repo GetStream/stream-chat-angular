@@ -1,0 +1,27 @@
+The `PaginatedListComponent` can display a list of arbitrary data with support for loading indicator and pagination. This is a utility component, you don't need to use it unless you're building a custom component.
+
+## Usage
+
+The paginated list component relies on data provided by the parent component. You can provide the HTML template for the list items.
+
+```html
+<stream-paginated-list
+  [items]="<list of items to display>"
+  [isLoading]="<set to true to display loading indicator>"
+  [hasMore]="<whether or not the list has more pages to retrieve>"
+  (loadMore)="<use this output to fetch the next page of items>"
+>
+    <ng-template let-item="item" let-index="index"
+        ><div data-testid="test-item" [style.height]="height">
+          {{ index }}. {{ item }}
+        </div></ng-template
+    >
+</stream-user-list>
+```
+
+## Customization
+
+You can provide the HTML template for the list items, see above example.
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"
