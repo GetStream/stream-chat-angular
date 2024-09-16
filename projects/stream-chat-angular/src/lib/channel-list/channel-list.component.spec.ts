@@ -12,6 +12,8 @@ import {
 import { ThemeService } from '../theme.service';
 import { ChannelListComponent } from './channel-list.component';
 import { Subject, of } from 'rxjs';
+import { PaginatedListComponent } from '../paginated-list/paginated-list.component';
+import { Channel } from 'stream-chat';
 
 describe('ChannelListComponent', () => {
   let channelServiceMock: MockChannelService;
@@ -21,14 +23,17 @@ describe('ChannelListComponent', () => {
   let queryChannels: () => ChannelPreviewComponent[];
   let queryChatdownContainer: () => HTMLElement | null;
   let queryLoadingIndicator: () => HTMLElement | null;
-  let queryLoadMoreButton: () => HTMLElement | null;
   let queryEmptyIndicator: () => HTMLElement | null;
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
-      declarations: [ChannelListComponent, ChannelPreviewComponent],
+      declarations: [
+        ChannelListComponent,
+        ChannelPreviewComponent,
+        PaginatedListComponent,
+      ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },
         {
@@ -51,9 +56,9 @@ describe('ChannelListComponent', () => {
     queryChatdownContainer = () =>
       nativeElement.querySelector('[data-testid="chatdown-container"]');
     queryLoadingIndicator = () =>
-      nativeElement.querySelector('[data-testid="loading-indicator"]');
-    queryLoadMoreButton = () =>
-      nativeElement.querySelector('[data-testid="load-more"]');
+      nativeElement.querySelector(
+        '[data-testid="loading-indicator-full-size"]'
+      );
     queryEmptyIndicator = () =>
       nativeElement.querySelector(
         '[data-testid="empty-channel-list-indicator"]'
@@ -121,30 +126,38 @@ describe('ChannelListComponent', () => {
     expect(queryEmptyIndicator()).not.toBeNull();
   });
 
-  it('should display load more button', () => {
+  it('should bind #hasMore', () => {
     const channels = generateMockChannels();
     channelServiceMock.channels$.next(channels);
+    fixture.detectChanges();
+    const paginatedListComponent = fixture.debugElement.query(
+      By.directive(PaginatedListComponent)
+    ).componentInstance as PaginatedListComponent<Channel>;
     channelServiceMock.hasMoreChannels$.next(false);
     fixture.detectChanges();
 
-    expect(queryLoadMoreButton()).toBeNull();
+    expect(paginatedListComponent.hasMore).toBeFalse();
 
     channelServiceMock.hasMoreChannels$.next(true);
     fixture.detectChanges();
 
-    expect(queryLoadMoreButton()).not.toBeNull();
+    expect(paginatedListComponent.hasMore).toBeTrue();
   });
 
-  it(`should load more channels, but shouldn't loading indicator`, () => {
+  it(`should load more channels, but shouldn't display full-size loading indicator`, () => {
     const channels = generateMockChannels();
     channelServiceMock.channels$.next(channels);
     channelServiceMock.hasMoreChannels$.next(true);
     spyOn(channelServiceMock, 'loadMoreChannels');
     fixture.detectChanges();
-    queryLoadMoreButton()?.click();
+    const paginatedListComponent = fixture.debugElement.query(
+      By.directive(PaginatedListComponent)
+    ).componentInstance as PaginatedListComponent<Channel>;
+    paginatedListComponent.loadMore.emit();
+    fixture.detectChanges();
 
-    expect(queryLoadingIndicator()).toBeNull();
     expect(channelServiceMock.loadMoreChannels).toHaveBeenCalledWith();
+    expect(queryLoadingIndicator()).toBeNull();
   });
 
   it('should apply dark/light theme', () => {
