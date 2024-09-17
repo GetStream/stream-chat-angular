@@ -20,7 +20,8 @@ export type Icon =
   | 'download'
   | 'error'
   | 'play'
-  | 'pause';
+  | 'pause'
+  | 'mic';
 
 /**
  * The `Icon` component can be used to display different icons (i. e. message delivered icon).

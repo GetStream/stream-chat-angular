@@ -233,7 +233,7 @@ describe('MessageInputComponent', () => {
     expect(spy).not.toHaveBeenCalledWith();
   });
 
-  it(`shouldn't display send button if corresponding input if #displaySendButton`, () => {
+  it(`shouldn't display send button if corresponding input is false`, () => {
     component.displaySendButton = false;
     fixture.detectChanges();
 
@@ -243,6 +243,22 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(querySendButton()).not.toBeNull();
+  });
+
+  it(`shouldn't display voice recording button if corresponding input is false`, () => {
+    component.displayVoiceRecordingButton = false;
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="start-voice-recording"]')
+    ).toBeNull();
+
+    component.displayVoiceRecordingButton = true;
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="start-voice-recording"]')
+    ).not.toBeNull();
   });
 
   it('should emit #messageUpdate event if message update was successful', async () => {

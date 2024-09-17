@@ -100,6 +100,10 @@ export class MessageInputComponent
    */
   @Input() displaySendButton = true;
   /**
+   * You can enable/disable voice recordings with this input
+   */
+  @Input() displayVoiceRecordingButton = false;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{

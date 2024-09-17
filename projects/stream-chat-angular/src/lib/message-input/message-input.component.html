@@ -157,6 +157,13 @@
       >
         {{ cooldown$ | async }}
       </div>
+      <button
+        *ngIf="displayVoiceRecordingButton"
+        class="str-chat__start-recording-audio-button"
+        data-testid="start-voice-recording"
+      >
+        <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
+      </button>
     </div>
   </ng-container>
   <ng-template #notAllowed>
