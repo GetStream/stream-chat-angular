@@ -204,20 +204,14 @@ Lastly, implement auto close behavior for the channel list:
 
 ```html
 <stream-channel-list
-  (click)="closeMenu()"
+  (click)="closeMenu($event)"
   class="channel-list menu-{{ isMenuOpen ? 'open' : 'close' }}"
 ></stream-channel-list>
 ```
 
 ```ts
-closeMenu() {
-  let isChannelQueryInProgress = false;
-  this.channelService.channelQueryState$.pipe(take(1)).subscribe((state) => {
-    if (state?.state === 'in-progress') {
-      isChannelQueryInProgress = true;
-    }
-  });
-  if (!isChannelQueryInProgress) {
+closeMenu(event: Event) {
+  if ((event.target as HTMLElement).closest('stream-channel-preview')) {
     this.isMenuOpen = false;
   }
 }

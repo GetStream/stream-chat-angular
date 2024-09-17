@@ -30,44 +30,29 @@
       >
         {{ "streamChat.You have no channels currently" | translate }}
       </p>
-      <ng-container
-        *ngFor="let channel of channels$ | async; trackBy: trackByChannelId"
+      <stream-paginated-list
+        [items]="(channels$ | async) ?? []"
+        [hasMore]="(hasMoreChannels$ | async) ?? false"
+        [isLoading]="isLoadingMoreChannels"
+        (loadMore)="loadMoreChannels()"
       >
-        <ng-template #defaultTemplate let-channelInput="channel">
-          <stream-channel-preview
-            data-testclass="channel-preview"
-            [channel]="channelInput"
-          ></stream-channel-preview>
+        <ng-template let-channel="item">
+          <ng-template #defaultTemplate let-channelInput="channel">
+            <stream-channel-preview
+              data-testclass="channel-preview"
+              [channel]="channelInput"
+            ></stream-channel-preview>
+          </ng-template>
+          <div>
+            <ng-container
+              *ngTemplateOutlet="
+                customChannelPreviewTemplate || defaultTemplate;
+                context: { channel: channel }
+              "
+            ></ng-container>
+          </div>
         </ng-template>
-        <div>
-          <ng-container
-            *ngTemplateOutlet="
-              customChannelPreviewTemplate || defaultTemplate;
-              context: { channel: channel }
-            "
-          ></ng-container>
-        </div>
-      </ng-container>
-      <div
-        *ngIf="hasMoreChannels$ | async"
-        class="str-chat__load-more-button"
-        data-testid="load-more"
-        (click)="loadMoreChannels()"
-        (keyup.enter)="loadMoreChannels()"
-      >
-        <button
-          class="str-chat__load-more-button__button str-chat__cta-button"
-          data-testid="load-more-button"
-          [disabled]="isLoadingMoreChannels"
-        >
-          <span *ngIf="!isLoadingMoreChannels; else loadingIndicator">{{
-            "Load more" | translate
-          }}</span>
-          <ng-template #loadingIndicator
-            ><stream-loading-indicator-placeholder></stream-loading-indicator-placeholder
-          ></ng-template>
-        </button>
-      </div>
+      </stream-paginated-list>
       <ng-content select="[channel-list-bottom]"></ng-content>
     </div>
   </div>
@@ -89,7 +74,10 @@
 </ng-template>
 
 <ng-template #loadingChannels>
-  <div data-testid="loading-indicator" class="str-chat__loading-channels">
+  <div
+    data-testid="loading-indicator-full-size"
+    class="str-chat__loading-channels"
+  >
     <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
     <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
     <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
