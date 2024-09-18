@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  TemplateRef,
-  ViewChild,
-} from '@angular/core';
+import { Component, OnDestroy, TemplateRef } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
@@ -30,7 +24,6 @@ export class ChannelListComponent implements OnDestroy {
   customChannelPreviewTemplate: TemplateRef<ChannelPreviewContext> | undefined;
   theme$: Observable<string>;
   subscriptions: Subscription[] = [];
-  @ViewChild('container') private container!: ElementRef<HTMLElement>;
 
   constructor(
     private channelService: ChannelService,
