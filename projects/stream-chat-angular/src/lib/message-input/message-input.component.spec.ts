@@ -30,11 +30,12 @@ import {
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
-import { AvatarComponent } from '../avatar/avatar.component';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AttachmentPreviewListComponent } from '../attachment-preview-list/attachment-preview-list.component';
 import { MessageActionsService } from '../message-actions.service';
+import { StreamAvatarModule } from '../stream-avatar.module';
+import { VoiceRecorderService } from './voice-recorder.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -108,18 +109,17 @@ describe('MessageInputComponent', () => {
             provide: textareaInjectionToken,
             useValue: AutocompleteTextareaComponent,
           },
+          VoiceRecorderService,
         ],
       },
     });
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslateModule.forRoot(), StreamAvatarModule],
       declarations: [
         MessageInputComponent,
         TextareaDirective,
         AutocompleteTextareaComponent,
-        AvatarComponent,
         AttachmentListComponent,
-        AvatarPlaceholderComponent,
         AttachmentPreviewListComponent,
       ],
       providers: [

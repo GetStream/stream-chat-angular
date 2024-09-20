@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
-import { isImageFile } from './is-image-file';
+import { createUriFromBlob, isImageFile } from './file-utils';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AppSettings, Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
+import {
+  AttachmentUpload,
+  AudioRecording,
+  DefaultStreamChatGenerics,
+} from './types';
 import { ChatClientService } from './chat-client.service';
 
 /**
@@ -55,6 +59,39 @@ export class AttachmentService<
   }
 
   /**
+   * Upload a voice recording
+   * @param audioRecording
+   * @returns A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
+   */
+  async uploadVoiceRecording(audioRecording: AudioRecording) {
+    if (
+      !(await this.areAttachmentsHaveValidExtension([audioRecording.recording]))
+    ) {
+      return false;
+    }
+    if (!(await this.areAttachmentsHaveValidSize([audioRecording.recording]))) {
+      return false;
+    }
+
+    const upload = {
+      file: audioRecording.recording,
+      previewUri: audioRecording.asset_url,
+      extraData: {
+        duration: audioRecording.duration,
+        waveform_data: audioRecording.waveform_data,
+      },
+      state: 'uploading' as const,
+      type: 'voiceRecording' as const,
+    };
+    this.attachmentUploadsSubject.next([
+      ...this.attachmentUploadsSubject.getValue(),
+      upload,
+    ]);
+    await this.uploadAttachments([upload]);
+    return true;
+  }
+
+  /**
    * Uploads the selected files, and creates preview for image files. The result is propagated throught the `attachmentUploads$` stream.
    * @param fileList The files selected by the user, if you have Blobs instead of Files, you can convert them with this method: https://developer.mozilla.org/en-US/docs/Web/API/File/File
    * @returns A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
@@ -85,7 +122,7 @@ export class AttachmentService<
         dataFiles.push(file);
       }
     });
-    imageFiles.forEach((f) => this.createPreview(f));
+    imageFiles.forEach((f) => void this.createPreview(f));
     const newUploads = [
       ...imageFiles.map((file) => ({
         file,
@@ -177,7 +214,7 @@ export class AttachmentService<
     return attachmentUploads
       .filter((r) => r.state === 'success')
       .map((r) => {
-        const attachment: Attachment = {
+        let attachment: Attachment = {
           type: r.type,
         };
         if (r.fromAttachment) {
@@ -192,6 +229,9 @@ export class AttachmentService<
             attachment.title = r.file?.name;
             attachment.file_size = r.file?.size;
             attachment.thumb_url = r.thumb_url;
+          }
+          if (r.extraData) {
+            attachment = { ...attachment, ...r.extraData };
           }
         }
 
@@ -243,18 +283,23 @@ export class AttachmentService<
     }
   }
 
-  private createPreview(file: File | Blob) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
+  private async createPreview(file: File | Blob) {
+    try {
+      const uri = await createUriFromBlob(file);
       const attachmentUploads = this.attachmentUploadsSubject.getValue();
       const upload = attachmentUploads.find((upload) => upload.file === file);
       if (!upload) {
         return;
       }
-      upload.previewUri = event.target?.result || undefined;
+      upload.previewUri = uri;
       this.attachmentUploadsSubject.next([...attachmentUploads]);
-    };
-    reader.readAsDataURL(file as Blob);
+    } catch (e: unknown) {
+      this.chatClientService?.chatClient?.logger(
+        'error',
+        e instanceof Error ? e.message : `Can't create image preview`,
+        { error: e, tag: ['AttachmentService'] }
+      );
+    }
   }
 
   private async uploadAttachments(uploads: AttachmentUpload[]) {

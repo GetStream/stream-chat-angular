@@ -12,6 +12,7 @@ import {
 import { Attachment } from 'stream-chat';
 import { DefaultStreamChatGenerics } from '../types';
 import prettybytes from 'pretty-bytes';
+import { formatDuration } from '../format-duration';
 
 /**
  * This component can be used to display an attachment with type `voiceRecording`. The component allows playing the attachment inside the browser.
@@ -95,18 +96,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
   }
 
   private getFormattedDuration(duration?: number) {
-    if (duration === undefined || duration <= 0) return '00:00';
-
-    const [hours, hoursLeftover] = this.divMod(duration, 3600);
-    const [minutes, seconds] = this.divMod(hoursLeftover, 60);
-    const roundedSeconds = Math.ceil(seconds);
-
-    const prependHrsZero = hours.toString().length === 1 ? '0' : '';
-    const prependMinZero = minutes.toString().length === 1 ? '0' : '';
-    const prependSecZero = roundedSeconds.toString().length === 1 ? '0' : '';
-    const minSec = `${prependMinZero}${minutes}:${prependSecZero}${roundedSeconds}`;
-
-    return hours ? `${prependHrsZero}${hours}:` + minSec : minSec;
+    return formatDuration(duration);
   }
 
   private getFileSize() {
@@ -117,9 +107,5 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
       return '';
     }
     return prettybytes(Number(this.attachment.file_size || 0));
-  }
-
-  private divMod(num: number, divisor: number) {
-    return [Math.floor(num / divisor), num % divisor];
   }
 }

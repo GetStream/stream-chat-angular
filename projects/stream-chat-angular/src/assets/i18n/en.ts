@@ -120,5 +120,11 @@ export const en = {
     Edited: 'Edited',
     'Error playing audio': 'Error playing audio',
     'Copy text': 'Copy text',
+    'Please grant permission to use microhpone':
+      'Please grant permission to use microhpone',
+    'Error starting recording': 'Error starting recording',
+    'An error has occurred during recording':
+      'An error has occurred during recording',
+    'Media recording not supported': 'Media recording not supported',
   },
 };

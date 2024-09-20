@@ -24,4 +24,69 @@ The paginated list component relies on data provided by the parent component. Yo
 You can provide the HTML template for the list items, see above example.
 
 [//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### items
+
+• **items**: `T`[] = `[]`
+
+The items to display
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts:28](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts#L28)
+
+---
+
+### isLoading
+
+• **isLoading**: `boolean` = `false`
+
+If `true`, the loading indicator will be displayed
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts:32](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts#L32)
+
+---
+
+### hasMore
+
+• **hasMore**: `boolean` = `false`
+
+If `false` the component won't ask for more data vua the `loadMore` output
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts:36](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts#L36)
+
+---
+
+### trackBy
+
+• **trackBy**: `TrackByFunction`\<`T`\>
+
+The `trackBy` to use with the `NgFor` directive
+
+**`Param`**
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts:42](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts#L42)
+
+---
+
+### loadMore
+
+• `Readonly` **loadMore**: `EventEmitter`\<`void`\>
+
+The component will signal via this output when more items should be fetched
+
+The new items should be appended to the `items` array
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts:49](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/paginated-list/paginated-list.component.ts#L49)
+
 [//]: # "End of generated content"

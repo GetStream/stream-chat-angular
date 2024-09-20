@@ -1,0 +1,28 @@
+import VoiceRecorderWavebar from "../assets/voice-recorder-wavebar.png";
+
+The `VoiceRecorderWavebarComponent` displays the amplitudes of the recording while the recoding is in progress
+
+<img src={VoiceRecorderWavebar} width="500" />
+
+The component doesn't have any inputs, instead it uses the [`AudioRecorderService`](../../services/AudioRecorderService.mdx) and the [`AmplitudeRecorderService`](../../services/AmplitudeRecorderService.mdx) to gather all necessary data.
+
+## Usage
+
+```html
+<stream-voice-recorder-wavebar
+  *ngIf="isRecording$ | async"
+></stream-voice-recorder-wavebar>
+```
+
+```typescript
+isRecording$: Observable<boolean>;
+
+constructor(public readonly recorder: AudioRecorderService) {
+    this.isRecording$ = this.recorder.recordingState$.pipe(map(s => s === MediaRecordingState.RECORDING || s === MediaRecordingState.PAUSED));
+}
+```
+
+## Customization
+
+[//]: # "Start of generated content"
+[//]: # "End of generated content"

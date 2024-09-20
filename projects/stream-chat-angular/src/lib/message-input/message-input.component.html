@@ -1,4 +1,7 @@
-<div class="str-chat__message-input str-chat-angular__message-input">
+<div
+  class="str-chat__message-input str-chat-angular__message-input"
+  *ngIf="!isVoiceRecording"
+>
   <div *ngIf="quotedMessage" class="str-chat__quoted-message-preview-header">
     <div class="str-chat__quoted-message-reply-to-message">
       {{ "streamChat.Reply to Message" | translate }}
@@ -29,6 +32,7 @@
     <div
       class="str-chat__message-input-inner str-chat-angular__message-input-inner"
     >
+      <ng-content select="[message-input-start]"></ng-content>
       <ng-container
         *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
       >
@@ -161,9 +165,16 @@
         *ngIf="displayVoiceRecordingButton"
         class="str-chat__start-recording-audio-button"
         data-testid="start-voice-recording"
+        [disabled]="
+          voiceRecorderService.isRecorderVisible$.value ||
+          audioRecorder?.isRecording
+        "
+        (click)="startVoiceRecording()"
+        (keyup.enter)="startVoiceRecording()"
       >
         <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
       </button>
+      <ng-content select="[message-input-end]"></ng-content>
     </div>
   </ng-container>
   <ng-template #notAllowed>
@@ -175,3 +186,8 @@
     </div>
   </ng-template>
 </div>
+<ng-template
+  *ngIf="voiceRecorderRef"
+  [ngTemplateOutlet]="voiceRecorderRef"
+  [ngTemplateOutletContext]="{ service: voiceRecorderService }"
+></ng-template>

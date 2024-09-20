@@ -15,8 +15,9 @@ import {
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
 import { DefaultStreamChatGenerics } from '../types';
-import { IconPlaceholderComponent } from '../icon-placeholder/icon-placeholder.component';
 import { DateParserService } from '../date-parser.service';
+import { IconModule } from '../icon/icon.module';
+import { IconPlaceholderComponent } from '../icon/icon-placeholder/icon-placeholder.component';
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -42,12 +43,11 @@ describe('ChannelPreviewComponent', () => {
       user$: of({ id: 'currentUser' }),
     };
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslateModule.forRoot(), IconModule],
       declarations: [
         ChannelPreviewComponent,
         AvatarComponent,
         AvatarPlaceholderComponent,
-        IconPlaceholderComponent,
       ],
       providers: [
         { provide: ChannelService, useValue: channelServiceMock },

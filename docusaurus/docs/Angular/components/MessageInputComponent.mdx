@@ -8,6 +8,10 @@ The `MessageInput` component can use the [`Textarea`](./TextareaComponent.mdx) o
 
 The SDK doesn't have a built-in emoji picker, but it has support for providing your own template. Follow our [emoji picker guide](../code-examples/emoji-picker.mdx) to get to know more.
 
+## Voice recorder
+
+To enable recording voice messages, please follow the [voice recordings guide](../../code-examples/voice-recordings).
+
 ## Customization
 
 If you want to provide your own message input component you'll have to provide it in the following places:
@@ -16,6 +20,15 @@ If you want to provide your own message input component you'll have to provide i
 - Replace the default message input inside the [thread](./ThreadComponent.mdx)
 
 You can replace the textarea inside the message input following our [Custom textarea guide](../../code-examples/custom-textarea)
+
+You can instert custom HTML content to the start or end of the message input using the `message-input-start` or `message-input-end` attributes:
+
+```html
+<stream-message-input>
+  <div message-input-start>Custom content injected before the textarea</div>
+  <div message-input-end>Custom content injected after the textarea</div>
+</stream-message-input>
+```
 
 See [our customization guide](../concepts/customization.mdx) for more information.
 
@@ -59,7 +72,7 @@ If file upload is enabled, the user can open a file selector from the input. Ple
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:59](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L59)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:64](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L64)
 
 ---
 
@@ -71,7 +84,7 @@ If true, users can mention other users in messages. You also [need to use the `A
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:63](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L63)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:68](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L68)
 
 ---
 
@@ -83,7 +96,7 @@ The scope for user mentions, either members of the current channel of members of
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:67](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L67)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:72](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L72)
 
 ---
 
@@ -95,7 +108,7 @@ Determines if the message is being dispalyed in a channel or in a [thread](https
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:71](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L71)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:76](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L76)
 
 ---
 
@@ -107,7 +120,7 @@ If true, users can select multiple files to upload. If no value is provided, it 
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:75](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L75)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:80](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L80)
 
 ---
 
@@ -119,7 +132,7 @@ The message to edit
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:79](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L79)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:84](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L84)
 
 ---
 
@@ -131,7 +144,7 @@ An observable that can be used to trigger message sending from the outside
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:83](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L83)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:88](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L88)
 
 ---
 
@@ -143,7 +156,7 @@ In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:87](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L87)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:92](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L92)
 
 ---
 
@@ -155,7 +168,7 @@ Enables or disables auto focus on the textarea element
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:91](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L91)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:96](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L96)
 
 ---
 
@@ -169,7 +182,7 @@ If you don't need that behavior, you can turn this of with this flag. In that ca
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:97](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L97)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:102](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L102)
 
 ---
 
@@ -181,7 +194,19 @@ Use this input to control wether a send button is rendered or not. If you don't 
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:101](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L101)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:106](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L106)
+
+---
+
+### displayVoiceRecordingButton
+
+• **displayVoiceRecordingButton**: `boolean` = `false`
+
+You can enable/disable voice recordings with this input
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:110](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L110)
 
 ---
 
@@ -193,6 +218,6 @@ Emits when a message was successfuly sent or updated
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:105](https://github.com/GetStream/stream-chat-angular/blob/502385cb9d3f2df94a8714de2a742aeb1edfb77e/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L105)
+[projects/stream-chat-angular/src/lib/message-input/message-input.component.ts:114](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/message-input/message-input.component.ts#L114)
 
 [//]: # "End of generated content"

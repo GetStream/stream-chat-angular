@@ -48,9 +48,13 @@
       </div>
       <div
         *ngIf="
-          attachmentUpload.type === 'file' || attachmentUpload.type === 'video'
+          attachmentUpload.type === 'file' ||
+          attachmentUpload.type === 'video' ||
+          attachmentUpload.type === 'voiceRecording'
         "
-        class="str-chat__attachment-preview-file"
+        class="str-chat__attachment-preview-file str-chat__attachment-preview-type-{{
+          attachmentUpload.type
+        }}"
         data-testclass="attachment-file-preview"
       >
         <stream-icon-placeholder
@@ -59,7 +63,10 @@
         ></stream-icon-placeholder>
 
         <div class="str-chat__attachment-preview-file-end">
-          <div class="str-chat__attachment-preview-file-name">
+          <div
+            class="str-chat__attachment-preview-file-name"
+            title="{{ attachmentUpload.file.name }}"
+          >
             {{ attachmentUpload.file.name }}
           </div>
           <a

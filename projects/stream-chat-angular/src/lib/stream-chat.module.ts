@@ -7,8 +7,6 @@ import { MessageComponent } from './message/message.component';
 import { MessageInputComponent } from './message-input/message-input.component';
 import { MessageListComponent } from './message-list/message-list.component';
 import { CommonModule } from '@angular/common';
-import { LoadingIndicatorComponent } from './loading-indicator/loading-indicator.component';
-import { IconComponent } from './icon/icon.component';
 import { MessageActionsBoxComponent } from './message-actions-box/message-actions-box.component';
 import { AttachmentListComponent } from './attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from './message-reactions/message-reactions.component';
@@ -19,16 +17,15 @@ import { ModalComponent } from './modal/modal.component';
 import { TextareaDirective } from './message-input/textarea.directive';
 import { StreamAvatarModule } from './stream-avatar.module';
 import { ThreadComponent } from './thread/thread.component';
-import { IconPlaceholderComponent } from './icon-placeholder/icon-placeholder.component';
-import { LoadingIndicatorPlaceholderComponent } from './loading-indicator-placeholder/loading-indicator-placeholder.component';
 import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bounce-prompt.component';
-import { VoiceRecordingComponent } from './voice-recording/voice-recording.component';
-import { VoiceRecordingWavebarComponent } from './voice-recording/voice-recording-wavebar/voice-recording-wavebar.component';
 import { NgxFloatUiModule } from 'ngx-float-ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { MessageReactionsSelectorComponent } from './message-reactions-selector/message-reactions-selector.component';
 import { PaginatedListComponent } from './paginated-list/paginated-list.component';
 import { UserListComponent } from './user-list/user-list.component';
+import { VoiceRecordingModule } from './voice-recording/voice-recording.module';
+import { IconModule } from './icon/icon.module';
+import { VoiceRecorderService } from './message-input/voice-recorder.service';
 
 @NgModule({
   declarations: [
@@ -39,8 +36,6 @@ import { UserListComponent } from './user-list/user-list.component';
     MessageComponent,
     MessageInputComponent,
     MessageListComponent,
-    LoadingIndicatorComponent,
-    IconComponent,
     MessageActionsBoxComponent,
     AttachmentListComponent,
     MessageReactionsComponent,
@@ -50,11 +45,7 @@ import { UserListComponent } from './user-list/user-list.component';
     ModalComponent,
     TextareaDirective,
     ThreadComponent,
-    IconPlaceholderComponent,
-    LoadingIndicatorPlaceholderComponent,
     MessageBouncePromptComponent,
-    VoiceRecordingComponent,
-    VoiceRecordingWavebarComponent,
     MessageReactionsSelectorComponent,
     UserListComponent,
     PaginatedListComponent,
@@ -64,6 +55,8 @@ import { UserListComponent } from './user-list/user-list.component';
     NgxFloatUiModule,
     StreamAvatarModule,
     TranslateModule,
+    VoiceRecordingModule,
+    IconModule,
   ],
   exports: [
     ChannelComponent,
@@ -73,8 +66,6 @@ import { UserListComponent } from './user-list/user-list.component';
     MessageComponent,
     MessageInputComponent,
     MessageListComponent,
-    LoadingIndicatorComponent,
-    IconComponent,
     MessageActionsBoxComponent,
     AttachmentListComponent,
     MessageReactionsComponent,
@@ -84,14 +75,13 @@ import { UserListComponent } from './user-list/user-list.component';
     ModalComponent,
     StreamAvatarModule,
     ThreadComponent,
-    IconPlaceholderComponent,
-    LoadingIndicatorPlaceholderComponent,
     MessageBouncePromptComponent,
-    VoiceRecordingComponent,
-    VoiceRecordingWavebarComponent,
+    VoiceRecordingModule,
     MessageReactionsSelectorComponent,
     UserListComponent,
     PaginatedListComponent,
+    IconModule,
   ],
+  providers: [VoiceRecorderService],
 })
 export class StreamChatModule {}

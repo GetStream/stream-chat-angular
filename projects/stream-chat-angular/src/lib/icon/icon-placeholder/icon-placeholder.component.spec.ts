@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { IconComponent } from '../icon/icon.component';
 
 import { IconPlaceholderComponent } from './icon-placeholder.component';
+import { IconComponent } from '../icon.component';
 
 describe('IconPlaceholderComponent', () => {
   let component: IconPlaceholderComponent;
