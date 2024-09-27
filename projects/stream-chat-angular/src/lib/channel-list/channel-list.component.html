@@ -35,6 +35,7 @@
         [hasMore]="(hasMoreChannels$ | async) ?? false"
         [isLoading]="isLoadingMoreChannels"
         (loadMore)="loadMoreChannels()"
+        [trackBy]="trackByChannelId"
       >
         <ng-template let-channel="item">
           <ng-template #defaultTemplate let-channelInput="channel">
