@@ -113,7 +113,7 @@
     "@ctrl/ngx-emoji-mart": "^8.2.0",
     "@floating-ui/dom": "^1.6.3",
     "@ngx-translate/core": "^14.0.0",
-    "@stream-io/stream-chat-css": "5.0.1",
+    "@stream-io/stream-chat-css": "5.0.2",
     "@stream-io/transliterate": "^1.5.2",
     "angular-mentions": "1.4.0",
     "dayjs": "^1.11.10",
