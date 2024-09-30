@@ -7,6 +7,7 @@ import { CustomMessageComponent } from './custom-message/custom-message.componen
 import {
   StreamAutocompleteTextareaModule,
   StreamChatModule,
+  VoiceRecorderModule,
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
@@ -18,6 +19,7 @@ import { PickerModule } from '@ctrl/ngx-emoji-mart';
     TranslateModule.forRoot(),
     StreamChatModule,
     PickerModule,
+    VoiceRecorderModule,
     StreamAutocompleteTextareaModule,
   ],
   bootstrap: [AppComponent],

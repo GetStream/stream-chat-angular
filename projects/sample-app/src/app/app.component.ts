@@ -4,7 +4,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   ChatClientService,
@@ -32,6 +32,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
   theme$: Observable<string>;
   counter = 0;
+  sendMessageOutsideTrigger$ = new Subject<void>();
 
   constructor(
     private chatService: ChatClientService,

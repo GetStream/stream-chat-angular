@@ -2,7 +2,7 @@
 id: themingv2
 sidebar_position: 1
 title: Introduction
-keywords: [v2, theme-v2, theming-v2, theming, introduction]
+keywords: [v2, theme-v2, theming-v2, theme, theming, introduction]
 ---
 
 import SDKSpecific from "./SDKSpecific";
@@ -18,25 +18,7 @@ import MessageCustomColor2Screenshot from "../assets/stream-chat-css-message-col
 import ChatUiSquareThemeScreenshot from "../assets/stream-chat-css-square-theme-screenshot.png";
 import ChatUiRtlScreenshot from "../assets/stream-chat-css-rtl-layout-screenshot.png";
 
-<SDKSpecific name="react">
-
-The SDK has a new theming and customization system. This page contains information about the new version (refered to as version 2 or v2). The most significant improvements of the new version:
-
-- Refreshed design
-- Better customization through CSS variables
-- Support for RTL layout
-
-The [old theme](../customization/css-and-theming.mdx) (also refered to as version 1 or v1) can still be used with the latest SDK versions, but it's now deprecated, won't be receiving further updates and will be removed in a future major release.
-
-</SDKSpecific>
-
-<SDKSpecific name="react">
-
-New theming system (v2) utilises updated markup and new class names in certain components which are being rendered based on which of the two systems you use. Most of the new components (and/or markup) aren't available in the old version (v1) due to compatibility reasons.
-
-To use the new theme, please upgrade [`stream-chat-react`](https://www.npmjs.com/package/stream-chat-react) to version `10.0.2` and follow the instructions below.
-
-</SDKSpecific>
+The SDK provides default CSS, which can be overridden by the integrators.
 
 ## Importing the stylesheet
 
@@ -215,9 +197,14 @@ To solve this we also have to set the text color for the link attachment compone
 
 <img src={MessageCustomColor2Screenshot} width="500" />
 
+<SDKSpecific name="angular">
 ### Custom icons
 
-<SDKSpecific name="angular">
+#### From CSS
+
+Starting from stream-chat-angular@5 it's possible to customize icons from CSS.
+
+Here is an example using the [Google Material Icon library](https://fonts.google.com/icons) to override the send icon:
 
 #### From CSS
 
@@ -281,6 +268,15 @@ If the default rules set by the stream-chat-angular stylesheets not enough to se
 ```
 
 </SDKSpecific>
+
+<SDKSpecific name="todo-react">
+### Custom icons
+
+</SDKSpecific>
+
+### CSS overrides
+
+If you'd like to add customizations that are not supported by CSS variables, you can override parts of the default CSS:
 
 <SDKSpecific name="react">
 

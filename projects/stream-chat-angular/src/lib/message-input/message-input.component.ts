@@ -4,6 +4,7 @@ import {
   Component,
   ComponentFactoryResolver,
   ComponentRef,
+  ContentChild,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -12,6 +13,7 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
+  Optional,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -28,6 +30,7 @@ import { NotificationService } from '../notification.service';
 import {
   AttachmentPreviewListContext,
   AttachmentUpload,
+  AudioRecording,
   CustomAttachmentUploadContext,
   DefaultStreamChatGenerics,
   EmojiPickerContext,
@@ -40,6 +43,8 @@ import { EmojiInputService } from './emoji-input.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageActionsService } from '../message-actions.service';
+import { VoiceRecorderService } from './voice-recorder.service';
+import { AudioRecorderService } from '../voice-recorder/audio-recorder.service';
 
 /**
  * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
@@ -48,7 +53,7 @@ import { MessageActionsService } from '../message-actions.service';
   selector: 'stream-message-input',
   templateUrl: './message-input.component.html',
   styles: [],
-  providers: [AttachmentService, EmojiInputService],
+  providers: [AttachmentService, EmojiInputService, VoiceRecorderService],
 })
 export class MessageInputComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
@@ -100,12 +105,20 @@ export class MessageInputComponent
    */
   @Input() displaySendButton = true;
   /**
+   * You can enable/disable voice recordings with this input
+   */
+  @Input() displayVoiceRecordingButton = false;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{
     message: StreamMessage;
   }>();
+  @ContentChild(TemplateRef) voiceRecorderRef:
+    | TemplateRef<{ service: VoiceRecorderService }>
+    | undefined;
   @HostBinding() class = 'str-chat__message-input-angular-host';
+  isVoiceRecording = true;
   isFileUploadAuthorized: boolean | undefined;
   canSendLinks: boolean | undefined;
   canSendMessages: boolean | undefined;
@@ -142,7 +155,7 @@ export class MessageInputComponent
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
-    private attachmentService: AttachmentService,
+    public readonly attachmentService: AttachmentService,
     private configService: MessageInputConfigService,
     @Inject(textareaInjectionToken)
     private textareaType: Type<TextareaInterface>,
@@ -150,7 +163,9 @@ export class MessageInputComponent
     private cdRef: ChangeDetectorRef,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService
+    private messageActionsService: MessageActionsService,
+    public readonly voiceRecorderService: VoiceRecorderService,
+    @Optional() public audioRecorder?: AudioRecorderService
   ) {
     this.textareaPlaceholder = this.defaultTextareaPlaceholder;
     this.subscriptions.push(
@@ -168,6 +183,7 @@ export class MessageInputComponent
         if (channel && this.channel && channel.id !== this.channel.id) {
           this.textareaValue = '';
           this.attachmentService.resetAttachmentUploads();
+          this.voiceRecorderService.isRecorderVisible$.next(false);
         }
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
@@ -212,6 +228,11 @@ export class MessageInputComponent
         () => void this.channelService.typingStarted(this.parentMessageId)
       )
     );
+    this.subscriptions.push(
+      this.voiceRecorderService.isRecorderVisible$.subscribe((isVisible) => {
+        this.isVoiceRecording = isVisible;
+      })
+    );
 
     this.subscriptions.push(
       combineLatest([
@@ -244,6 +265,13 @@ export class MessageInputComponent
             this.stopCooldown();
           }
         })
+    );
+    this.subscriptions.push(
+      this.voiceRecorderService.recording$.subscribe((recording) => {
+        if (recording) {
+          void this.voiceRecordingReady(recording);
+        }
+      })
     );
   }
 
@@ -450,6 +478,24 @@ export class MessageInputComponent
       isMultipleFileUploadEnabled: this.isMultipleFileUploadEnabled,
       attachmentService: this.attachmentService,
     };
+  }
+
+  async startVoiceRecording() {
+    await this.audioRecorder?.start();
+    if (this.audioRecorder?.isRecording) {
+      this.voiceRecorderService.isRecorderVisible$.next(true);
+    }
+  }
+
+  async voiceRecordingReady(recording: AudioRecording) {
+    try {
+      await this.attachmentService.uploadVoiceRecording(recording);
+      if (this.configService.sendVoiceRecordingImmediately) {
+        await this.messageSent();
+      }
+    } finally {
+      this.voiceRecorderService.isRecorderVisible$.next(false);
+    }
   }
 
   get isUpdate() {

@@ -18,4 +18,55 @@ The user list component relies on data provided by the parent component:
 The component is built on top of the [`PaginatedListComponent`](../../components/PaginatedListComponent.mdx), you can use that component to build your own user list component.
 
 [//]: # "Start of generated content"
+
+## Inputs and outputs
+
+### users
+
+• **users**: `UserResponse`\<`DefaultStreamChatGenerics`\>[] = `[]`
+
+The users to display
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/user-list/user-list.component.ts:17](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/user-list/user-list.component.ts#L17)
+
+---
+
+### isLoading
+
+• **isLoading**: `boolean` = `false`
+
+If `true`, the loading indicator will be displayed
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/user-list/user-list.component.ts:21](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/user-list/user-list.component.ts#L21)
+
+---
+
+### hasMore
+
+• **hasMore**: `boolean` = `false`
+
+If `false` the component won't ask for more data vua the `loadMore` output
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/user-list/user-list.component.ts:25](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/user-list/user-list.component.ts#L25)
+
+---
+
+### loadMore
+
+• `Readonly` **loadMore**: `EventEmitter`\<`void`\>
+
+The component will signal via this output when more items should be fetched
+
+The new items should be appended to the `items` array
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/user-list/user-list.component.ts:31](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/user-list/user-list.component.ts#L31)
+
 [//]: # "End of generated content"

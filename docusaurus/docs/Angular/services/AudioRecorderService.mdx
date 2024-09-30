@@ -1,0 +1,117 @@
+# AudioRecorderService
+
+The `AudioRecorderService` can record an audio file, the SDK uses this to record a voice message
+
+## Hierarchy
+
+- `MultimediaRecorder`<`Omit`\<`AudioRecording`, keyof `MediaRecording`\>\>
+
+  ↳ **`AudioRecorderService`**
+
+## Properties
+
+### config
+
+• **config**: `MediaRecorderConfig`
+
+Due to browser restrictions the following config is used:
+
+- In Safari we record in audio/mp4
+- For all other browsers we use audio/webm (which is then transcoded to wav)
+
+#### Overrides
+
+MultimediaRecorder.config
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts:24](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts#L24)
+
+## Methods
+
+### pause
+
+▸ **pause**(): `void`
+
+Pause audio recording, it can be restarted using `resume`
+
+#### Returns
+
+`void`
+
+#### Overrides
+
+MultimediaRecorder.pause
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts:62](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts#L62)
+
+---
+
+### resume
+
+▸ **resume**(): `void`
+
+Resume a previously paused recording
+
+#### Returns
+
+`void`
+
+#### Overrides
+
+MultimediaRecorder.resume
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts:73](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts#L73)
+
+---
+
+### start
+
+▸ **start**(): `Promise`\<`void`\>
+
+Start audio recording
+
+#### Returns
+
+`Promise`\<`void`\>
+
+#### Overrides
+
+MultimediaRecorder.start
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts:49](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts#L49)
+
+---
+
+### stop
+
+▸ **stop**(`options?`): `Promise`\<`MediaRecording` & `Omit`\<`AudioRecording`, keyof `MediaRecording`\>\>
+
+Stop the recording and free up used resources
+
+#### Parameters
+
+| Name             | Type      | Description                                                                 |
+| :--------------- | :-------- | :-------------------------------------------------------------------------- |
+| `options?`       | `Object`  |                                                                             |
+| `options.cancel` | `boolean` | if this is `true` no recording will be created, but resources will be freed |
+
+#### Returns
+
+`Promise`\<`MediaRecording` & `Omit`\<`AudioRecording`, keyof `MediaRecording`\>\>
+
+the recording
+
+#### Overrides
+
+MultimediaRecorder.stop
+
+#### Defined in
+
+[projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts:87](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/audio-recorder.service.ts#L87)

@@ -7,6 +7,7 @@
   },
   "allowedNonPeerDependencies": [
     "dayjs",
+    "fix-webm-duration",
     "@stream-io/transliterate",
     "uuid",
     "pretty-bytes",

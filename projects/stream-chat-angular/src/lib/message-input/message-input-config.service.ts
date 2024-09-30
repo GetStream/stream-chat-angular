@@ -23,11 +23,15 @@ export class MessageInputConfigService {
    * The scope for user mentions, either members of the current channel of members of the application
    */
   mentionScope: 'channel' | 'application' | undefined = 'channel';
-
   /**
    * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input.
    */
   inputMode: 'desktop' | 'mobile' = 'desktop';
+  /**
+   * If `true` the recording will be sent as a message immediately after the recording is completed.
+   * If `false`, the recording will added to the attachment preview, and users can continue composing the message.
+   */
+  sendVoiceRecordingImmediately = true;
 
   constructor() {}
 }

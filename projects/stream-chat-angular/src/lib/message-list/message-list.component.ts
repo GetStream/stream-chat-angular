@@ -43,6 +43,7 @@ import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
 import { isOnSeparateDate } from '../is-on-separate-date';
 import { VirtualizedMessageListService } from '../virtualized-message-list.service';
+import { isSafari } from '../is-safari';
 
 /**
  * The `MessageList` component renders a scrollable list of messages.
@@ -148,7 +149,6 @@ export class MessageListComponent
     typeof setTimeout
   >;
   private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
-  private isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   private forceRepaintSubject = new Subject<void>();
   private messageIdToAnchorTo?: string;
   private anchorMessageTopOffset?: number;
@@ -468,7 +468,7 @@ export class MessageListComponent
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight + 0.1;
-    if (this.isSafari) {
+    if (isSafari) {
       this.forceRepaintSubject.next();
     }
   }
@@ -609,7 +609,7 @@ export class MessageListComponent
       (messageToAlignTo?.getBoundingClientRect()?.top || 0) -
       (this.anchorMessageTopOffset || 0);
     this.anchorMessageTopOffset = undefined;
-    if (this.isSafari) {
+    if (isSafari) {
       this.forceRepaintSubject.next();
     }
   }

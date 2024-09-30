@@ -29,10 +29,22 @@
     </stream-channel-header>
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
-    <stream-message-input></stream-message-input>
+    <stream-message-input [displayVoiceRecordingButton]="true">
+      <ng-template voice-recorder let-service="service">
+        <stream-voice-recorder
+          [voiceRecorderService]="service"
+        ></stream-voice-recorder>
+      </ng-template>
+    </stream-message-input>
     <stream-thread class="thread" name="thread">
       <stream-message-list mode="thread"></stream-message-list>
-      <stream-message-input mode="thread"></stream-message-input>
+      <stream-message-input mode="thread" [displayVoiceRecordingButton]="true">
+        <ng-template voice-recorder let-service="service">
+          <stream-voice-recorder
+            [voiceRecorderService]="service"
+          ></stream-voice-recorder>
+        </ng-template>
+      </stream-message-input>
     </stream-thread>
   </stream-channel>
 </div>

@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import { resampleWaveForm } from '../../wave-form-sampler';
 
 /**
  * This component can be used to visualize the wave bar of a voice recording
@@ -57,10 +58,10 @@ export class VoiceRecordingWavebarComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.waveFormData) {
-      this.resampledWaveFormData =
-        this.waveFormData.length > this.sampleSize
-          ? this.downsample()
-          : this.upsample();
+      this.resampledWaveFormData = resampleWaveForm(
+        this.waveFormData,
+        this.sampleSize
+      );
     }
     if (changes.audioElement) {
       this.ngZone.runOutsideAngular(() => {
@@ -124,10 +125,10 @@ export class VoiceRecordingWavebarComponent
       ) {
         this.ngZone.run(() => {
           this.sampleSize = sampleSize;
-          this.resampledWaveFormData =
-            this.waveFormData.length > this.sampleSize
-              ? this.downsample()
-              : this.upsample();
+          this.resampledWaveFormData = resampleWaveForm(
+            this.waveFormData,
+            this.sampleSize
+          );
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -135,132 +136,4 @@ export class VoiceRecordingWavebarComponent
       }
     }
   }
-
-  private downsample() {
-    if (this.waveFormData.length <= this.sampleSize) {
-      return this.waveFormData;
-    }
-
-    if (this.sampleSize === 1) return [this.mean(this.waveFormData)];
-
-    const result: number[] = [];
-    // bucket size adjusted due to the fact that the first and the last item in the original data array is kept in target output
-    const bucketSize = (this.waveFormData.length - 2) / (this.sampleSize - 2);
-    let lastSelectedPointIndex = 0;
-    result.push(this.waveFormData[lastSelectedPointIndex]); // Always add the first point
-    let maxAreaPoint, maxArea, triangleArea;
-
-    for (
-      let bucketIndex = 1;
-      bucketIndex < this.sampleSize - 1;
-      bucketIndex++
-    ) {
-      const previousBucketRefPoint = this.waveFormData[lastSelectedPointIndex];
-      const nextBucketMean = this.getNextBucketMean(
-        this.waveFormData,
-        bucketIndex,
-        bucketSize
-      );
-
-      const currentBucketStartIndex =
-        Math.floor((bucketIndex - 1) * bucketSize) + 1;
-      const nextBucketStartIndex = Math.floor(bucketIndex * bucketSize) + 1;
-      const countUnitsBetweenAtoC =
-        1 + nextBucketStartIndex - currentBucketStartIndex;
-
-      maxArea = triangleArea = -1;
-
-      for (
-        let currentPointIndex = currentBucketStartIndex;
-        currentPointIndex < nextBucketStartIndex;
-        currentPointIndex++
-      ) {
-        const countUnitsBetweenAtoB =
-          Math.abs(currentPointIndex - currentBucketStartIndex) + 1;
-        const countUnitsBetweenBtoC =
-          countUnitsBetweenAtoC - countUnitsBetweenAtoB;
-        const currentPointValue = this.waveFormData[currentPointIndex];
-
-        triangleArea = this.triangleAreaHeron(
-          this.triangleBase(
-            Math.abs(previousBucketRefPoint - currentPointValue),
-            countUnitsBetweenAtoB
-          ),
-          this.triangleBase(
-            Math.abs(currentPointValue - nextBucketMean),
-            countUnitsBetweenBtoC
-          ),
-          this.triangleBase(
-            Math.abs(previousBucketRefPoint - nextBucketMean),
-            countUnitsBetweenAtoC
-          )
-        );
-
-        if (triangleArea > maxArea) {
-          maxArea = triangleArea;
-          maxAreaPoint = this.waveFormData[currentPointIndex];
-          lastSelectedPointIndex = currentPointIndex;
-        }
-      }
-
-      if (typeof maxAreaPoint !== 'undefined') result.push(maxAreaPoint);
-    }
-
-    result.push(this.waveFormData[this.waveFormData.length - 1]); // Always add the last point
-
-    return result;
-  }
-
-  private upsample = () => {
-    if (this.sampleSize === this.waveFormData.length) return this.waveFormData;
-
-    // eslint-disable-next-line  prefer-const
-    let [bucketSize, remainder] = this.divMod(
-      this.sampleSize,
-      this.waveFormData.length
-    );
-    const result: number[] = [];
-
-    for (let i = 0; i < this.waveFormData.length; i++) {
-      const extra = remainder && remainder-- ? 1 : 0;
-      result.push(
-        ...Array<number>(bucketSize + extra).fill(this.waveFormData[i])
-      );
-    }
-    return result;
-  };
-
-  private getNextBucketMean = (
-    data: number[],
-    currentBucketIndex: number,
-    bucketSize: number
-  ) => {
-    const nextBucketStartIndex =
-      Math.floor(currentBucketIndex * bucketSize) + 1;
-    let nextNextBucketStartIndex =
-      Math.floor((currentBucketIndex + 1) * bucketSize) + 1;
-    nextNextBucketStartIndex =
-      nextNextBucketStartIndex < data.length
-        ? nextNextBucketStartIndex
-        : data.length;
-
-    return this.mean(
-      data.slice(nextBucketStartIndex, nextNextBucketStartIndex)
-    );
-  };
-
-  private mean = (values: number[]) =>
-    values.reduce((acc, value) => acc + value, 0) / values.length;
-
-  private triangleAreaHeron = (a: number, b: number, c: number) => {
-    const s = (a + b + c) / 2;
-    return Math.sqrt(s * (s - a) * (s - b) * (s - c));
-  };
-
-  private triangleBase = (a: number, b: number) =>
-    Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
-
-  private divMod = (num: number, divisor: number) => {
-    return [Math.floor(num / divisor), num % divisor];
-  };
 }

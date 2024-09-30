@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { CustomTemplatesService } from '../custom-templates.service';
-import { Icon } from '../icon/icon.component';
-import { IconContext } from '../types';
+import { Icon } from '../icon.component';
+import { IconContext } from '../../types';
+import { CustomTemplatesService } from '../../custom-templates.service';
 
 /**
  * The `IconPlaceholder` component displays the [default icons](./IconComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.

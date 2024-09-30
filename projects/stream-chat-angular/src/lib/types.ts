@@ -93,9 +93,10 @@ export type AttachmentUpload<
   errorReason?: AttachmentUploadErrorReason;
   errorExtraInfo?: { param: string }[];
   url?: string;
-  type: 'image' | 'file' | 'video';
+  type: 'image' | 'file' | 'video' | 'voiceRecording';
   previewUri?: string | ArrayBuffer;
   thumb_url?: string;
+  extraData?: Partial<Attachment<T>>;
   fromAttachment?: Attachment<T>;
 };
 
@@ -472,3 +473,12 @@ export type VirtualizedListQueryState = {
 export type VirtualizedListQueryDirection = 'top' | 'bottom';
 
 export type VirtualizedListVerticalItemPosition = 'top' | 'bottom' | 'middle';
+
+export type AudioRecording = MediaRecording & { waveform_data: number[] };
+
+export type MediaRecording = {
+  recording: File;
+  duration: number;
+  mime_type: string;
+  asset_url: string | ArrayBuffer | undefined;
+};

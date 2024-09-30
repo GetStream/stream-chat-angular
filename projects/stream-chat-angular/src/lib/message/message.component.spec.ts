@@ -7,7 +7,7 @@ import {
 
 import { MessageResponseBase, UserResponse } from 'stream-chat';
 import { DefaultStreamChatGenerics, StreamMessage } from '../types';
-import { LoadingIndicatorComponent } from '../loading-indicator/loading-indicator.component';
+import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChatClientService } from '../chat-client.service';
