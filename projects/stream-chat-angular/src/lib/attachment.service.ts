@@ -11,6 +11,7 @@ import {
   DefaultStreamChatGenerics,
 } from './types';
 import { ChatClientService } from './chat-client.service';
+import { MessageService } from './message.service';
 
 /**
  * The `AttachmentService` manages the uploads of a message input.
@@ -25,14 +26,22 @@ export class AttachmentService<
 > {
   /**
    * Emits the number of uploads in progress.
+   *
+   * You can increment and decrement this counter if you're using custom attachments and want to disable message sending until all attachments are uploaded.
+   *
+   * The SDK will handle updating this counter for built-in attachments, but for custom attachments you should take care of this.
    */
-  attachmentUploadInProgressCounter$: Observable<number>;
+  attachmentUploadInProgressCounter$ = new BehaviorSubject<number>(0);
   /**
    * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](../components/AttachmentPreviewListComponent.mdx) to display the attachment previews.
    */
   attachmentUploads$: Observable<AttachmentUpload[]>;
-  private attachmentUploadInProgressCounterSubject =
-    new BehaviorSubject<number>(0);
+  /**
+   * You can get and set the list if uploaded custom attachments
+   *
+   * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](../../services/CustomTemplatesService).
+   */
+  customAttachments$ = new BehaviorSubject<Attachment<T>[]>([]);
   private attachmentUploadsSubject = new BehaviorSubject<AttachmentUpload[]>(
     []
   );
@@ -41,10 +50,9 @@ export class AttachmentService<
   constructor(
     private channelService: ChannelService,
     private notificationService: NotificationService,
-    private chatClientService: ChatClientService
+    private chatClientService: ChatClientService,
+    private messageService: MessageService
   ) {
-    this.attachmentUploadInProgressCounter$ =
-      this.attachmentUploadInProgressCounterSubject.asObservable();
     this.attachmentUploads$ = this.attachmentUploadsSubject.asObservable();
     this.chatClientService.appSettings$.subscribe(
       (appSettings) => (this.appSettings = appSettings)
@@ -56,6 +64,7 @@ export class AttachmentService<
    */
   resetAttachmentUploads() {
     this.attachmentUploadsSubject.next([]);
+    this.customAttachments$.next([]);
   }
 
   /**
@@ -211,7 +220,7 @@ export class AttachmentService<
    */
   mapToAttachments() {
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
-    return attachmentUploads
+    const builtInAttachments = attachmentUploads
       .filter((r) => r.state === 'success')
       .map((r) => {
         let attachment: Attachment = {
@@ -237,6 +246,7 @@ export class AttachmentService<
 
         return attachment;
       });
+    return [...builtInAttachments, ...this.customAttachments$.value];
   }
 
   /**
@@ -245,7 +255,16 @@ export class AttachmentService<
    */
   createFromAttachments(attachments: Attachment<T>[]) {
     const attachmentUploads: AttachmentUpload[] = [];
+    const builtInAttachments: Attachment<T>[] = [];
+    const customAttachments: Attachment<T>[] = [];
     attachments.forEach((attachment) => {
+      if (this.messageService.isCustomAttachment(attachment)) {
+        customAttachments.push(attachment);
+      } else {
+        builtInAttachments.push(attachment);
+      }
+    });
+    builtInAttachments.forEach((attachment) => {
       if (isImageAttachment(attachment)) {
         attachmentUploads.push({
           url: (attachment.img_url ||
@@ -296,6 +315,10 @@ export class AttachmentService<
         ...attachmentUploads,
       ]);
     }
+
+    if (customAttachments.length > 0) {
+      this.customAttachments$.next(customAttachments);
+    }
   }
 
   private async createPreview(file: File | Blob) {
@@ -318,8 +341,8 @@ export class AttachmentService<
   }
 
   private async uploadAttachments(uploads: AttachmentUpload[]) {
-    this.attachmentUploadInProgressCounterSubject.next(
-      this.attachmentUploadInProgressCounterSubject.getValue() + 1
+    this.attachmentUploadInProgressCounter$.next(
+      this.attachmentUploadInProgressCounter$.value + 1
     );
     const result = await this.channelService.uploadAttachments(uploads);
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
@@ -362,8 +385,8 @@ export class AttachmentService<
         );
       }
     });
-    this.attachmentUploadInProgressCounterSubject.next(
-      this.attachmentUploadInProgressCounterSubject.getValue() - 1
+    this.attachmentUploadInProgressCounter$.next(
+      this.attachmentUploadInProgressCounter$.value - 1
     );
     this.attachmentUploadsSubject.next([...attachmentUploads]);
   }

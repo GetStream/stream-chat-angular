@@ -1,6 +1,17 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Observable } from 'rxjs';
-import { AttachmentUpload } from '../types';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  TemplateRef,
+} from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
+import { AttachmentUpload, CustomAttachmentPreviewListContext } from '../types';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { AttachmentService } from '../attachment.service';
+import { Attachment } from 'stream-chat';
 
 /**
  * The `AttachmentPreviewList` component displays a preview of the attachments uploaded to a message. Users can delete attachments using the preview component, or retry upload if it failed previously.
@@ -10,7 +21,7 @@ import { AttachmentUpload } from '../types';
   templateUrl: './attachment-preview-list.component.html',
   styles: [],
 })
-export class AttachmentPreviewListComponent {
+export class AttachmentPreviewListComponent implements OnInit, OnDestroy {
   /**
    * A stream that emits the current file uploads and their states
    */
@@ -23,8 +34,31 @@ export class AttachmentPreviewListComponent {
    * An output to notify the parent component if the user wants to delete a file
    */
   @Output() readonly deleteAttachment = new EventEmitter<AttachmentUpload>();
+  customAttachments: Attachment[] = [];
+  customAttachmentsPreview?: TemplateRef<CustomAttachmentPreviewListContext>;
+  private subscriptions: Subscription[] = [];
 
-  constructor() {}
+  constructor(
+    private customTemplateService: CustomTemplatesService,
+    public readonly attachmentService: AttachmentService
+  ) {}
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplateService.customAttachmentPreviewListTemplate$.subscribe(
+        (t) => (this.customAttachmentsPreview = t)
+      )
+    );
+    this.subscriptions.push(
+      this.attachmentService.customAttachments$.subscribe(
+        (a) => (this.customAttachments = a)
+      )
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  }
 
   attachmentUploadRetried(file: File) {
     this.retryAttachmentUpload.emit(file);

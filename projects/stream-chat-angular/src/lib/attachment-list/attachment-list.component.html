@@ -1,4 +1,10 @@
-<div *ngIf="orderedAttachments.length > 0" class="str-chat__attachment-list">
+<div
+  *ngIf="
+    orderedAttachments.length > 0 ||
+    (customAttachments.length > 0 && customAttachmentsTemplate)
+  "
+  class="str-chat__attachment-list"
+>
   <ng-container
     *ngFor="let attachment of orderedAttachments; trackBy: trackByUrl"
   >
@@ -413,6 +419,18 @@
         </ng-template>
       </ng-container>
     </div>
+  </ng-container>
+  <ng-container *ngIf="customAttachmentsTemplate">
+    <ng-template
+      *ngTemplateOutlet="
+        customAttachmentsTemplate;
+        context: {
+          messageId: messageId,
+          parentMessageId: parentMessageId,
+          attachments: customAttachments
+        }
+      "
+    ></ng-template>
   </ng-container>
 
   <ng-container *ngIf="imagesToView && imagesToView.length > 0">

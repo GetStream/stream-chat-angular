@@ -11,11 +11,22 @@ import { ChannelService } from '../channel.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
-import { DefaultStreamChatGenerics } from '../types';
+import {
+  CustomAttachmentListContext,
+  DefaultStreamChatGenerics,
+} from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
-import { SimpleChange } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  SimpleChange,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { mockVoiceRecording } from '../mocks';
 import { VoiceRecordingComponent } from '../voice-recording/voice-recording.component';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { MessageService } from '../message.service';
 
 describe('AttachmentListComponent', () => {
   let component: AttachmentListComponent;
@@ -50,6 +61,8 @@ describe('AttachmentListComponent', () => {
         { provide: ChannelService, useValue: { sendAction: sendAction } },
         StreamI18nService,
         AttachmentConfigurationService,
+        CustomTemplatesService,
+        MessageService,
       ],
       imports: [TranslateModule.forRoot()],
     }).compileComponents();
@@ -172,6 +185,24 @@ describe('AttachmentListComponent', () => {
     ).toBeNull();
 
     expect(queryVideos().length).toBe(1);
+  });
+
+  it('should filter custom attachments', () => {
+    const messageService = TestBed.inject(MessageService);
+    messageService.filterCustomAttachment = (attachment: Attachment) =>
+      !attachment.customLink;
+    const imageAttachment = {
+      type: 'image',
+      image_url: 'url/to/image',
+    };
+    const customImageAttachment = {
+      type: 'image',
+      customLink: 'load/from/here',
+    };
+    component.attachments = [imageAttachment, customImageAttachment];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+
+    expect(component.orderedAttachments.length).toBe(1);
   });
 
   it('should display voice recording', () => {
@@ -558,6 +589,7 @@ describe('AttachmentListComponent', () => {
       const thumbUrl = 'https://getstream.io/images/og/OG_Home.png';
       component.attachments = [
         {
+          type: 'image',
           author_name: 'GetStream',
           image_url: undefined,
           og_scrape_url: 'https://getstream.io',
@@ -603,6 +635,7 @@ describe('AttachmentListComponent', () => {
           thumb_url: 'https://getstream.io/images/og/OG_Home.png',
           title,
           title_link: '/',
+          type: 'image',
         },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
@@ -626,6 +659,7 @@ describe('AttachmentListComponent', () => {
           title: 'Stream',
           text,
           title_link: '/',
+          type: 'image',
         },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
@@ -641,6 +675,7 @@ describe('AttachmentListComponent', () => {
       const titleLink = 'https://getstream.io';
       component.attachments = [
         {
+          type: 'image',
           author_name: 'GetStream',
           image_url: undefined,
           og_scrape_url: 'https://getstream.io/home',
@@ -668,6 +703,7 @@ describe('AttachmentListComponent', () => {
           title: 'Stream',
           text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
           title_link: undefined,
+          type: 'image',
         },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
@@ -998,5 +1034,103 @@ describe('AttachmentListComponent', () => {
 
     expect(videoElements[0].src).toContain(attachments[0].asset_url);
     expect(videoElements[0].poster).toContain(attachments[0].thumb_url);
+  });
+});
+
+describe('AttachmentListComponent with custom attachments', () => {
+  @Component({
+    selector: 'stream-test-component-attachment-list',
+    template: `<stream-attachment-list
+        messageId="test"
+        [attachments]="attachments"
+      ></stream-attachment-list>
+      <ng-template #customAttachments let-attachments="attachments">
+        <div
+          class="custom-attachment-container"
+          *ngFor="let attachment of attachments"
+        >
+          <ng-container [ngSwitch]="attachment.subtype">
+            <div *ngSwitchCase="'payment'" class="payment-link">
+              Use the following
+              <a [href]="attachment.link" target="_blank">payment lint</a> to
+              pay me {{ value }}.
+            </div>
+          </ng-container>
+        </div>
+      </ng-template> `,
+  })
+  class TestHostComponentAttachmentListComponent implements AfterViewInit {
+    @ViewChild('customAttachments')
+    template!: TemplateRef<CustomAttachmentListContext>;
+    attachments: Attachment[] = [];
+    constructor(private customTemplatesService: CustomTemplatesService) {}
+
+    ngAfterViewInit(): void {
+      this.customTemplatesService.customAttachmentListTemplate$.next(
+        this.template
+      );
+    }
+  }
+
+  let hostComponent: TestHostComponentAttachmentListComponent;
+  let hostFixture: ComponentFixture<TestHostComponentAttachmentListComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [
+        AttachmentListComponent,
+        TestHostComponentAttachmentListComponent,
+      ],
+      providers: [CustomTemplatesService],
+    }).compileComponents();
+
+    hostFixture = TestBed.createComponent(
+      TestHostComponentAttachmentListComponent
+    );
+    hostComponent = hostFixture.componentInstance;
+    hostFixture.detectChanges();
+  });
+
+  it('should display custom attachments', () => {
+    expect(
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+    ).toBe(0);
+
+    const customAttachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
+    hostComponent.attachments = [customAttachment];
+    hostFixture.detectChanges();
+
+    expect(
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+    ).toBe(1);
+  });
+
+  it(`shouldn't display attachments if no template is provided`, () => {
+    const customTemplatesService = TestBed.inject(CustomTemplatesService);
+    customTemplatesService.customAttachmentListTemplate$.next(undefined);
+
+    const customAttachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
+    hostComponent.attachments = [customAttachment];
+    hostFixture.detectChanges();
+
+    expect(
+      hostFixture.nativeElement.querySelector('.str-chat__attachment-list')
+    ).toBeNull();
+  });
+
+  it(`shouldn't display attachments if there are no attachments`, () => {
+    expect(
+      hostFixture.nativeElement.querySelector('.str-chat__attachment-list')
+    ).toBeNull();
   });
 });

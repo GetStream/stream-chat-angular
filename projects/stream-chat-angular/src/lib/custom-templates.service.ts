@@ -10,6 +10,8 @@ import {
   ChannelPreviewContext,
   ChannelPreviewInfoContext,
   CommandAutocompleteListItemContext,
+  CustomAttachmentListContext,
+  CustomAttachmentPreviewListContext,
   CustomAttachmentUploadContext,
   CustomMetadataContext,
   DateSeparatorContext,
@@ -329,5 +331,18 @@ export class CustomTemplatesService<
   channelPreviewInfoTemplate$ = new BehaviorSubject<
     TemplateRef<ChannelPreviewInfoContext> | undefined
   >(undefined);
+  /**
+   * The template used to display custom attachment previews in the [message input component](../../components/MessageInputComponent.mdx)
+   */
+  customAttachmentPreviewListTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomAttachmentPreviewListContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display custom attachments in the [message component](../../components/MessageComponent.mdx)
+   */
+  customAttachmentListTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomAttachmentListContext> | undefined
+  >(undefined);
+
   constructor() {}
 }

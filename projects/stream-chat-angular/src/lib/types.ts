@@ -187,10 +187,15 @@ export type ChannelActionsContext<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
 > = { channel: Channel<T> };
 
-export type AttachmentListContext = {
+export type CustomAttachmentListContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
   messageId: string;
-  attachments: Attachment<DefaultStreamChatGenerics>[];
+  attachments: Attachment<T>[];
   parentMessageId?: string;
+};
+
+export type AttachmentListContext = CustomAttachmentListContext & {
   imageModalStateChangeHandler?: (state: 'opened' | 'closed') => void;
 };
 
@@ -224,6 +229,7 @@ export type AttachmentPreviewListContext = {
   attachmentUploads$: Observable<AttachmentUpload[]> | undefined;
   retryUploadHandler: (f: File) => void;
   deleteUploadHandler: (u: AttachmentUpload) => void;
+  service: AttachmentService;
 };
 
 export type IconContext = {
@@ -481,4 +487,10 @@ export type MediaRecording = {
   duration: number;
   mime_type: string;
   asset_url: string | ArrayBuffer | undefined;
+};
+
+export type CustomAttachmentPreviewListContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  attachmentService: AttachmentService<T>;
 };

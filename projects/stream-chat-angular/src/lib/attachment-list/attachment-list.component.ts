@@ -4,6 +4,8 @@ import {
   HostBinding,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -17,12 +19,15 @@ import {
   VideoAttachmentConfiguration,
   ImageAttachmentConfiguration,
   AttachmentContext,
+  CustomAttachmentListContext,
 } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
+import { Subscription } from 'rxjs';
+import { MessageService } from '../message.service';
 
 /**
  * The `AttachmentList` component displays the attachments of a message
@@ -32,7 +37,7 @@ import { AttachmentConfigurationService } from '../attachment-configuration.serv
   templateUrl: './attachment-list.component.html',
   styles: [],
 })
-export class AttachmentListComponent implements OnChanges {
+export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   /**
    * The id of the message the attachments belong to
    */
@@ -53,8 +58,10 @@ export class AttachmentListComponent implements OnChanges {
   >();
   @HostBinding() class = 'str-chat__attachment-list-angular-host';
   orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  customAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
   imagesToViewCurrentIndex = 0;
+  customAttachmentsTemplate?: TemplateRef<CustomAttachmentListContext>;
   @ViewChild('modalContent', { static: true })
   private modalContent!: TemplateRef<void>;
   private attachmentConfigurations: Map<
@@ -63,32 +70,56 @@ export class AttachmentListComponent implements OnChanges {
     | VideoAttachmentConfiguration
     | ImageAttachmentConfiguration
   > = new Map();
+  private subscriptions: Subscription[] = [];
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
-    private attachmentConfigurationService: AttachmentConfigurationService
+    private attachmentConfigurationService: AttachmentConfigurationService,
+    private messageService: MessageService
   ) {}
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.customAttachmentListTemplate$.subscribe(
+        (t) => (this.customAttachmentsTemplate = t)
+      )
+    );
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {
-      const images = this.attachments.filter(this.isImage);
+      const builtInAttachments: Attachment[] = [];
+      const customAttachments: Attachment[] = [];
+      this.attachments.forEach((a) => {
+        if (this.messageService.isCustomAttachment(a)) {
+          customAttachments.push(a);
+        } else {
+          builtInAttachments.push(a);
+        }
+      });
+      const images = builtInAttachments.filter(this.isImage);
       const containsGallery = images.length >= 2;
       this.orderedAttachments = [
         ...(containsGallery ? this.createGallery(images) : images),
-        ...this.attachments.filter((a) => this.isVideo(a)),
-        ...this.attachments.filter((a) => this.isVoiceMessage(a)),
-        ...this.attachments.filter((a) => this.isFile(a)),
+        ...builtInAttachments.filter((a) => this.isVideo(a)),
+        ...builtInAttachments.filter((a) => this.isVoiceMessage(a)),
+        ...builtInAttachments.filter((a) => this.isFile(a)),
       ];
       this.attachmentConfigurations = new Map();
       // Display link attachments only if there are no other attachments
       // Giphy-s always sent without other attachments
       if (this.orderedAttachments.length === 0) {
         this.orderedAttachments.push(
-          ...this.attachments.filter((a) => this.isCard(a))
+          ...builtInAttachments.filter((a) => this.isCard(a))
         );
       }
+      this.customAttachments = customAttachments;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   trackByUrl(_: number, attachment: Attachment) {
