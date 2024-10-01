@@ -272,6 +272,21 @@ export class AttachmentService<
           thumb_url: attachment.thumb_url,
           fromAttachment: attachment,
         });
+      } else if (attachment.type === 'voiceRecording') {
+        attachmentUploads.push({
+          url: attachment.asset_url,
+          state: 'success',
+          file: {
+            name: attachment.title,
+            size: attachment.file_size,
+            type: attachment.mime_type,
+          } as File,
+          type: 'voiceRecording',
+          extraData: {
+            duration: attachment.duration,
+            waveform_data: attachment.waveform_data,
+          },
+        });
       }
     });
 
