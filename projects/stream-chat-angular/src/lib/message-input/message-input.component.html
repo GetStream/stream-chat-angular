@@ -1,6 +1,6 @@
 <div
   class="str-chat__message-input str-chat-angular__message-input"
-  *ngIf="!isVoiceRecording"
+  [style.display]="isVoiceRecording ? 'none' : 'flex'"
 >
   <div *ngIf="quotedMessage" class="str-chat__quoted-message-preview-header">
     <div class="str-chat__quoted-message-reply-to-message">
