@@ -31,9 +31,11 @@ export class IconComponent {
       'arrow-down': 'keyboard_arrow_down',
       'chat-bubble': 'chat',
       'audio-file': '',
-      play: '',
-      pause: '',
-      read: '',
+      play: 'play_arrow',
+      pause: 'pause',
+      read: 'done_all',
+      bin: 'delete',
+      mic: 'mic',
     };
 
     return map[this.icon!];

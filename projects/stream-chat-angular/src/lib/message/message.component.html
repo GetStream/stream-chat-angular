@@ -107,18 +107,22 @@
               [message]="messageInput"
               [enabledActions]="enabledActions"
               [messageTextHtmlElement]="messageTextHtmlElement"
-              (click)="messageActionsBoxClicked(messageMenuFloat)"
             ></stream-message-actions-box>
           </ng-template>
           <ng-container>
-            <ng-container
-              *ngTemplateOutlet="
-                (customTemplatesService.messageActionsBoxTemplate$ | async) ||
-                  defaultMessageActionsBox;
-                context: getMessageActionsBoxContext()
-              "
+            <div
+              (click)="messageActionsBoxClicked(messageMenuFloat)"
+              (keyup.enter)="messageActionsBoxClicked(messageMenuFloat)"
             >
-            </ng-container>
+              <ng-container
+                *ngTemplateOutlet="
+                  (customTemplatesService.messageActionsBoxTemplate$ | async) ||
+                    defaultMessageActionsBox;
+                  context: getMessageActionsBoxContext()
+                "
+              >
+              </ng-container>
+            </div>
           </ng-container>
         </float-ui-content>
         <div
