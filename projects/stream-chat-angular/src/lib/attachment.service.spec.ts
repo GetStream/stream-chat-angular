@@ -7,6 +7,7 @@ import { NotificationService } from './notification.service';
 import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
 import { Subject } from 'rxjs';
 import { ChatClientService } from './chat-client.service';
+import { MessageService } from './message.service';
 
 describe('AttachmentService', () => {
   let service: AttachmentService<DefaultStreamChatGenerics>;
@@ -44,11 +45,10 @@ describe('AttachmentService', () => {
             getAppSettings,
           },
         },
+        MessageService,
       ],
     });
-    service = TestBed.inject(
-      AttachmentService
-    ) as AttachmentService<DefaultStreamChatGenerics>;
+    service = TestBed.inject(AttachmentService);
   });
 
   it('should delete attachment, if file is already uploaded', async () => {
@@ -382,11 +382,13 @@ describe('AttachmentService', () => {
 
   it('should reset attachments', () => {
     const spy = jasmine.createSpy();
+    service.customAttachments$.next([{ type: 'custom' }]);
     service.attachmentUploads$.subscribe(spy);
     spy.calls.reset();
     service.resetAttachmentUploads();
 
     expect(spy).toHaveBeenCalledWith([]);
+    expect(service.customAttachments$.value).toEqual([]);
   });
 
   it('should map to attachments', async () => {
@@ -433,6 +435,15 @@ describe('AttachmentService', () => {
 
     service.addAttachment(customAttachment);
 
+    const customPaymentAttachment: Attachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
+
+    service.customAttachments$.next([customPaymentAttachment]);
+
     expect(service.mapToAttachments()).toEqual([
       {
         fallback: 'flower.png',
@@ -462,10 +473,22 @@ describe('AttachmentService', () => {
         thumb_url: 'url/to/my/thumb',
         isCustomAttachment: true,
       },
+      customPaymentAttachment,
     ]);
   });
 
   it('should create attachmentUploads from attachments', () => {
+    const messageService = TestBed.inject(MessageService);
+    const filterSpy = spyOn(
+      messageService,
+      'isCustomAttachment'
+    ).and.callThrough();
+    const customAttachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
     const attachments = [
       {
         fallback: 'flower.png',
@@ -495,6 +518,7 @@ describe('AttachmentService', () => {
         mime_type: 'application/pdf',
         isCustomAttachment: true,
       },
+      customAttachment,
     ];
     const imageFile = { name: 'flower.png', type: undefined };
     const dataFile = { name: 'note.txt', size: 3272969, type: undefined };
@@ -547,6 +571,8 @@ describe('AttachmentService', () => {
     service.createFromAttachments(attachments);
 
     expect(spy).toHaveBeenCalledWith(jasmine.arrayContaining(result));
+    expect(service.customAttachments$.value).toEqual([customAttachment]);
+    expect(filterSpy).toHaveBeenCalledTimes(attachments.length);
   });
 
   it('should ignore URL attachments if creating from attachments', () => {

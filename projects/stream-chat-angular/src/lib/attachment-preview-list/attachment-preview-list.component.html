@@ -1,5 +1,8 @@
 <div
-  *ngIf="(attachmentUploads$ | async)?.length"
+  *ngIf="
+    (attachmentUploads$ | async)?.length ||
+    (customAttachments.length > 0 && customAttachmentsPreview)
+  "
   class="str-chat__attachment-preview-list"
 >
   <div class="str-chat__attachment-list-scroll-container">
@@ -100,6 +103,14 @@
           "
         ></ng-container>
       </div>
+    </ng-container>
+    <ng-container *ngIf="customAttachmentsPreview">
+      <ng-template
+        *ngTemplateOutlet="
+          customAttachmentsPreview;
+          context: { service: attachmentService }
+        "
+      ></ng-template>
     </ng-container>
   </div>
 </div>

@@ -147,7 +147,9 @@
         class="str-chat__send-button"
         [disabled]="
           (attachmentUploadInProgressCounter$ | async)! > 0 ||
-          (!textareaValue && (attachmentUploads$ | async)!.length === 0)
+          (!textareaValue &&
+            (attachmentUploads$ | async)!.length === 0 &&
+            (customAttachments$ | async)!.length === 0)
         "
         (click)="messageSent()"
         (keyup.enter)="messageSent()"

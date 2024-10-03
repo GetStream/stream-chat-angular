@@ -8,16 +8,15 @@ If you want to use your own transcoder you can provide a `customTranscoder`.
 
 ### transcode
 
-▸ **transcode**(`blob`, `options`): `Promise`<`Blob`\>
+▸ **transcode**(`blob`): `Promise`<`Blob`\>
 
 The default transcoder will leave audio/mp4 files as is, and transcode webm files to wav. If you want to customize this, you can provide your own transcoder using the `customTranscoder` field
 
 #### Parameters
 
-| Name      | Type                |
-| :-------- | :------------------ |
-| `blob`    | `Blob`              |
-| `options` | `TranscoderOptions` |
+| Name   | Type   |
+| :----- | :----- |
+| `blob` | `Blob` |
 
 #### Returns
 
@@ -27,4 +26,4 @@ the transcoded file
 
 #### Defined in
 
-[projects/stream-chat-angular/src/lib/voice-recorder/transcoder.service.ts:68](https://github.com/GetStream/stream-chat-angular/blob/c4925a571484c046f73b9e63286a2e64380af0c6/projects/stream-chat-angular/src/lib/voice-recorder/transcoder.service.ts#L68)
+[projects/stream-chat-angular/src/lib/voice-recorder/transcoder.service.ts:63](https://github.com/GetStream/stream-chat-angular/blob/233af9a28d1b6ecdfe793362d5f20b0e8b749c16/projects/stream-chat-angular/src/lib/voice-recorder/transcoder.service.ts#L63)

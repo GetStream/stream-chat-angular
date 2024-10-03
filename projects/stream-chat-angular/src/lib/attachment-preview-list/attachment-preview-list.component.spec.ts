@@ -1,8 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { AttachmentUpload } from '../types';
+import { AttachmentUpload, CustomAttachmentPreviewListContext } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
+import {
+  AfterViewInit,
+  Component,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
+import { CustomTemplatesService } from '../custom-templates.service';
+import { AttachmentService } from '../attachment.service';
 
 describe('AttachmentPreviewListComponent', () => {
   let component: AttachmentPreviewListComponent;
@@ -297,5 +305,98 @@ describe('AttachmentPreviewListComponent', () => {
     fixture.detectChanges();
 
     expect(queryPreviewFiles().length).toBe(1);
+  });
+});
+
+describe('AttachmentPreviewListComponent with custom attachments', () => {
+  @Component({
+    selector: 'stream-test-component',
+    template: `<stream-attachment-preview-list></stream-attachment-preview-list>
+      <ng-template #customAttachments let-service="service">
+        <div
+          class="custom-attachment-container"
+          *ngFor="let attachment of service.customAttachments$ | async"
+        >
+          <ng-container [ngSwitch]="attachment.subtype">
+            <div *ngSwitchCase="'payment'" class="payment-link">
+              Use the following
+              <a [href]="attachment.link" target="_blank">payment lint</a> to
+              pay me {{ value }}.
+            </div>
+          </ng-container>
+        </div>
+      </ng-template> `,
+  })
+  class TestHostComponent implements AfterViewInit {
+    @ViewChild('customAttachments')
+    template!: TemplateRef<CustomAttachmentPreviewListContext>;
+    constructor(private customTemplatesService: CustomTemplatesService) {}
+
+    ngAfterViewInit(): void {
+      this.customTemplatesService.customAttachmentPreviewListTemplate$.next(
+        this.template
+      );
+    }
+  }
+
+  let hostFixture: ComponentFixture<TestHostComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [AttachmentPreviewListComponent, TestHostComponent],
+      providers: [AttachmentService, CustomTemplatesService],
+    }).compileComponents();
+
+    hostFixture = TestBed.createComponent(TestHostComponent);
+    hostFixture.detectChanges();
+  });
+
+  it('should display custom attachments', () => {
+    expect(
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+    ).toBe(0);
+
+    const customAttachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
+    const attachmentService = TestBed.inject(AttachmentService);
+    attachmentService.customAttachments$.next([customAttachment]);
+    hostFixture.detectChanges();
+
+    expect(
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+    ).toBe(1);
+  });
+
+  it(`shouldn't display attachments if no template is provided`, () => {
+    const customTemplatesService = TestBed.inject(CustomTemplatesService);
+    customTemplatesService.customAttachmentPreviewListTemplate$.next(undefined);
+
+    const customAttachment = {
+      type: 'custom',
+      subtype: 'payment',
+      value: '30$',
+      link: 'pay/me/or/else',
+    };
+    const attachmentService = TestBed.inject(AttachmentService);
+    attachmentService.customAttachments$.next([customAttachment]);
+    hostFixture.detectChanges();
+
+    expect(
+      hostFixture.nativeElement.querySelector(
+        '.str-chat__attachment-preview-list'
+      )
+    ).toBeNull();
+  });
+
+  it(`shouldn't display attachments if there are no attachments`, () => {
+    expect(
+      hostFixture.nativeElement.querySelector(
+        '.str-chat__attachment-preview-list'
+      )
+    ).toBeNull();
   });
 });

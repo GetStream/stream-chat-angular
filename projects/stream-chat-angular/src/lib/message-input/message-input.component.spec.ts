@@ -10,7 +10,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of } from 'rxjs';
-import { Channel, UserResponse } from 'stream-chat';
+import { Attachment, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -36,6 +36,7 @@ import { AttachmentPreviewListComponent } from '../attachment-preview-list/attac
 import { MessageActionsService } from '../message-actions.service';
 import { StreamAvatarModule } from '../stream-avatar.module';
 import { VoiceRecorderService } from './voice-recorder.service';
+import { CustomTemplatesService } from '../custom-templates.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -54,6 +55,7 @@ describe('MessageInputComponent', () => {
   let channel: Channel<DefaultStreamChatGenerics>;
   let user: UserResponse;
   let attachmentService: {
+    customAttachments$: BehaviorSubject<Attachment[]>;
     attachmentUploadInProgressCounter$: Subject<number>;
     attachmentUploads$: Subject<AttachmentUpload[]>;
     resetAttachmentUploads: jasmine.Spy;
@@ -84,6 +86,7 @@ describe('MessageInputComponent', () => {
     typingStartedSpy = jasmine.createSpy();
     typingStoppedSpy = jasmine.createSpy();
     attachmentService = {
+      customAttachments$: new BehaviorSubject<Attachment[]>([]),
       resetAttachmentUploads: jasmine.createSpy(),
       attachmentUploadInProgressCounter$: new BehaviorSubject(0),
       attachmentUploads$: new BehaviorSubject<AttachmentUpload[]>([]),
@@ -110,6 +113,7 @@ describe('MessageInputComponent', () => {
             useValue: AutocompleteTextareaComponent,
           },
           VoiceRecorderService,
+          CustomTemplatesService,
         ],
       },
     });

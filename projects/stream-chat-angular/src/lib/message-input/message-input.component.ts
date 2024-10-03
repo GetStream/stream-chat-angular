@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
 import { first, map, take, tap } from 'rxjs/operators';
-import { Channel, UserResponse } from 'stream-chat';
+import { Attachment, Channel, UserResponse } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
@@ -123,6 +123,7 @@ export class MessageInputComponent
   canSendLinks: boolean | undefined;
   canSendMessages: boolean | undefined;
   attachmentUploads$: Observable<AttachmentUpload[]>;
+  customAttachments$: Observable<Attachment[]>;
   attachmentUploadInProgressCounter$: Observable<number>;
   textareaValue = '';
   textareaRef: ComponentRef<TextareaInterface & Partial<OnChanges>> | undefined;
@@ -214,6 +215,7 @@ export class MessageInputComponent
       })
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
+    this.customAttachments$ = this.attachmentService.customAttachments$;
     this.attachmentUploadInProgressCounter$ =
       this.attachmentService.attachmentUploadInProgressCounter$;
     this.isFileUploadEnabled = this.configService.isFileUploadEnabled;
@@ -470,6 +472,7 @@ export class MessageInputComponent
       attachmentUploads$: this.attachmentService.attachmentUploads$,
       deleteUploadHandler: this.deleteUpload.bind(this),
       retryUploadHandler: this.retryUpload.bind(this),
+      service: this.attachmentService,
     };
   }
 
