@@ -37,6 +37,7 @@ import { MessageActionsService } from '../message-actions.service';
 import { StreamAvatarModule } from '../stream-avatar.module';
 import { VoiceRecorderService } from './voice-recorder.service';
 import { CustomTemplatesService } from '../custom-templates.service';
+import { MessageInputConfigService } from './message-input-config.service';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -367,6 +368,45 @@ describe('MessageInputComponent', () => {
 
     expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
     expect(queryFileInput()?.value).toBe('');
+  });
+
+  it('should upload from clipboard event', () => {
+    const imageFiles = [{ type: 'image/png' }, { type: 'image/jpg' }];
+    const dataFiles = [
+      { type: 'image/vnd.adobe.photoshop' },
+      { type: 'plain/text' },
+    ];
+    const files = [...imageFiles, ...dataFiles] as any as FileList;
+
+    const event = {
+      clipboardData: { files },
+      preventDefault: jasmine.createSpy(),
+    };
+    // @ts-expect-error it's hard to construct a clipboard event from scratch
+    queryTextarea()?.pasteFromClipboard.emit(event);
+
+    expect(event.preventDefault).toHaveBeenCalledWith();
+    expect(attachmentService.filesSelected).toHaveBeenCalledWith(files);
+  });
+
+  it(`should do anything if paste event doesn't contain files`, () => {
+    const event = new ClipboardEvent('paste');
+    spyOn(event, 'preventDefault');
+
+    queryTextarea()?.pasteFromClipboard.emit(event);
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+
+  it('should call custom paste event handler', () => {
+    const spy = jasmine.createSpy();
+    const configService = TestBed.inject(MessageInputConfigService);
+    configService.customPasteEventHandler = spy;
+
+    const event = new ClipboardEvent('paste');
+    queryTextarea()?.pasteFromClipboard.emit(event);
+
+    expect(spy).toHaveBeenCalledWith(event, component);
   });
 
   it('should reset files, after message is sent', async () => {

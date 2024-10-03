@@ -8,4 +8,5 @@
   placeholder="{{ placeholder | translate }}"
   (input)="inputChanged()"
   (keydown.enter)="enterHit($event)"
+  (paste)="pasteFromClipboard.emit($event)"
 ></textarea>

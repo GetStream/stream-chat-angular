@@ -130,6 +130,7 @@
             (valueChange)="typingStart$.next()"
             (send)="messageSent()"
             (userMentions)="mentionedUsers = $event"
+            (pasteFromClipboard)="itemsPasted($event)"
           ></ng-container>
           <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
             <ng-container

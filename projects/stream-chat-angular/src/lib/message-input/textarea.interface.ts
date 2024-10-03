@@ -6,6 +6,7 @@ export interface TextareaInterface {
   valueChange: EventEmitter<string>;
   send: EventEmitter<void>;
   userMentions?: EventEmitter<UserResponse[]>;
+  pasteFromClipboard: EventEmitter<ClipboardEvent>;
   areMentionsEnabled?: boolean;
   mentionScope?: 'channel' | 'application';
   placeholder?: string;
