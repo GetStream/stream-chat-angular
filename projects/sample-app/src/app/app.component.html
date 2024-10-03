@@ -7,10 +7,7 @@
   ></stream-channel-list>
   <stream-channel class="channel" (click)="closeMenu($event)">
     <stream-channel-header>
-      <button
-        class="menu-button"
-        (click)="isMenuOpen = !isMenuOpen; $event.stopPropagation()"
-      >
+      <button class="menu-button" (click)="isMenuOpen = !isMenuOpen">
         <svg
           width="24"
           height="24"
