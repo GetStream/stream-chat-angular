@@ -28,7 +28,6 @@ import { debounceTime } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
-import { ThemeService } from '../../theme.service';
 
 /**
  * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
@@ -79,6 +78,10 @@ export class AutocompleteTextareaComponent
    * Emits the array of users that are mentioned in the message, it is updated when a user mentions a new user or deletes a mention.
    */
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
+  /**
+   * Emits any paste event that occured inside the textarea
+   */
+  @Output() readonly pasteFromClipboard = new EventEmitter<ClipboardEvent>();
   mentionAutocompleteItemTemplate:
     | TemplateRef<MentionAutcompleteListItemContext>
     | undefined;
@@ -133,7 +136,6 @@ export class AutocompleteTextareaComponent
     private transliterationService: TransliterationService,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
-    private themeService: ThemeService,
     private cdRef: ChangeDetectorRef
   ) {
     this.searchTerm$.pipe(debounceTime(300)).subscribe((searchTerm) => {

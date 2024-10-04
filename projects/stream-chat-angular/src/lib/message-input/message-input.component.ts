@@ -448,6 +448,17 @@ export class MessageInputComponent
     return '';
   }
 
+  itemsPasted(event: ClipboardEvent) {
+    if (this.configService.customPasteEventHandler) {
+      this.configService.customPasteEventHandler(event, this);
+    } else {
+      if (event.clipboardData?.files) {
+        event.preventDefault();
+        void this.filesSelected(event.clipboardData?.files);
+      }
+    }
+  }
+
   async filesSelected(fileList: FileList | null) {
     await this.attachmentService.filesSelected(fileList);
     this.clearFileInput();

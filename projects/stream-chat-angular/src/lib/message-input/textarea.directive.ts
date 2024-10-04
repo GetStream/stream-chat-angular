@@ -28,6 +28,7 @@ export class TextareaDirective implements OnChanges {
   @Output() readonly valueChange = new EventEmitter<string>();
   @Output() readonly send = new EventEmitter<void>();
   @Output() readonly userMentions = new EventEmitter<UserResponse[]>();
+  @Output() readonly pasteFromClipboard = new EventEmitter<ClipboardEvent>();
   private subscriptions: Subscription[] = [];
   private unpropagatedChanges: SimpleChanges[] = [];
   constructor(public viewContainerRef: ViewContainerRef) {}
@@ -57,6 +58,11 @@ export class TextareaDirective implements OnChanges {
             )
           );
         }
+        this.subscriptions.push(
+          this.componentRef.instance.pasteFromClipboard.subscribe((value) =>
+            this.pasteFromClipboard.next(value)
+          )
+        );
         this.componentRef.instance.areMentionsEnabled = this.areMentionsEnabled;
         this.componentRef.instance.mentionScope = this.mentionScope;
         this.componentRef.instance.value = this.value;

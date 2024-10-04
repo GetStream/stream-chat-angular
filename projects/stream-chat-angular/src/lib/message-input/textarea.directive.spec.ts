@@ -22,6 +22,7 @@ describe('TextareaDirective', () => {
         autoFocus: false,
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
+        pasteFromClipboard: new EventEmitter<ClipboardEvent>(),
         ngOnChanges: () => {},
       };
       directive.componentRef = {
@@ -65,6 +66,7 @@ describe('TextareaDirective', () => {
         valueChange: new EventEmitter<string>(),
         send: new EventEmitter<void>(),
         userMentions: new EventEmitter<UserResponse[]>(),
+        pasteFromClipboard: new EventEmitter<ClipboardEvent>(),
         ngOnChanges: () => {},
       };
       directive.componentRef = {

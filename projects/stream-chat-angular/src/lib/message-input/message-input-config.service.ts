@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { MessageInputComponent } from './message-input.component';
 
 /**
  * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/MessageInputComponent.mdx) components if your UI has more than one input component.
@@ -32,6 +33,20 @@ export class MessageInputConfigService {
    * If `false`, the recording will added to the attachment preview, and users can continue composing the message.
    */
   sendVoiceRecordingImmediately = true;
+  /**
+   * Override the message input's default event handler for [paste events](https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event)
+   *
+   * The event handler will receive the event object, and the [message input component](../../components/MessageInputComponent).
+   *
+   * You can use the public API of the message input component to update the composer. Typically you want to update the message text and/or attachments, this is how you can do these:
+   * - Change message text: `inputComponent.textareaValue = '<new value>'`
+   * - Upload file or image attachments: `inputComponent.attachmentService.filesSelected(<files>)`
+   * - Upload custom attachments: `inputComponent.attachmentService.customAttachments$.next(<custom attachments>)`
+   */
+  customPasteEventHandler?: (
+    event: ClipboardEvent,
+    inputComponent: MessageInputComponent
+  ) => void;
 
   constructor() {}
 }

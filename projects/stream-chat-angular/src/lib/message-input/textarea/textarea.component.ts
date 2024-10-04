@@ -12,9 +12,9 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { ThemeService } from '../../theme.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { TextareaInterface } from '../textarea.interface';
+import { UserResponse } from 'stream-chat';
 
 /**
  * The `Textarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
@@ -53,14 +53,18 @@ export class TextareaComponent
    * Emits when a user triggers a message send event (this happens when they hit the `Enter` key).
    */
   @Output() readonly send = new EventEmitter<void>();
+  /**
+   * Emits any paste event that occured inside the textarea
+   */
+  @Output() readonly pasteFromClipboard = new EventEmitter<ClipboardEvent>();
   @ViewChild('input') private messageInput!: ElementRef<HTMLInputElement>;
+  userMentions?: EventEmitter<UserResponse[]> | undefined;
+  areMentionsEnabled?: boolean | undefined;
+  mentionScope?: 'channel' | 'application' | undefined;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
 
-  constructor(
-    private emojiInputService: EmojiInputService,
-    private themeService: ThemeService
-  ) {
+  constructor(private emojiInputService: EmojiInputService) {
     this.subscriptions.push(
       this.emojiInputService.emojiInput$.subscribe((emoji) => {
         this.messageInput.nativeElement.focus();

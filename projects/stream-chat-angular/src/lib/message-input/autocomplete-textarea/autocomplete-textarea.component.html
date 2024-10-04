@@ -12,6 +12,7 @@
   (keydown.enter)="enterHit($event)"
   (searchTerm)="autcompleteSearchTermChanged($event)"
   (blur)="inputLeft()"
+  (paste)="pasteFromClipboard.emit($event)"
 ></textarea>
 <ng-template #autocompleteItem let-item="item">
   <div class="rta rta__item str-chat__emojisearch__item" [ngSwitch]="item.type">

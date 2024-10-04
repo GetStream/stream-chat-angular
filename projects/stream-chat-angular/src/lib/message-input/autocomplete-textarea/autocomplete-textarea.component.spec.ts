@@ -494,4 +494,14 @@ describe('AutocompleteTextareaComponent', () => {
 
     expect(height).toBeGreaterThan(0);
   });
+
+  it('should emit paste event', () => {
+    const spy = jasmine.createSpy();
+    component.pasteFromClipboard.subscribe(spy);
+    spy.calls.reset();
+    const event = new ClipboardEvent('paste');
+    queryTextarea()?.dispatchEvent(event);
+
+    expect(spy).toHaveBeenCalledWith(event);
+  });
 });
