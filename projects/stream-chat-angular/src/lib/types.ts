@@ -494,3 +494,9 @@ export type CustomAttachmentPreviewListContext<
 > = {
   attachmentService: AttachmentService<T>;
 };
+
+export type ThreadReplyButtonContext<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+> = {
+  message: StreamMessage<T>;
+};

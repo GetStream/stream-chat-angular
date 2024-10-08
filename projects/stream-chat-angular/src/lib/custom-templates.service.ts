@@ -32,6 +32,7 @@ import {
   SendingStatusContext,
   SystemMessageContext,
   ThreadHeaderContext,
+  ThreadReplyButtonContext,
   TypingIndicatorContext,
   UnreadMessagesIndicatorContext,
   UnreadMessagesNotificationContext,
@@ -342,6 +343,20 @@ export class CustomTemplatesService<
    */
   customAttachmentListTemplate$ = new BehaviorSubject<
     TemplateRef<CustomAttachmentListContext> | undefined
+  >(undefined);
+  /**
+   * The template used to display the number of thread replies inside the [message component](../../components/MessageComponent.mdx)
+   */
+  threadLinkButton$ = new BehaviorSubject<
+    TemplateRef<ThreadReplyButtonContext> | undefined
+  >(undefined);
+  /**
+   * Template to display custom metadata inside the message bubble of the [message component](../components/MessageComponent.mdx)
+   *
+   * To properly position your template you should override the `grid-template-areas` of the `.str-chat__message-inner` selector
+   */
+  customMessageMetadataInsideBubbleTemplate$ = new BehaviorSubject<
+    TemplateRef<CustomMetadataContext> | undefined
   >(undefined);
 
   constructor() {}
