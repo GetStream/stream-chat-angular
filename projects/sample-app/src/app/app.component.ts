@@ -14,6 +14,9 @@ import {
   CustomTemplatesService,
   ThemeService,
   AvatarContext,
+  StreamMessage,
+  ThreadReplyButtonContext,
+  CustomMetadataContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 import names from 'starwars-names';
@@ -29,6 +32,10 @@ export class AppComponent implements AfterViewInit {
   isThreadOpen = false;
   @ViewChild('emojiPickerTemplate')
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
+  @ViewChild('threadReplies')
+  threadReplies!: TemplateRef<ThreadReplyButtonContext>;
+  @ViewChild('messageDate')
+  messageDate!: TemplateRef<CustomMetadataContext>;
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
   theme$: Observable<string>;
   counter = 0;
@@ -75,11 +82,23 @@ export class AppComponent implements AfterViewInit {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
     );
+    this.customTemplateService.threadLinkButton$.next(this.threadReplies);
+    this.customTemplateService.customMessageMetadataInsideBubbleTemplate$.next(
+      this.messageDate
+    );
   }
 
   closeMenu(event: Event) {
     if ((event.target as HTMLElement).closest('stream-channel-preview')) {
       this.isMenuOpen = false;
     }
+  }
+
+  openThread(message: StreamMessage) {
+    void this.channelService.setAsActiveParentMessage(message);
+  }
+
+  formatDate(createdAt: Date) {
+    return `${createdAt.getMonth() + 1}-${createdAt.getDate()}`;
   }
 }

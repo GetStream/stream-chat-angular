@@ -1,4 +1,6 @@
-@import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+@layer defaults {
+  @import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+}
 @import "@ctrl/ngx-emoji-mart/picker";
 
 html {
@@ -102,6 +104,48 @@ body {
     --str-chat__message-options-button-size: 40px;
     svg {
       transform: scale(1.5);
+    }
+  }
+}
+
+.message-date {
+  grid-area: message-date;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+
+@layer overrides {
+  // Hide the built-in date element
+  .str-chat__message-simple-time {
+    display: none;
+  }
+
+  .str-chat__message.str-chat__message--me {
+    // Change the layout of your own message
+    .str-chat__message-inner {
+      grid-template-areas:
+        ". reactions message-date"
+        "options message-bubble message-bubble";
+    }
+
+    // Change alignment of message reactions
+    .str-chat__message-reactions-container {
+      justify-content: flex-start;
+    }
+  }
+
+  .str-chat__message {
+    // Change the layout of other peoples' message
+    .str-chat__message-inner {
+      grid-template-areas:
+        "message-date reactions ."
+        "message-bubble message-bubble options";
+    }
+
+    // Change alignment of message reactions
+    .str-chat__message-reactions-container {
+      justify-content: flex-end;
     }
   }
 }

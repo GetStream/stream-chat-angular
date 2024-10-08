@@ -54,3 +54,14 @@
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
   <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
 </ng-template>
+
+<ng-template #threadReplies let-message="message">
+  <button (click)="openThread(message)">
+    {{ message.reply_count }} replies with
+    {{ message.thread_participants?.length }} participant(s)
+  </button>
+</ng-template>
+
+<ng-template #messageDate let-message="message">
+  <div class="message-date">{{ formatDate(message.created_at) }}</div>
+</ng-template>
