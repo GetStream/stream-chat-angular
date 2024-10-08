@@ -69,6 +69,20 @@
             </div>
           </div>
         </div>
+        <ng-container
+          *ngIf="
+            customTemplatesService.customMessageMetadataInsideBubbleTemplate$
+              | async
+          "
+        >
+          <ng-template
+            *ngTemplateOutlet="
+              (customTemplatesService.customMessageMetadataInsideBubbleTemplate$
+                | async)!;
+              context: { message: message }
+            "
+          ></ng-template>
+        </ng-container>
         <div class="str-chat__message-reactions-host">
           <ng-template
             #defaultMessageReactions
@@ -566,15 +580,24 @@
   <div
     class="str-chat__message-simple-reply-button str-chat__message-replies-count-button-wrapper"
   >
-    <button
-      *ngIf="shouldDisplayThreadLink"
-      class="str-chat__message-replies-count-button"
-      data-testid="reply-count-button"
-      (click)="setAsActiveParentMessage()"
-    >
-      {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
-      replies' | translate:replyCountParam)}}
-    </button>
+    <ng-container *ngIf="shouldDisplayThreadLink">
+      <ng-template
+        *ngTemplateOutlet="
+          (customTemplatesService.threadLinkButton$ | async) || defaultButton;
+          context: { message: message }
+        "
+      ></ng-template>
+    </ng-container>
+    <ng-template #defaultButton let-message="message">
+      <button
+        class="str-chat__message-replies-count-button"
+        data-testid="reply-count-button"
+        (click)="setAsActiveParentMessage()"
+      >
+        {{message?.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+        replies' | translate:replyCountParam)}}
+      </button>
+    </ng-template>
   </div>
 </ng-template>
 

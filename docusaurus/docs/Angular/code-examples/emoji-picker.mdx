@@ -150,7 +150,7 @@ The `emojiSelect` event is fired when a user selects an emoji, we emit the selec
     title="Pick your emoji…"
     emoji="point_up"
     (emojiSelect)="emojiSelected($event)"
-    [darkMode]="(theme$ | async) === 'dark'"
+    [isNative]="true"
   ></emoji-mart>
 </div>
 ```
@@ -304,6 +304,7 @@ And set the `darkMode` input on the `emoji-mart` component:
   title="Pick your emoji…"
   emoji="point_up"
   (emojiSelect)="emojiSelected($event)"
+  [isNative]="true"
   [darkMode]="(theme$ | async) === 'dark'"
 ></emoji-mart>
 ```

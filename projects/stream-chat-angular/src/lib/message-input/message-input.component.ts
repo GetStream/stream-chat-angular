@@ -452,7 +452,7 @@ export class MessageInputComponent
     if (this.configService.customPasteEventHandler) {
       this.configService.customPasteEventHandler(event, this);
     } else {
-      if (event.clipboardData?.files) {
+      if (event.clipboardData?.files && event.clipboardData?.files.length > 0) {
         event.preventDefault();
         void this.filesSelected(event.clipboardData?.files);
       }
