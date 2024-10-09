@@ -202,6 +202,100 @@ describe('AttachmentService', () => {
     );
   });
 
+  it('should display error message if attachment limit is exceeded', () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
+    const attachments = new Array(30)
+      .fill(null)
+      .map(() => ({ type: 'custom' }));
+    service.customAttachments$.next(attachments);
+
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+
+    service.customAttachments$.next([
+      ...service.customAttachments$.value,
+      { type: 'custom' },
+    ]);
+
+    expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
+      'streamChat.You currently have {{count}} attachments, the maximum is {{max}}',
+      'error',
+      { count: 31, max: service.maxNumberOfAttachments }
+    );
+  });
+
+  it('should prevent file upload if limit would be exceeded', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    const attachments = new Array(28)
+      .fill(null)
+      .map(() => ({ type: 'custom' }));
+    service.customAttachments$.next(attachments);
+
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
+
+    const files = new Array(3)
+      .fill(null)
+      .map(() => ({ name: 'my_image.png', type: 'image/png' } as File));
+    await service.filesSelected(files);
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      `streamChat.You can't uplod more than {{max}} attachments`,
+      'error',
+      undefined,
+      { max: service.maxNumberOfAttachments }
+    );
+
+    expect(uploadAttachmentsSpy).not.toHaveBeenCalled();
+  });
+
+  it('should prevent voice recording upload if limit be exceeded', async () => {
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    const attachments = new Array(29)
+      .fill(null)
+      .map(() => ({ type: 'custom' }));
+    service.customAttachments$.next(attachments);
+
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
+
+    const voiceRecording = {
+      recording: { name: 'test', type: 'audio/wav' } as File,
+      asset_url: 'test',
+      duration: 3.073,
+      file_size: 96044,
+      mime_type: 'audio/wav',
+      waveform_data: [
+        0, 0, 0.1931696001580504, 0.1931696001580504, 0.2430087421276868,
+        0.2430087421276868, 0.2531576820785543,
+      ],
+    };
+
+    uploadAttachmentsSpy.and.resolveTo([
+      {
+        file: voiceRecording.recording,
+        state: 'success',
+        type: 'voiceRecording',
+      },
+    ]);
+
+    await service.uploadVoiceRecording(voiceRecording);
+
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
+
+    uploadAttachmentsSpy.calls.reset();
+    await service.uploadVoiceRecording(voiceRecording);
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      `streamChat.You can't uplod more than {{max}} attachments`,
+      'error',
+      undefined,
+      { max: service.maxNumberOfAttachments }
+    );
+
+    expect(uploadAttachmentsSpy).not.toHaveBeenCalled();
+  });
+
   it('should retry attachment upload', async () => {
     const file = { name: 'my_image.png', type: 'image/png' } as File;
     uploadAttachmentsSpy.and.resolveTo([
@@ -381,6 +475,8 @@ describe('AttachmentService', () => {
   }));
 
   it('should reset attachments', () => {
+    const errorNotificationHideSpy = jasmine.createSpy();
+    service['attachmentLimitNotificationHide'] = errorNotificationHideSpy;
     const spy = jasmine.createSpy();
     service.customAttachments$.next([{ type: 'custom' }]);
     service.attachmentUploads$.subscribe(spy);
@@ -389,6 +485,7 @@ describe('AttachmentService', () => {
 
     expect(spy).toHaveBeenCalledWith([]);
     expect(service.customAttachments$.value).toEqual([]);
+    expect(errorNotificationHideSpy).toHaveBeenCalledWith();
   });
 
   it('should map to attachments', async () => {

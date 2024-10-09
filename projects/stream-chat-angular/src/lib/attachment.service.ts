@@ -1,6 +1,13 @@
 import { Injectable } from '@angular/core';
 import { createUriFromBlob, isImageFile } from './file-utils';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  Observable,
+  shareReplay,
+  take,
+} from 'rxjs';
 import { AppSettings, Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
@@ -42,10 +49,21 @@ export class AttachmentService<
    * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](../../services/CustomTemplatesService).
    */
   customAttachments$ = new BehaviorSubject<Attachment<T>[]>([]);
+  /**
+   * The current number of attachments
+   */
+  attachmentsCounter$: Observable<number>;
+  /**
+   * The maximum number of attachments allowed for a message.
+   *
+   * The maximum is 30, you can set it to lower, but not higher.
+   */
+  maxNumberOfAttachments = 30;
   private attachmentUploadsSubject = new BehaviorSubject<AttachmentUpload[]>(
     []
   );
   private appSettings: AppSettings | undefined;
+  private attachmentLimitNotificationHide?: () => void;
 
   constructor(
     private channelService: ChannelService,
@@ -57,6 +75,30 @@ export class AttachmentService<
     this.chatClientService.appSettings$.subscribe(
       (appSettings) => (this.appSettings = appSettings)
     );
+    this.attachmentsCounter$ = combineLatest([
+      this.attachmentUploads$,
+      this.customAttachments$,
+    ]).pipe(
+      map(([attchmentUploads, customAttachments]) => {
+        return (
+          attchmentUploads.filter((u) => u.state === 'success').length +
+          customAttachments.length
+        );
+      }),
+      shareReplay(1)
+    );
+    this.attachmentsCounter$.subscribe((count) => {
+      if (count > this.maxNumberOfAttachments) {
+        this.attachmentLimitNotificationHide =
+          this.notificationService.addPermanentNotification(
+            'streamChat.You currently have {{count}} attachments, the maximum is {{max}}',
+            'error',
+            { count, max: this.maxNumberOfAttachments }
+          );
+      } else {
+        this.attachmentLimitNotificationHide?.();
+      }
+    });
   }
 
   /**
@@ -65,6 +107,7 @@ export class AttachmentService<
   resetAttachmentUploads() {
     this.attachmentUploadsSubject.next([]);
     this.customAttachments$.next([]);
+    this.attachmentLimitNotificationHide?.();
   }
 
   /**
@@ -73,6 +116,9 @@ export class AttachmentService<
    * @returns A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
    */
   async uploadVoiceRecording(audioRecording: AudioRecording) {
+    if (!this.isWithinLimit(1)) {
+      return false;
+    }
     if (
       !(await this.areAttachmentsHaveValidExtension([audioRecording.recording]))
     ) {
@@ -111,6 +157,10 @@ export class AttachmentService<
     }
 
     const files = Array.from(fileList);
+
+    if (!this.isWithinLimit(files.length)) {
+      return false;
+    }
 
     if (!(await this.areAttachmentsHaveValidExtension(files))) {
       return false;
@@ -500,5 +550,26 @@ export class AttachmentService<
       }
     });
     return isValid;
+  }
+
+  private isWithinLimit(numberOfNewAttachments: number) {
+    let currentNumberOfAttachments: number = 0;
+    this.attachmentsCounter$
+      .pipe(take(1))
+      .subscribe((counter) => (currentNumberOfAttachments = counter));
+    if (
+      currentNumberOfAttachments + numberOfNewAttachments >
+      this.maxNumberOfAttachments
+    ) {
+      this.notificationService.addTemporaryNotification(
+        `streamChat.You can't uplod more than {{max}} attachments`,
+        'error',
+        undefined,
+        { max: this.maxNumberOfAttachments }
+      );
+      return false;
+    } else {
+      return true;
+    }
   }
 }

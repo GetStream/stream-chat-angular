@@ -49,6 +49,7 @@ describe('MessageInputComponent', () => {
   let queryFileInput: () => HTMLInputElement | null;
   let queryCooldownTimer: () => HTMLElement | null;
   let queryAttachmentPreviewList: () => AttachmentPreviewListComponent;
+  let queryVoiceRecorderButton: () => HTMLButtonElement | null;
   let mockActiveChannel$: BehaviorSubject<Channel<DefaultStreamChatGenerics>>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
@@ -56,6 +57,8 @@ describe('MessageInputComponent', () => {
   let channel: Channel<DefaultStreamChatGenerics>;
   let user: UserResponse;
   let attachmentService: {
+    attachmentsCounter$: BehaviorSubject<number>;
+    maxNumberOfAttachments: number;
     customAttachments$: BehaviorSubject<Attachment[]>;
     attachmentUploadInProgressCounter$: Subject<number>;
     attachmentUploads$: Subject<AttachmentUpload[]>;
@@ -87,6 +90,8 @@ describe('MessageInputComponent', () => {
     typingStartedSpy = jasmine.createSpy();
     typingStoppedSpy = jasmine.createSpy();
     attachmentService = {
+      maxNumberOfAttachments: 30,
+      attachmentsCounter$: new BehaviorSubject(0),
       customAttachments$: new BehaviorSubject<Attachment[]>([]),
       resetAttachmentUploads: jasmine.createSpy(),
       attachmentUploadInProgressCounter$: new BehaviorSubject(0),
@@ -171,6 +176,8 @@ describe('MessageInputComponent', () => {
     queryAttachmentPreviewList = () =>
       fixture.debugElement.query(By.directive(AttachmentPreviewListComponent))
         .componentInstance as AttachmentPreviewListComponent;
+    queryVoiceRecorderButton = () =>
+      nativeElement.querySelector('[data-testid="start-voice-recording"]');
     fixture.detectChanges();
   });
 
@@ -254,16 +261,12 @@ describe('MessageInputComponent', () => {
     component.displayVoiceRecordingButton = false;
     fixture.detectChanges();
 
-    expect(
-      nativeElement.querySelector('[data-testid="start-voice-recording"]')
-    ).toBeNull();
+    expect(queryVoiceRecorderButton()).toBeNull();
 
     component.displayVoiceRecordingButton = true;
     fixture.detectChanges();
 
-    expect(
-      nativeElement.querySelector('[data-testid="start-voice-recording"]')
-    ).not.toBeNull();
+    expect(queryVoiceRecorderButton()).not.toBeNull();
   });
 
   it('should emit #messageUpdate event if message update was successful', async () => {
@@ -1106,5 +1109,26 @@ describe('MessageInputComponent', () => {
 
     expect(component['messageToUpdateChanged']).not.toHaveBeenCalledWith();
     expect(component.message).toBe(undefined);
+  });
+
+  it('should disable send button if uploaded attachments exceed limit', () => {
+    attachmentService.attachmentsCounter$.next(
+      attachmentService.maxNumberOfAttachments + 1
+    );
+    component.textareaValue = 'text message';
+    fixture.detectChanges();
+
+    expect(querySendButton()?.disabled).toBe(true);
+  });
+
+  it('should disable upload buttons if attachment counter limit is reached', () => {
+    component.displayVoiceRecordingButton = true;
+    attachmentService.attachmentsCounter$.next(
+      attachmentService.maxNumberOfAttachments
+    );
+    fixture.detectChanges();
+
+    expect(queryFileInput()?.disabled).toBe(true);
+    expect(queryVoiceRecorderButton()?.disabled).toBe(true);
   });
 });

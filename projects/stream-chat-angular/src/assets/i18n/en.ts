@@ -126,5 +126,9 @@ export const en = {
     'An error has occurred during recording':
       'An error has occurred during recording',
     'Media recording not supported': 'Media recording not supported',
+    "You can't uplod more than {{max}} attachments":
+      "You can't uplod more than {{max}} attachments",
+    'You currently have {{count}} attachments, the maximum is {{max}}':
+      'You currently have {{count}} attachments, the maximum is {{max}}',
   },
 };

@@ -54,6 +54,10 @@
               data-testid="file-input"
               [multiple]="isMultipleFileUploadEnabled"
               id="{{ fileInputId }}"
+              [disabled]="
+                (attachmentService.attachmentsCounter$ | async)! >=
+                attachmentService.maxNumberOfAttachments
+              "
               (change)="filesSelected(fileInput.files)"
             />
             <label class="str-chat__file-input-label" for="{{ fileInputId }}">
@@ -148,6 +152,8 @@
         class="str-chat__send-button"
         [disabled]="
           (attachmentUploadInProgressCounter$ | async)! > 0 ||
+          (attachmentService.attachmentsCounter$ | async)! >
+            attachmentService.maxNumberOfAttachments ||
           (!textareaValue &&
             (attachmentUploads$ | async)!.length === 0 &&
             (customAttachments$ | async)!.length === 0)
@@ -170,7 +176,9 @@
         data-testid="start-voice-recording"
         [disabled]="
           voiceRecorderService.isRecorderVisible$.value ||
-          audioRecorder?.isRecording
+          audioRecorder?.isRecording ||
+          (attachmentService.attachmentsCounter$ | async)! >=
+            attachmentService.maxNumberOfAttachments
         "
         (click)="startVoiceRecording()"
         (keyup.enter)="startVoiceRecording()"
