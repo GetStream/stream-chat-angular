@@ -24,7 +24,7 @@
       </ng-container>
     </div>
   </stream-channel-list>
-  <stream-channel class="channel" (click)="closeMenu()">
+  <stream-channel class="channel" (click)="closeMenu($event)">
     <stream-channel-header>
       <button class="menu-button" (click)="isMenuOpen = !isMenuOpen">
         <svg

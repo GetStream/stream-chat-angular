@@ -18,6 +18,7 @@ import {
 import { environment } from '../environments/environment';
 import names from 'starwars-names';
 import { v4 as uuidv4 } from 'uuid';
+import { MessageResponse } from 'stream-chat';
 
 @Component({
   selector: 'app-root',
