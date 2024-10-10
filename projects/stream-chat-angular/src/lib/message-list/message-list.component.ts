@@ -152,6 +152,7 @@ export class MessageListComponent
   private forceRepaintSubject = new Subject<void>();
   private messageIdToAnchorTo?: string;
   private anchorMessageTopOffset?: number;
+  private isSafari = isSafari();
 
   @HostBinding('class')
   private get class() {
@@ -468,7 +469,7 @@ export class MessageListComponent
   scrollToBottom(): void {
     this.scrollContainer.nativeElement.scrollTop =
       this.scrollContainer.nativeElement.scrollHeight + 0.1;
-    if (isSafari) {
+    if (this.isSafari) {
       this.forceRepaintSubject.next();
     }
   }
@@ -609,7 +610,7 @@ export class MessageListComponent
       (messageToAlignTo?.getBoundingClientRect()?.top || 0) -
       (this.anchorMessageTopOffset || 0);
     this.anchorMessageTopOffset = undefined;
-    if (isSafari) {
+    if (this.isSafari) {
       this.forceRepaintSubject.next();
     }
   }

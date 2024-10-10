@@ -22,7 +22,7 @@ export class AudioRecorderService extends MultimediaRecorder<
    * - For all other browsers we use audio/webm (which is then transcoded to wav)
    */
   config: MediaRecorderConfig = {
-    mimeType: isSafari ? 'audio/mp4;codecs=mp4a.40.2' : 'audio/webm',
+    mimeType: isSafari() ? 'audio/mp4;codecs=mp4a.40.2' : 'audio/webm',
   };
 
   constructor(
