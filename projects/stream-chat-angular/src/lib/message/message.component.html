@@ -42,17 +42,20 @@
             #messageActionsToggle
             data-testid="message-actions-container"
             class="str-chat__message-actions-container str-chat__message-simple__actions__action str-chat__message-simple__actions__action--options"
-            [floatUiLoose]="messageMenuFloat"
-            [looseTrigger]="
-              messageActionsService.customActionClickHandler ? 'none' : 'click'
+            [floatUi]="messageMenuFloat"
+            [showTrigger]="
+              messageActionsService.customActionClickHandler
+                ? menuTriggerNone
+                : menuTriggerClick
             "
             [hideOnScroll]="false"
             [hideOnClickOutside]="true"
             [hideOnMouseLeave]="false"
             [disableAnimation]="false"
             [preventOverflow]="true"
-            [positionFixed]="true"
-            (onSHown)="areMessageOptionsOpen = true"
+            [positionFixed]="false"
+            [boundariesElement]="'.str-chat__list'"
+            (onShown)="areMessageOptionsOpen = true"
             (onHidden)="areMessageOptionsOpen = false"
           >
             <div

@@ -38,6 +38,8 @@ import { MessageActionsService } from '../message-actions.service';
 import {
   NgxFloatUiContentComponent,
   NgxFloatUiLooseDirective,
+  NgxFloatUiPlacements,
+  NgxFloatUiTriggers,
 } from 'ngx-float-ui';
 
 type MessagePart = {
@@ -109,6 +111,9 @@ export class MessageComponent
   areMessageOptionsOpen = false;
   canDisplayReadStatus = false;
   hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  menuTriggerNone = NgxFloatUiTriggers.none;
+  menuTriggerClick = NgxFloatUiTriggers.click;
+  topPlacement = NgxFloatUiPlacements.AUTO;
   private quotedMessageAttachments: Attachment[] | undefined;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
