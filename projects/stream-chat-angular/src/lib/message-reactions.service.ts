@@ -23,6 +23,9 @@ export class MessageReactionsService {
     love: '❤️',
     sad: '😞',
     wow: '😮',
+    love2: '❤️',
+    sad2: '😞',
+    wow2: '😮',
   });
   /**
    * By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.

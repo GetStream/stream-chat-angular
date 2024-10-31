@@ -52,7 +52,7 @@
             [hideOnClickOutside]="true"
             [hideOnMouseLeave]="false"
             [disableAnimation]="false"
-            [preventOverflow]="true"
+            [preventOverflow]="false"
             [positionFixed]="false"
             [boundariesElement]="'.str-chat__list'"
             (onShown)="areMessageOptionsOpen = true"
@@ -156,10 +156,11 @@
           [hideOnClickOutside]="true"
           [hideOnMouseLeave]="false"
           [disableAnimation]="true"
-          [preventOverflow]="true"
+          [preventOverflow]="false"
           (onShown)="areMessageOptionsOpen = true"
           (onHidden)="areMessageOptionsOpen = false"
           [positionFixed]="true"
+          [boundariesElement]="'.str-chat__list'"
         >
           <ng-container *ngIf="hasAttachment && !message?.quoted_message">
             <div class="str-chat__attachments-container">
@@ -497,8 +498,9 @@
         [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
         [disableAnimation]="true"
         [hideOnClickOutside]="true"
-        [positionFixed]="true"
-        [preventOverflow]="true"
+        [positionFixed]="false"
+        [preventOverflow]="false"
+        [boundariesElement]="'.str-chat__list'"
       >
         <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -526,12 +528,12 @@
         data-testid="sending-indicator"
         tabindex="0"
         [floatUiLoose]="floatingContent"
-        loosePlacement="top"
         [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
         [disableAnimation]="true"
         [hideOnClickOutside]="true"
-        [positionFixed]="true"
-        [preventOverflow]="true"
+        [positionFixed]="false"
+        [preventOverflow]="false"
+        [boundariesElement]="'.str-chat__list'"
       >
         <float-ui-content #floatingContent>
           <div class="str-chat__tooltip str-chat__tooltip-angular">
@@ -558,12 +560,12 @@
         data-testid="read-indicator"
         tabindex="0"
         [floatUiLoose]="floatingContent"
-        loosePlacement="top"
         [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
         [disableAnimation]="true"
         [hideOnClickOutside]="true"
-        [positionFixed]="true"
-        [preventOverflow]="true"
+        [positionFixed]="false"
+        [preventOverflow]="false"
+        [boundariesElement]="'.str-chat__list'"
       >
         <float-ui-content #floatingContent>
           <div

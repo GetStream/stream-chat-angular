@@ -101,7 +101,8 @@
               "projects/sample-app/src/assets"
             ],
             "styles": ["projects/sample-app/src/styles.scss"],
-            "scripts": []
+            "scripts": [],
+            "preserveSymlinks": true
           },
           "configurations": {
             "production": {
