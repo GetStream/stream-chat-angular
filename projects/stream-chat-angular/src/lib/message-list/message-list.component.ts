@@ -281,6 +281,9 @@ export class MessageListComponent
     );
     this.subscriptions.push(
       this.channelService.activeParentMessage$.subscribe((message) => {
+        if (!message && this.parentMessage && this.mode === 'thread') {
+          this.resetScrollState();
+        }
         if (
           message &&
           this.parentMessage &&
@@ -490,6 +493,14 @@ export class MessageListComponent
       }
       return;
     }
+    if (
+      this.scrollContainer.nativeElement.scrollHeight >
+      this.scrollContainer.nativeElement.clientHeight
+    ) {
+      if (!this.isJumpToLatestButtonVisible) {
+        this.isJumpToLatestButtonVisible = true;
+      }
+    }
     this.scroll$.next();
     let scrollPosition = this.getScrollPosition();
 
@@ -625,17 +636,17 @@ export class MessageListComponent
   private getScrollPosition(): 'top' | 'bottom' | 'middle' {
     let position: 'top' | 'bottom' | 'middle' = 'middle';
     if (
-      Math.floor(this.scrollContainer.nativeElement.scrollTop) <=
-      (this.parentMessageElement?.nativeElement.clientHeight || 0)
-    ) {
-      position = 'top';
-    } else if (
       Math.ceil(this.scrollContainer.nativeElement.scrollTop) +
         this.scrollContainer.nativeElement.clientHeight +
         1 >=
       this.scrollContainer.nativeElement.scrollHeight
     ) {
       position = 'bottom';
+    } else if (
+      Math.floor(this.scrollContainer.nativeElement.scrollTop) <=
+      (this.parentMessageElement?.nativeElement?.clientHeight || 0)
+    ) {
+      position = 'top';
     }
 
     return position;
@@ -663,11 +674,7 @@ export class MessageListComponent
       }
     );
     this.messages$ = this.virtualizedList.virtualizedItems$.pipe(
-      tap((messages) => {
-        if (messages.length === 0) {
-          this.resetScrollState();
-          return;
-        }
+      tap(() => {
         if (this.isEmpty) {
           // cdRef.detectChanges() isn't enough here, test will fail
           setTimeout(() => (this.isEmpty = false), 0);
@@ -706,6 +713,8 @@ export class MessageListComponent
         this.isLatestMessageInList =
           !latestMessageInList ||
           latestMessageInList.cid !== channel?.cid ||
+          (this.mode === 'thread' &&
+            latestMessageInList?.parent_id !== this.parentMessage?.id) ||
           latestMessageInList?.id ===
             messagesFromState[messagesFromState.length - 1]?.id;
         if (!this.isLatestMessageInList) {
