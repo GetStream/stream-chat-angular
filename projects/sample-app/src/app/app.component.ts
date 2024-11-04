@@ -56,13 +56,16 @@ export class AppComponent implements AfterViewInit {
 
             return body.token;
           }
-        : environment.userToken
+        : environment.userToken,
+      { timeout: 10000 }
     );
     void this.channelService.init(
       environment.channelsFilter || {
         type: 'messaging',
         members: { $in: [environment.userId] },
-      }
+      },
+      undefined,
+      { limit: 10 }
     );
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
