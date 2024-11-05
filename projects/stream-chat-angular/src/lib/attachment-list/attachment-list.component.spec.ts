@@ -47,6 +47,7 @@ describe('AttachmentListComponent', () => {
   let queryGallery: () => HTMLElement | null;
   let queryVideos: () => HTMLVideoElement[];
   let queryVideoContainers: () => HTMLElement[];
+  let queryScrapedVideos: () => HTMLLinkElement[];
   let sendAction: jasmine.Spy;
 
   beforeEach(async () => {
@@ -130,6 +131,10 @@ describe('AttachmentListComponent', () => {
           '[data-testclass="video-attachment-parent"]'
         )
       );
+    queryScrapedVideos = () =>
+      Array.from(
+        nativeElement.querySelectorAll('[data-testclass=scraped-video]')
+      );
   }));
 
   it('should display received #attachments ordered', () => {
@@ -203,6 +208,48 @@ describe('AttachmentListComponent', () => {
     component.ngOnChanges({ attachments: {} as SimpleChange });
 
     expect(component.orderedAttachments.length).toBe(1);
+  });
+
+  it('should display scraped videos', () => {
+    const scrapedVideoAttachments = [
+      {
+        type: 'video',
+        author_name: 'YouTube',
+        title: 'Rachmaninoff - Prelude in C Sharp Minor (Op. 3 No. 2)',
+        title_link: 'https://www.youtube.com/watch?v=sCtixpIWBto',
+        text: 'Rachmaninoff - Prelude in C Sharp Minor (Op. 3 No. 2) Click the 🔔bell to always be notified on new uploads! ♫ Listen on Spotify: http://spoti.fi/2LdpqK7 ♫ MI...',
+        image_url: 'https://i.ytimg.com/vi/sCtixpIWBto/maxresdefault.jpg',
+        thumb_url: 'https://i.ytimg.com/vi/sCtixpIWBto/maxresdefault.jpg',
+        asset_url: 'https://www.youtube.com/embed/sCtixpIWBto',
+        og_scrape_url: 'https://www.youtube.com/watch?v=sCtixpIWBto',
+      },
+      {
+        type: 'video',
+        author_name: 'Twitch',
+        title: 'ledo_drito - Twitch',
+        title_link: 'https://www.twitch.tv/ledo_drito',
+        text: 'GG',
+        image_url:
+          'https://static-cdn.jtvnw.net/jtv_user_pictures/ae659572-9c29-4f91-867f-d7de167b982f-profile_image-300x300.png',
+        thumb_url:
+          'https://static-cdn.jtvnw.net/jtv_user_pictures/ae659572-9c29-4f91-867f-d7de167b982f-profile_image-300x300.png',
+        asset_url:
+          'https://player.twitch.tv/?channel=ledo_drito&player=facebook&autoplay=true&parent=meta.tag',
+        og_scrape_url: 'https://www.twitch.tv/ledo_drito',
+      },
+    ];
+
+    component.attachments = scrapedVideoAttachments;
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    const scrapedVideos = queryScrapedVideos();
+
+    expect(scrapedVideos.length).toBe(2);
+
+    scrapedVideos.forEach((video, index) => {
+      expect(video.href).toBe(scrapedVideoAttachments[index].og_scrape_url);
+    });
   });
 
   it('should display voice recording', () => {
