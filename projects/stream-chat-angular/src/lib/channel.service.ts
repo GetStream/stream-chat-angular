@@ -891,10 +891,17 @@ export class ChannelService<
    * @param message Mesage to be updated
    */
   async updateMessage(message: StreamMessage<T>) {
-    let messageToUpdate = { ...message };
+    let messageToUpdate = {
+      ...message,
+    };
     delete messageToUpdate.i18n;
     if (this.beforeUpdateMessage) {
-      messageToUpdate = await this.beforeUpdateMessage(messageToUpdate);
+      messageToUpdate = await this.beforeUpdateMessage(
+        messageToUpdate as StreamMessage
+      );
+    }
+    if (messageToUpdate.readBy) {
+      delete (messageToUpdate as Omit<StreamMessage<T>, 'readBy'>).readBy;
     }
     if (message.moderation_details) {
       return this.resendMessage(message);
