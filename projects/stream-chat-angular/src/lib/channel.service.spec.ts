@@ -1365,6 +1365,8 @@ describe('ChannelService', () => {
 
   it('should update message', () => {
     const message = mockMessage();
+    // @ts-expect-error we exclude this
+    delete message.readBy;
     void service.updateMessage(message);
 
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
@@ -1408,11 +1410,14 @@ describe('ChannelService', () => {
     );
   });
 
-  it('should remove translation object before updating message', () => {
+  it('should remove translation object and readyBy before updating message', () => {
     const message = mockMessage();
+    // @ts-expect-error we exclude this
+    delete message.readBy;
     void service.updateMessage({
       ...message,
       i18n: { en_text: 'Translation', language: 'en' },
+      readBy: [],
     });
 
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(message);
