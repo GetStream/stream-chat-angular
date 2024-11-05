@@ -152,7 +152,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return (
       attachment.type === 'video' &&
       attachment.asset_url &&
-      !attachment.og_scrape_url // links from video share services (such as YouTube or Facebook) are can't be played
+      !attachment.og_scrape_url
     );
   }
 
@@ -160,7 +160,8 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return (
       !attachment.type ||
       (attachment.type === 'image' && !this.isImage(attachment)) ||
-      attachment.type === 'giphy'
+      attachment.type === 'giphy' ||
+      (attachment.type === 'video' && attachment.og_scrape_url)
     );
   }
 

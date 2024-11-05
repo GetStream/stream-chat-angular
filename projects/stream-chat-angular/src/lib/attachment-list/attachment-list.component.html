@@ -334,17 +334,34 @@
               *ngIf="attachmentConfiguration.url"
               class="str-chat__message-attachment-card--header"
             >
-              <img
-                fetchpriority="low"
-                loading="lazy"
-                data-testclass="card-img"
-                alt="{{ attachmentConfiguration.url }}"
-                src="{{ attachmentConfiguration.url }}"
-                [ngStyle]="{
-                  height: attachmentConfiguration.height,
-                  width: attachmentConfiguration.width
-                }"
-              />
+              <a
+                *ngIf="attachmentContext.type === 'video'; else cardImage"
+                [href]="
+                  attachmentContext.title_link ||
+                  attachmentContext.og_scrape_url
+                "
+                target="_blank"
+                data-testclass="scraped-video"
+              >
+                <ng-content *ngTemplateOutlet="cardImage"></ng-content>
+                <div
+                  class="str-chat__message-attachment-card--video-play"
+                ></div>
+                <stream-icon-placeholder icon="play"></stream-icon-placeholder>
+              </a>
+              <ng-template #cardImage>
+                <img
+                  fetchpriority="low"
+                  loading="lazy"
+                  data-testclass="card-img"
+                  alt="{{ attachmentConfiguration.url }}"
+                  src="{{ attachmentConfiguration.url }}"
+                  [ngStyle]="{
+                    height: attachmentConfiguration.height,
+                    width: attachmentConfiguration.width
+                  }"
+                />
+              </ng-template>
             </div>
             <div class="str-chat__message-attachment-card--content">
               <div class="str-chat__message-attachment-card--flex">
