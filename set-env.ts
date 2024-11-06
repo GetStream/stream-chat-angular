@@ -19,18 +19,14 @@ const prodEnvConfig = {
 const envConfig: { [key: string]: any } =
   process.env.ANGULAR_ENV === 'production' ? prodEnvConfig : devEnvConfig;
 
-const tokenUrl = process.env.STREAM_TOKEN_URL
-  ? `'${process.env.STREAM_TOKEN_URL}'`
-  : `''`;
-
 // `environment.ts` file structure
 const envConfigFile = `export const environment = {
     ${Object.keys(envConfig).map((k) => `${k}: ${envConfig[k]},`)}
     apiKey: '${process.env.STREAM_API_KEY}',
-    userId: '${process.env.STREAM_USER_ID}',
-    userToken: '${process.env.STREAM_USER_TOKEN}',
-    tokenUrl: ${tokenUrl},
-    channelsFilter: ${process.env.STREAM_CHANNELS_FILTER}
+    userId1: '${process.env.STREAM_USER_ID1}',
+    userToken1: '${process.env.STREAM_USER_TOKEN1}',
+    userId2: '${process.env.STREAM_USER_ID2}',
+    userToken2: '${process.env.STREAM_USER_TOKEN2}',
   };
   // I am a generated file, do not modify me directly, see set-env script
   `;

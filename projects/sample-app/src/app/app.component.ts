@@ -40,33 +40,18 @@ export class AppComponent implements AfterViewInit {
     private customTemplateService: CustomTemplatesService,
     themeService: ThemeService
   ) {
-    const isDynamicUser = environment.userId === '<dynamic user>';
-    const userId = isDynamicUser ? uuidv4() : environment.userId;
+    const urlParams = new URLSearchParams(window.location.search);
+    const user = urlParams.get('user');
+    const userId = user === 'user2' ? environment.userId1 : environment.userId2;
     void this.chatService.init(
       environment.apiKey,
-      isDynamicUser ? { id: userId, name: names.random() } : userId,
-      environment.tokenUrl
-        ? async () => {
-            const url = environment.tokenUrl.replace(
-              environment.userId,
-              userId
-            );
-            const response = await fetch(url);
-            const body = (await response.json()) as { token: string };
-
-            return body.token;
-          }
-        : environment.userToken,
-      { timeout: 10000 }
+      userId,
+      user === 'user2' ? environment.userToken1 : environment.userToken2
     );
-    void this.channelService.init(
-      environment.channelsFilter || {
-        type: 'messaging',
-        members: { $in: [environment.userId] },
-      },
-      undefined,
-      { limit: 10 }
-    );
+    void this.channelService.init({
+      type: 'messaging',
+      members: { $in: [userId] },
+    });
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
