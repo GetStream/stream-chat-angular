@@ -17,11 +17,11 @@ import {
   Event,
   EventTypes,
   FormatMessageResponse,
+  MemberFilters,
   Message,
   MessageResponse,
   ReactionResponse,
   UpdatedMessage,
-  UserFilters,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
@@ -1075,7 +1075,7 @@ export class ChannelService<
       }
       const result = await activeChannel.queryMembers({
         name: { $autocomplete: searchTerm },
-      } as UserFilters<T>); // TODO: find out why we need typecast here
+      } as MemberFilters<T>); // TODO: find out why we need typecast here
 
       return result.members.filter(
         (m) => m.user_id !== this.chatClientService.chatClient?.user?.id
