@@ -148,6 +148,7 @@ export class MessageListComponent
   private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
     typeof setTimeout
   >;
+  private jumpToMessageTimeouts: ReturnType<typeof setTimeout>[] = [];
   private jumpToLatestButtonVisibilityTimeout?: ReturnType<typeof setTimeout>;
   private forceRepaintSubject = new Subject<void>();
   private messageIdToAnchorTo?: string;
@@ -202,6 +203,11 @@ export class MessageListComponent
           if (this.checkIfUnreadNotificationIsVisibleTimeout) {
             clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
           }
+          this.jumpToMessageTimeouts.forEach((timeout) =>
+            clearTimeout(timeout)
+          );
+          this.jumpToMessageTimeouts = [];
+          this.highlightedMessageId = undefined;
           this.isUnreadNotificationVisible = false;
           this.parsedDates = new Map();
           this.resetScrollState();
@@ -445,6 +451,7 @@ export class MessageListComponent
     if (this.jumpToLatestButtonVisibilityTimeout) {
       clearTimeout(this.jumpToLatestButtonVisibilityTimeout);
     }
+    this.jumpToMessageTimeouts.forEach((timeout) => clearTimeout(timeout));
     this.disposeVirtualizedList();
   }
 
@@ -501,22 +508,10 @@ export class MessageListComponent
         this.isJumpToLatestButtonVisible = true;
       }
     }
-    this.scroll$.next();
-    let scrollPosition = this.getScrollPosition();
 
-    const isUserScrolled =
-      (this.direction === 'bottom-to-top'
-        ? scrollPosition !== 'bottom'
-        : scrollPosition !== 'top') || !this.isLatestMessageInList;
-    if (this.isUserScrolled !== isUserScrolled) {
-      this.ngZone.run(() => {
-        this.isUserScrolled = isUserScrolled;
-        if (!this.isUserScrolled) {
-          this.newMessageCountWhileBeingScrolled = 0;
-        }
-        this.cdRef.detectChanges();
-      });
-    }
+    this.scroll$.next();
+
+    this.checkIfUserScrolled();
 
     if (this.hideJumpToLatestButtonDuringScroll) {
       if (this.isJumpToLatestButtonVisible) {
@@ -533,35 +528,6 @@ export class MessageListComponent
           this.cdRef.detectChanges();
         }
       }, 100);
-    }
-
-    const prevScrollPosition = this.scrollPosition$.getValue();
-
-    if (this.direction === 'top-to-bottom') {
-      if (scrollPosition === 'top') {
-        scrollPosition = 'bottom';
-      } else if (scrollPosition === 'bottom') {
-        scrollPosition = 'top';
-      }
-    }
-
-    if (prevScrollPosition !== scrollPosition && !this.isJumpingToMessage) {
-      if (scrollPosition === 'top' || scrollPosition === 'bottom') {
-        this.virtualizedList?.virtualizedItems$
-          .pipe(take(1))
-          .subscribe((items) => {
-            this.messageIdToAnchorTo =
-              scrollPosition === 'top'
-                ? items[0]?.id
-                : items[items.length - 1]?.id;
-            this.anchorMessageTopOffset = document
-              .getElementById(this.messageIdToAnchorTo)
-              ?.getBoundingClientRect()?.top;
-          });
-      }
-      this.ngZone.run(() => {
-        this.scrollPosition$.next(scrollPosition);
-      });
     }
   }
 
@@ -609,6 +575,53 @@ export class MessageListComponent
     return this.mode === 'main'
       ? this.emptyMainMessageListTemplate
       : this.emptyThreadMessageListTemplate;
+  }
+
+  private checkIfUserScrolled() {
+    let scrollPosition = this.getScrollPosition();
+
+    const isUserScrolled =
+      (this.direction === 'bottom-to-top'
+        ? scrollPosition !== 'bottom'
+        : scrollPosition !== 'top') || !this.isLatestMessageInList;
+    if (this.isUserScrolled !== isUserScrolled) {
+      this.ngZone.run(() => {
+        this.isUserScrolled = isUserScrolled;
+        if (!this.isUserScrolled) {
+          this.newMessageCountWhileBeingScrolled = 0;
+        }
+        this.cdRef.detectChanges();
+      });
+    }
+
+    const prevScrollPosition = this.scrollPosition$.getValue();
+
+    if (this.direction === 'top-to-bottom') {
+      if (scrollPosition === 'top') {
+        scrollPosition = 'bottom';
+      } else if (scrollPosition === 'bottom') {
+        scrollPosition = 'top';
+      }
+    }
+
+    if (prevScrollPosition !== scrollPosition && !this.isJumpingToMessage) {
+      if (scrollPosition === 'top' || scrollPosition === 'bottom') {
+        this.virtualizedList?.virtualizedItems$
+          .pipe(take(1))
+          .subscribe((items) => {
+            this.messageIdToAnchorTo =
+              scrollPosition === 'top'
+                ? items[0]?.id
+                : items[items.length - 1]?.id;
+            this.anchorMessageTopOffset = document
+              .getElementById(this.messageIdToAnchorTo)
+              ?.getBoundingClientRect()?.top;
+          });
+      }
+      this.ngZone.run(() => {
+        this.scrollPosition$.next(scrollPosition);
+      });
+    }
   }
 
   private preserveScrollbarPosition() {
@@ -792,16 +805,22 @@ export class MessageListComponent
     withRetry: boolean = true
   ) {
     const element = document.getElementById(options.messageId);
+    this.jumpToMessageTimeouts.forEach((t) => clearTimeout(t));
+    this.jumpToMessageTimeouts = [];
     if (!element && withRetry) {
       // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
-      setTimeout(() => this.scrollMessageIntoView(options, false));
+      this.jumpToMessageTimeouts.push(
+        setTimeout(() => this.scrollMessageIntoView(options, false))
+      );
     } else if (element) {
       const blockMapping: { [key: string]: ScrollLogicalPosition } = {
         top: 'start',
         bottom: 'end',
         middle: 'center',
       };
+      // We can't know when smooth scrolling ends, so we set the behavior to instant https://github.com/w3c/csswg-drafts/issues/3744
       element.scrollIntoView({
+        behavior: 'instant' as ScrollBehavior,
         block: blockMapping[options.position],
       });
       if (options.position !== 'middle') {
@@ -809,15 +828,23 @@ export class MessageListComponent
           ? this.scrollToBottom()
           : this.scrollToTop();
       }
-      setTimeout(() => {
-        this.isJumpingToMessage = false;
-      }, 0);
-      setTimeout(() => {
-        this.highlightedMessageId = undefined;
-        this.firstUnreadMessageId = undefined;
-        this.isJumpingToLatestUnreadMessage = false;
-        this.cdRef.detectChanges();
-      }, 1000);
+      this.jumpToMessageTimeouts.push(
+        setTimeout(() => {
+          this.isJumpingToMessage = false;
+          if (!this.isUserScrolled) {
+            this.checkIfUserScrolled();
+          }
+        }, 200)
+      );
+      this.jumpToMessageTimeouts.push(
+        setTimeout(() => {
+          this.highlightedMessageId = undefined;
+          this.firstUnreadMessageId = undefined;
+          this.isJumpingToLatestUnreadMessage = false;
+          this.jumpToMessageTimeouts = [];
+          this.cdRef.detectChanges();
+        }, 1000)
+      );
     }
   }
 
