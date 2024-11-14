@@ -133,9 +133,3 @@ STREAM_USER_TOKEN=<Your user token>
 ```
 
 Run `npm install` in the root of the project. You can use the `npm run start:dev` command to start the SampleApp with automatic reloading.
-
-A note about the documentation:
-
-- Documentations for Angular services are generated from doc comments in the source files (not under source control)
-- Documentations for inputs and outputs of Angular components are generated from doc comments in the source files (not under source control)
-- Everything else in the documentation is written in `mdx` files located in the `docusaurus` folder
