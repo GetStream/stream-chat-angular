@@ -60,14 +60,3 @@ jobs:
           yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/master' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel deploy ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Copy docs from stream-chat-css
-        run: npm run ${{ (github.ref == 'refs/heads/master' || contains(github.head_ref, 'v5')) && 'copy-css-docs:v5' || 'copy-css-docs' }}
-      - name: Generate docs
-        run: |
-          npm run ${{ (github.ref == 'refs/heads/master' || contains(github.head_ref, 'v5')) && 'generate-docs:v5' || 'generate-docs' }}
-      - name: Push to docusaurus
-        uses: GetStream/push-stream-chat-docusaurus-action@main
-        with:
-          target-branch: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/master') && 'production' || 'staging' }}
-        env:
-          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
