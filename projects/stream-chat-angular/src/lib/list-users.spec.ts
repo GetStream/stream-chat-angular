@@ -48,4 +48,19 @@ describe('listUsers', () => {
 
     expect(listUsers(readBy)).toBe('Bob, Sophie, Jack, Rose, John +1');
   });
+
+  it(`shouldn't display number if #displayRestCount is set to false`, () => {
+    const readBy = [
+      { id: 'id1', name: 'Bob' },
+      { id: 'id2', name: 'Sophie' },
+      { id: 'id3', name: 'Jack' },
+      { id: 'id4', name: 'Rose' },
+      { id: 'id5', name: 'John' },
+      { id: 'id6', name: 'Adam' },
+    ];
+
+    expect(listUsers(readBy, false, 'and more')).toBe(
+      'Bob, Sophie, Jack, Rose, John and more'
+    );
+  });
 });
