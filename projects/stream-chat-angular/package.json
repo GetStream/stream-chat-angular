@@ -1,6 +1,6 @@
 {
   "name": "stream-chat-angular",
-  "version": "5.8.4",
+  "version": "5.8.5",
   "description": "Angular components to create chat conversations or livestream style chat",
   "author": "GetStream",
   "homepage": "https://getstream.io/chat/",
