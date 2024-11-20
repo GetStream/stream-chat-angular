@@ -39,6 +39,7 @@ import {
   NgxFloatUiContentComponent,
   NgxFloatUiLooseDirective,
 } from 'ngx-float-ui';
+import { TranslateService } from '@ngx-translate/core';
 
 type MessagePart = {
   content: string;
@@ -125,6 +126,7 @@ export class MessageComponent
   private showMessageMenuTimeout?: ReturnType<typeof setTimeout>;
   private shouldPreventMessageMenuClose = false;
   private _visibleMessageActionsCount = 0;
+  private channelMemberCount?: number;
 
   constructor(
     private chatClientService: ChatClientService,
@@ -134,7 +136,8 @@ export class MessageComponent
     private dateParser: DateParserService,
     private messageService: MessageService,
     public messageActionsService: MessageActionsService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private translateService: TranslateService
   ) {
     this.displayAs = this.messageService.displayAs;
   }
@@ -180,6 +183,26 @@ export class MessageComponent
         }
       })
     );
+    this.subscriptions.push(
+      this.channelService.activeChannel$.subscribe((activeChannel) => {
+        const newChannelMemberCount = activeChannel?.data?.member_count;
+        if (newChannelMemberCount !== this.channelMemberCount) {
+          const shouldUpdateText =
+            this.channelMemberCount !== undefined &&
+            newChannelMemberCount != undefined &&
+            ((this.channelMemberCount <= 1000 && newChannelMemberCount > 100) ||
+              (this.channelMemberCount > 100 && newChannelMemberCount <= 100));
+          this.channelMemberCount = activeChannel?.data?.member_count;
+          if (
+            this.message &&
+            this.message.cid === activeChannel?.cid &&
+            shouldUpdateText
+          ) {
+            this.updateReadByText();
+          }
+        }
+      })
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -194,9 +217,7 @@ export class MessageComponent
           : [];
       this.setIsSentByCurrentUser();
       this.setLastReadUser();
-      this.readByText = this.message?.readBy
-        ? listUsers(this.message.readBy)
-        : '';
+      this.updateReadByText();
       this.isOnlyReadByMe = !!(
         this.message &&
         this.message.readBy &&
@@ -565,6 +586,16 @@ export class MessageComponent
     );
 
     return content;
+  }
+
+  private updateReadByText() {
+    const others = this.translateService.instant(
+      'streamChat.and others'
+    ) as string;
+    const hasMoreThan100Members = (this.channelMemberCount ?? 0) > 100;
+    this.readByText = this.message?.readBy
+      ? listUsers(this.message.readBy, !hasMoreThan100Members, others)
+      : '';
   }
 
   private setIsSentByCurrentUser() {

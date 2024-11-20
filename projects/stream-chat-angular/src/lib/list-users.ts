@@ -1,6 +1,10 @@
 import { UserResponse } from 'stream-chat';
 
-export const listUsers = (users: UserResponse[]) => {
+export const listUsers = (
+  users: UserResponse[],
+  displayRestCount = true,
+  othersText = ''
+) => {
   let outStr = '';
 
   const slicedArr = users.map((item) => item.name || item.id).slice(0, 5);
@@ -9,7 +13,7 @@ export const listUsers = (users: UserResponse[]) => {
   const commaSeparatedUsers = slicedArr.join(', ');
   outStr = commaSeparatedUsers;
   if (restLength > 0) {
-    outStr += ` +${restLength}`;
+    outStr += displayRestCount ? ` +${restLength}` : ` ${othersText}`;
   }
 
   return outStr;

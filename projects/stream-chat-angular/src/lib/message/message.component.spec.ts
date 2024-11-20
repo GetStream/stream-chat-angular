@@ -59,6 +59,12 @@ describe('MessageComponent', () => {
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
   let bouncedMessage$: BehaviorSubject<StreamMessage | undefined>;
+  const mockChannel = {
+    cid: 'messaging:general',
+    data: {
+      member_count: 5,
+    },
+  };
 
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
@@ -91,6 +97,13 @@ describe('MessageComponent', () => {
         {
           provide: ChannelService,
           useValue: {
+            _activeChannel$: of(mockChannel),
+            get activeChannel$() {
+              return this._activeChannel$;
+            },
+            set activeChannel$(value) {
+              this._activeChannel$ = value;
+            },
             resendMessage: resendMessageSpy,
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
             jumpToMessage: jumpToMessageSpy,
@@ -129,6 +142,7 @@ describe('MessageComponent', () => {
     queryMessageOptionsButton = () =>
       nativeElement.querySelector('[data-testid="message-options-button"]');
     message = mockMessage();
+    message.cid = mockChannel.cid;
     component.message = message;
     component.ngOnChanges({ message: {} as SimpleChange });
     component.ngAfterViewInit();
