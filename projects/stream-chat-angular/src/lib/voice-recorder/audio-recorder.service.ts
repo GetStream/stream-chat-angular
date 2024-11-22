@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgModule } from '@angular/core';
 import { AmplitudeRecorderService } from './amplitude-recorder.service';
 import { isSafari } from '../is-safari';
 import { MediaRecorderConfig, MultimediaRecorder } from './media-recorder';
@@ -7,12 +7,11 @@ import { ChatClientService } from '../chat-client.service';
 import { TranscoderService } from './transcoder.service';
 import { resampleWaveForm } from '../wave-form-sampler';
 import { AudioRecording, MediaRecording } from '../types';
-import { NgModel } from '@angular/forms';
 
 /**
  * The `AudioRecorderService` can record an audio file, the SDK uses this to record a voice message
  */
-@Injectable({ providedIn: NgModel })
+@Injectable({ providedIn: NgModule })
 export class AudioRecorderService extends MultimediaRecorder<
   Omit<AudioRecording, keyof MediaRecording>
 > {
