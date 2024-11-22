@@ -37,6 +37,11 @@
     "branches": [
       "master",
       {
+        "name": "angular-19",
+        "prerelease": true,
+        "channel": "beta"
+      },
+      {
         "name": "5.x.x-beta",
         "prerelease": true,
         "channel": "beta"
