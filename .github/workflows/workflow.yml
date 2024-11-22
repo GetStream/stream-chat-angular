@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - 5.x.x-beta
+      - angular-19
   pull_request:
     branches:
       - master
