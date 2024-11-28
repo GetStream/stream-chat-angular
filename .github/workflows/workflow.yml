@@ -55,7 +55,7 @@ jobs:
           STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
           STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}
           STREAM_USER_ID: <dynamic user>
-          STREAM_CHANNELS_FILTER: '{"type": "messaging", "id": "angular-talks"}'
+          STREAM_CHANNELS_FILTER: '{"type": "messaging", "id": "talking-about-angular"}'
         run: >
           yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/master' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
