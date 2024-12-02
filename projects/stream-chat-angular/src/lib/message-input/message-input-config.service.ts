@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MessageInputComponent } from './message-input.component';
+import { BehaviorSubject } from 'rxjs';
+import { CustomAutocomplete } from '../types';
 
 /**
  * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/MessageInputComponent.mdx) components if your UI has more than one input component.
@@ -47,6 +49,12 @@ export class MessageInputConfigService {
     event: ClipboardEvent,
     inputComponent: MessageInputComponent
   ) => void;
+  /**
+   * Add custom autocomplete configurations to the message input
+   *
+   * Only works when using StreamAutocompleteTextareaModule
+   */
+  customAutocompletes$ = new BehaviorSubject<CustomAutocomplete[]>([]);
 
   constructor() {}
 }

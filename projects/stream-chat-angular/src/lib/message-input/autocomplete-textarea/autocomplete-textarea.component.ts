@@ -24,10 +24,11 @@ import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../../channel.service';
 import { TextareaInterface } from '../textarea.interface';
 import { ChatClientService } from '../../chat-client.service';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
+import { MessageInputConfigService } from '../message-input-config.service';
 
 /**
  * The `AutocompleteTextarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
@@ -137,13 +138,21 @@ export class AutocompleteTextareaComponent
     private transliterationService: TransliterationService,
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private messageInputConfigService: MessageInputConfigService
   ) {
-    this.searchTerm$.pipe(debounceTime(300)).subscribe((searchTerm) => {
-      if (searchTerm.startsWith(this.mentionTriggerChar)) {
-        void this.updateMentionOptions(searchTerm);
-      }
-    });
+    this.searchTerm$
+      .pipe(
+        filter((searchTerm) => searchTerm.length !== 1),
+        debounceTime(300)
+      )
+      .subscribe((searchTerm) => {
+        if (searchTerm.startsWith(this.mentionTriggerChar)) {
+          void this.updateMentionOptions(searchTerm);
+        } else {
+          void this.updateCustomAutocompleteOptions(searchTerm);
+        }
+      });
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         const commands = channel?.getConfig()?.commands || [];
@@ -155,6 +164,7 @@ export class AutocompleteTextareaComponent
         this.mentionedUsers = [];
         this.userMentions.next([...this.mentionedUsers]);
         void this.updateMentionOptions(this.searchTerm$.getValue());
+        void this.updateCustomAutocompleteOptions(this.searchTerm$.getValue());
       })
     );
     this.subscriptions.push(
@@ -183,20 +193,60 @@ export class AutocompleteTextareaComponent
       this.userMentionConfig,
       this.slashCommandConfig,
     ];
+    this.subscriptions.push(
+      this.messageInputConfigService.customAutocompletes$.subscribe(
+        (customConfigs) => {
+          const builtInItems =
+            this.autocompleteConfig.mentions?.filter(
+              (m) =>
+                m === this.userMentionConfig || m === this.slashCommandConfig
+            ) ?? [];
+          const transformedCustomConfigs = customConfigs.map((c) => {
+            const copy: Mentions = {
+              items: c.options.map((o) => ({
+                ...o,
+                templateRef: c.templateRef,
+              })),
+              triggerChar: c.triggerCharacter,
+              dropUp: true,
+              labelKey: this.autocompleteKey,
+              returnTrigger: true,
+              allowSpace: c.allowSpace,
+              mentionFilter: (
+                searchString: string,
+                items: { autocompleteLabel: string }[]
+              ) => this.filter(searchString, items),
+              mentionSelect: (item, triggerChar) =>
+                this.itemSelectedFromAutocompleteList(
+                  item as MentionAutcompleteListItem,
+                  triggerChar
+                ),
+            };
+
+            return copy;
+          });
+
+          this.autocompleteConfig.mentions = [
+            ...builtInItems,
+            ...transformedCustomConfigs,
+          ];
+          this.autocompleteConfig = { ...this.autocompleteConfig };
+        }
+      )
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.areMentionsEnabled) {
-      if (this.areMentionsEnabled) {
-        this.autocompleteConfig.mentions = [
-          this.userMentionConfig,
-          this.slashCommandConfig,
-        ];
-        this.autocompleteConfig = { ...this.autocompleteConfig };
-      } else {
-        this.autocompleteConfig.mentions = [this.slashCommandConfig];
-        this.autocompleteConfig = { ...this.autocompleteConfig };
-      }
+      this.autocompleteConfig.mentions =
+        this.autocompleteConfig?.mentions?.filter((c) => {
+          if (c !== this.userMentionConfig) {
+            return true;
+          } else {
+            return this.areMentionsEnabled;
+          }
+        }) ?? [];
+      this.autocompleteConfig = { ...this.autocompleteConfig };
     }
     if (changes.mentionScope) {
       void this.updateMentionOptions(this.searchTerm$.getValue());
@@ -258,11 +308,14 @@ export class AutocompleteTextareaComponent
   }
 
   autcompleteSearchTermChanged(searchTerm: string) {
-    if (searchTerm === this.mentionTriggerChar) {
-      void this.updateMentionOptions();
-    } else {
-      this.searchTerm$.next(searchTerm);
+    if (searchTerm.length === 1) {
+      if (searchTerm === this.mentionTriggerChar) {
+        void this.updateMentionOptions();
+      } else {
+        void this.updateCustomAutocompleteOptions(searchTerm);
+      }
     }
+    this.searchTerm$.next(searchTerm);
   }
 
   inputChanged() {
@@ -326,8 +379,7 @@ export class AutocompleteTextareaComponent
     );
     this.userMentionConfig.items = items;
     this.autocompleteConfig.mentions = [
-      this.userMentionConfig,
-      this.slashCommandConfig,
+      ...(this.autocompleteConfig?.mentions ?? []),
     ];
     this.autocompleteConfig = { ...this.autocompleteConfig };
     this.cdRef.detectChanges();
@@ -344,6 +396,33 @@ export class AutocompleteTextareaComponent
     if (updatedMentionedUsers.length !== this.mentionedUsers.length) {
       this.userMentions.next([...updatedMentionedUsers]);
       this.mentionedUsers = updatedMentionedUsers;
+    }
+  }
+
+  private async updateCustomAutocompleteOptions(searchTerm: string) {
+    if (
+      this.messageInputConfigService.customAutocompletes$.getValue().length ===
+      0
+    ) {
+      return;
+    }
+    const customMentionConfig = this.autocompleteConfig.mentions?.find(
+      (c) => c.triggerChar && searchTerm.startsWith(c.triggerChar)
+    );
+    const customAutocompleteConfig = customMentionConfig
+      ? this.messageInputConfigService.customAutocompletes$
+          .getValue()
+          .find((c) => c.triggerCharacter === customMentionConfig?.triggerChar)
+      : undefined;
+    if (customMentionConfig && customAutocompleteConfig?.updateOptions) {
+      const newOptions = await customAutocompleteConfig.updateOptions(
+        searchTerm.replace(customMentionConfig.triggerChar || '', '')
+      );
+      customMentionConfig.items = newOptions.map((o) => ({
+        ...o,
+        templateRef: customAutocompleteConfig.templateRef,
+      }));
+      this.autocompleteConfig = { ...this.autocompleteConfig };
     }
   }
 }

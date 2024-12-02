@@ -15,24 +15,34 @@
   (paste)="pasteFromClipboard.emit($event)"
 ></textarea>
 <ng-template #autocompleteItem let-item="item">
-  <div class="rta rta__item str-chat__emojisearch__item" [ngSwitch]="item.type">
-    <div *ngSwitchCase="'mention'" class="rta__entity">
-      <ng-container
-        *ngTemplateOutlet="
-          mentionAutocompleteItemTemplate || defaultMentionTemplate;
-          context: { item: item }
-        "
-      ></ng-container>
+  <ng-container *ngIf="item.templateRef; else builtinItem">
+    <ng-container
+      *ngTemplateOutlet="item.templateRef; context: { item: item }"
+    ></ng-container>
+  </ng-container>
+  <ng-template #builtinItem>
+    <div
+      class="rta rta__item str-chat__emojisearch__item"
+      [ngSwitch]="item.type"
+    >
+      <div *ngSwitchCase="'mention'" class="rta__entity">
+        <ng-container
+          *ngTemplateOutlet="
+            mentionAutocompleteItemTemplate || defaultMentionTemplate;
+            context: { item: item }
+          "
+        ></ng-container>
+      </div>
+      <div *ngSwitchCase="'command'" class="rta__entity">
+        <ng-container
+          *ngTemplateOutlet="
+            commandAutocompleteItemTemplate || defaultCommandTemplate;
+            context: { item: item }
+          "
+        ></ng-container>
+      </div>
     </div>
-    <div *ngSwitchCase="'command'" class="rta__entity">
-      <ng-container
-        *ngTemplateOutlet="
-          commandAutocompleteItemTemplate || defaultCommandTemplate;
-          context: { item: item }
-        "
-      ></ng-container>
-    </div>
-  </div>
+  </ng-template>
 </ng-template>
 
 <ng-template #defaultCommandTemplate let-item="item">

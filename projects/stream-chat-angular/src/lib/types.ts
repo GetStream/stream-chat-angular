@@ -500,3 +500,43 @@ export type ThreadReplyButtonContext<
 > = {
   message: StreamMessage<T>;
 };
+
+export type CustomAutocompleteItemContext = {
+  item: CustomAutocompleteItem;
+};
+
+export type CustomAutocompleteItem = {
+  /**
+   * This is the text that will be inserted into the message input once a user selects an option (appended after the trigger character)
+   */
+  autocompleteLabel: string;
+};
+
+export type CustomAutocomplete = {
+  /**
+   * The character that will trigger the autocomplete (for example #)
+   *
+   * The SDK supports @ and / by default, so you can't use those
+   */
+  triggerCharacter: string;
+  /**
+   * The HTML template to display an item in the autocomplete list
+   */
+  templateRef: TemplateRef<{ item: CustomAutocompleteItem }>;
+  /**
+   * Set to `true` if space characters can be part of the `autocompleteLabel`
+   */
+  allowSpace: boolean;
+  /**
+   * The options to choose from
+   *
+   * In case you want to use dynamic/server-side filtering, use `updateOptions` instead
+   */
+  options: CustomAutocompleteItem[];
+  /**
+   * If you want to have dynamic/server-side filtering provide a  method that will be called any time the autocomplete options should be filtered
+   * @param searchTerm the text to filter by (without the trigger character), can be an empty string
+   * @returns a promise that will resolve to the options, you should take care of error handling
+   */
+  updateOptions?: (searchTerm: string) => Promise<CustomAutocompleteItem[]>;
+};
