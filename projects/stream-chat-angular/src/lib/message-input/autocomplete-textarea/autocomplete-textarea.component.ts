@@ -100,6 +100,7 @@ export class AutocompleteTextareaComponent
   private userMentionConfig: Mentions = {
     triggerChar: this.mentionTriggerChar,
     dropUp: true,
+    allowSpace: true,
     labelKey: this.autocompleteKey,
     returnTrigger: true,
     mentionFilter: (
@@ -252,6 +253,7 @@ export class AutocompleteTextareaComponent
       this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
       this.userMentions.next([...this.mentionedUsers]);
     }
+    this.searchTerm$.next('');
     return triggerChar + item.autocompleteLabel + ' ';
   }
 
