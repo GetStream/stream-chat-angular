@@ -62,19 +62,19 @@ fs.readdir(generatedDocsPath, (err: any, files: string[]) => {
         const propertiesContent = extractProperties(generatedFileContent);
 
         fs.readFile(
-          `${componentDocsPath}/${file}x`,
+          `${componentDocsPath}/${file}`,
           'utf8',
           (err: any, docFile: any) => {
             if (err)
               throw new Error(
-                `${componentDocsPath}/${file}x couldn't be opened, error: ${err}, make sure that this file exists`
+                `${componentDocsPath}/${file} couldn't be opened, error: ${err}, make sure that this file exists`
               );
 
             if (file !== '_category_.json') {
               const result = insertGeneratedParts(docFile, propertiesContent);
 
               fs.writeFile(
-                `${componentDocsPath}/${file}x`,
+                `${componentDocsPath}/${file}`,
                 result,
                 'utf8',
                 (err: any) => {
