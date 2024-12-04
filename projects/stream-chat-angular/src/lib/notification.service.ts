@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { NotificationPayload, NotificationType } from './types';
 
 /**
- * The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](../components/NotificationListComponent.mdx) component displays the currently active notifications.
+ * The `NotificationService` can be used to add or remove notifications. By default the [`NotificationList`](/chat/docs/sdk/angular/components/NotificationListComponent/) component displays the currently active notifications.
  */
 @Injectable({
   providedIn: 'root',

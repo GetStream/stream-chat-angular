@@ -4,7 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { CustomAutocomplete } from '../types';
 
 /**
- * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](../components/MessageInputComponent.mdx) components if your UI has more than one input component.
+ * The `MessageInputConfigService` is used to keep a consistent configuration among the different [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components if your UI has more than one input component.
  */
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,7 @@ export class MessageInputConfigService {
    */
   isFileUploadEnabled: boolean | undefined = true;
   /**
-   * If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](../concepts/opt-in-architecture.mdx) for this feature to work.
+   * If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](/chat/docs/sdk/angular/concepts/opt-in-architecture/) for this feature to work.
    */
   areMentionsEnabled: boolean | undefined = true;
   /**
@@ -38,7 +38,7 @@ export class MessageInputConfigService {
   /**
    * Override the message input's default event handler for [paste events](https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event)
    *
-   * The event handler will receive the event object, and the [message input component](../../components/MessageInputComponent).
+   * The event handler will receive the event object, and the [message input component](/chat/docs/sdk/angular/components/MessageInputComponent).
    *
    * You can use the public API of the message input component to update the composer. Typically you want to update the message text and/or attachments, this is how you can do these:
    * - Change message text: `inputComponent.textareaValue = '<new value>'`

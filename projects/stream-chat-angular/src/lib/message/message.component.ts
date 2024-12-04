@@ -48,7 +48,7 @@ type MessagePart = {
 };
 
 /**
- * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](../concepts/message-interactions.mdx).
+ * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](/chat/docs/sdk/angular/concepts/message-interactions/).
  */
 @Component({
   selector: 'stream-message',
@@ -64,7 +64,7 @@ export class MessageComponent
    */
   @Input() message: StreamMessage | undefined;
   /**
-   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](./MessageListComponent.mdx) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
    */
   @Input() enabledMessageActions: string[] = [];
   /**

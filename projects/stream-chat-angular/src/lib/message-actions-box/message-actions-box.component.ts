@@ -21,7 +21,7 @@ import {
 } from '../types';
 import { MessageActionsService } from '../message-actions.service';
 /**
- * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](../concepts/message-interactions.mdx) in the message interaction guide.
+ * The `MessageActionsBox` component displays a list of message actions (i.e edit), that can be opened or closed. You can find the [list of the supported actions](/chat/docs/sdk/angular/concepts/message-interactions/) in the message interaction guide.
  */
 @Component({
   selector: 'stream-message-actions-box',
@@ -44,7 +44,7 @@ export class MessageActionsBoxComponent
    */
   @Input() messageTextHtmlElement: HTMLElement | undefined;
   /**
-   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](../concepts/message-interactions.mdx) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
+   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
    */
   @Input() enabledActions: string[] = [];
   messageActionItemTemplate:

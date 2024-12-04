@@ -4,7 +4,7 @@ import { IconContext } from '../../types';
 import { CustomTemplatesService } from '../../custom-templates.service';
 
 /**
- * The `IconPlaceholder` component displays the [default icons](./IconComponent.mdx) unless a [custom template](../services/CustomTemplatesService.mdx) is provided. This component is used by the SDK internally, you likely won't need to use it.
+ * The `IconPlaceholder` component displays the [default icons](/chat/docs/sdk/angular/components/IconComponent/) unless a [custom template](/chat/docs/sdk/angular/services/CustomTemplatesService/) is provided. This component is used by the SDK internally, you likely won't need to use it.
  */
 @Component({
   selector: 'stream-icon-placeholder',
