@@ -14,7 +14,7 @@ import { NotificationService } from './notification.service';
 import { ChannelService } from './channel.service';
 
 /**
- * The message actions service provides customization options for the [message actions](../../components/MessageActionsBoxComponent)
+ * The message actions service provides customization options for the [message actions](/chat/docs/sdk/angular/components/MessageActionsBoxComponent)
  */
 @Injectable({
   providedIn: 'root',
@@ -183,7 +183,7 @@ export class MessageActionsService<
    */
   customActions$ = new BehaviorSubject<CustomMessageActionItem[]>([]);
   /**
-   * By default the [`MessageComponent`](../../components/MessageComponent) will display the [`MessageActionsBoxComponent`](../../components/MessageActionsBoxComponent). You can override that behavior by providing your own event handler.
+   * By default the [`MessageComponent`](/chat/docs/sdk/angular/components/MessageComponent/) will display the [`MessageActionsBoxComponent`](/chat/docs/sdk/angular/components/MessageActionsBoxComponent/). You can override that behavior by providing your own event handler.
    */
   customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
   private hasDisplayedClipboardWarning = false;

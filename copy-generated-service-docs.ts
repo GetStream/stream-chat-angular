@@ -31,10 +31,23 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
       }
 
       // Remove the thre prefix from the title
-      const result = data
-        .replace(/# Class:/g, '#')
-        .replace('<T\\>', '')
-        .replace('\\', '');
+      const result =
+        `---` +
+        `\n` +
+        `title: ${file.replace('.md', '')}` +
+        `\n` +
+        `slug: /chat/docs/sdk/angular/services/${file.replace('.md', '')}/` +
+        `\n` +
+        `---` +
+        '\n\n' +
+        data
+          .replace(`# Class: ${file.replace('.md', '')}`, '')
+          .replace(
+            /\b(?!README)(\w+)\.md\b/g,
+            '/chat/docs/sdk/angular/services/$1'
+          )
+          .replace('<T\\>', '')
+          .replace('\\', '');
 
       fs.writeFile(`${sourcePath}/${file}`, result, 'utf8', (err: any) => {
         if (err) {
@@ -42,7 +55,7 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
         }
         fs.copyFile(
           `${sourcePath}/${file}`,
-          `${serviceDocsTargetPath}/${file}x`,
+          `${serviceDocsTargetPath}/${file}`,
           (err: any) => {
             if (err) {
               throw err;

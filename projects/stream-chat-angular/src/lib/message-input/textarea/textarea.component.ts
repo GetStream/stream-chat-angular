@@ -17,7 +17,7 @@ import { TextareaInterface } from '../textarea.interface';
 import { UserResponse } from 'stream-chat';
 
 /**
- * The `Textarea` component is used by the [`MessageInput`](./MessageInputComponent.mdx) component to display the input HTML element where users can type their message.
+ * The `Textarea` component is used by the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) component to display the input HTML element where users can type their message.
  */
 @Component({
   selector: 'stream-textarea',
@@ -38,7 +38,7 @@ export class TextareaComponent
    */
   @Input() placeholder = '';
   /**
-   * See [`MessageInputConfigService`](../services/MessageInputConfigService.mdx) for more information
+   * See [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService) for more information
    */
   @Input() inputMode!: 'desktop' | 'mobile';
   /**

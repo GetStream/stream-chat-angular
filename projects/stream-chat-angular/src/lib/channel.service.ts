@@ -60,7 +60,7 @@ export class ChannelService<
    * Emits the currently loaded and [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel list.
    *
    * :::important
-   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
+   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
    * :::
    */
   channels$: Observable<Channel<T>[] | undefined>;
@@ -72,7 +72,7 @@ export class ChannelService<
    * Emits the currently active channel.
    *
    * :::important
-   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](../concepts/change-detection.mdx) explains this in detail.
+   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
    * :::
    *
    * The active channel will always be marked as read when a new message is received
@@ -121,7 +121,7 @@ export class ChannelService<
   /**
    * If you're using [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters) you can set up rules for bouncing messages.
    *
-   * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](../../components/MessageBouncePromptComponent) will display the bounce option to the user if a bounced message is clicked.
+   * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](/chat/docs/sdk/angular/components/MessageBouncePromptComponent/) will display the bounce option to the user if a bounced message is clicked.
    */
   bouncedMessage$: BehaviorSubject<StreamMessage<T> | undefined>;
   /**
@@ -137,7 +137,7 @@ export class ChannelService<
    */
   activeChannelUnreadCount?: number;
   /**
-   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels)
+   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/)
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -149,7 +149,7 @@ export class ChannelService<
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -161,7 +161,7 @@ export class ChannelService<
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -173,7 +173,7 @@ export class ChannelService<
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -189,7 +189,7 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -205,7 +205,7 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -221,7 +221,7 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -237,7 +237,7 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -253,7 +253,7 @@ export class ChannelService<
     parentMessageSetter: (message: StreamMessage<T> | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](./ChannelService.mdx/#channels).
+   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
    *
    * If you're adding a new channel, make sure that it's a [watched](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript) channel.
    */
@@ -775,7 +775,7 @@ export class ChannelService<
   }
 
   /**
-   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](./ChatClientService.mdx/#disconnectuser).
+   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](/chat/docs/sdk/angular/services/ChatClientService/#disconnectuser/).
    */
   reset() {
     this.deselectActiveChannel();
@@ -961,7 +961,7 @@ export class ChannelService<
 
   /**
    * Uploads files to the channel. If you want to know more about [file uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript) check out the platform documentation.
-   * @param uploads the attachments to upload (output of the [`AttachmentService`](./AttachmentService.mdx))
+   * @param uploads the attachments to upload (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    * @returns the result of file upload requests
    */
   async uploadAttachments(
@@ -1042,7 +1042,7 @@ export class ChannelService<
 
   /**
    * Deletes an uploaded file by URL. If you want to know more about [file uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript) check out the platform documentation
-   * @param attachmentUpload Attachment to be deleted (output of the [`AttachmentService`](./AttachmentService.mdx))
+   * @param attachmentUpload Attachment to be deleted (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    */
   async deleteAttachment(attachmentUpload: AttachmentUpload) {
     const channel = this.activeChannelSubject.getValue()!;

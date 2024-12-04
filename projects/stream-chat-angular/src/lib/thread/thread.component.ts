@@ -12,7 +12,7 @@ import {
 } from '../types';
 
 /**
- * The `Thread` component represents a [message thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript), it is a container component that displays a thread with a header, [`MessageList`](./MessageListComponent.mdx) and [`MessageInput`](./MessageInputComponent.mdx) components.
+ * The `Thread` component represents a [message thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components.
  */
 @Component({
   selector: 'stream-thread',

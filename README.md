@@ -52,6 +52,13 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
+Run this command if you are using **Angular 19**:
+
+```shell
+# Some SDK depedencies doesn't yet have official support for Angular 19, so we need to add --force flag until then
+npm install stream-chat-angular stream-chat @ngx-translate/core@15 ngx-float-ui@18 --force
+```
+
 Supported Angular versions: **Angular 15-18**
 
 Run this command if you are using **Angular 18**:

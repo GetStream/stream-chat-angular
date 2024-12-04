@@ -15,7 +15,7 @@ export class MessageReactionsService {
   /**
    * The enabled [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) and the associated emoji
    *
-   * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](../../services/CustomTemplatesService/#messagereactionstemplate)
+   * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](/chat/docs/sdk/angular/services/CustomTemplatesService/#messagereactionstemplate/)
    */
   reactions$ = new BehaviorSubject<{ [key in MessageReactionType]: string }>({
     haha: '😂',
@@ -25,7 +25,7 @@ export class MessageReactionsService {
     wow: '😮',
   });
   /**
-   * By default the [`MessageReactionsComponent`](../../components/MessageReactionsComponent) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
+   * By default the [`MessageReactionsComponent`](/chat/docs/sdk/angular/components/MessageReactionsComponent/) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
    *
    * The event handler can retrieve all reactions of a message using the [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
