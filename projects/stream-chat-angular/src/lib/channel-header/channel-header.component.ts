@@ -18,7 +18,7 @@ import {
 } from '../types';
 
 /**
- * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](https://getstream.io/chat/docs/javascript/watch_channel/?language=javascript#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript)
+ * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](/chat/docs/javascript/watch_channel/#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](/chat/docs/javascript/channel_capabilities/)
  */
 @Component({
   selector: 'stream-channel-header',

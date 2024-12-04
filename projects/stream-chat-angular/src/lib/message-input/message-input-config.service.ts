@@ -11,7 +11,7 @@ import { CustomAutocomplete } from '../types';
 })
 export class MessageInputConfigService {
   /**
-   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/).
    */
   isFileUploadEnabled: boolean | undefined = true;
   /**

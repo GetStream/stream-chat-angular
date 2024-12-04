@@ -23,7 +23,7 @@ import { MessageService } from './message.service';
 /**
  * The `AttachmentService` manages the uploads of a message input.
  *
- * You can read more about [uploads](https://getstream.io/chat/docs/javascript/file_uploads/?language=javascript&q=size) in the Stream API documentation. You can use Stream's API or the dashboard to customize the [file](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#file-uploads) and [image upload](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript&q=size#image-uploads) configuration.
+ * You can read more about [uploads](/chat/docs/javascript/file_uploads/) in the Stream API documentation. You can use Stream's API or the dashboard to customize the [file](/chat/docs/javascript/app_setting_overview/#file-uploads) and [image upload](/chat/docs/javascript/app_setting_overview/#image-uploads) configuration.
  */
 @Injectable({
   providedIn: 'root',

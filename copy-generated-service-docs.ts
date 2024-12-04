@@ -46,6 +46,8 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
             /\b(?!README)(\w+)\.md\b/g,
             '/chat/docs/sdk/angular/services/$1'
           )
+          .replace(/•\s/g, '')
+          .replace(/▸\s/g, '')
           .replace('<T\\>', '')
           .replace('\\', '');
 

@@ -21,7 +21,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
 
 /**
- * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) in the platform documentation.
+ * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](/chat/docs/javascript/send_reaction/) in the platform documentation.
  */
 @Component({
   selector: 'stream-message-reactions',
@@ -48,7 +48,7 @@ export class MessageReactionsComponent
     {};
   /**
    * List of reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
-   * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
+   * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
   @Input() latestReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
   /**

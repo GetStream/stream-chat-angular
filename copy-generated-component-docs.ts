@@ -32,6 +32,9 @@ const insertGeneratedParts = (
   fileContent: string,
   generatedContent: string[]
 ) => {
+  generatedContent = generatedContent.map((l) =>
+    l.replace(/•\s/g, '').replace(/▸\s/g, '')
+  );
   const lines: string[] = fileContent.split('\n');
   const startOfGeneratedContentLineNumber = lines.indexOf(
     startOfGeneratedContentMark
