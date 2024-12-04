@@ -47,7 +47,7 @@ import { VoiceRecorderService } from './voice-recorder.service';
 import { AudioRecorderService } from '../voice-recorder/audio-recorder.service';
 
 /**
- * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+ * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/).
  */
 @Component({
   selector: 'stream-message-input',
@@ -59,7 +59,7 @@ export class MessageInputComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
-   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService/).
+   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService/).
    */
   @Input() isFileUploadEnabled: boolean | undefined;
   /**
@@ -71,7 +71,7 @@ export class MessageInputComponent
    */
   @Input() mentionScope: 'channel' | 'application' | undefined;
   /**
-   * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   * Determines if the message is being dispalyed in a channel or in a [thread](/chat/docs/javascript/threads/).
    */
   @Input() mode: 'thread' | 'main' = 'main';
   /**

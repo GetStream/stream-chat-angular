@@ -15,7 +15,7 @@ export class MessageService<
    * Decides if the message content should be formatted as text or HTML
    *
    * If you display messages as text the following parts are still be displayed as HTML:
-   * - user mentions -> you can customize this with your own template using the [`customTemplatesService.mentionTemplate$`](https://getstream.io/chat/docs/sdk/angular/services/CustomTemplatesService/#mentiontemplate)
+   * - user mentions -> you can customize this with your own template using the [`customTemplatesService.mentionTemplate$`](/chat/docs/sdk/angular/services/CustomTemplatesService/#mentiontemplate)
    * - links -> you can customize this by providing you own [`customLinkRenderer`](#customlinkrenderer) method
    */
   displayAs: 'text' | 'html' = 'text';

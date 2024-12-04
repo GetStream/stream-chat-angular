@@ -37,14 +37,14 @@ export class ChatClientService<
    */
   chatClient!: StreamChat<T>;
   /**
-   * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](https://getstream.io/chat/docs/javascript/event_object/?language=javascript).
+   * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event_object/).
    * :::important
    * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
    * :::
    */
   events$: Observable<ClientEvent<T>>;
   /**
-   * Emits the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
+   * Emits the current [application settings](/chat/docs/javascript/app_setting_overview/). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
    */
   appSettings$: Observable<AppSettings | undefined>;
   /**
@@ -84,14 +84,14 @@ export class ChatClientService<
   }
 
   /**
-   * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](https://getstream.io/chat/docs/javascript/init_and_users/?language=javascript) can be found in the platform documentation.
+   * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](/chat/docs/javascript/init_and_users/) can be found in the platform documentation.
    * @param apiKey
    * @param userOrId you can emit this for anonymous logins
    * @param userTokenOrProvider You can provide:<ul>
    *  <li> a token, </li>
    *  <li> a token provider, a method that returns `Promise<string>`, which can be called when the previous token expires (recommended setup for production applications)</li>
-   *  <li> the keyword 'guest' to connect as [guest user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#guest-users) </li>
-   *  <li> the keyword 'anonymous' to connect as [anonymous user](https://getstream.io/chat/docs/javascript/authless_users/?language=javascript#anonymous-users) </li>
+   *  <li> the keyword 'guest' to connect as [guest user](/chat/docs/javascript/authless_users/#guest-users) </li>
+   *  <li> the keyword 'anonymous' to connect as [anonymous user](/chat/docs/javascript/authless_users/#anonymous-users) </li>
    *  </ul>
    * @param clientOptions Setting to provide to the Stream client instance
    */
@@ -193,7 +193,7 @@ export class ChatClientService<
   }
 
   /**
-   * Loads the current [application settings](https://getstream.io/chat/docs/javascript/app_setting_overview/?language=javascript), if the application settings have already been loaded, it does nothing.
+   * Loads the current [application settings](/chat/docs/javascript/app_setting_overview/), if the application settings have already been loaded, it does nothing.
    */
   async getAppSettings() {
     if (this.appSettingsPromise) {
@@ -211,7 +211,7 @@ export class ChatClientService<
   }
 
   /**
-   * Flag the message with the given ID. If you want to know [more about flags](https://getstream.io/chat/docs/javascript/moderation/?language=javascript) check out the platform documentation.
+   * Flag the message with the given ID. If you want to know [more about flags](/chat/docs/javascript/moderation/) check out the platform documentation.
    * @param messageId
    */
   async flagMessage(messageId: string) {

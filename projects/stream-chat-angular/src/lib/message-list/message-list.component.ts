@@ -58,7 +58,7 @@ export class MessageListComponent
   implements AfterViewChecked, OnChanges, OnInit, OnDestroy, AfterViewInit
 {
   /**
-   * Determines if the message list should display channel messages or [thread messages](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   * Determines if the message list should display channel messages or [thread messages](/chat/docs/javascript/threads/).
    */
   @Input() mode: 'main' | 'thread' = 'main';
   /**

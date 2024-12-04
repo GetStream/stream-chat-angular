@@ -280,7 +280,7 @@ export class CustomTemplatesService<
     TemplateRef<AttachmentContext> | undefined
   >(undefined);
   /**
-   * The template used to display [system messages](https://getstream.io/chat/docs/javascript/silent_messages/?language=javascript&q=system) indise the [message component](/chat/docs/sdk/angular/components/MessageComponent/)
+   * The template used to display [system messages](/chat/docs/javascript/silent_messages/) indise the [message component](/chat/docs/sdk/angular/components/MessageComponent/)
    */
   systemMessageTemplate$ = new BehaviorSubject<
     TemplateRef<SystemMessageContext> | undefined

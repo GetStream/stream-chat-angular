@@ -319,7 +319,7 @@ export type MessageReactionsContext = {
   messageId: string | undefined;
   /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript&q=queryReactions#query-reactions) */
+  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send_reaction/&q=queryReactions#query-reactions) */
   latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
   messageReactionGroups: {

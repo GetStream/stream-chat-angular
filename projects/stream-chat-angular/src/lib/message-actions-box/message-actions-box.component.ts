@@ -44,7 +44,7 @@ export class MessageActionsBoxComponent
    */
   @Input() messageTextHtmlElement: HTMLElement | undefined;
   /**
-   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
+   * The list of [channel capabilities](/chat/docs/javascript/channel_capabilities/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI.
    */
   @Input() enabledActions: string[] = [];
   messageActionItemTemplate:

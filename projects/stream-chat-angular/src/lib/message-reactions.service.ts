@@ -5,7 +5,7 @@ import { ChatClientService } from './chat-client.service';
 import { NotificationService } from './notification.service';
 
 /**
- * The `MessageReactionsService` provides customization options to message [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript).
+ * The `MessageReactionsService` provides customization options to message [reactions](/chat/docs/javascript/send_reaction/).
  *
  */
 @Injectable({
@@ -13,7 +13,7 @@ import { NotificationService } from './notification.service';
 })
 export class MessageReactionsService {
   /**
-   * The enabled [reactions](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript) and the associated emoji
+   * The enabled [reactions](/chat/docs/javascript/send_reaction/) and the associated emoji
    *
    * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](/chat/docs/sdk/angular/services/CustomTemplatesService/#messagereactionstemplate/)
    */
@@ -27,7 +27,7 @@ export class MessageReactionsService {
   /**
    * By default the [`MessageReactionsComponent`](/chat/docs/sdk/angular/components/MessageReactionsComponent/) will display the reacting users when a reaction is clicked. You can override this with your own UI by providing a custom event handler.
    *
-   * The event handler can retrieve all reactions of a message using the [`messageReactionsService.queryReactions()`](https://getstream.io/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
+   * The event handler can retrieve all reactions of a message using the [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
   customReactionClickHandler?: (details: MessageReactionClickDetails) => void;
 
@@ -51,7 +51,7 @@ export class MessageReactionsService {
   }
 
   /**
-   * Query reactions of a specific message, more info in the [API documentation](https://getstream.io/chat/docs/javascript/send_reaction/?language=javascript#query-reactions)
+   * Query reactions of a specific message, more info in the [API documentation](/chat/docs/javascript/send_reaction/#query-reactions)
    * @param messageId
    * @param type
    * @param next

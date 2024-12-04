@@ -24,7 +24,7 @@ export class ChannelQuery<
    *
    * The method will be called with the result of the latest channel query.
    *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](https://getstream.io/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
+   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
   customPaginator?: (channelQueryResult: Channel<T>[]) => NextPageConfiguration;
   private nextPageConfiguration?: NextPageConfiguration;

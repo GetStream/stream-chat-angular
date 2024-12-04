@@ -64,7 +64,7 @@ export class MessageComponent
    */
   @Input() message: StreamMessage | undefined;
   /**
-   * The list of [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](https://getstream.io/chat/docs/javascript/channel_capabilities/?language=javascript).
+   * The list of [channel capabilities](/chat/docs/javascript/channel_capabilities/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](/chat/docs/javascript/channel_capabilities/).
    */
   @Input() enabledMessageActions: string[] = [];
   /**
@@ -72,7 +72,7 @@ export class MessageComponent
    */
   @Input() isLastSentMessage: boolean | undefined;
   /**
-   * Determines if the message is being dispalyed in a channel or in a [thread](https://getstream.io/chat/docs/javascript/threads/?language=javascript).
+   * Determines if the message is being dispalyed in a channel or in a [thread](/chat/docs/javascript/threads/).
    */
   @Input() mode: 'thread' | 'main' = 'main';
   /**
