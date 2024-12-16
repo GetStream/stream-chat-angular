@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - angular-19
+      - test-update
   pull_request:
     branches:
       - master
