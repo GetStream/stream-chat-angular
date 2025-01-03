@@ -357,6 +357,7 @@ describe('ChannelService', () => {
     service.usersTypingInChannel$.subscribe(typingUsersSpy);
     const typingUsersInThreadSpy = jasmine.createSpy();
     service.usersTypingInThread$.subscribe(typingUsersInThreadSpy);
+    service.isMessageLoadingInProgress = true;
     messagesSpy.calls.reset();
     activeChannelSpy.calls.reset();
     messageToQuoteSpy.calls.reset();
@@ -386,6 +387,7 @@ describe('ChannelService', () => {
     (activeChannel as MockChannel).handleEvent('message.new', mockMessage());
 
     expect(messagesSpy).not.toHaveBeenCalled();
+    expect(service.isMessageLoadingInProgress).toBeFalse();
   });
 
   it('should tell if user #hasMoreChannels$', async () => {
@@ -2177,7 +2179,11 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     const messageId = '1232121123';
-    await service.jumpToMessage(messageId);
+    const response = service.jumpToMessage(messageId);
+
+    expect(service.isMessageLoadingInProgress).toBeTrue();
+
+    await response;
 
     expect(jumpToMessageIdSpy).toHaveBeenCalledWith({
       id: messageId,
@@ -2187,6 +2193,7 @@ describe('ChannelService', () => {
     expect(messagesSpy).toHaveBeenCalledWith(
       jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
     );
+    expect(service.isMessageLoadingInProgress).toBeFalse();
   });
 
   it(`should display error notification if message couldn't be loaded`, async () => {
@@ -2211,6 +2218,7 @@ describe('ChannelService', () => {
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message not found'
     );
+    expect(service.isMessageLoadingInProgress).toBeFalse();
   });
 
   it('should pin message', async () => {

@@ -197,9 +197,9 @@ export class MessageListComponent
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        let isNewChannel = false;
+        let wasChannelSwitch = false;
         if (this.channelId !== channel?.id) {
-          isNewChannel = true;
+          wasChannelSwitch = true;
           if (this.checkIfUnreadNotificationIsVisibleTimeout) {
             clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
           }
@@ -227,9 +227,18 @@ export class MessageListComponent
           ) {
             this.lastReadMessageId = lastReadMessageId;
             this.unreadCount = unreadCount || 0;
-            if (isNewChannel && this.lastReadMessageId) {
+            if (wasChannelSwitch && this.lastReadMessageId) {
+              // Delay jumping to last read message in case we need to give precedence to channelService.jumpToMessage
               if (this.openMessageListAt === 'last-read-message') {
-                this.jumpToFirstUnreadMessage();
+                setTimeout(() => {
+                  // Don't jump if a jump to a message was already started (using channelService.jumpToMessage)
+                  if (
+                    !this.isJumpingToMessage &&
+                    !this.channelService.isMessageLoadingInProgress
+                  ) {
+                    this.jumpToFirstUnreadMessage();
+                  }
+                }, 0);
               } else {
                 // Wait till messages and the unread banner is rendered
                 // If unread banner isn't visible on the screen, we display the unread notificaion
@@ -702,8 +711,9 @@ export class MessageListComponent
           const lastReadIndex = messages.findIndex(
             (m) => m.id === this.lastReadMessageId
           );
-          this.firstUnreadMessageId =
-            messages[lastReadIndex + 1]?.id || this.lastReadMessageId;
+          if (lastReadIndex !== -1) {
+            this.firstUnreadMessageId = messages[lastReadIndex + 1]?.id;
+          }
         }
       }),
       tap(
