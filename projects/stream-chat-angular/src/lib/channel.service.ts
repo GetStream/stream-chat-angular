@@ -315,6 +315,10 @@ export class ChannelService<
    * @internal
    */
   static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
+  /**
+   * @internal
+   */
+  isMessageLoadingInProgress = false;
   messagePageSize = 25;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined
@@ -568,6 +572,7 @@ export class ChannelService<
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
     this.flushMarkReadQueue();
     this.areReadEventsPaused = false;
+    this.isMessageLoadingInProgress = false;
     const readState =
       channel.state.read[this.chatClientService.chatClient.user?.id || ''];
     this.activeChannelLastReadMessageId = readState?.last_read_message_id;
@@ -613,6 +618,7 @@ export class ChannelService<
     this.activeChannelLastReadMessageId = undefined;
     this.activeChannelUnreadCount = undefined;
     this.areReadEventsPaused = false;
+    this.isMessageLoadingInProgress = false;
   }
 
   /**
@@ -1268,6 +1274,7 @@ export class ChannelService<
    * @param parentMessageId The ID of the parent message if we want to load a thread message
    */
   async jumpToMessage(messageId: string, parentMessageId?: string) {
+    this.isMessageLoadingInProgress = true;
     const activeChannel = this.activeChannelSubject.getValue();
     try {
       await activeChannel?.state.loadMessageIntoState(
@@ -1289,6 +1296,8 @@ export class ChannelService<
         'streamChat.Message not found'
       );
       throw error;
+    } finally {
+      this.isMessageLoadingInProgress = false;
     }
   }
 

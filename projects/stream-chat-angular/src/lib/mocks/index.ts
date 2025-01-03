@@ -310,7 +310,9 @@ export const mockChannelService = (): MockChannelService => {
     channel;
   };
 
-  const jumpToMessage = () => {};
+  const jumpToMessage = () => {
+    activeChannelMessages$.next(activeChannelMessages$.getValue());
+  };
 
   const clearMessageJump = () => {};
 

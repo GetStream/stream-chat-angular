@@ -1087,7 +1087,7 @@ describe('MessageListComponent', () => {
     expect(component['resetScrollState']).not.toHaveBeenCalled();
   });
 
-  it('should jump to first unread message if openMessageListAt specifies', () => {
+  it('should jump to first unread message if openMessageListAt specifies', fakeAsync(() => {
     component.openMessageListAt = 'last-read-message';
 
     const channel = generateMockChannels()[0];
@@ -1097,6 +1097,7 @@ describe('MessageListComponent', () => {
       messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
+    tick();
 
     expect(component.lastReadMessageId).toBe(messages[messages.length - 2].id);
 
@@ -1105,7 +1106,7 @@ describe('MessageListComponent', () => {
     );
 
     expect(component.isJumpingToLatestUnreadMessage).toBeTrue();
-  });
+  }));
 
   it('should display new message indicator - new mesage is the first on the given day', () => {
     component.openMessageListAt = 'last-read-message';
