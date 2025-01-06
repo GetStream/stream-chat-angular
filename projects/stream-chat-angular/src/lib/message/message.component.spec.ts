@@ -930,6 +930,28 @@ describe('MessageComponent', () => {
     expect(component.messageTextParts![0].content).toContain(
       '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
     );
+
+    component.message.text = 'This is a message with a link google.com';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="https://google.com" target="_blank" rel="nofollow">google.com</a>'
+    );
+
+    component.message.text = 'This is a message with a link www.google.com';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="https://www.google.com" target="_blank" rel="nofollow">www.google.com</a>'
+    );
+
+    component.message.text =
+      'This is a message with a link file:///C:/Users/YourName/Documents/example.txt';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="file:///C:/Users/YourName/Documents/example.txt" target="_blank" rel="nofollow">file:///C:/Users/YourName/Documents/example.txt</a>'
+    );
   });
 
   it('should display reply count for parent messages', () => {

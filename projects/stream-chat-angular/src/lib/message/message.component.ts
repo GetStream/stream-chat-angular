@@ -115,7 +115,7 @@ export class MessageComponent
   private isViewInited = false;
   private userId?: string;
   private readonly urlRegexp =
-    /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
+    /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(?![^\s]*@[^\s]*)(?:[^\s()<>]+|\([\w\d]+\))*(?<!@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gim;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
   @ViewChild('messageMenuTrigger')
   messageMenuTrigger!: NgxFloatUiLooseDirective;
@@ -579,11 +579,21 @@ export class MessageComponent
     if (this.displayAs === 'html') {
       return content;
     }
-    content = content.replace(this.urlRegexp, (match) =>
-      this.messageService.customLinkRenderer
-        ? this.messageService.customLinkRenderer(match)
-        : `<a href="${match}" target="_blank" rel="nofollow">${match}</a>`
-    );
+    content = content.replace(this.urlRegexp, (match) => {
+      if (this.messageService.customLinkRenderer) {
+        return this.messageService.customLinkRenderer(match);
+      } else {
+        let href = match;
+        if (
+          !href.startsWith('http') &&
+          !href.startsWith('ftp') &&
+          !href.startsWith('file')
+        ) {
+          href = `https://${match}`;
+        }
+        return `<a href="${href}" target="_blank" rel="nofollow">${match}</a>`;
+      }
+    });
 
     return content;
   }
