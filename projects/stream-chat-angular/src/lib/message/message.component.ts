@@ -17,7 +17,6 @@ import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import {
   AttachmentListContext,
-  MentionTemplateContext,
   MessageActionsBoxContext,
   MessageReactionsContext,
   DefaultStreamChatGenerics,
@@ -27,25 +26,18 @@ import {
   ReadStatusContext,
   SystemMessageContext,
   CustomMetadataContext,
+  MessageTextContext,
 } from '../types';
-import emojiRegex from 'emoji-regex';
 import { Observable, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
-import { MessageService } from '../message.service';
 import { MessageActionsService } from '../message-actions.service';
 import {
   NgxFloatUiContentComponent,
   NgxFloatUiLooseDirective,
 } from 'ngx-float-ui';
 import { TranslateService } from '@ngx-translate/core';
-
-type MessagePart = {
-  content: string;
-  type: 'text' | 'mention';
-  user?: UserResponse;
-};
 
 /**
  * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](/chat/docs/sdk/angular/concepts/message-interactions/).
@@ -86,15 +78,12 @@ export class MessageComponent
   canReceiveReadEvents: boolean | undefined;
   canReactToMessage: boolean | undefined;
   isEditedFlagOpened = false;
-  messageTextParts: MessagePart[] | undefined = [];
-  messageText?: string;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
   imageAttachmentModalState: 'opened' | 'closed' = 'closed';
   shouldDisplayThreadLink = false;
   isSentByCurrentUser = false;
   readByText = '';
-  displayAs: 'text' | 'html';
   lastReadUser: UserResponse<DefaultStreamChatGenerics> | undefined = undefined;
   isOnlyReadByMe = false;
   isReadByMultipleUsers = false;
@@ -114,9 +103,6 @@ export class MessageComponent
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
   private userId?: string;
-  private readonly urlRegexp =
-    /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(?![^\s]*@[^\s]*)(?:[^\s()<>]+|\([\w\d]+\))*(?<!@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gim;
-  private emojiRegexp = new RegExp(emojiRegex(), 'g');
   @ViewChild('messageMenuTrigger')
   messageMenuTrigger!: NgxFloatUiLooseDirective;
   @ViewChild('messageMenuFloat')
@@ -134,13 +120,10 @@ export class MessageComponent
     public customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
     private dateParser: DateParserService,
-    private messageService: MessageService,
     public messageActionsService: MessageActionsService,
     private ngZone: NgZone,
     private translateService: TranslateService
-  ) {
-    this.displayAs = this.messageService.displayAs;
-  }
+  ) {}
 
   get visibleMessageActionsCount() {
     return this._visibleMessageActionsCount;
@@ -207,9 +190,11 @@ export class MessageComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
-      this.shouldDisplayTranslationNotice = false;
-      this.displayedMessageTextContent = 'original';
-      this.createMessageParts();
+      this.displayedMessageTextContent = this.message?.translation
+        ? 'translation'
+        : 'original';
+      this.shouldDisplayTranslationNotice =
+        this.displayedMessageTextContent === 'translation';
       const originalAttachments = this.message?.quoted_message?.attachments;
       this.quotedMessageAttachments =
         originalAttachments && originalAttachments.length
@@ -390,6 +375,22 @@ export class MessageComponent
     };
   }
 
+  getMessageTextContext(): MessageTextContext {
+    return {
+      message: this.message,
+      isQuoted: false,
+      shouldTranslate: this.displayedMessageTextContent === 'translation',
+    };
+  }
+
+  getQuotedMessageTextContext(): MessageTextContext {
+    return {
+      message: this.message?.quoted_message,
+      isQuoted: true,
+      shouldTranslate: this.displayedMessageTextContent === 'translation',
+    };
+  }
+
   getQuotedMessageAttachmentListContext(): AttachmentListContext {
     return {
       messageId: this.message?.quoted_message?.id || '',
@@ -432,13 +433,6 @@ export class MessageComponent
     void this.channelService.setAsActiveParentMessage(this.message);
   }
 
-  getMentionContext(messagePart: MessagePart): MentionTemplateContext {
-    return {
-      content: messagePart.content,
-      user: messagePart.user!,
-    };
-  }
-
   getMessageActionsBoxContext(): MessageActionsBoxContext {
     return {
       isMine: this.isSentByCurrentUser,
@@ -477,125 +471,17 @@ export class MessageComponent
     void this.channelService.jumpToMessage(messageId, parentMessageId);
   }
 
-  displayTranslatedMessage() {
-    this.createMessageParts(true);
-  }
-
-  displayOriginalMessage() {
-    this.createMessageParts(false);
-  }
-
   openMessageBouncePrompt() {
     this.channelService.bouncedMessage$.next(this.message);
   }
 
-  private createMessageParts(shouldTranslate = true) {
-    this.messageTextParts = undefined;
-    this.messageText = undefined;
-    let content = this.getMessageContent(shouldTranslate);
-    if (
-      (!this.message!.mentioned_users ||
-        this.message!.mentioned_users.length === 0) &&
-      !content?.match(this.emojiRegexp) &&
-      !content?.match(this.urlRegexp)
-    ) {
-      this.messageTextParts = undefined;
-      this.messageText = content;
-      return;
-    }
-    if (!content) {
-      return;
-    }
-    if (
-      !this.message!.mentioned_users ||
-      this.message!.mentioned_users.length === 0
-    ) {
-      content = this.fixEmojiDisplay(content);
-      content = this.wrapLinksWithAnchorTag(content);
-      this.messageTextParts = [{ content, type: 'text' }];
-    } else {
-      this.messageTextParts = [];
-      let text = content;
-      this.message!.mentioned_users.forEach((user) => {
-        const mention = `@${user.name || user.id}`;
-        const precedingText = text.substring(0, text.indexOf(mention));
-        let formattedPrecedingText = this.fixEmojiDisplay(precedingText);
-        formattedPrecedingText = this.wrapLinksWithAnchorTag(
-          formattedPrecedingText
-        );
-        this.messageTextParts!.push({
-          content: formattedPrecedingText,
-          type: 'text',
-        });
-        this.messageTextParts!.push({
-          content: mention,
-          type: 'mention',
-          user,
-        });
-        text = text.replace(precedingText + mention, '');
-      });
-      if (text) {
-        text = this.fixEmojiDisplay(text);
-        text = this.wrapLinksWithAnchorTag(text);
-        this.messageTextParts.push({ content: text, type: 'text' });
-      }
-    }
+  displayTranslatedMessage() {
+    this.shouldDisplayTranslationNotice = true;
+    this.displayedMessageTextContent = 'translation';
   }
 
-  private getMessageContent(shouldTranslate: boolean) {
-    const originalContent = this.message?.text;
-    if (shouldTranslate) {
-      const translation = this.message?.translation;
-      if (translation) {
-        this.shouldDisplayTranslationNotice = true;
-        this.displayedMessageTextContent = 'translation';
-      }
-      return translation || originalContent;
-    } else {
-      this.displayedMessageTextContent = 'original';
-      return originalContent;
-    }
-  }
-
-  private fixEmojiDisplay(content: string) {
-    // Wrap emojis in span to display emojis correctly in Chrome https://bugs.chromium.org/p/chromium/issues/detail?id=596223
-    // Based on this: https://stackoverflow.com/questions/4565112/javascript-how-to-find-out-if-the-user-browser-is-chrome
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-    const isChrome =
-      !!(window as any).chrome && typeof (window as any).opr === 'undefined';
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-    content = content.replace(
-      this.emojiRegexp,
-      (match) =>
-        `<span ${
-          isChrome ? 'class="str-chat__emoji-display-fix"' : ''
-        }>${match}</span>`
-    );
-
-    return content;
-  }
-
-  private wrapLinksWithAnchorTag(content: string) {
-    if (this.displayAs === 'html') {
-      return content;
-    }
-    content = content.replace(this.urlRegexp, (match) => {
-      if (this.messageService.customLinkRenderer) {
-        return this.messageService.customLinkRenderer(match);
-      } else {
-        let href = match;
-        if (
-          !href.startsWith('http') &&
-          !href.startsWith('ftp') &&
-          !href.startsWith('file')
-        ) {
-          href = `https://${match}`;
-        }
-        return `<a href="${href}" target="_blank" rel="nofollow">${match}</a>`;
-      }
-    });
-
-    return content;
+  displayOriginalMessage() {
+    this.displayedMessageTextContent = 'original';
   }
 
   private updateReadByText() {

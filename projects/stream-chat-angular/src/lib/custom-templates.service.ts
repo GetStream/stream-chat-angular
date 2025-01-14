@@ -26,6 +26,7 @@ import {
   MessageContext,
   MessageReactionsContext,
   MessageReactionsSelectorContext,
+  MessageTextContext,
   ModalContext,
   NotificationContext,
   ReadStatusContext,
@@ -357,6 +358,12 @@ export class CustomTemplatesService<
    */
   customMessageMetadataInsideBubbleTemplate$ = new BehaviorSubject<
     TemplateRef<CustomMetadataContext> | undefined
+  >(undefined);
+  /**
+   * Template to display the text content inside the [message component](/chat/docs/sdk/angular/components/MessageComponent/). The default component is [stream-message-text](/chat/docs/sdk/angular/components/MessageTextComponent/)
+   */
+  messageTextTemplate$ = new BehaviorSubject<
+    TemplateRef<MessageTextContext> | undefined
   >(undefined);
 
   constructor() {}

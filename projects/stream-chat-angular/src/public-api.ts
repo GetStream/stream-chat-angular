@@ -80,3 +80,4 @@ export * from './lib/voice-recorder//voice-recorder-wavebar/voice-recorder-waveb
 export * from './lib/format-duration';
 export * from './lib/message-input/voice-recorder.service';
 export * from './lib/voice-recorder/mp3-transcoder';
+export * from './lib/message-text/message-text.component';

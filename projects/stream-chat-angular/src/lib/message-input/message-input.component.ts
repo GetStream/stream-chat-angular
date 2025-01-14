@@ -34,6 +34,7 @@ import {
   CustomAttachmentUploadContext,
   DefaultStreamChatGenerics,
   EmojiPickerContext,
+  MessageTextContext,
   StreamMessage,
 } from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
@@ -163,7 +164,7 @@ export class MessageInputComponent
     private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
     private emojiInputService: EmojiInputService,
-    private customTemplatesService: CustomTemplatesService,
+    readonly customTemplatesService: CustomTemplatesService,
     private messageActionsService: MessageActionsService,
     public readonly voiceRecorderService: VoiceRecorderService,
     @Optional() public audioRecorder?: AudioRecorderService
@@ -491,6 +492,14 @@ export class MessageInputComponent
     return {
       isMultipleFileUploadEnabled: this.isMultipleFileUploadEnabled,
       attachmentService: this.attachmentService,
+    };
+  }
+
+  getQuotedMessageTextContext(): MessageTextContext {
+    return {
+      message: this.quotedMessage,
+      isQuoted: true,
+      shouldTranslate: true,
     };
   }
 

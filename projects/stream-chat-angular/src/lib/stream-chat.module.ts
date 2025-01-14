@@ -26,6 +26,7 @@ import { UserListComponent } from './user-list/user-list.component';
 import { VoiceRecordingModule } from './voice-recording/voice-recording.module';
 import { IconModule } from './icon/icon.module';
 import { VoiceRecorderService } from './message-input/voice-recorder.service';
+import { MessageTextComponent } from './message-text/message-text.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { VoiceRecorderService } from './message-input/voice-recorder.service';
     MessageReactionsSelectorComponent,
     UserListComponent,
     PaginatedListComponent,
+    MessageTextComponent,
   ],
   imports: [
     CommonModule,
@@ -81,6 +83,7 @@ import { VoiceRecorderService } from './message-input/voice-recorder.service';
     UserListComponent,
     PaginatedListComponent,
     IconModule,
+    MessageTextComponent,
   ],
   providers: [VoiceRecorderService],
 })

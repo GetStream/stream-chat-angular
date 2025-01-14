@@ -540,3 +540,9 @@ export type CustomAutocomplete = {
    */
   updateOptions?: (searchTerm: string) => Promise<CustomAutocompleteItem[]>;
 };
+
+export type MessageTextContext = {
+  message: StreamMessage | undefined | MessageResponseBase;
+  isQuoted: boolean;
+  shouldTranslate: boolean;
+};

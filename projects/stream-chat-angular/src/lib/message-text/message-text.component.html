@@ -1,0 +1,35 @@
+<p
+  [class.str-chat__quoted-message-text-value]="isQuoted"
+  [class.str-chat__message-text-value]="!isQuoted"
+  *ngIf="message?.text"
+  data-testid="text"
+>
+  <ng-container *ngIf="messageTextParts; else defaultContent">
+    <!-- eslint-disable-next-line @angular-eslint/template/use-track-by-function -->
+    <ng-container *ngFor="let part of messageTextParts">
+      <span
+        *ngIf="part.type === 'text'; else mention"
+        [innerHTML]="part.content"
+      ></span>
+      <ng-template #mention>
+        <ng-template #defaultMention let-content="content">
+          <span class="str-chat__message-mention">{{ content }}</span>
+        </ng-template>
+        <ng-container
+          *ngTemplateOutlet="
+            (customTemplatesService.mentionTemplate$ | async) || defaultMention;
+            context: getMentionContext(part)
+          "
+        ></ng-container>
+      </ng-template>
+    </ng-container>
+  </ng-container>
+  <ng-template #defaultContent>
+    <ng-container *ngIf="displayAs === 'text'; else asHTML">
+      {{ messageText || "" }}
+    </ng-container>
+    <ng-template #asHTML
+      ><span data-testid="html-content" [innerHTML]="messageText"></span
+    ></ng-template>
+  </ng-template>
+</p>

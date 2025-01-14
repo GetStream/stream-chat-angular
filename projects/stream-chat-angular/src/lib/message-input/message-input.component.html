@@ -91,15 +91,28 @@
               [attachments]="quotedMessageAttachments"
               [messageId]="quotedMessage.id"
             ></stream-attachment-list>
-            <div
-              class="str-chat__quoted-message-text"
-              data-testid="quoted-message-text"
-              [innerHTML]="
-                quotedMessage.translation ||
-                quotedMessage.html ||
-                quotedMessage.text
-              "
-            ></div>
+            <div class="str-chat__quoted-message-text">
+              <ng-container
+                *ngTemplateOutlet="
+                  (customTemplatesService.messageTextTemplate$ | async) ||
+                    defaultText;
+                  context: getQuotedMessageTextContext()
+                "
+              ></ng-container>
+              <ng-template
+                #defaultText
+                let-message="message"
+                let-isQuoted="isQuoted"
+                let-shouldTranslate="shouldTranslate"
+              >
+                <stream-message-text
+                  [message]="message"
+                  [isQuoted]="isQuoted"
+                  [shouldTranslate]="shouldTranslate"
+                  data-testid="quoted-message-text"
+                ></stream-message-text>
+              </ng-template>
+            </div>
           </div>
         </div>
         <ng-template
