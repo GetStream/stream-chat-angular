@@ -262,3 +262,16 @@
   <div>Latest message text: {{ latestMessageText }}</div>
   <div>Latest message id: {{ latestMessage?.id }}</div>
 </ng-template>
+
+<ng-template
+  #messageText
+  let-message="message"
+  let-shouldTranslate="shouldTranslate"
+  let-isQuoted="isQuoted"
+>
+  <app-message-text
+    [message]="message"
+    [shouldTranslate]="shouldTranslate"
+    [isQuoted]="isQuoted"
+  ></app-message-text>
+</ng-template>

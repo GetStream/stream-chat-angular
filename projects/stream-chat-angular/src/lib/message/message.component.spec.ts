@@ -14,7 +14,7 @@ import { ChatClientService } from '../chat-client.service';
 import { IconComponent } from '../icon/icon.component';
 import { MessageActionsBoxComponent } from '../message-actions-box/message-actions-box.component';
 import { By } from '@angular/platform-browser';
-import { generateMockMessages, mockCurrentUser, mockMessage } from '../mocks';
+import { mockCurrentUser, mockMessage } from '../mocks';
 import { AttachmentListComponent } from '../attachment-list/attachment-list.component';
 import { MessageReactionsComponent } from '../message-reactions/message-reactions.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -23,8 +23,8 @@ import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
-import { MessageService } from '../message.service';
 import { NgxFloatUiModule } from 'ngx-float-ui';
+import { MessageTextComponent } from '../message-text/message-text.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -39,7 +39,7 @@ describe('MessageComponent', () => {
   let queryDeliveredIndicator: () => HTMLElement | null;
   let queryReadIndicator: () => HTMLElement | null;
   let queryAvatar: () => AvatarPlaceholderComponent;
-  let queryText: () => HTMLElement | null;
+  let queryMessageTextComponent: (testId: string) => MessageTextComponent;
   let queryMessageActionsBoxComponent: () =>
     | MessageActionsBoxComponent
     | undefined;
@@ -85,6 +85,7 @@ describe('MessageComponent', () => {
         AttachmentListComponent,
         MessageReactionsComponent,
         AvatarPlaceholderComponent,
+        MessageTextComponent,
       ],
       providers: [
         {
@@ -130,7 +131,9 @@ describe('MessageComponent', () => {
     queryAvatar = () =>
       fixture.debugElement.query(By.css('[data-testid="avatar"]'))
         ?.componentInstance as AvatarPlaceholderComponent;
-    queryText = () => nativeElement.querySelector('[data-testid="text"]');
+    queryMessageTextComponent = (testId: string) =>
+      fixture.debugElement.query(By.css(`[data-testid="${testId}"]`))
+        ?.componentInstance as MessageTextComponent;
     queryMessageInner = () =>
       nativeElement.querySelector('[data-testid="inner-message"]');
     queryLoadingIndicator = () =>
@@ -304,7 +307,13 @@ describe('MessageComponent', () => {
   });
 
   it('should display text message', () => {
-    expect(queryText()?.textContent).toContain(message.text);
+    const messageTextComponent = queryMessageTextComponent('text');
+
+    expect(messageTextComponent.message).toBe(component.message);
+    expect(messageTextComponent.shouldTranslate).toBe(
+      component.displayedMessageTextContent === 'translation'
+    );
+    expect(messageTextComponent.isQuoted).toBe(false);
   });
 
   describe('should display error message', () => {
@@ -680,14 +689,6 @@ describe('MessageComponent', () => {
     );
   });
 
-  it(`shouldn't display empty text`, () => {
-    component.message = { ...component.message!, ...{ text: '' } };
-    component.ngOnChanges({ message: {} as SimpleChange });
-    fixture.detectChanges();
-
-    expect(queryText()).toBeNull();
-  });
-
   it('should resend message, if sending is failed', () => {
     component.message = { ...component.message!, status: 'failed' };
     component.ngOnChanges({ message: {} as SimpleChange });
@@ -748,210 +749,6 @@ describe('MessageComponent', () => {
     const systemMessage = querySystemMessageContainer();
 
     expect(systemMessage?.innerHTML).toContain(message.text);
-  });
-
-  it('should create message parts', () => {
-    component.message = {
-      text: '',
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual(undefined);
-    expect(component.messageText).toEqual('');
-
-    component.message = {
-      text: 'This is a message without user mentions',
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual(undefined);
-    expect(component.messageText).toEqual(
-      'This is a message without user mentions'
-    );
-
-    component.message = {
-      text: 'This is just an email, not a mention test@test.com',
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual(undefined);
-    expect(component.messageText).toEqual(
-      'This is just an email, not a mention test@test.com'
-    );
-
-    component.message = {
-      text: 'This is just an email, not a mention test@test.com',
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual(undefined);
-    expect(component.messageText).toEqual(
-      'This is just an email, not a mention test@test.com'
-    );
-
-    component.message = {
-      text: 'Hello @Jack',
-      mentioned_users: [{ id: 'jack', name: 'Jack' }],
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual([
-      { content: 'Hello ', type: 'text' },
-      {
-        content: '@Jack',
-        type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
-      },
-    ]);
-
-    component.message = {
-      text: 'Hello @Jack, how are you?',
-      mentioned_users: [{ id: 'jack', name: 'Jack' }],
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual([
-      { content: 'Hello ', type: 'text' },
-      {
-        content: '@Jack',
-        type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
-      },
-      { content: ', how are you?', type: 'text' },
-    ]);
-
-    component.message = {
-      text: 'Hello @Jack and @Lucie, how are you?',
-      mentioned_users: [
-        { id: 'id2334', name: 'Jack' },
-        { id: 'id3444', name: 'Lucie' },
-      ],
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual([
-      { content: 'Hello ', type: 'text' },
-      {
-        content: '@Jack',
-        type: 'mention',
-        user: { id: 'id2334', name: 'Jack' },
-      },
-      { content: ' and ', type: 'text' },
-      {
-        content: '@Lucie',
-        type: 'mention',
-        user: { id: 'id3444', name: 'Lucie' },
-      },
-      { content: ', how are you?', type: 'text' },
-    ]);
-
-    component.message = {
-      text: 'https://getstream.io/ this is the link @sara',
-      mentioned_users: [{ id: 'sara' }],
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts).toEqual([
-      {
-        content:
-          '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a> this is the link ',
-        type: 'text',
-      },
-      { content: '@sara', type: 'mention', user: { id: 'sara' } },
-    ]);
-
-    component.message = {
-      text: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
-      html: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
-      mentioned_users: [],
-    } as any as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    const content = component.messageTextParts![0].content;
-
-    expect(content).toContain('😂');
-    expect(content).toContain('😜');
-    expect(content).toContain('👨‍👩‍👧');
-  });
-
-  it('should add class to emojis in Chrome', () => {
-    const chrome = (window as typeof window & { chrome: Object }).chrome;
-    (window as typeof window & { chrome: Object }).chrome =
-      'the component now will think that this is a chrome browser';
-    component.message = {
-      text: 'This message contains an emoji 🥑',
-      html: 'This message contains an emoji 🥑',
-    } as any as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      'class="str-chat__emoji-display-fix"'
-    );
-
-    component.message = {
-      text: '@sara what do you think about 🥑s? ',
-      html: '@sara what do you think about 🥑s? ',
-      mentioned_users: [{ id: 'sara' }],
-    } as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![2].content).toContain(
-      'class="str-chat__emoji-display-fix"'
-    );
-
-    // Simulate a browser that isn't Google Chrome
-    (window as typeof window & { chrome: Object | undefined }).chrome =
-      undefined;
-
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).not.toContain(
-      'class="str-chat__emoji-display-fix"'
-    );
-
-    // Revert changes to the window object
-    (window as typeof window & { chrome: Object }).chrome = chrome;
-  });
-
-  it('should replace URL links inside text content', () => {
-    component.message = {
-      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
-      text: 'This is a message with a link https://getstream.io/',
-    } as any as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
-    );
-
-    component.message.html = undefined;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
-    );
-
-    component.message.text = 'This is a message with a link google.com';
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://google.com" target="_blank" rel="nofollow">google.com</a>'
-    );
-
-    component.message.text = 'This is a message with a link www.google.com';
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://www.google.com" target="_blank" rel="nofollow">www.google.com</a>'
-    );
-
-    component.message.text =
-      'This is a message with a link file:///C:/Users/YourName/Documents/example.txt';
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      '<a href="file:///C:/Users/YourName/Documents/example.txt" target="_blank" rel="nofollow">file:///C:/Users/YourName/Documents/example.txt</a>'
-    );
   });
 
   it('should display reply count for parent messages', () => {
@@ -1165,80 +962,44 @@ describe('MessageComponent', () => {
       );
     });
 
-    it(`should display message translation if exists`, () => {
-      component.message!.user!.id += 'not';
-      component.message!.html = '<p>How are you?</p>';
-      component.message!.translation = 'Hogy vagy?';
-      component.ngOnChanges({ message: {} as SimpleChange });
-      fixture.detectChanges();
-
-      expect(queryText()?.innerHTML).toContain('Hogy vagy?');
-    });
-
     it('should display translation notifce and user should be able to change between translation and original', () => {
-      component.message!.user!.id = component.message!.user!.id + 'not';
-      component.message!.text = 'How are you?';
-      component.message!.html = '<p>How are you?</p>';
       component.message!.translation = 'Hogy vagy?';
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryTranslationNotice()).not.toBeNull();
       expect(querySeeTranslationButton()).toBeNull();
+      expect(queryMessageTextComponent('text').shouldTranslate).toBeTrue();
+      expect(
+        queryMessageTextComponent('quoted-message-text').shouldTranslate
+      ).toBeTrue();
 
       querySeeOriginalButton()?.click();
       fixture.detectChanges();
 
-      expect(queryText()?.innerHTML).toContain('How are you?');
+      expect(queryMessageTextComponent('text').shouldTranslate).toBeFalse();
+      expect(
+        queryMessageTextComponent('quoted-message-text').shouldTranslate
+      ).toBeFalse();
 
       expect(querySeeOriginalButton()).toBeNull();
 
       querySeeTranslationButton()?.click();
       fixture.detectChanges();
 
-      expect(queryText()?.innerHTML).toContain('Hogy vagy?');
+      expect(queryMessageTextComponent('text').shouldTranslate).toBeTrue();
+      expect(
+        queryMessageTextComponent('quoted-message-text').shouldTranslate
+      ).toBeTrue();
     });
 
     it(`shouldn't display translation notice if message isn't translated`, () => {
-      component.message!.html = '<p>How are you?</p>';
-      component.message!.user = currentUser;
       component.message!.translation = undefined;
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
       expect(queryTranslationNotice()).toBeNull();
     });
-
-    it('should respect #displayAs setting', () => {
-      component.message = generateMockMessages()[0];
-      fixture.detectChanges();
-
-      expect(nativeElement.querySelector('[data-testid="html-content"]')).toBe(
-        null
-      );
-
-      component.displayAs = 'html';
-      fixture.detectChanges();
-
-      expect(
-        nativeElement.querySelector('[data-testid="html-content"]')
-      ).not.toBe(null);
-    });
-  });
-
-  it('should replace URL links inside text content - custom link renderer', () => {
-    const service = TestBed.inject(MessageService);
-    service.customLinkRenderer = (url) =>
-      `<a href="${url}" class="my-special-class">${url}</a>`;
-    component.message = {
-      html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
-      text: 'This is a message with a link https://getstream.io/',
-    } as any as StreamMessage;
-    component.ngOnChanges({ message: {} as SimpleChange });
-
-    expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" class="my-special-class">https://getstream.io/</a>'
-    );
   });
 
   it(`shouldn't display edited flag if message wasn't edited`, () => {

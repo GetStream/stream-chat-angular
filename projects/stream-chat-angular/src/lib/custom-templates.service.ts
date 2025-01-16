@@ -26,6 +26,7 @@ import {
   MessageContext,
   MessageReactionsContext,
   MessageReactionsSelectorContext,
+  MessageTextContext,
   ModalContext,
   NotificationContext,
   ReadStatusContext,
@@ -43,7 +44,7 @@ import {
  *
  * For code examples to the different customizations see our [customizations example application](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example), specifically the [AppComponent](https://github.com/GetStream/stream-chat-angular/tree/master/projects/customizations-example/src/app) (see [README](https://github.com/GetStream/stream-chat-angular/blob/master/README.md#customization-examples) for instructions on how to start the application).
  *
- * You can find the type definitions of the context that is provided for each template [on GitHub](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angu)
+ * You can find the type definitions of the context that is provided for each template [on GitHub](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)
  */
 @Injectable({
   providedIn: 'root',
@@ -357,6 +358,12 @@ export class CustomTemplatesService<
    */
   customMessageMetadataInsideBubbleTemplate$ = new BehaviorSubject<
     TemplateRef<CustomMetadataContext> | undefined
+  >(undefined);
+  /**
+   * Template to display the text content inside the [message component](/chat/docs/sdk/angular/components/MessageComponent/). The default component is [stream-message-text](/chat/docs/sdk/angular/components/MessageTextComponent/)
+   */
+  messageTextTemplate$ = new BehaviorSubject<
+    TemplateRef<MessageTextContext> | undefined
   >(undefined);
 
   constructor() {}

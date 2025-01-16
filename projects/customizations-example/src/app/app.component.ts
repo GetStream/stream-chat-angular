@@ -36,6 +36,7 @@ import {
   MessageActionsService,
   ChannelPreviewInfoContext,
   MessageReactionsSelectorComponent,
+  MessageTextContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 
@@ -95,6 +96,8 @@ export class AppComponent implements AfterViewInit {
   private emptyMainMessageListTemplate!: TemplateRef<void>;
   @ViewChild('emptyThreadMessageList')
   private emptyThreadMessageListTemplate!: TemplateRef<void>;
+  @ViewChild('messageText')
+  messageTextTemplate!: TemplateRef<MessageTextContext>;
 
   constructor(
     private chatService: ChatClientService,
@@ -188,6 +191,9 @@ export class AppComponent implements AfterViewInit {
     );
     this.customTemplatesService.emptyThreadMessageListPlaceholder$.next(
       this.emptyThreadMessageListTemplate
+    );
+    this.customTemplatesService.messageTextTemplate$.next(
+      this.messageTextTemplate
     );
   }
 

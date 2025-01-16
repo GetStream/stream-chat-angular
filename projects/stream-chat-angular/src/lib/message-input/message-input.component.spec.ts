@@ -38,6 +38,7 @@ import { StreamAvatarModule } from '../stream-avatar.module';
 import { VoiceRecorderService } from './voice-recorder.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { MessageInputConfigService } from './message-input-config.service';
+import { MessageTextComponent } from '../message-text/message-text.component';
 
 describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
@@ -131,6 +132,7 @@ describe('MessageInputComponent', () => {
         AutocompleteTextareaComponent,
         AttachmentListComponent,
         AttachmentPreviewListComponent,
+        MessageTextComponent,
       ],
       providers: [
         {
@@ -783,10 +785,15 @@ describe('MessageInputComponent', () => {
     expect(avatar.location).toBe('quoted-message-sender');
     expect(avatar.user).toBe(message.user!);
     expect(attachments.attachments).toEqual([{ id: '1' }]);
-    expect(
-      nativeElement.querySelector('[data-testid="quoted-message-text"]')
-        ?.innerHTML
-    ).toContain(message.text);
+
+    const textComponent = fixture.debugElement
+      .query(By.css(quotedMessageContainerSelector))
+      .query(By.directive(MessageTextComponent))
+      .componentInstance as MessageTextComponent;
+
+    expect(textComponent.message).toBe(message);
+    expect(textComponent.isQuoted).toBe(true);
+    expect(textComponent.shouldTranslate).toBe(true);
 
     mockMessageToQuote$.next(undefined);
     fixture.detectChanges();
