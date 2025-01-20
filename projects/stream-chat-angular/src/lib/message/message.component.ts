@@ -38,6 +38,7 @@ import {
   NgxFloatUiLooseDirective,
 } from 'ngx-float-ui';
 import { TranslateService } from '@ngx-translate/core';
+import { isSafari } from '../is-safari';
 
 /**
  * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](/chat/docs/sdk/angular/concepts/message-interactions/).
@@ -98,7 +99,9 @@ export class MessageComponent
   };
   areMessageOptionsOpen = false;
   canDisplayReadStatus = false;
-  hasTouchSupport = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  hasTouchSupport = isSafari()
+    ? 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    : window.matchMedia('(any-hover: none)').matches;
   private quotedMessageAttachments: Attachment[] | undefined;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
