@@ -42,8 +42,7 @@ export class MessageTextComponent implements OnChanges {
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
   displayAs: 'text' | 'html';
-  private readonly urlRegexp =
-    /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.|(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(?![^\s]*@[^\s]*)(?:[^\s()<>]+|\([\w\d]+\))*(?<!@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gim;
+  private readonly urlRegexp: RegExp;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
 
   constructor(
@@ -51,6 +50,15 @@ export class MessageTextComponent implements OnChanges {
     readonly customTemplatesService: CustomTemplatesService
   ) {
     this.displayAs = this.messageService.displayAs;
+    try {
+      this.urlRegexp = new RegExp(
+        '(?:(?:https?|ftp|file):\\/\\/|www\\.|ftp\\.|(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(?![^\\s]*@[^\\s]*)(?:[^\\s()<>]+|\\([\\w\\d]+\\))*(?<!@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'gim'
+      );
+    } catch {
+      this.urlRegexp =
+        /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
