@@ -186,6 +186,10 @@ export class MessageActionsService<
    * By default the [`MessageComponent`](/chat/docs/sdk/angular/components/MessageComponent/) will display the [`MessageActionsBoxComponent`](/chat/docs/sdk/angular/components/MessageActionsBoxComponent/). You can override that behavior by providing your own event handler.
    */
   customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
+  /**
+   * @internal
+   */
+  messageMenuOpenedFor$ = new BehaviorSubject<string | undefined>(undefined);
   private hasDisplayedClipboardWarning = false;
 
   constructor(
