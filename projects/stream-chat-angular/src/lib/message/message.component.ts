@@ -28,7 +28,7 @@ import {
   CustomMetadataContext,
   MessageTextContext,
 } from '../types';
-import { Observable, Subscription, take } from 'rxjs';
+import { fromEvent, Observable, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
@@ -112,10 +112,12 @@ export class MessageComponent
   messageMenuFloat!: NgxFloatUiContentComponent;
   @ViewChild('messageTextElement') messageTextElement?: ElementRef<HTMLElement>;
   @ViewChild('messageBubble') messageBubble?: ElementRef<HTMLElement>;
+  @ViewChild('container') messageContainer?: ElementRef<HTMLElement>;
   private showMessageMenuTimeout?: ReturnType<typeof setTimeout>;
   private shouldPreventMessageMenuClose = false;
   private _visibleMessageActionsCount = 0;
   private channelMemberCount?: number;
+  private touchOutsideMessageSubscriptions: Subscription[] = [];
 
   constructor(
     private chatClientService: ChatClientService,
@@ -294,6 +296,14 @@ export class MessageComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.messageMenuHidden();
+  }
+
+  messageMenuHidden() {
+    if (this.showMessageMenuTimeout) {
+      clearTimeout(this.showMessageMenuTimeout);
+    }
+    this.touchOutsideMessageSubscriptions.forEach((s) => s.unsubscribe());
   }
 
   mousePushedDown(event: MouseEvent) {
@@ -540,7 +550,22 @@ export class MessageComponent
               'undefined'
           )
             (document.activeElement as HTMLInputElement).blur();
-          this.messageMenuTrigger?.show();
+          this.messageMenuTrigger.show();
+          // click event is handled by ngx-float-ui SDK, but long tap won't trigger click handler
+          this.touchOutsideMessageSubscriptions.push(
+            fromEvent(document, 'touchstart').subscribe((event) => {
+              if (
+                event.target === this.messageContainer?.nativeElement ||
+                this.messageContainer?.nativeElement.contains(
+                  event.target as Node
+                )
+              ) {
+                return;
+              }
+              this.messageMenuTrigger.hide();
+              this.messageMenuHidden();
+            })
+          );
         }
         if (this.isViewInited) {
           this.cdRef.detectChanges();
