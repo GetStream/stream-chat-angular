@@ -290,10 +290,27 @@ export class MessageComponent
         this.registerMenuTriggerEventHandlers();
       });
     }
+    this.subscriptions.push(
+      this.messageActionsService.messageMenuOpenedFor$.subscribe((id) => {
+        if (this.message && this.message.id === id) {
+          if (!this.areMessageOptionsOpen) {
+            this.messageMenuTrigger?.show();
+          }
+        } else if (
+          (id === undefined || this.message?.id !== id) &&
+          this.areMessageOptionsOpen
+        ) {
+          this.messageMenuTrigger?.hide();
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    if (this.showMessageMenuTimeout) {
+      clearTimeout(this.showMessageMenuTimeout);
+    }
   }
 
   mousePushedDown(event: MouseEvent) {
@@ -540,7 +557,10 @@ export class MessageComponent
               'undefined'
           )
             (document.activeElement as HTMLInputElement).blur();
-          this.messageMenuTrigger?.show();
+          this.messageMenuTrigger.show();
+          this.messageActionsService.messageMenuOpenedFor$.next(
+            this.message?.id
+          );
         }
         if (this.isViewInited) {
           this.cdRef.detectChanges();
