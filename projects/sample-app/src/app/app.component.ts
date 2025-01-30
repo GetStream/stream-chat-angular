@@ -6,7 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import {
   ChatClientService,
   ChannelService,
@@ -17,8 +17,6 @@ import {
   AvatarContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
-import names from 'starwars-names';
-import { v4 as uuidv4 } from 'uuid';
 import { LogLevel } from 'stream-chat';
 
 @Component({
@@ -43,23 +41,12 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     private customTemplateService: CustomTemplatesService,
     themeService: ThemeService
   ) {
-    const isDynamicUser = environment.userId === '<dynamic user>';
-    const userId = isDynamicUser ? uuidv4() : environment.userId;
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user') ?? '';
     void this.chatService.init(
       environment.apiKey,
-      isDynamicUser ? { id: userId, name: names.random() } : userId,
-      environment.tokenUrl
-        ? async () => {
-            const url = environment.tokenUrl.replace(
-              environment.userId,
-              userId
-            );
-            const response = await fetch(url);
-            const body = (await response.json()) as { token: string };
-
-            return body.token;
-          }
-        : environment.userToken,
+      userId,
+      this.getTokenGenerator(userId),
       {
         timeout: 10000,
         logger: (
@@ -88,11 +75,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       }
     );
     void this.channelService.init(
-      environment.channelsFilter || {
+      {
         type: 'messaging',
-        members: { $in: [environment.userId] },
+        members: { $in: [userId] },
       },
-      undefined,
+      { has_unread: -1 },
       { limit: 10 }
     );
     this.subscriptions.push(
@@ -140,7 +127,32 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
     this.theme$ = themeService.theme$;
+    this.chatService.user$
+      .pipe(
+        map((u) => Number(u?.unread_count ?? 0)),
+        distinctUntilChanged()
+      )
+      .subscribe((unreadCount) => {
+        if (unreadCount > 0) {
+          document.title = `(${unreadCount}) Stream Chat Angular Sample App`;
+        } else {
+          document.title = `Stream Chat Angular Sample App`;
+        }
+      });
   }
+
+  getTokenGenerator(userId: string) {
+    const oneDay = 24 * 60 * 60;
+    return async () => {
+      const response = await fetch(
+        `${environment.tokenUrl}&user_id=${userId}&exp=${oneDay}`
+      );
+      const body = (await response.json()) as { token: string };
+
+      return body.token;
+    };
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }

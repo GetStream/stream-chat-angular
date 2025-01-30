@@ -19,7 +19,7 @@
         "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
         "@angular-eslint/prefer-on-push-component-change-detection": "off",
         "unused-imports/no-unused-imports": "error",
-        "no-console": ["error", { "allow": ["warn", "error"] }],
+        "no-console": ["error", { "allow": ["warn", "error", "log"] }],
         "@typescript-eslint/unbound-method": "off"
       }
     },

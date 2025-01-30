@@ -5,6 +5,7 @@ on:
       - master
       - angular-19
       - test-update
+      - channel-service-extra-logs
   pull_request:
     branches:
       - master
@@ -53,10 +54,8 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-          STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
-          STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}
-          STREAM_USER_ID: <dynamic user>
-          STREAM_CHANNELS_FILTER: '{"type": "messaging", "id": "talking-about-angular"}'
+          STREAM_API_KEY: ${{ vars.TEST_APP_API_KEY }}
+          STREAM_TOKEN_URL: ${{ vars.TEST_APP_TOKEN_URL }}
         run: >
           yarn vercel pull --yes --environment=${{ github.ref == 'refs/heads/master' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build ${{ github.ref == 'refs/heads/master' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} &&
