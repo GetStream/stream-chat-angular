@@ -5,6 +5,7 @@ on:
       - master
       - angular-19
       - test-update
+      - fix-voice-recording
   pull_request:
     branches:
       - master
