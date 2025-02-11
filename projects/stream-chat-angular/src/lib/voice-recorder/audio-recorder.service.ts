@@ -1,6 +1,5 @@
 import { Injectable, NgModule } from '@angular/core';
 import { AmplitudeRecorderService } from './amplitude-recorder.service';
-import { isSafari } from '../is-safari';
 import { MediaRecorderConfig, MultimediaRecorder } from './media-recorder';
 import { NotificationService } from '../notification.service';
 import { ChatClientService } from '../chat-client.service';
@@ -21,7 +20,9 @@ export class AudioRecorderService extends MultimediaRecorder<
    * - For all other browsers we use audio/webm (which is then transcoded to wav)
    */
   config: MediaRecorderConfig = {
-    mimeType: isSafari() ? 'audio/mp4;codecs=mp4a.40.2' : 'audio/webm',
+    mimeType: MediaRecorder.isTypeSupported('audio/webm')
+      ? 'audio/webm'
+      : 'audio/mp4;codecs=mp4a.40.2', // fallback for Safari
   };
 
   constructor(
