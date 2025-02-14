@@ -855,6 +855,11 @@ export class MessageListComponent
           this.cdRef.detectChanges();
         }, 1000)
       );
+    } else {
+      this.isJumpingToMessage = false;
+      this.highlightedMessageId = undefined;
+      this.firstUnreadMessageId = undefined;
+      this.isJumpingToLatestUnreadMessage = false;
     }
   }
 
