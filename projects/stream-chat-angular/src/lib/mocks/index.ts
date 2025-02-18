@@ -355,13 +355,13 @@ export type MockStreamChatClient = {
   on: (name: EventTypes, handler: () => {}) => { unsubscribe: () => void };
   handleEvent: (name: EventTypes, event: Event) => void;
   flagMessage: jasmine.Spy;
-  setUserAgent: jasmine.Spy;
   queryUsers: jasmine.Spy;
-  getUserAgent: jasmine.Spy;
   getAppSettings: jasmine.Spy;
   disconnectUser: jasmine.Spy;
   queryChannels: jasmine.Spy;
   connectAnonymousUser: jasmine.Spy;
+  getUserAgent: () => string;
+  setUserAgent: jasmine.Spy;
 };
 
 export const mockStreamChatClient = (): MockStreamChatClient => {
@@ -369,7 +369,6 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
   const connectUser = jasmine.createSpy();
   const setGuestUser = jasmine.createSpy();
   const flagMessage = jasmine.createSpy();
-  const setUserAgent = jasmine.createSpy();
   const queryUsers = jasmine.createSpy();
   const queryChannels = jasmine.createSpy().and.returnValue([]);
   const getAppSettings = jasmine.createSpy().and.resolveTo({
@@ -389,9 +388,6 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     },
   });
   const disconnectUser = jasmine.createSpy();
-  const getUserAgent = jasmine
-    .createSpy()
-    .and.returnValue('stream-chat-javascript-client-browser-2.2.2');
   const connectAnonymousUser = jasmine.createSpy();
   const user = mockCurrentUser();
   const on = (name: EventTypes | Function, handler: () => {}) => {
@@ -424,8 +420,6 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     on,
     handleEvent,
     flagMessage,
-    getUserAgent,
-    setUserAgent,
     queryUsers,
     getAppSettings,
     appSettings$,
@@ -433,6 +427,8 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     setGuestUser,
     connectAnonymousUser,
     channel,
+    setUserAgent: jasmine.createSpy(),
+    getUserAgent: () => '',
   };
 };
 
