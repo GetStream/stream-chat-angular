@@ -61,7 +61,7 @@ export abstract class VirtualizedListService<T> {
       position?: VirtualizedListVerticalItemPosition;
     }>,
     public readonly pageSize = 25,
-    public readonly maxItemCount = pageSize * 4
+    public readonly maxItemCount = pageSize * 4,
   ) {
     this.virtualizedItems$ = this.virtualizedItemsSubject.asObservable();
     this.queryState$ = this.queryStateSubject.asObservable();
@@ -82,7 +82,7 @@ export abstract class VirtualizedListService<T> {
               1;
           }
         });
-      })
+      }),
     );
     this.subscriptions.push(
       merge(this.allItems$, this.loadFromBuffer$)
@@ -92,7 +92,7 @@ export abstract class VirtualizedListService<T> {
               this.allItems$.pipe(take(1)),
               this.scrollPosition$.pipe(take(1)),
             ]);
-          })
+          }),
         )
         .subscribe(([items, scrollPosition]) => {
           if (scrollPosition === 'middle') {
@@ -112,12 +112,12 @@ export abstract class VirtualizedListService<T> {
               case 'top':
                 if (currentItems.length > 0) {
                   const middleIndex = items.findIndex((i) =>
-                    this.isEqual(i, currentItems[0])
+                    this.isEqual(i, currentItems[0]),
                   );
                   if (middleIndex !== -1) {
                     startIndex = Math.max(
                       0,
-                      middleIndex - Math.ceil(numberOfItemsAfterRemove / 2)
+                      middleIndex - Math.ceil(numberOfItemsAfterRemove / 2),
                     );
                     endIndex = startIndex + numberOfItemsAfterRemove;
                   }
@@ -128,12 +128,14 @@ export abstract class VirtualizedListService<T> {
               case 'bottom':
                 if (currentItems.length > 0) {
                   const middleIndex = items.findIndex((i) =>
-                    this.isEqual(i, currentItems[currentItems.length - 1])
+                    this.isEqual(i, currentItems[currentItems.length - 1]),
                   );
                   if (middleIndex !== -1) {
                     endIndex = Math.min(
                       items.length,
-                      middleIndex + Math.floor(numberOfItemsAfterRemove / 2) + 1
+                      middleIndex +
+                        Math.floor(numberOfItemsAfterRemove / 2) +
+                        1,
                     );
                     startIndex = endIndex - numberOfItemsAfterRemove;
                   }
@@ -145,7 +147,7 @@ export abstract class VirtualizedListService<T> {
             const virtualizedItems = items.slice(startIndex, endIndex);
             this.virtualizedItemsSubject.next(virtualizedItems);
           }
-        })
+        }),
     );
     this.subscriptions.push(
       this.scrollPosition$
@@ -169,7 +171,7 @@ export abstract class VirtualizedListService<T> {
               this.loadMoreFromBuffer('bottom');
             }
           }
-        })
+        }),
     );
     this.subscriptions.push(
       this.allItems$
@@ -181,7 +183,7 @@ export abstract class VirtualizedListService<T> {
               .pipe(take(1))
               .subscribe((s) => (scrollPosition = s));
             return scrollPosition === 'middle';
-          })
+          }),
         )
         .subscribe(([prevItems, currentItems]) => {
           if (
@@ -194,10 +196,10 @@ export abstract class VirtualizedListService<T> {
             const currentLastItem =
               this.virtualizedItems[this.virtualizedItems.length - 1];
             const prevStartIndex = prevItems.findIndex((i) =>
-              this.isEqual(i, currentFirstItem)
+              this.isEqual(i, currentFirstItem),
             );
             const prevEndIndex = prevItems.findIndex((i) =>
-              this.isEqual(i, currentLastItem)
+              this.isEqual(i, currentLastItem),
             );
 
             const isStartRemainedSame = currentItems[prevStartIndex]
@@ -215,7 +217,7 @@ export abstract class VirtualizedListService<T> {
             if (isStartRemainedSame && isEndRemainedSame) {
               const endIndex = hasNewItemsBottom ? undefined : prevEndIndex + 1;
               this.virtualizedItemsSubject.next(
-                currentItems.slice(prevStartIndex, endIndex)
+                currentItems.slice(prevStartIndex, endIndex),
               );
             }
 
@@ -224,12 +226,12 @@ export abstract class VirtualizedListService<T> {
 
             if (!isStartRemainedSame) {
               currentStartIndex = currentItems.findIndex((i) =>
-                this.isEqual(i, currentFirstItem)
+                this.isEqual(i, currentFirstItem),
               );
             }
             if (!isEndRemainedSame) {
               currentEndIndex = currentItems.findIndex((i) =>
-                this.isEqual(i, currentLastItem)
+                this.isEqual(i, currentLastItem),
               );
             }
 
@@ -241,37 +243,37 @@ export abstract class VirtualizedListService<T> {
             if (currentStartIndex !== -1 && currentEndIndex !== -1) {
               const startIndex = hasNewItemsTop ? 0 : currentStartIndex;
               this.virtualizedItemsSubject.next(
-                currentItems.slice(startIndex, currentEndIndex + 1)
+                currentItems.slice(startIndex, currentEndIndex + 1),
               );
             } else {
               if (currentStartIndex === -1 && currentEndIndex !== -1) {
                 currentStartIndex = Math.max(
                   0,
-                  currentEndIndex - (prevEndIndex - prevStartIndex)
+                  currentEndIndex - (prevEndIndex - prevStartIndex),
                 );
               }
 
               if (currentEndIndex === -1 && currentStartIndex !== -1) {
                 currentEndIndex = Math.min(
                   currentItems.length - 1,
-                  currentStartIndex + (prevEndIndex - prevStartIndex)
+                  currentStartIndex + (prevEndIndex - prevStartIndex),
                 );
               }
 
               this.virtualizedItemsSubject.next(
-                currentItems.slice(currentStartIndex, currentEndIndex + 1)
+                currentItems.slice(currentStartIndex, currentEndIndex + 1),
               );
             }
           }
-        })
+        }),
     );
     if (this.jumpToItem$) {
       this.subscriptions.push(
         this.jumpToItem$
           .pipe(
             switchMap((jumpToItem) =>
-              combineLatest([this.allItems$.pipe(take(1)), of(jumpToItem)])
-            )
+              combineLatest([this.allItems$.pipe(take(1)), of(jumpToItem)]),
+            ),
           )
           .subscribe(([allItems, jumpToItem]) => {
             if (jumpToItem.item) {
@@ -280,7 +282,7 @@ export abstract class VirtualizedListService<T> {
               } else {
                 const itemIndex = allItems.findIndex((i) =>
                   // @ts-expect-error TODO: do we know a better typing here?
-                  this.isEqual(i, jumpToItem.item)
+                  this.isEqual(i, jumpToItem.item),
                 );
                 if (itemIndex === -1) {
                   return;
@@ -298,14 +300,14 @@ export abstract class VirtualizedListService<T> {
                       startIndex = itemIndex;
                       endIndex = Math.min(
                         allItems.length,
-                        startIndex + numberOfItemsAfterRemove
+                        startIndex + numberOfItemsAfterRemove,
                       );
                       break;
                     case 'bottom':
                       endIndex = itemIndex + 1;
                       startIndex = Math.max(
                         0,
-                        endIndex - numberOfItemsAfterRemove
+                        endIndex - numberOfItemsAfterRemove,
                       );
                       break;
                     case 'middle': {
@@ -339,12 +341,12 @@ export abstract class VirtualizedListService<T> {
                   }
 
                   this.virtualizedItemsSubject.next(
-                    allItems.slice(startIndex, endIndex)
+                    allItems.slice(startIndex, endIndex),
                   );
                 }
               }
             }
-          })
+          }),
       );
     }
   }
@@ -380,6 +382,6 @@ export abstract class VirtualizedListService<T> {
   protected abstract isEqual: (t1: T, t2: T) => boolean;
 
   protected abstract query: (
-    direction: VirtualizedListQueryDirection
+    direction: VirtualizedListQueryDirection,
   ) => Promise<unknown>;
 }

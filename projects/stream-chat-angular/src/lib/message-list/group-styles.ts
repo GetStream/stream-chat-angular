@@ -10,7 +10,7 @@ export const getGroupStyles = (
     noGroupByUser: false,
     lastReadMessageId: undefined,
     noGroupByReadState: false,
-  }
+  },
 ): GroupStyle => {
   if (
     options.noGroupByUser ||

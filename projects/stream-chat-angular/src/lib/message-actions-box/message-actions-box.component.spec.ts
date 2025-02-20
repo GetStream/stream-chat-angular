@@ -112,7 +112,7 @@ describe('MessageActionsBoxComponent', () => {
       nativeElement.querySelector('[data-testid="thread-reply-action"]');
     queryReactionSelectorComponent = () =>
       fixture.debugElement.query(
-        By.directive(MessageReactionsSelectorComponent)
+        By.directive(MessageReactionsSelectorComponent),
       )?.componentInstance as MessageReactionsSelectorComponent;
     queryCopyTextAction = () =>
       nativeElement.querySelector('[data-testid="copy-message-text-action"]');
@@ -252,7 +252,7 @@ describe('MessageActionsBoxComponent', () => {
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message has been successfully flagged',
-      'success'
+      'success',
     );
   });
 
@@ -270,7 +270,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error adding flag'
+      'streamChat.Error adding flag',
     );
   });
 
@@ -373,7 +373,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
 
     expect(channelService.deleteMessage).toHaveBeenCalledWith(
-      component.message
+      component.message,
     );
   });
 
@@ -392,7 +392,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error deleting message'
+      'streamChat.Error deleting message',
     );
   }));
 
@@ -424,7 +424,7 @@ describe('MessageActionsBoxComponent', () => {
 
     expect(reactionSelectorComponent?.messageId).toBe(component.message?.id);
     expect(reactionSelectorComponent?.ownReactions).toEqual(
-      component.message?.own_reactions || []
+      component.message?.own_reactions || [],
     );
 
     component.enabledActions = [];
@@ -447,7 +447,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
 
     expect(channelService.setAsActiveParentMessage).toHaveBeenCalledWith(
-      component.message
+      component.message,
     );
 
     component.enabledActions = [];
@@ -462,7 +462,7 @@ describe('MessageActionsBoxComponent', () => {
 
   it('should display copy text action', fakeAsync(async () => {
     const spy = spyOn(navigator.clipboard, 'write').and.callFake(() =>
-      Promise.resolve()
+      Promise.resolve(),
     );
     component.enabledActions = ['copy-message-text'];
     component.messageTextHtmlElement = {
@@ -481,10 +481,10 @@ describe('MessageActionsBoxComponent', () => {
 
     const clipboardItem: ClipboardItem = spy.calls.mostRecent().args[0][0];
     const plainText = await new Response(
-      await clipboardItem.getType('text/plain')
+      await clipboardItem.getType('text/plain'),
     ).text();
     const htmlText = await new Response(
-      await clipboardItem.getType('text/html')
+      await clipboardItem.getType('text/html'),
     ).text();
     expect(plainText).toBe('test');
     expect(htmlText).toBe('<b>test</b>');

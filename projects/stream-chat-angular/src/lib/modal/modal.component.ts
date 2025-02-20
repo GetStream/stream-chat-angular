@@ -43,7 +43,7 @@ export class ModalComponent implements OnChanges {
         window.addEventListener('keyup', this.watchForEscPress);
         setTimeout(
           () => window.addEventListener('click', this.watchForOutsideClicks),
-          0
+          0,
         );
       } else {
         this.stopWatchForOutsideClicks();

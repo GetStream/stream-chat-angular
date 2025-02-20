@@ -57,11 +57,11 @@ describe('ChannelListComponent', () => {
       nativeElement.querySelector('[data-testid="chatdown-container"]');
     queryLoadingIndicator = () =>
       nativeElement.querySelector(
-        '[data-testid="loading-indicator-full-size"]'
+        '[data-testid="loading-indicator-full-size"]',
       );
     queryEmptyIndicator = () =>
       nativeElement.querySelector(
-        '[data-testid="empty-channel-list-indicator"]'
+        '[data-testid="empty-channel-list-indicator"]',
       );
     queryContainer = () =>
       nativeElement.querySelector('[data-testid="channel-list-container"]');
@@ -77,7 +77,7 @@ describe('ChannelListComponent', () => {
 
     expect(channelsComponents.length).toBe(channels.length);
     channels.forEach((c, index) =>
-      expect(channelsComponents[index].channel).toBe(c)
+      expect(channelsComponents[index].channel).toBe(c),
     );
   });
 
@@ -131,7 +131,7 @@ describe('ChannelListComponent', () => {
     channelServiceMock.channels$.next(channels);
     fixture.detectChanges();
     const paginatedListComponent = fixture.debugElement.query(
-      By.directive(PaginatedListComponent)
+      By.directive(PaginatedListComponent),
     ).componentInstance as PaginatedListComponent<Channel>;
     channelServiceMock.hasMoreChannels$.next(false);
     fixture.detectChanges();
@@ -151,7 +151,7 @@ describe('ChannelListComponent', () => {
     spyOn(channelServiceMock, 'loadMoreChannels');
     fixture.detectChanges();
     const paginatedListComponent = fixture.debugElement.query(
-      By.directive(PaginatedListComponent)
+      By.directive(PaginatedListComponent),
     ).componentInstance as PaginatedListComponent<Channel>;
     paginatedListComponent.loadMore.emit();
     fixture.detectChanges();

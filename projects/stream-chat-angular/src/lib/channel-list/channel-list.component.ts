@@ -28,21 +28,21 @@ export class ChannelListComponent implements OnDestroy {
   constructor(
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
   ) {
     this.theme$ = this.themeService.theme$;
     this.channels$ = this.channelService.channels$;
     this.hasMoreChannels$ = this.channelService.hasMoreChannels$;
     this.isError$ = this.channelService.channelQueryState$.pipe(
-      map((s) => !this.isLoadingMoreChannels && s?.state === 'error')
+      map((s) => !this.isLoadingMoreChannels && s?.state === 'error'),
     );
     this.isInitializing$ = this.channelService.channelQueryState$.pipe(
-      map((s) => !this.isLoadingMoreChannels && s?.state === 'in-progress')
+      map((s) => !this.isLoadingMoreChannels && s?.state === 'in-progress'),
     );
     this.subscriptions.push(
       this.customTemplatesService.channelPreviewTemplate$.subscribe(
-        (template) => (this.customChannelPreviewTemplate = template)
-      )
+        (template) => (this.customChannelPreviewTemplate = template),
+      ),
     );
   }
 

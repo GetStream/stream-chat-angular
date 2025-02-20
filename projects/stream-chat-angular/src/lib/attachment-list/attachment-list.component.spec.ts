@@ -79,18 +79,18 @@ describe('AttachmentListComponent', () => {
     queryAttachments = () =>
       Array.from(
         nativeElement.querySelectorAll(
-          '[data-testclass="attachment-container"]'
-        )
+          '[data-testclass="attachment-container"]',
+        ),
       );
     queryImages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="image"]'));
     queryFileLinks = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="file-link"]')
+        nativeElement.querySelectorAll('[data-testclass="file-link"]'),
       );
     queryFileNames = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="file-title"]')
+        nativeElement.querySelectorAll('[data-testclass="file-title"]'),
       );
     queryUrlLinks = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="url-link"]'));
@@ -98,42 +98,42 @@ describe('AttachmentListComponent', () => {
       Array.from(nativeElement.querySelectorAll('[data-testclass="card-img"]'));
     queryActions = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="attachment-action"]')
+        nativeElement.querySelectorAll('[data-testclass="attachment-action"]'),
       );
     queryVoiceMessges = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="voice-recording"]')
+        nativeElement.querySelectorAll('[data-testclass="voice-recording"]'),
       );
     queryImageModal = () =>
       fixture.debugElement.query(By.directive(ModalComponent))
         ?.componentInstance as ModalComponent;
     queryImageModalImage = () =>
       nativeElement.querySelector(
-        '[data-testid="modal-image"]'
+        '[data-testid="modal-image"]',
       ) as HTMLImageElement;
     queryImageModalPrevButton = () =>
       nativeElement.querySelector(
-        '[data-testid="image-modal-prev"]'
+        '[data-testid="image-modal-prev"]',
       ) as HTMLButtonElement;
     queryImageModalNextButton = () =>
       nativeElement.querySelector(
-        '[data-testid="image-modal-next"]'
+        '[data-testid="image-modal-next"]',
       ) as HTMLButtonElement;
     queryGallery = () =>
       nativeElement.querySelector('[data-testid="image-gallery"]');
     queryVideos = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="video-attachment"]')
+        nativeElement.querySelectorAll('[data-testclass="video-attachment"]'),
       );
     queryVideoContainers = () =>
       Array.from(
         nativeElement.querySelectorAll(
-          '[data-testclass="video-attachment-parent"]'
-        )
+          '[data-testclass="video-attachment-parent"]',
+        ),
       );
     queryScrapedVideos = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass=scraped-video]')
+        nativeElement.querySelectorAll('[data-testclass=scraped-video]'),
       );
   }));
 
@@ -159,25 +159,25 @@ describe('AttachmentListComponent', () => {
 
     expect(attachments.length).toBe(4);
     expect(
-      attachments[0].classList.contains('str-chat__message-attachment--image')
+      attachments[0].classList.contains('str-chat__message-attachment--image'),
     ).toBeTrue();
 
     expect(
-      attachments[1].classList.contains('str-chat__message-attachment--video')
+      attachments[1].classList.contains('str-chat__message-attachment--video'),
     ).toBeTrue();
 
     expect(
       attachments[2].classList.contains(
-        'str-chat__message-attachment--voice-recording'
-      )
+        'str-chat__message-attachment--voice-recording',
+      ),
     ).toBeTrue();
 
     expect(
-      attachments[3].classList.contains('str-chat__message-attachment--file')
+      attachments[3].classList.contains('str-chat__message-attachment--file'),
     ).toBeTrue();
 
     expect(
-      attachments[3].classList.contains('str-chat__message-attachment--image')
+      attachments[3].classList.contains('str-chat__message-attachment--image'),
     ).toBeFalse();
 
     expect(queryImages().length).toBe(1);
@@ -186,7 +186,7 @@ describe('AttachmentListComponent', () => {
     expect(queryVoiceMessges().length).toBe(1);
     expect(queryActions().length).toBe(0);
     expect(
-      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions'),
     ).toBeNull();
 
     expect(queryVideos().length).toBe(1);
@@ -258,7 +258,7 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
 
     const voiceRecordingComponent = fixture.debugElement.query(
-      By.directive(VoiceRecordingComponent)
+      By.directive(VoiceRecordingComponent),
     ).componentInstance as VoiceRecordingComponent;
 
     expect(voiceRecordingComponent.attachment).toBe(mockVoiceRecording);
@@ -294,7 +294,7 @@ describe('AttachmentListComponent', () => {
     expect(imageElemnts[0].src).toContain('http://url1');
     expect(imageElemnts[1].src).toContain('http://url2');
     expect(
-      nativeElement.querySelector('.str-chat__gallery-two-rows')
+      nativeElement.querySelector('.str-chat__gallery-two-rows'),
     ).toBeNull();
 
     component.attachments = [
@@ -314,7 +314,7 @@ describe('AttachmentListComponent', () => {
     expect(imageElemnts[2].src).toContain('http://url3');
     expect(imageElemnts[3].src).toContain('http://url4');
     expect(
-      nativeElement.querySelector('.str-chat__gallery-two-rows')
+      nativeElement.querySelector('.str-chat__gallery-two-rows'),
     ).not.toBeNull();
 
     component.attachments = [
@@ -329,12 +329,12 @@ describe('AttachmentListComponent', () => {
     gallery = queryAttachments()[0];
     imageElemnts = gallery.querySelectorAll('img');
     const lastImage = gallery.querySelector(
-      '.str-chat__gallery-placeholder'
+      '.str-chat__gallery-placeholder',
     ) as HTMLElement;
 
     expect(gallery.querySelectorAll('.str-chat__gallery-image').length).toBe(3);
     expect(
-      gallery.querySelectorAll('.str-chat__gallery-placeholder').length
+      gallery.querySelectorAll('.str-chat__gallery-placeholder').length,
     ).toBe(1);
 
     expect(lastImage.style.backgroundImage).toContain('http://url4');
@@ -392,7 +392,7 @@ describe('AttachmentListComponent', () => {
     expect(actions[1].innerHTML).toContain('Shuffle');
     expect(actions[2].innerHTML).toContain('Cancel');
     expect(
-      nativeElement.querySelector('.str-chat__message-attachment-with-actions')
+      nativeElement.querySelector('.str-chat__message-attachment-with-actions'),
     ).not.toBeNull();
   });
 
@@ -450,7 +450,7 @@ describe('AttachmentListComponent', () => {
       {
         image_action: 'shuffle',
       },
-      'parent-id'
+      'parent-id',
     );
   });
 
@@ -512,7 +512,7 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
 
       expect(
-        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image'),
       ).not.toBeNull();
 
       component.attachments = [
@@ -522,7 +522,7 @@ describe('AttachmentListComponent', () => {
       fixture.detectChanges();
 
       expect(
-        nativeElement.querySelector('.str-chat__message-attachment--svg-image')
+        nativeElement.querySelector('.str-chat__message-attachment--svg-image'),
       ).toBeNull();
     });
   });
@@ -559,14 +559,14 @@ describe('AttachmentListComponent', () => {
 
       expect(
         queryAttachments()[0].classList.contains(
-          'str-chat-angular__message-attachment-file-single'
-        )
+          'str-chat-angular__message-attachment-file-single',
+        ),
       ).toBeTrue();
 
       expect(
         queryAttachments()[1].classList.contains(
-          'str-chat-angular__message-attachment-file-single'
-        )
+          'str-chat-angular__message-attachment-file-single',
+        ),
       ).toBeTrue();
     });
 
@@ -690,7 +690,7 @@ describe('AttachmentListComponent', () => {
 
       expect(
         queryAttachments()[0].querySelector('[data-testclass="card-title"]')
-          ?.textContent
+          ?.textContent,
       ).toContain(title);
     });
 
@@ -714,7 +714,7 @@ describe('AttachmentListComponent', () => {
 
       expect(
         queryAttachments()[0].querySelector('[data-testclass="card-text"]')
-          ?.textContent
+          ?.textContent,
       ).toContain(text);
     });
 
@@ -758,7 +758,7 @@ describe('AttachmentListComponent', () => {
 
       expect(queryUrlLinks()[0].href).toContain(scrapeUrl);
       expect(queryUrlLinks()[0].textContent).toContain(
-        component.trimUrl('getstream.io')
+        component.trimUrl('getstream.io'),
       );
     });
 
@@ -806,7 +806,7 @@ describe('AttachmentListComponent', () => {
 
       queryGallery()
         ?.querySelectorAll<HTMLButtonElement>(
-          '[data-testclass="gallery-image"]'
+          '[data-testclass="gallery-image"]',
         )[0]
         .click();
       fixture.detectChanges();
@@ -835,7 +835,7 @@ describe('AttachmentListComponent', () => {
 
       queryGallery()
         ?.querySelectorAll<HTMLButtonElement>(
-          '[data-testclass="gallery-image"]'
+          '[data-testclass="gallery-image"]',
         )[1]
         .click();
       fixture.detectChanges();
@@ -866,7 +866,7 @@ describe('AttachmentListComponent', () => {
 
       queryGallery()
         ?.querySelectorAll<HTMLButtonElement>(
-          '[data-testclass="gallery-image"]'
+          '[data-testclass="gallery-image"]',
         )[0]
         .click();
       fixture.detectChanges();
@@ -945,19 +945,19 @@ describe('AttachmentListComponent', () => {
     };
     spyOn(
       configurationService,
-      'getImageAttachmentConfiguration'
+      'getImageAttachmentConfiguration',
     ).and.returnValue(testConfiguration);
     spyOn(
       configurationService,
-      'getVideoAttachmentConfiguration'
+      'getVideoAttachmentConfiguration',
     ).and.returnValue(testConfiguration);
     spyOn(
       configurationService,
-      'getGiphyAttachmentConfiguration'
+      'getGiphyAttachmentConfiguration',
     ).and.returnValue(testConfiguration);
     spyOn(
       configurationService,
-      'getScrapedImageAttachmentConfiguration'
+      'getScrapedImageAttachmentConfiguration',
     ).and.returnValue(testConfiguration);
 
     // Single image, link image, video, giphy
@@ -999,11 +999,11 @@ describe('AttachmentListComponent', () => {
       expect(element.style.width).toBe(testConfiguration.width);
 
       expect(
-        getComputedStyle(element).getPropertyValue('--original-height')
+        getComputedStyle(element).getPropertyValue('--original-height'),
       ).toBe(testConfiguration.originalHeight.toString());
 
       expect(
-        getComputedStyle(element).getPropertyValue('--original-width')
+        getComputedStyle(element).getPropertyValue('--original-width'),
       ).toBe(testConfiguration.originalWidth.toString());
     });
 
@@ -1027,18 +1027,18 @@ describe('AttachmentListComponent', () => {
     [
       ...Array.from(gallery.querySelectorAll('img')),
       gallery.querySelector<HTMLButtonElement>(
-        '[data-testid="more-image-button"]'
+        '[data-testid="more-image-button"]',
       )!,
     ].forEach((element) => {
       expect(element.style.height).toBe(testConfiguration.height);
       expect(element.style.width).toBe(testConfiguration.width);
 
       expect(
-        getComputedStyle(element).getPropertyValue('--original-height')
+        getComputedStyle(element).getPropertyValue('--original-height'),
       ).toBe(testConfiguration.originalHeight.toString());
 
       expect(
-        getComputedStyle(element).getPropertyValue('--original-width')
+        getComputedStyle(element).getPropertyValue('--original-width'),
       ).toBe(testConfiguration.originalWidth.toString());
     });
 
@@ -1058,11 +1058,11 @@ describe('AttachmentListComponent', () => {
     expect(modalImage.style.width).toBe(testConfiguration.width);
 
     expect(
-      getComputedStyle(modalImage).getPropertyValue('--original-height')
+      getComputedStyle(modalImage).getPropertyValue('--original-height'),
     ).toBe(testConfiguration.originalHeight.toString());
 
     expect(
-      getComputedStyle(modalImage).getPropertyValue('--original-width')
+      getComputedStyle(modalImage).getPropertyValue('--original-width'),
     ).toBe(testConfiguration.originalWidth.toString());
   });
 
@@ -1114,7 +1114,7 @@ describe('AttachmentListComponent with custom attachments', () => {
 
     ngAfterViewInit(): void {
       this.customTemplatesService.customAttachmentListTemplate$.next(
-        this.template
+        this.template,
       );
     }
   }
@@ -1132,7 +1132,7 @@ describe('AttachmentListComponent with custom attachments', () => {
     }).compileComponents();
 
     hostFixture = TestBed.createComponent(
-      TestHostComponentAttachmentListComponent
+      TestHostComponentAttachmentListComponent,
     );
     hostComponent = hostFixture.componentInstance;
     hostFixture.detectChanges();
@@ -1140,7 +1140,7 @@ describe('AttachmentListComponent with custom attachments', () => {
 
   it('should display custom attachments', () => {
     expect(
-      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length,
     ).toBe(0);
 
     const customAttachment = {
@@ -1153,7 +1153,7 @@ describe('AttachmentListComponent with custom attachments', () => {
     hostFixture.detectChanges();
 
     expect(
-      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length,
     ).toBe(1);
   });
 
@@ -1171,13 +1171,13 @@ describe('AttachmentListComponent with custom attachments', () => {
     hostFixture.detectChanges();
 
     expect(
-      hostFixture.nativeElement.querySelector('.str-chat__attachment-list')
+      hostFixture.nativeElement.querySelector('.str-chat__attachment-list'),
     ).toBeNull();
   });
 
   it(`shouldn't display attachments if there are no attachments`, () => {
     expect(
-      hostFixture.nativeElement.querySelector('.str-chat__attachment-list')
+      hostFixture.nativeElement.querySelector('.str-chat__attachment-list'),
     ).toBeNull();
   });
 });

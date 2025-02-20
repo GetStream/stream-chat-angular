@@ -30,7 +30,7 @@ describe('IconPlaceholderComponent', () => {
     fixture.detectChanges();
 
     const iconComponent = fixture.debugElement.query(
-      By.directive(IconComponent)
+      By.directive(IconComponent),
     ).componentInstance as IconComponent;
 
     expect(iconComponent.icon).toBe('action');

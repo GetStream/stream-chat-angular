@@ -4,7 +4,7 @@ import { StreamMessage } from 'stream-chat-angular';
 @Component({
   selector: 'app-thread-header',
   templateUrl: './thread-header.component.html',
-  styleUrls: ['./thread-header.component.scss'],
+  styleUrl: './thread-header.component.scss',
 })
 export class ThreadHeaderComponent {
   @Input() parentMessage: StreamMessage | undefined;

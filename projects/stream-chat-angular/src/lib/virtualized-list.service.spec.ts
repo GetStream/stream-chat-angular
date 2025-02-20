@@ -55,7 +55,7 @@ describe('VirtualizedListService', () => {
       position?: VirtualizedListVerticalItemPosition;
     }>({ item: undefined });
     scrollPosition$ = new BehaviorSubject<VirtualizedListScrollPosition>(
-      'bottom'
+      'bottom',
     );
     service = new TestVirualizedList(allItems$, scrollPosition$, jumpToItem$);
   });
@@ -135,7 +135,7 @@ describe('VirtualizedListService', () => {
       .fill(() => null)
       .map((_, i) => ({ id: `${i}`, value: i }));
     service['virtualizedItemsSubject'].next(
-      items.slice(10, 10 + Math.round(service.maxItemCount / 2))
+      items.slice(10, 10 + Math.round(service.maxItemCount / 2)),
     );
     spy.calls.reset();
     allItems$.next(items);
@@ -186,7 +186,7 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(items);
     expect(service.virtualizedItems[0].value).toEqual(122);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(146);
     expect(service.virtualizedItems.length).toBe(25);
 
@@ -197,7 +197,7 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(allItems$.getValue());
     expect(service.virtualizedItems[0].value).toEqual(97);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(146);
     expect(service.virtualizedItems.length).toBe(50);
 
@@ -209,7 +209,7 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(allItems$.getValue());
     expect(service.virtualizedItems[0].value).toEqual(72);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(146);
     expect(service.virtualizedItems.length).toBe(75);
 
@@ -221,7 +221,7 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(allItems$.getValue());
     expect(service.virtualizedItems[0].value).toEqual(47);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(146);
     expect(service.virtualizedItems.length).toBe(100);
 
@@ -233,14 +233,14 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(allItems$.getValue().slice(0, 50));
     expect(service.virtualizedItems[0].value).toEqual(22);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(71);
     expect(service.virtualizedItems.length).toBe(50);
 
     //@ts-expect-error white-box test
     const querySpy = spyOn(service, 'query').and.callFake(() => {
       allItems$.next(
-        new Array(147).fill(null).map((_, i) => ({ id: `${i}`, value: i }))
+        new Array(147).fill(null).map((_, i) => ({ id: `${i}`, value: i })),
       );
     });
     scrollPosition$.next('middle');
@@ -250,7 +250,7 @@ describe('VirtualizedListService', () => {
     expect(service.virtualizedItems).toEqual(allItems$.getValue().slice(0, 50));
     expect(service.virtualizedItems[0].value).toEqual(0);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(49);
     expect(service.virtualizedItems.length).toBe(50);
 
@@ -261,11 +261,11 @@ describe('VirtualizedListService', () => {
     expect(querySpy).not.toHaveBeenCalled();
 
     expect(service.virtualizedItems).toEqual(
-      allItems$.getValue().slice(25, 75)
+      allItems$.getValue().slice(25, 75),
     );
     expect(service.virtualizedItems[0].value).toEqual(25);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(74);
     expect(service.virtualizedItems.length).toBe(50);
 
@@ -276,11 +276,11 @@ describe('VirtualizedListService', () => {
     expect(querySpy).not.toHaveBeenCalled();
 
     expect(service.virtualizedItems).toEqual(
-      allItems$.getValue().slice(50, 100)
+      allItems$.getValue().slice(50, 100),
     );
     expect(service.virtualizedItems[0].value).toEqual(50);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(99);
     expect(service.virtualizedItems.length).toBe(50);
 
@@ -291,11 +291,11 @@ describe('VirtualizedListService', () => {
     expect(querySpy).not.toHaveBeenCalled();
 
     expect(service.virtualizedItems).toEqual(
-      allItems$.getValue().slice(75, 125)
+      allItems$.getValue().slice(75, 125),
     );
     expect(service.virtualizedItems[0].value).toEqual(75);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(124);
     expect(service.virtualizedItems.length).toBe(50);
 
@@ -310,11 +310,11 @@ describe('VirtualizedListService', () => {
     expect(service['query']).toHaveBeenCalledWith('bottom');
 
     expect(service.virtualizedItems).toEqual(
-      allItems$.getValue().slice(97, 147)
+      allItems$.getValue().slice(97, 147),
     );
     expect(service.virtualizedItems[0].value).toEqual(97);
     expect(
-      service.virtualizedItems[service.virtualizedItems.length - 1].value
+      service.virtualizedItems[service.virtualizedItems.length - 1].value,
     ).toEqual(146);
     expect(service.virtualizedItems.length).toBe(50);
   }));
@@ -397,7 +397,7 @@ describe('VirtualizedListService', () => {
     allItems$.next([...items, { id: 'new-item-inserted', value: 3422434 }]);
 
     expect(spy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }])
+      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }]),
     );
   });
 
@@ -417,7 +417,7 @@ describe('VirtualizedListService', () => {
     allItems$.next([{ id: 'new-item-inserted', value: 3422434 }, ...items]);
 
     expect(spy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }])
+      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }]),
     );
   });
 
@@ -436,7 +436,7 @@ describe('VirtualizedListService', () => {
     allItems$.next([{ id: 'new-item-inserted', value: 3422434 }, ...items]);
 
     expect(spy).not.toHaveBeenCalledWith(
-      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }])
+      jasmine.arrayContaining([{ id: 'new-item-inserted', value: 3422434 }]),
     );
   });
 

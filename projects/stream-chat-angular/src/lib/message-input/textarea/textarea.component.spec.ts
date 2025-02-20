@@ -114,7 +114,7 @@ describe('TextareaComponent', () => {
     const textarea = queryTextarea();
     textarea!.value = 'This is my message';
     textarea?.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }),
     );
     fixture.detectChanges();
 
@@ -142,7 +142,7 @@ describe('TextareaComponent', () => {
     const initialHeight = textarea!.offsetHeight;
     textarea!.value = 'This is my message \n';
     textarea?.dispatchEvent(
-      new KeyboardEvent('input', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('input', { key: 'Enter', shiftKey: true }),
     );
     fixture.detectChanges();
     const newHeight = textarea!.offsetHeight;

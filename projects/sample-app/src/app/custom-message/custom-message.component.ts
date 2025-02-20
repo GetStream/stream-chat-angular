@@ -5,7 +5,7 @@ import { ChatClientService } from 'stream-chat-angular';
 @Component({
   selector: 'app-custom-message',
   templateUrl: './custom-message.component.html',
-  styleUrls: ['./custom-message.component.scss'],
+  styleUrl: './custom-message.component.scss',
 })
 export class CustomMessageComponent {
   @Input() message: FormatMessageResponse | undefined;

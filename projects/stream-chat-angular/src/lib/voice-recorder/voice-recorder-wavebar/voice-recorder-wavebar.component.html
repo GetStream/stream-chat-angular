@@ -6,12 +6,13 @@
 </div>
 <div class="str-chat__waveform-box-container">
   <div class="str-chat__audio_recorder__waveform-box">
-    <div
-      *ngFor="let amplitude of amplitudes$ | async; trackBy: trackByIndex"
-      class="str-chat__wave-progress-bar__amplitude-bar"
-      [style.--str-chat__wave-progress-bar__amplitude-bar-height]="
-        (amplitude ?? 0) * 100 + '%'
-      "
-    ></div>
+    @for (amplitude of amplitudes$ | async; track $index) {
+      <div
+        class="str-chat__wave-progress-bar__amplitude-bar"
+        [style.--str-chat__wave-progress-bar__amplitude-bar-height]="
+          (amplitude ?? 0) * 100 + '%'
+        "
+      ></div>
+    }
   </div>
 </div>

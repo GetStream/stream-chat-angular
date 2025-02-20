@@ -38,7 +38,7 @@ export class MessageReactionsSelectorComponent
   constructor(
     private channelService: ChannelService,
     private messageReactionsService: MessageReactionsService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
   ) {}
   ngOnInit(): void {
     this.subscriptions.push(
@@ -47,7 +47,7 @@ export class MessageReactionsSelectorComponent
         if (this.isViewInited) {
           this.cdRef.detectChanges();
         }
-      })
+      }),
     );
   }
 
@@ -57,10 +57,6 @@ export class MessageReactionsSelectorComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  trackByMessageReaction(_: number, item: MessageReactionType) {
-    return item;
   }
 
   isOwnReaction(reactionType: MessageReactionType) {

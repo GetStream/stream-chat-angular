@@ -79,7 +79,7 @@ describe('MessageListComponent', () => {
         .map(
           (debugElement) =>
             debugElement.query(By.directive(MessageComponent))
-              .componentInstance as MessageComponent
+              .componentInstance as MessageComponent,
         );
     queryMessages = () =>
       Array.from(nativeElement.querySelectorAll('[data-testclass="message"]'));
@@ -100,13 +100,13 @@ describe('MessageListComponent', () => {
       nativeElement.querySelector(`[data-testid="${pos}-loading-indicator"]`);
     queryDateSeparators = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testid="date-separator"]')
+        nativeElement.querySelectorAll('[data-testid="date-separator"]'),
       );
     queryNewMessagesIndicator = () =>
       nativeElement.querySelector('[data-testid="new-messages-indicator"]');
     queryNewMessagesNotification = () =>
       nativeElement.querySelector(
-        '[data-testid="unread-messages-notification"]'
+        '[data-testid="unread-messages-notification"]',
       );
     TestBed.inject(StreamI18nService).setTranslation('en');
     fixture.detectChanges();
@@ -132,7 +132,7 @@ describe('MessageListComponent', () => {
     messagesComponents.forEach((m, i) => {
       expect(m.message).toBe(messages[i]);
       expect(m.isLastSentMessage).toBe(
-        i === messages.length - 2 ? true : false
+        i === messages.length - 2 ? true : false,
       );
 
       expect(m.enabledMessageActions).toEqual(component.enabledMessageActions);
@@ -140,7 +140,7 @@ describe('MessageListComponent', () => {
       expect(m.mode).toBe(component.mode);
 
       expect(m.isHighlighted).toBe(
-        messages[i].id === component.highlightedMessageId
+        messages[i].id === component.highlightedMessageId,
       );
 
       expect(messageElements[i].id).toBe(messages[i].id);
@@ -187,7 +187,7 @@ describe('MessageListComponent', () => {
 
     expect(scrollTop).not.toBe(0);
     expect(scrollTop).toBe(
-      scrollContainer.scrollHeight - scrollContainer.clientHeight
+      scrollContainer.scrollHeight - scrollContainer.clientHeight,
     );
   });
 
@@ -229,7 +229,7 @@ describe('MessageListComponent', () => {
     scrollContainer.dispatchEvent(new Event('scroll'));
 
     expect(scrollContainer.scrollTop).toBeLessThan(
-      scrollContainer.scrollHeight - scrollContainer.clientHeight
+      scrollContainer.scrollHeight - scrollContainer.clientHeight,
     );
 
     const newMessage = mockMessage();
@@ -238,7 +238,7 @@ describe('MessageListComponent', () => {
       'message.new',
       {
         message: newMessage,
-      }
+      },
     );
     channelServiceMock.activeChannel?.state.messages.push(newMessage);
     channelServiceMock.activeChannelMessages$.next([
@@ -248,14 +248,14 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(queryMessageComponents().length).toBe(
-      channelServiceMock.activeChannelMessages$.getValue().length
+      channelServiceMock.activeChannelMessages$.getValue().length,
     );
 
     const scrollTop = Math.round(scrollContainer.scrollTop);
 
     expect(scrollTop).not.toBe(0);
     expect(scrollTop).toBe(
-      scrollContainer.scrollHeight - scrollContainer.clientHeight
+      scrollContainer.scrollHeight - scrollContainer.clientHeight,
     );
   });
 
@@ -271,12 +271,12 @@ describe('MessageListComponent', () => {
     ]);
     (channelServiceMock.activeChannel as MockChannel).handleEvent(
       'message.new',
-      { message: newMessage }
+      { message: newMessage },
     );
     fixture.detectChanges();
 
     expect(queryMessageComponents().length).toBe(
-      channelServiceMock.activeChannelMessages$.getValue().length
+      channelServiceMock.activeChannelMessages$.getValue().length,
     );
 
     const scrollContainer = queryScrollContainer()!;
@@ -460,7 +460,7 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(Math.round(scrollContainer.scrollTop)).toBe(
-      scrollContainer.scrollHeight - scrollContainer.clientHeight
+      scrollContainer.scrollHeight - scrollContainer.clientHeight,
     );
   });
 
@@ -518,7 +518,7 @@ describe('MessageListComponent', () => {
     // Simulate message set change
     channel.state.latestMessages = [];
     channelServiceMock.activeChannelMessages$.next(
-      generateMockMessages(25, true).map((m) => ({ ...m, cid: channel.cid }))
+      generateMockMessages(25, true).map((m) => ({ ...m, cid: channel.cid })),
     );
 
     const scrollContainer = queryScrollContainer()!;
@@ -546,7 +546,7 @@ describe('MessageListComponent', () => {
 
     expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
       'latest',
-      undefined
+      undefined,
     );
   });
 
@@ -568,7 +568,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(scrollContainer.scrollTop).not.toBe(
-        scrollContainer.scrollHeight - scrollContainer.clientHeight
+        scrollContainer.scrollHeight - scrollContainer.clientHeight,
       );
     });
 
@@ -586,7 +586,7 @@ describe('MessageListComponent', () => {
       newMessage.user_id = 'not' + mockCurrentUser().id;
       (channelServiceMock.activeChannel as MockChannel).handleEvent(
         'message.new',
-        { message: newMessage }
+        { message: newMessage },
       );
       channelServiceMock.activeChannel?.state.messages.push(newMessage);
       channelServiceMock.activeChannelMessages$.next([
@@ -604,7 +604,7 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
 
       expect(scrollContainer.scrollTop).toBeLessThan(
-        scrollContainer.scrollHeight - scrollContainer.clientHeight
+        scrollContainer.scrollHeight - scrollContainer.clientHeight,
       );
 
       const newMessage = mockMessage();
@@ -613,7 +613,7 @@ describe('MessageListComponent', () => {
         'message.new',
         {
           message: newMessage,
-        }
+        },
       );
       channelServiceMock.activeChannel?.state.messages.push(newMessage);
       channelServiceMock.activeChannelMessages$.next([
@@ -623,7 +623,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(queryMessageComponents().length).toBe(
-        channelServiceMock.activeChannelMessages$.getValue().length
+        channelServiceMock.activeChannelMessages$.getValue().length,
       );
     });
 
@@ -688,7 +688,7 @@ describe('MessageListComponent', () => {
       ]);
       (channelServiceMock.activeChannel as MockChannel).handleEvent(
         'message.new',
-        { message: newMessage }
+        { message: newMessage },
       );
       fixture.detectChanges();
 
@@ -714,9 +714,10 @@ describe('MessageListComponent', () => {
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
       ]);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       (channelServiceMock.activeChannel as MockChannel).handleEvent(
         'message.new',
-        { message: newMessage }
+        { message: newMessage },
       ),
         fixture.detectChanges();
 
@@ -736,7 +737,7 @@ describe('MessageListComponent', () => {
     const messagesElements = queryMessages();
 
     messagesElements.forEach((m) =>
-      expect(m.classList.toString()).toMatch(/middle|top|bottom|single/)
+      expect(m.classList.toString()).toMatch(/middle|top|bottom|single/),
     );
   });
 
@@ -797,7 +798,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith(
-        'older'
+        'older',
       );
     });
 
@@ -816,7 +817,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledOnceWith(
-        'older'
+        'older',
       );
     });
 
@@ -831,7 +832,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
 
       expect(channelServiceMock.loadMoreThreadReplies).toHaveBeenCalledWith(
-        'newer'
+        'newer',
       );
     });
 
@@ -933,7 +934,7 @@ describe('MessageListComponent', () => {
 
       expect(channelServiceMock.jumpToMessage).toHaveBeenCalledWith(
         'latest',
-        component.parentMessage!.id
+        component.parentMessage!.id,
       );
     });
 
@@ -1014,21 +1015,21 @@ describe('MessageListComponent', () => {
     nextMessage.created_at = new Date(2023, 6, 27);
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
-      true
+      true,
     );
 
     message.created_at = new Date();
     nextMessage.created_at = new Date();
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
-      false
+      false,
     );
 
     message.created_at = new Date(2023, 6, 26);
     nextMessage.created_at = new Date(2023, 7, 26);
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
-      true
+      true,
     );
   });
 
@@ -1081,7 +1082,7 @@ describe('MessageListComponent', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       (
         channelServiceMock.activeChannel$ as unknown as BehaviorSubject<any>
-      ).getValue()
+      ).getValue(),
     );
 
     expect(component['resetScrollState']).not.toHaveBeenCalled();
@@ -1102,7 +1103,7 @@ describe('MessageListComponent', () => {
     expect(component.lastReadMessageId).toBe(messages[messages.length - 2].id);
 
     expect(component.firstUnreadMessageId).toBe(
-      messages[messages.length - 1].id
+      messages[messages.length - 1].id,
     );
 
     expect(component.isJumpingToLatestUnreadMessage).toBeTrue();
@@ -1114,7 +1115,7 @@ describe('MessageListComponent', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
     messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
+      messages[messages.length - 2].created_at.getDate() + 1,
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
@@ -1133,7 +1134,7 @@ describe('MessageListComponent', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
     messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
+      messages[messages.length - 2].created_at.getDate() + 1,
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
@@ -1193,7 +1194,7 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryMessageComponents()[messages.length - 2].isHighlighted
+      queryMessageComponents()[messages.length - 2].isHighlighted,
     ).toBeFalse();
   });
 
@@ -1204,7 +1205,7 @@ describe('MessageListComponent', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
     messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
+      messages[messages.length - 2].created_at.getDate() + 1,
     );
     messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
@@ -1346,7 +1347,7 @@ describe('MessageListComponent', () => {
 
     const unreadNotification = queryNewMessagesNotification();
     const dismissButton = unreadNotification?.querySelector<HTMLButtonElement>(
-      '[data-testid="unread-messages-notification-dismiss"]'
+      '[data-testid="unread-messages-notification-dismiss"]',
     );
 
     dismissButton?.click();

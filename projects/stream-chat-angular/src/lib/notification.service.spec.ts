@@ -71,7 +71,7 @@ describe('NotificationService', () => {
       'success',
       5000,
       undefined,
-      templateContext
+      templateContext,
     );
 
     expect(spy).toHaveBeenCalledWith([
@@ -86,7 +86,7 @@ describe('NotificationService', () => {
       template,
       'success',
       undefined,
-      templateContext
+      templateContext,
     );
 
     expect(spy).toHaveBeenCalledWith([

@@ -40,19 +40,19 @@ export class AttachmentPreviewListComponent implements OnInit, OnDestroy {
 
   constructor(
     private customTemplateService: CustomTemplatesService,
-    public readonly attachmentService: AttachmentService
+    public readonly attachmentService: AttachmentService,
   ) {}
 
   ngOnInit(): void {
     this.subscriptions.push(
       this.customTemplateService.customAttachmentPreviewListTemplate$.subscribe(
-        (t) => (this.customAttachmentsPreview = t)
-      )
+        (t) => (this.customAttachmentsPreview = t),
+      ),
     );
     this.subscriptions.push(
       this.attachmentService.customAttachments$.subscribe(
-        (a) => (this.customAttachments = a)
-      )
+        (a) => (this.customAttachments = a),
+      ),
     );
   }
 

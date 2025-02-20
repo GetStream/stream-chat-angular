@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DefaultStreamChatGenerics } from './types';
 
 export const createMessagePreview = <
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 >(
   user: UserResponse,
   text: string,
@@ -11,7 +11,7 @@ export const createMessagePreview = <
   mentionedUsers: UserResponse<T>[] = [],
   parentId: undefined | string = undefined,
   quotedMessageId: undefined | string = undefined,
-  customData: undefined | Partial<T['messageType']>
+  customData: undefined | Partial<T['messageType']>,
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 

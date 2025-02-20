@@ -50,7 +50,7 @@ describe('ModalComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryModal()?.classList.contains('str-chat__modal--close')
+      queryModal()?.classList.contains('str-chat__modal--close'),
     ).toBeTrue();
   });
 
@@ -63,7 +63,7 @@ describe('ModalComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryModal()?.classList.contains('str-chat__modal--close')
+      queryModal()?.classList.contains('str-chat__modal--close'),
     ).toBeTrue();
   });
 
@@ -72,7 +72,7 @@ describe('ModalComponent', () => {
     spyOn(window, 'addEventListener').and.callFake(
       (_: string, handler: any) => {
         eventHandler = handler as Function;
-      }
+      },
     );
     spyOn(window, 'removeEventListener');
     component.isOpen = true;
@@ -83,12 +83,12 @@ describe('ModalComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryModal()?.classList.contains('str-chat__modal--close')
+      queryModal()?.classList.contains('str-chat__modal--close'),
     ).toBeTrue();
 
     expect(window.removeEventListener).toHaveBeenCalledWith(
       'click',
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   }));
 
@@ -99,14 +99,13 @@ describe('ModalComponent', () => {
 
     expect(window.removeEventListener).toHaveBeenCalledWith(
       'click',
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
   it('should emit if modal is closed', () => {
     const spy = jasmine.createSpy();
     component.isOpenChange.subscribe(spy);
-    component.isOpen;
     component.close();
 
     expect(spy).toHaveBeenCalledWith(false);
@@ -120,12 +119,12 @@ describe('ModalComponent', () => {
 
     expect(window.removeEventListener).toHaveBeenCalledWith(
       'click',
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     expect(window.removeEventListener).toHaveBeenCalledWith(
       'keyup',
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 });

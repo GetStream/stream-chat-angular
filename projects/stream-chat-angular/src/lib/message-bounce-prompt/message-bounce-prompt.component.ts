@@ -24,7 +24,7 @@ export class MessageBouncePromptComponent implements OnDestroy {
   constructor(
     private channelService: ChannelService,
     readonly customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService
+    private messageActionsService: MessageActionsService,
   ) {
     this.subscriptions.push(
       this.channelService.bouncedMessage$.subscribe((m) => {
@@ -34,7 +34,7 @@ export class MessageBouncePromptComponent implements OnDestroy {
             this.isModalOpen = true;
           }
         }
-      })
+      }),
     );
   }
 

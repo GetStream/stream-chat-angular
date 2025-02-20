@@ -34,7 +34,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="text"]')?.textContent
+      nativeElement.querySelector('[data-testid="text"]')?.textContent,
     ).toContain('Hi');
   });
 
@@ -48,7 +48,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('.str-chat__quoted-message-text-value')
+      nativeElement.querySelector('.str-chat__quoted-message-text-value'),
     ).not.toBeNull();
 
     component.isQuoted = false;
@@ -56,7 +56,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('.str-chat__quoted-message-text-value')
+      nativeElement.querySelector('.str-chat__quoted-message-text-value'),
     ).toBeNull();
   });
 
@@ -70,7 +70,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="text"]')?.textContent
+      nativeElement.querySelector('[data-testid="text"]')?.textContent,
     ).toContain('Szia');
   });
 
@@ -84,7 +84,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="text"]')?.textContent
+      nativeElement.querySelector('[data-testid="text"]')?.textContent,
     ).toContain('Hi');
   });
 
@@ -114,7 +114,7 @@ describe('MessageTextComponent', () => {
 
     expect(component.messageTextParts).toEqual(undefined);
     expect(component.messageText).toEqual(
-      'This is a message without user mentions'
+      'This is a message without user mentions',
     );
 
     component.message = {
@@ -124,7 +124,7 @@ describe('MessageTextComponent', () => {
 
     expect(component.messageTextParts).toEqual(undefined);
     expect(component.messageText).toEqual(
-      'This is just an email, not a mention test@test.com'
+      'This is just an email, not a mention test@test.com',
     );
 
     component.message = {
@@ -134,7 +134,7 @@ describe('MessageTextComponent', () => {
 
     expect(component.messageTextParts).toEqual(undefined);
     expect(component.messageText).toEqual(
-      'This is just an email, not a mention test@test.com'
+      'This is just an email, not a mention test@test.com',
     );
 
     component.message = {
@@ -223,8 +223,9 @@ describe('MessageTextComponent', () => {
   });
 
   it('should add class to emojis in Chrome', () => {
-    const chrome = (window as typeof window & { chrome: Object }).chrome;
-    (window as typeof window & { chrome: Object }).chrome =
+    const chrome = (window as typeof window & { chrome: object }).chrome;
+    // @ts-expect-error we're mocking the chrome object
+    (window as typeof window & { chrome: object }).chrome =
       'the component now will think that this is a chrome browser';
     component.message = {
       text: 'This message contains an emoji 🥑',
@@ -233,7 +234,7 @@ describe('MessageTextComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      'class="str-chat__emoji-display-fix"'
+      'class="str-chat__emoji-display-fix"',
     );
 
     component.message = {
@@ -244,21 +245,21 @@ describe('MessageTextComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![2].content).toContain(
-      'class="str-chat__emoji-display-fix"'
+      'class="str-chat__emoji-display-fix"',
     );
 
     // Simulate a browser that isn't Google Chrome
-    (window as typeof window & { chrome: Object | undefined }).chrome =
+    (window as typeof window & { chrome: object | undefined }).chrome =
       undefined;
 
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).not.toContain(
-      'class="str-chat__emoji-display-fix"'
+      'class="str-chat__emoji-display-fix"',
     );
 
     // Revert changes to the window object
-    (window as typeof window & { chrome: Object }).chrome = chrome;
+    (window as typeof window & { chrome: object }).chrome = chrome;
   });
 
   it('should replace URL links inside text content', () => {
@@ -269,28 +270,28 @@ describe('MessageTextComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
+      ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>',
     );
 
     component.message.html = undefined;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
+      '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>',
     );
 
     component.message.text = 'This is a message with a link google.com';
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://google.com" target="_blank" rel="nofollow">google.com</a>'
+      '<a href="https://google.com" target="_blank" rel="nofollow">google.com</a>',
     );
 
     component.message.text = 'This is a message with a link www.google.com';
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="https://www.google.com" target="_blank" rel="nofollow">www.google.com</a>'
+      '<a href="https://www.google.com" target="_blank" rel="nofollow">www.google.com</a>',
     );
 
     component.message.text =
@@ -298,7 +299,7 @@ describe('MessageTextComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      '<a href="file:///C:/Users/YourName/Documents/example.txt" target="_blank" rel="nofollow">file:///C:/Users/YourName/Documents/example.txt</a>'
+      '<a href="file:///C:/Users/YourName/Documents/example.txt" target="_blank" rel="nofollow">file:///C:/Users/YourName/Documents/example.txt</a>',
     );
   });
 
@@ -313,7 +314,7 @@ describe('MessageTextComponent', () => {
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
-      ' <a href="https://getstream.io/" class="my-special-class">https://getstream.io/</a>'
+      ' <a href="https://getstream.io/" class="my-special-class">https://getstream.io/</a>',
     );
   });
 
@@ -322,7 +323,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(nativeElement.querySelector('[data-testid="html-content"]')).toBe(
-      null
+      null,
     );
 
     component.displayAs = 'html';
@@ -330,7 +331,7 @@ describe('MessageTextComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="html-content"]')
+      nativeElement.querySelector('[data-testid="html-content"]'),
     ).not.toBe(null);
   });
 });

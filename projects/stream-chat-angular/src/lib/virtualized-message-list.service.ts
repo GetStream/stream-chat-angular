@@ -15,7 +15,7 @@ export class VirtualizedMessageListService extends VirtualizedListService<Stream
   constructor(
     public readonly mode: 'thread' | 'main',
     scrollPosition$: Observable<VirtualizedListScrollPosition>,
-    private channelService: ChannelService
+    private channelService: ChannelService,
   ) {
     const jumpToMessage$ = channelService.jumpToMessage$.pipe(
       map<
@@ -61,7 +61,7 @@ export class VirtualizedMessageListService extends VirtualizedListService<Stream
         }
 
         return result;
-      })
+      }),
     );
     const messages$ =
       mode === 'main'
@@ -71,7 +71,7 @@ export class VirtualizedMessageListService extends VirtualizedListService<Stream
       messages$,
       scrollPosition$,
       jumpToMessage$,
-      channelService.messagePageSize
+      channelService.messagePageSize,
     );
   }
 

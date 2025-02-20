@@ -35,7 +35,7 @@ describe('UserListComponent', () => {
     fixture.detectChanges();
 
     const userNames = (fixture.nativeElement as HTMLElement).querySelectorAll(
-      '[data-testclass="username"]'
+      '[data-testclass="username"]',
     );
 
     expect(userNames.length).toBe(component.users.length);
@@ -71,7 +71,7 @@ describe('UserListComponent', () => {
     fixture.detectChanges();
 
     const paginatedListComponent = fixture.debugElement.query(
-      By.directive(PaginatedListComponent)
+      By.directive(PaginatedListComponent),
     ).componentInstance as PaginatedListComponent<UserResponse>;
 
     expect(paginatedListComponent.items).toBe(users);

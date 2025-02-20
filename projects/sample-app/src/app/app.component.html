@@ -4,7 +4,7 @@
       isThreadOpen ? 'open' : 'close'
     }}"
     (click)="closeMenu($event)"
-  ></stream-channel-list>
+  />
   <stream-channel class="channel" (click)="closeMenu($event)">
     <stream-channel-header>
       <button class="menu-button" (click)="isMenuOpen = !isMenuOpen">
@@ -24,22 +24,18 @@
         </svg>
       </button>
     </stream-channel-header>
-    <stream-message-list></stream-message-list>
-    <stream-notification-list></stream-notification-list>
+    <stream-message-list />
+    <stream-notification-list />
     <stream-message-input [displayVoiceRecordingButton]="true">
       <ng-template voice-recorder let-service="service">
-        <stream-voice-recorder
-          [voiceRecorderService]="service"
-        ></stream-voice-recorder>
+        <stream-voice-recorder [voiceRecorderService]="service" />
       </ng-template>
     </stream-message-input>
     <stream-thread class="thread" name="thread">
-      <stream-message-list mode="thread"></stream-message-list>
+      <stream-message-list mode="thread" />
       <stream-message-input mode="thread" [displayVoiceRecordingButton]="true">
         <ng-template voice-recorder let-service="service">
-          <stream-voice-recorder
-            [voiceRecorderService]="service"
-          ></stream-voice-recorder>
+          <stream-voice-recorder [voiceRecorderService]="service" />
         </ng-template>
       </stream-message-input>
     </stream-thread>
@@ -48,9 +44,9 @@
 
 <!-- To use custom message, add this input to stream-message-list: [messageTemplate]="customMessagetemplate"-->
 <ng-template #customMessagetemplate let-message="message">
-  <app-custom-message [message]="message"></app-custom-message>
+  <app-custom-message [message]="message" />
 </ng-template>
 
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
-  <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
+  <app-emoji-picker [emojiInput$]="emojiInput$" />
 </ng-template>

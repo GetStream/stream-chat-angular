@@ -8,7 +8,7 @@ import {
 @Component({
   selector: 'app-message-action',
   templateUrl: './message-action.component.html',
-  styleUrls: ['./message-action.component.scss'],
+  styleUrl: './message-action.component.scss',
 })
 export class MessageActionComponent {
   @Input() actionName!: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
@@ -19,7 +19,7 @@ export class MessageActionComponent {
   @Input() extraParams!: MessageActionHandlerExtraParams;
   @Input() actionHandler!: (
     message: StreamMessage,
-    extraParams: MessageActionHandlerExtraParams
+    extraParams: MessageActionHandlerExtraParams,
   ) => void;
 
   constructor() {}
@@ -38,7 +38,7 @@ export class MessageActionComponent {
   getActionLabel(
     actionLabelOrTranslationKey:
       | ((m: StreamMessage<DefaultStreamChatGenerics>) => string)
-      | string
+      | string,
   ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey

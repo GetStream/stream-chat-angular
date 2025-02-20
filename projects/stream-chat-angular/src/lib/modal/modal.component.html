@@ -8,14 +8,11 @@
     (click)="close()"
     (keyup.enter)="close()"
   >
-    <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+    <stream-icon-placeholder icon="close" />
   </div>
   <div #modalInner class="str-chat__modal__inner">
-    <ng-container *ngIf="content; else elseContent">
-      <ng-container *ngTemplateOutlet="content"></ng-container>
-    </ng-container>
-    <ng-template #elseContent>
-      <ng-content></ng-content>
-    </ng-template>
+    @if (isOpen && content) {
+      <ng-container *ngTemplateOutlet="content" />
+    }
   </div>
 </div>

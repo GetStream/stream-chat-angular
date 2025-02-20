@@ -45,7 +45,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     private chatClientService: ChatClientService,
     messageService: MessageService,
     public customTemplatesService: CustomTemplatesService,
-    private dateParser: DateParserService
+    private dateParser: DateParserService,
   ) {
     this.displayAs = messageService.displayAs;
   }
@@ -56,13 +56,13 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         if (user?.id !== this.userId) {
           this.userId = user?.id;
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe(
         (activeChannel) =>
-          (this.isActive = activeChannel?.id === this.channel?.id)
-      )
+          (this.isActive = activeChannel?.id === this.channel?.id),
+      ),
     );
     const messages = this.channel?.state?.latestMessages;
     if (messages && messages.length > 0) {
@@ -73,22 +73,22 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       (this.channel?.data?.own_capabilities as string[]) || [];
     this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
     this.subscriptions.push(
-      this.channel!.on('message.new', this.handleMessageEvent.bind(this))
+      this.channel!.on('message.new', this.handleMessageEvent.bind(this)),
     );
     this.subscriptions.push(
-      this.channel!.on('message.updated', this.handleMessageEvent.bind(this))
+      this.channel!.on('message.updated', this.handleMessageEvent.bind(this)),
     );
     this.subscriptions.push(
-      this.channel!.on('message.deleted', this.handleMessageEvent.bind(this))
+      this.channel!.on('message.deleted', this.handleMessageEvent.bind(this)),
     );
     this.subscriptions.push(
-      this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
+      this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this)),
     );
     this.subscriptions.push(
       this.channel!.on('message.read', () => {
         this.isUnreadMessageWasCalled = false;
         this.updateUnreadState();
-      })
+      }),
     );
     this.subscriptions.push(
       this.chatClientService.events$
@@ -96,13 +96,13 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           filter(
             (e) =>
               e.eventType === 'notification.mark_unread' &&
-              this.channel!.id === e.event?.channel_id
-          )
+              this.channel!.id === e.event?.channel_id,
+          ),
         )
         .subscribe(() => {
           this.isUnreadMessageWasCalled = true;
           this.updateUnreadState();
-        })
+        }),
     );
   }
 
@@ -124,7 +124,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     }
     return getChannelDisplayText(
       this.channel,
-      this.chatClientService.chatClient.user!
+      this.chatClientService.chatClient.user!,
     );
   }
 
@@ -152,7 +152,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private setLatestMessage(
-    message?: FormatMessageResponse<DefaultStreamChatGenerics>
+    message?: FormatMessageResponse<DefaultStreamChatGenerics>,
   ) {
     this.latestMessage = message;
     if (message?.deleted_at) {
@@ -162,7 +162,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         getMessageTranslation(
           message,
           this.channel,
-          this.chatClientService.chatClient.user
+          this.chatClientService.chatClient.user,
         ) || message.text;
     } else if (message?.attachments && message.attachments.length) {
       this.latestMessageText = 'streamChat.🏙 Attachment...';
@@ -170,7 +170,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     if (this.latestMessage && this.latestMessage.type === 'regular') {
       this.latestMessageTime = isOnSeparateDate(
         new Date(),
-        this.latestMessage.created_at
+        this.latestMessage.created_at,
       )
         ? this.dateParser.parseDate(this.latestMessage.created_at)
         : this.dateParser.parseTime(this.latestMessage.created_at);

@@ -19,19 +19,19 @@ describe('getGroupStyles', () => {
     expect(
       getGroupStyles(messages[0], undefined, messages[1], {
         noGroupByUser: true,
-      })
+      }),
     ).toBe('single');
 
     expect(
       getGroupStyles(messages[1], messages[0], messages[2], {
         noGroupByUser: true,
-      })
+      }),
     ).toBe('single');
 
     expect(
       getGroupStyles(messages[2], messages[1], undefined, {
         noGroupByUser: true,
-      })
+      }),
     ).toBe('single');
   });
 
@@ -39,7 +39,7 @@ describe('getGroupStyles', () => {
     messages[1].type = 'error';
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
-      'single'
+      'single',
     );
   });
 
@@ -59,7 +59,7 @@ describe('getGroupStyles', () => {
     messages[2].created_at.setDate(messages[0].created_at.getDate() + 1);
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
-      'bottom'
+      'bottom',
     );
   });
 
@@ -67,11 +67,11 @@ describe('getGroupStyles', () => {
     messages[2].type = 'system';
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
-      'bottom'
+      'bottom',
     );
 
     expect(getGroupStyles(messages[2], messages[1], messages[3])).toBe(
-      'middle'
+      'middle',
     );
 
     expect(getGroupStyles(messages[3], messages[2], messages[4])).toBe('top');
@@ -81,11 +81,11 @@ describe('getGroupStyles', () => {
     messages[2].deleted_at = new Date();
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
-      'bottom'
+      'bottom',
     );
 
     expect(getGroupStyles(messages[2], messages[1], messages[3])).toBe(
-      'single'
+      'single',
     );
 
     expect(getGroupStyles(messages[3], messages[2], messages[4])).toBe('top');
@@ -98,11 +98,11 @@ describe('getGroupStyles', () => {
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe('top');
 
     expect(getGroupStyles(messages[2], messages[1], messages[3])).toBe(
-      'middle'
+      'middle',
     );
 
     expect(getGroupStyles(messages[3], messages[2], messages[4])).toBe(
-      'bottom'
+      'bottom',
     );
   });
 
@@ -120,13 +120,13 @@ describe('getGroupStyles', () => {
     expect(
       getGroupStyles(messages[0], undefined, messages[1], {
         lastReadMessageId,
-      })
+      }),
     ).toBe('single');
 
     expect(
       getGroupStyles(messages[1], messages[0], messages[2], {
         lastReadMessageId,
-      })
+      }),
     ).toBe('top');
   });
 
@@ -137,14 +137,14 @@ describe('getGroupStyles', () => {
       getGroupStyles(messages[0], undefined, messages[1], {
         lastReadMessageId,
         noGroupByReadState: true,
-      })
+      }),
     ).toBe('top');
 
     expect(
       getGroupStyles(messages[1], messages[0], messages[2], {
         lastReadMessageId,
         noGroupByReadState: true,
-      })
+      }),
     ).toBe('middle');
   });
 
@@ -152,7 +152,7 @@ describe('getGroupStyles', () => {
     messages[1].message_text_updated_at = new Date().toISOString();
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
-      'bottom'
+      'bottom',
     );
 
     expect(getGroupStyles(messages[2], messages[1], messages[3])).toBe('top');

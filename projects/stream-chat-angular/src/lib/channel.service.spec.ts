@@ -50,7 +50,7 @@ describe('ChannelService', () => {
     sort?: ChannelSort<DefaultStreamChatGenerics>,
     options?: ChannelOptions,
     mockChannelQuery?: Function,
-    shouldSetActiveChannel?: boolean
+    shouldSetActiveChannel?: boolean,
   ) => Promise<Channel<DefaultStreamChatGenerics>[]>;
   let user: UserResponse;
   const filters = { type: 'messaging' };
@@ -90,13 +90,13 @@ describe('ChannelService', () => {
       sort?: ChannelSort<DefaultStreamChatGenerics>,
       options?: ChannelOptions,
       mockChannelQuery?: Function,
-      shouldSetActiveChannel?: boolean
+      shouldSetActiveChannel?: boolean,
     ) => {
       if (mockChannelQuery) {
         mockChannelQuery();
       } else {
         mockChatClient.queryChannels.and.returnValue(
-          channels || generateMockChannels()
+          channels || generateMockChannels(),
         );
       }
 
@@ -111,7 +111,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       sort,
-      jasmine.any(Object)
+      jasmine.any(Object),
     );
   });
 
@@ -122,7 +122,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      jasmine.objectContaining(options)
+      jasmine.objectContaining(options),
     );
   });
 
@@ -132,7 +132,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       filters,
       jasmine.any(Object),
-      jasmine.any(Object)
+      jasmine.any(Object),
     );
   });
 
@@ -169,8 +169,8 @@ describe('ChannelService', () => {
 
     await expectAsync(
       init(undefined, undefined, undefined, () =>
-        mockChatClient.queryChannels.and.rejectWith(error)
-      )
+        mockChatClient.queryChannels.and.rejectWith(error),
+      ),
     ).toBeRejectedWith(error);
 
     expect(notificationSpy).toHaveBeenCalledWith(
@@ -179,7 +179,7 @@ describe('ChannelService', () => {
           type: 'error',
           text: 'streamChat.Error loading channels',
         }),
-      ])
+      ]),
     );
   });
 
@@ -191,7 +191,7 @@ describe('ChannelService', () => {
 
     try {
       void init(undefined, undefined, undefined, () =>
-        mockChatClient.queryChannels.and.rejectWith('there was an error')
+        mockChatClient.queryChannels.and.rejectWith('there was an error'),
       );
       tick();
       // eslint-disable-next-line no-empty
@@ -232,8 +232,8 @@ describe('ChannelService', () => {
 
     await expectAsync(
       init(undefined, undefined, undefined, () =>
-        mockChatClient.queryChannels.and.rejectWith('there was an error')
-      )
+        mockChatClient.queryChannels.and.rejectWith('there was an error'),
+      ),
     ).toBeRejected();
 
     calls = spy.calls.all();
@@ -250,7 +250,7 @@ describe('ChannelService', () => {
 
   it('should set pagination options correctly if #customPaginator is provided', async () => {
     service.customPaginator = (
-      channelQueryResult: Channel<DefaultStreamChatGenerics>[]
+      channelQueryResult: Channel<DefaultStreamChatGenerics>[],
     ) => {
       const lastChannel = channelQueryResult[channelQueryResult.length - 1];
       if (!lastChannel) {
@@ -429,7 +429,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      jasmine.any(Object)
+      jasmine.any(Object),
     );
 
     expect(service.channels.length).toEqual(prevChannelCount + 1);
@@ -499,7 +499,7 @@ describe('ChannelService', () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe(
-      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>),
     );
     spyOn(activeChannel, 'query').and.callThrough();
     await service.loadMoreMessages();
@@ -517,7 +517,7 @@ describe('ChannelService', () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe(
-      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>),
     );
     activeChannel.state.latestMessages = [];
     spyOn(activeChannel, 'query').and.callThrough();
@@ -537,7 +537,7 @@ describe('ChannelService', () => {
     await init();
     let activeChannel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.subscribe(
-      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+      (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>),
     );
     spyOn(activeChannel, 'query').and.callThrough();
     await service.loadMoreMessages('newer');
@@ -574,7 +574,7 @@ describe('ChannelService', () => {
 
     expect(activeChannel.deleteReaction).toHaveBeenCalledWith(
       messageId,
-      reactionType
+      reactionType,
     );
   });
 
@@ -681,7 +681,7 @@ describe('ChannelService', () => {
 
     spy.calls.reset();
     activeChannel.state.messages.splice(
-      activeChannel.state.messages.findIndex((m) => m.id === message.id)
+      activeChannel.state.messages.findIndex((m) => m.id === message.id),
     );
     (activeChannel as MockChannel).handleEvent('message.deleted', {
       message,
@@ -731,7 +731,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
@@ -783,7 +783,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     const visibleEvent = {
@@ -798,7 +798,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
@@ -839,7 +839,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
@@ -906,7 +906,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
@@ -929,7 +929,7 @@ describe('ChannelService', () => {
     const channels = channelsSpy.calls.mostRecent().args[0] as Channel[];
 
     expect(
-      channels.find((c) => c.cid === channel.cid)!.state.messages.length
+      channels.find((c) => c.cid === channel.cid)!.state.messages.length,
     ).toBe(0);
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -956,7 +956,7 @@ describe('ChannelService', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
   });
 
@@ -1153,7 +1153,7 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith(
       { eventType: 'notification.message_new', event },
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     expect(channelsSpy).not.toHaveBeenCalled();
@@ -1164,7 +1164,7 @@ describe('ChannelService', () => {
     const spy = jasmine
       .createSpy()
       .and.callFake((_: ClientEvent, setter: (channels: Channel[]) => []) =>
-        setter([])
+        setter([]),
       );
     service.customAddedToChannelNotificationHandler = spy;
     let channel!: Channel<DefaultStreamChatGenerics>;
@@ -1184,7 +1184,7 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith(
       { eventType: 'notification.added_to_channel', event },
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     expect(channelsSpy).toHaveBeenCalledWith([]);
@@ -1211,7 +1211,7 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalledWith(
       { eventType: 'notification.removed_from_channel', event },
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     expect(channelsSpy).not.toHaveBeenCalled();
@@ -1241,7 +1241,7 @@ describe('ChannelService', () => {
       mentionedUsers,
       undefined,
       quotedMessageId,
-      customData
+      customData,
     );
     let latestMessage!: StreamMessage;
     let messageCount!: number;
@@ -1263,7 +1263,7 @@ describe('ChannelService', () => {
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
       jasmine.objectContaining({ text, user, attachments }),
-      true
+      true,
     );
 
     expect(latestMessage.text).toBe(text);
@@ -1299,7 +1299,7 @@ describe('ChannelService', () => {
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
       jasmine.objectContaining({ custom: 'red' }),
-      true
+      true,
     );
 
     spy.and.callFake((i: MessageInput) => {
@@ -1319,7 +1319,7 @@ describe('ChannelService', () => {
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
       jasmine.objectContaining({ text: 'censored' }),
-      true
+      true,
     );
   });
 
@@ -1342,7 +1342,7 @@ describe('ChannelService', () => {
     } as any as SendMessageAPIResponse<DefaultStreamChatGenerics>);
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendAction('message-1', { image_action: 'send' });
 
@@ -1354,7 +1354,7 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendAction').and.resolveTo(
-      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>
+      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>,
     );
     spyOn(channel.state, 'removeMessage');
     await service.sendAction('1', { image_action: 'send' });
@@ -1408,7 +1408,7 @@ describe('ChannelService', () => {
     await service.updateMessage(message);
 
     expect(mockChatClient.updateMessage).toHaveBeenCalledWith(
-      jasmine.objectContaining({ text: 'Testing beforeUpdateMessage hook' })
+      jasmine.objectContaining({ text: 'Testing beforeUpdateMessage hook' }),
     );
   });
 
@@ -1484,7 +1484,7 @@ describe('ChannelService', () => {
     expect(channel.sendMessage).toHaveBeenCalledWith(
       jasmine.objectContaining({
         id: latestMessage.id,
-      })
+      }),
     );
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
@@ -1492,14 +1492,14 @@ describe('ChannelService', () => {
         status: 'sending',
         errorStatusCode: undefined,
       }),
-      true
+      true,
     );
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
       jasmine.objectContaining({
         status: 'received',
       }),
-      true
+      true,
     );
 
     expect(latestMessage.status).toBe('received');
@@ -1531,7 +1531,7 @@ describe('ChannelService', () => {
       jasmine.objectContaining({
         status: 'received',
       }),
-      true
+      true,
     );
 
     expect(latestMessage.status).toBe('received');
@@ -1545,7 +1545,7 @@ describe('ChannelService', () => {
     const text = 'Hi';
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     void service.sendMessage(text);
 
@@ -1560,7 +1560,7 @@ describe('ChannelService', () => {
     const text = 'Hi';
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage(text);
     channel.state.messages.push({
@@ -1580,13 +1580,13 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const localMessage = channel.state.messages.splice(
       channel.state.messages.length - 2,
-      1
+      1,
     )[0];
     channel.state.messages.push(localMessage);
     (channel as MockChannel).handleEvent('message.new', localMessage);
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
 
     expect(latestMessage.id).toBe(localMessage.id);
@@ -1597,12 +1597,13 @@ describe('ChannelService', () => {
     let channel!: Channel<DefaultStreamChatGenerics>;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     spyOn(channel, 'sendMessage').and.callFake(() =>
-      Promise.reject({ status: 500 })
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      Promise.reject({ status: 500 }),
     );
     const text = 'Hi';
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage(text);
 
@@ -1617,11 +1618,11 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendMessage').and.callFake(() =>
       Promise.resolve({
         message: { id: 'new-message' },
-      } as SendMessageAPIResponse<DefaultStreamChatGenerics>)
+      } as SendMessageAPIResponse<DefaultStreamChatGenerics>),
     );
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage('Hi');
 
@@ -1653,6 +1654,7 @@ describe('ChannelService', () => {
     spyOn(channel, 'sendImage').and.callFake((file: File) => {
       switch (file.name) {
         case 'file_error.jpg':
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           return Promise.reject({
             response: {
               data: {
@@ -1663,6 +1665,7 @@ describe('ChannelService', () => {
             },
           });
         case 'file_too_big.jpg':
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           return Promise.reject({
             response: {
               data: {
@@ -1683,6 +1686,7 @@ describe('ChannelService', () => {
       (file: File, _: string, type: string) => {
         switch (file.name) {
           case 'file_error.pdf':
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
             return Promise.reject({
               response: {
                 data: {
@@ -1702,7 +1706,7 @@ describe('ChannelService', () => {
                   : undefined,
             });
         }
-      }
+      },
     );
     const file1 = { name: 'food.png' } as File;
     const file2 = { name: 'file_error.jpg' } as File;
@@ -1807,7 +1811,7 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     let latestMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe(
-      (messages) => (latestMessage = messages[messages.length - 1])
+      (messages) => (latestMessage = messages[messages.length - 1]),
     );
 
     expect(latestMessage.readBy.length).toBe(0);
@@ -1821,7 +1825,7 @@ describe('ChannelService', () => {
     });
 
     expect(
-      latestMessage.readBy.find((u) => u.id === 'jack')
+      latestMessage.readBy.find((u) => u.id === 'jack'),
     ).not.toBeUndefined();
   });
 
@@ -1891,7 +1895,7 @@ describe('ChannelService', () => {
     expect(channel.queryMembers).toHaveBeenCalledWith(
       jasmine.objectContaining({
         name: { $autocomplete: 'ja' },
-      })
+      }),
     );
 
     expect(result.length).toBe(1);
@@ -1997,7 +2001,7 @@ describe('ChannelService', () => {
     service.activeChannel$
       .pipe(first())
       .subscribe(
-        (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>)
+        (c) => (activeChannel = c as Channel<DefaultStreamChatGenerics>),
       );
     const newMessage = mockMessage();
     newMessage.cid = 'channel1';
@@ -2139,7 +2143,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       jasmine.any(Object),
-      jasmine.any(Object)
+      jasmine.any(Object),
     );
   });
 
@@ -2166,7 +2170,7 @@ describe('ChannelService', () => {
         presence: true,
         watch: true,
         message_limit: 25,
-      }
+      },
     );
   });
 
@@ -2191,7 +2195,7 @@ describe('ChannelService', () => {
     });
 
     expect(messagesSpy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
+      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })]),
     );
     expect(service.isMessageLoadingInProgress).toBeFalse();
   });
@@ -2216,7 +2220,7 @@ describe('ChannelService', () => {
     expect(jumpToMessageIdSpy).not.toHaveBeenCalled();
     expect(messagesSpy).not.toHaveBeenCalled();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Message not found'
+      'streamChat.Message not found',
     );
     expect(service.isMessageLoadingInProgress).toBeFalse();
   });
@@ -2240,7 +2244,7 @@ describe('ChannelService', () => {
     await expectAsync(service.pinMessage(message)).toBeRejectedWith(error);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error pinning message'
+      'streamChat.Error pinning message',
     );
   });
 
@@ -2263,7 +2267,7 @@ describe('ChannelService', () => {
     await expectAsync(service.unpinMessage(message)).toBeRejectedWith(error);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Error removing message pin'
+      'streamChat.Error removing message pin',
     );
   });
 
@@ -2310,7 +2314,7 @@ describe('ChannelService', () => {
     expect(spy).not.toHaveBeenCalled();
     expect(service.deselectActiveChannel).not.toHaveBeenCalled();
     expect(messagesSpy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([newMessage])
+      jasmine.arrayContaining([newMessage]),
     );
   }));
 
@@ -2325,12 +2329,12 @@ describe('ChannelService', () => {
     service.setAsActiveChannel(newChannel);
 
     expect(channelsSpy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([newChannel])
+      jasmine.arrayContaining([newChannel]),
     );
 
     //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect((service as any).watchForChannelEvents).toHaveBeenCalledWith(
-      newChannel
+      newChannel,
     );
   });
 
@@ -2432,7 +2436,7 @@ describe('ChannelService', () => {
 
     expect(activeChannel.getReactions).toHaveBeenCalledWith(
       message.id,
-      jasmine.anything()
+      jasmine.anything(),
     );
 
     expect(reactions).toEqual(mockReactions);
@@ -2499,7 +2503,7 @@ describe('ChannelService', () => {
     notificationSpy.calls.reset();
 
     await expectAsync(service.getMessageReactions(message.id)).toBeRejectedWith(
-      error
+      error,
     );
 
     expect(notificationSpy).toHaveBeenCalledWith([
@@ -2535,7 +2539,7 @@ describe('ChannelService', () => {
     const notificationService = TestBed.inject(NotificationService);
     notificationService.notifications$.subscribe(spy);
     await expectAsync(service.markMessageUnread(message.id)).toBeRejectedWith(
-      error
+      error,
     );
 
     expect(spy).toHaveBeenCalledWith([
@@ -2549,7 +2553,7 @@ describe('ChannelService', () => {
       'MarkUnread failed with error: "Either the message with ID "zitaszuperagetstreamio-c710c117-5a8e-4769-a43d-f6add79d8520" does not exist, or it is older than last 100 channel messages."';
     spy.calls.reset();
     await expectAsync(service.markMessageUnread(message.id)).toBeRejectedWith(
-      error
+      error,
     );
 
     expect(spy).toHaveBeenCalledWith(
@@ -2559,7 +2563,7 @@ describe('ChannelService', () => {
           type: 'error',
           translateParams: { count: '100' },
         }),
-      ])
+      ]),
     );
   });
 

@@ -47,13 +47,13 @@ export class MessageTextComponent implements OnChanges {
 
   constructor(
     private messageService: MessageService,
-    readonly customTemplatesService: CustomTemplatesService
+    readonly customTemplatesService: CustomTemplatesService,
   ) {
     this.displayAs = this.messageService.displayAs;
     try {
       this.urlRegexp = new RegExp(
         '(?:(?:https?|ftp|file):\\/\\/|www\\.|ftp\\.|(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(?![^\\s]*@[^\\s]*)(?:[^\\s()<>]+|\\([\\w\\d]+\\))*(?<!@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'gim'
+        'gim',
       );
     } catch {
       this.urlRegexp =
@@ -106,7 +106,7 @@ export class MessageTextComponent implements OnChanges {
         const precedingText = text.substring(0, text.indexOf(mention));
         let formattedPrecedingText = this.fixEmojiDisplay(precedingText);
         formattedPrecedingText = this.wrapLinksWithAnchorTag(
-          formattedPrecedingText
+          formattedPrecedingText,
         );
         this.messageTextParts!.push({
           content: formattedPrecedingText,
@@ -149,7 +149,7 @@ export class MessageTextComponent implements OnChanges {
       (match) =>
         `<span ${
           isChrome ? 'class="str-chat__emoji-display-fix"' : ''
-        }>${match}</span>`
+        }>${match}</span>`,
     );
 
     return content;

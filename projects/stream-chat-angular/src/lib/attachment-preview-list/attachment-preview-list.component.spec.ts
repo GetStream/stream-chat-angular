@@ -35,22 +35,22 @@ describe('AttachmentPreviewListComponent', () => {
     queryImagePreviews = () =>
       Array.from(
         nativeElement.querySelectorAll(
-          '[data-testclass="attachment-image-preview"]'
-        )
+          '[data-testclass="attachment-image-preview"]',
+        ),
       );
     queryLoadingIndicators = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="loading-indicator"]')
+        nativeElement.querySelectorAll('[data-testclass="loading-indicator"]'),
       );
     queryPreviewImages = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="attachment-image"]')
+        nativeElement.querySelectorAll('[data-testclass="attachment-image"]'),
       );
     queryPreviewFiles = () =>
       Array.from(
         nativeElement.querySelectorAll(
-          '[data-testclass="attachment-file-preview"]'
-        )
+          '[data-testclass="attachment-file-preview"]',
+        ),
       );
     component.attachmentUploads$ = attachmentUploads$;
     fixture.detectChanges();
@@ -109,11 +109,11 @@ describe('AttachmentPreviewListComponent', () => {
     const previews = queryImagePreviews();
 
     expect(
-      previews[0].querySelector('[data-testclass="upload-retry"]')
+      previews[0].querySelector('[data-testclass="upload-retry"]'),
     ).toBeNull();
 
     expect(
-      previews[1].querySelector('[data-testclass="upload-retry"]')
+      previews[1].querySelector('[data-testclass="upload-retry"]'),
     ).not.toBeNull();
   });
 
@@ -149,7 +149,7 @@ describe('AttachmentPreviewListComponent', () => {
 
     filePreviews.forEach((p) => {
       expect(
-        p.querySelector('.rfu-file-previewer__file--uploading')
+        p.querySelector('.rfu-file-previewer__file--uploading'),
       ).toBeNull();
       expect(p.innerHTML).toContain(url);
       expect(p.innerHTML).toContain(fileName);
@@ -174,11 +174,11 @@ describe('AttachmentPreviewListComponent', () => {
     const filePreviews = queryPreviewFiles();
 
     expect(
-      filePreviews[0].querySelector('[data-testclass="upload-retry"]')
+      filePreviews[0].querySelector('[data-testclass="upload-retry"]'),
     ).toBeNull();
 
     expect(
-      filePreviews[1].querySelector('[data-testclass="upload-retry"]')
+      filePreviews[1].querySelector('[data-testclass="upload-retry"]'),
     ).not.toBeNull();
   });
 
@@ -212,7 +212,7 @@ describe('AttachmentPreviewListComponent', () => {
     component.retryAttachmentUpload.subscribe(spy);
     const filePreviews = queryPreviewFiles();
     const retryButton = filePreviews[0].querySelector(
-      '[data-testclass="upload-retry"]'
+      '[data-testclass="upload-retry"]',
     ) as HTMLButtonElement;
     retryButton.click();
     fixture.detectChanges();
@@ -231,7 +231,7 @@ describe('AttachmentPreviewListComponent', () => {
     fixture.detectChanges();
     const filePreviews = queryPreviewFiles();
     const deleteButton = filePreviews[0].querySelector(
-      '[data-testclass="file-delete"]'
+      '[data-testclass="file-delete"]',
     ) as HTMLButtonElement;
     const spy = jasmine.createSpy();
     component.deleteAttachment.subscribe(spy);
@@ -246,7 +246,7 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$.next([{ file, state: 'error', type: 'image' }]);
     fixture.detectChanges();
     const retryButton = queryImagePreviews()[0].querySelector(
-      '[data-testclass="upload-retry"]'
+      '[data-testclass="upload-retry"]',
     ) as HTMLButtonElement;
     retryButton.click();
     attachmentUploads$.next([
@@ -255,7 +255,7 @@ describe('AttachmentPreviewListComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryImagePreviews()[0].querySelector('[data-testclass="upload-retry"]')
+      queryImagePreviews()[0].querySelector('[data-testclass="upload-retry"]'),
     ).toBeNull();
   });
 
@@ -269,7 +269,7 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$.next([upload]);
     fixture.detectChanges();
     const link = queryPreviewFiles()[0].querySelector(
-      '[data-testclass="file-download-link"]'
+      '[data-testclass="file-download-link"]',
     ) as HTMLAnchorElement;
     const event = new KeyboardEvent('click');
     spyOn(event, 'preventDefault');
@@ -289,7 +289,7 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$.next([upload]);
     fixture.detectChanges();
     const link = queryPreviewFiles()[0].querySelector(
-      '[data-testclass="file-download-link"]'
+      '[data-testclass="file-download-link"]',
     ) as HTMLAnchorElement;
 
     expect(link).toBeNull();
@@ -334,7 +334,7 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
 
     ngAfterViewInit(): void {
       this.customTemplatesService.customAttachmentPreviewListTemplate$.next(
-        this.template
+        this.template,
       );
     }
   }
@@ -353,7 +353,7 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
 
   it('should display custom attachments', () => {
     expect(
-      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length,
     ).toBe(0);
 
     const customAttachment = {
@@ -367,7 +367,7 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
     hostFixture.detectChanges();
 
     expect(
-      hostFixture.nativeElement.querySelectorAll('.payment-link').length
+      hostFixture.nativeElement.querySelectorAll('.payment-link').length,
     ).toBe(1);
   });
 
@@ -387,16 +387,16 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
 
     expect(
       hostFixture.nativeElement.querySelector(
-        '.str-chat__attachment-preview-list'
-      )
+        '.str-chat__attachment-preview-list',
+      ),
     ).toBeNull();
   });
 
   it(`shouldn't display attachments if there are no attachments`, () => {
     expect(
       hostFixture.nativeElement.querySelector(
-        '.str-chat__attachment-preview-list'
-      )
+        '.str-chat__attachment-preview-list',
+      ),
     ).toBeNull();
   });
 });

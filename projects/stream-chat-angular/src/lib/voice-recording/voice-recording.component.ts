@@ -35,9 +35,12 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
   @ViewChild('audioElement')
   private audioElement?: ElementRef<HTMLAudioElement>;
 
-  constructor(private ngZone: NgZone, private cdRef: ChangeDetectorRef) {
+  constructor(
+    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef,
+  ) {
     this.secondsElapsedFormatted = this.getFormattedDuration(
-      this.secondsElapsed
+      this.secondsElapsed,
     );
   }
 
@@ -45,7 +48,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
     if (changes.attachment) {
       this.fileSize = this.getFileSize();
       this.durationFormatted = this.getFormattedDuration(
-        this.attachment?.duration
+        this.attachment?.duration,
       );
     }
   }
@@ -61,7 +64,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
           this.ngZone.run(() => {
             this.secondsElapsed = secondsElapsed;
             this.secondsElapsedFormatted = this.getFormattedDuration(
-              this.secondsElapsed
+              this.secondsElapsed,
             );
             this.cdRef.detectChanges();
           });

@@ -23,9 +23,7 @@
     data-testid="play-button"
     (click)="togglePlay()"
   >
-    <stream-icon-placeholder
-      [icon]="audioElement?.paused ? 'play' : 'pause'"
-    ></stream-icon-placeholder>
+    <stream-icon-placeholder [icon]="audioElement?.paused ? 'play' : 'pause'" />
   </button>
   <div class="str-chat__message-attachment__voice-recording-widget__metadata">
     <div class="str-chat__message-attachment-voice-recording-widget--first-row">
@@ -38,67 +36,65 @@
       </div>
     </div>
 
-    <ng-container *ngIf="isError; else state">
+    @if (isError) {
       <div
         class="str-chat__message-attachment__voice-recording-widget__error-message"
       >
-        <stream-icon-placeholder icon="error"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="error" />
         <span data-testid="error-message">{{
           "streamChat.Error playing audio" | translate
         }}</span>
       </div>
-    </ng-container>
-    <ng-template #state>
+    } @else {
       <div
         class="str-chat__message-attachment__voice-recording-widget__audio-state"
       >
         <div
           class="str-chat__message-attachment__voice-recording-widget__timer"
         >
-          <span
-            *ngIf="!!attachment?.duration; else fileSizeTemplate"
-            data-testid="duration"
-          >
-            {{
-              secondsElapsed > 0 || !audioElement.paused
-                ? secondsElapsedFormatted
-                : durationFormatted
-            }}</span
-          >
-          <ng-template #fileSizeTemplate>
+          @if (!!attachment?.duration) {
+            <span data-testid="duration">
+              {{
+                secondsElapsed > 0 || !audioElement.paused
+                  ? secondsElapsedFormatted
+                  : durationFormatted
+              }}</span
+            >
+          } @else {
             <span
               class="str-chat__message-attachment-file--item-size"
               data-testid="file-size-indicator"
             >
               {{ fileSize }}
             </span>
-          </ng-template>
+          }
         </div>
-        <stream-voice-recording-wavebar
-          *ngIf="attachment?.waveform_data && attachment?.duration"
-          [waveFormData]="attachment?.waveform_data || []"
-          [duration]="attachment?.duration"
-          [audioElement]="audioElement"
-        ></stream-voice-recording-wavebar>
+        @if (attachment?.waveform_data && attachment?.duration) {
+          <stream-voice-recording-wavebar
+            [waveFormData]="attachment?.waveform_data || []"
+            [duration]="attachment?.duration"
+            [audioElement]="audioElement"
+          />
+        }
       </div>
-    </ng-template>
+    }
   </div>
   <div
     class="str-chat__message-attachment__voice-recording-widget__right-section"
   >
-    <button
-      *ngIf="!audioElement?.paused; else fileIcon"
-      class="str-chat__message_attachment__playback-rate-button"
-      data-testid="playback-rate-button"
-      (click)="setPlaybackRate()"
-    >
-      {{ audioElement?.playbackRate | number : "1.1-1" }}x
-    </button>
-    <ng-template #fileIcon>
+    @if (!audioElement?.paused) {
+      <button
+        class="str-chat__message_attachment__playback-rate-button"
+        data-testid="playback-rate-button"
+        (click)="setPlaybackRate()"
+      >
+        {{ audioElement?.playbackRate | number: "1.1-1" }}x
+      </button>
+    } @else {
       <stream-icon-placeholder
         class="str-chat__attachment-type-icon"
         icon="audio-file"
-      ></stream-icon-placeholder>
-    </ng-template>
+      />
+    }
   </div>
 </div>

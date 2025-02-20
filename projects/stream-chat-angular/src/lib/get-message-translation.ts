@@ -8,11 +8,11 @@ import {
 import { DefaultStreamChatGenerics, StreamMessage } from './types';
 
 export const getMessageTranslation = <
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 >(
   message?: StreamMessage | MessageResponse | FormatMessageResponse,
   channel?: Channel<T>,
-  user?: User
+  user?: User,
 ) => {
   const language =
     user?.language ||

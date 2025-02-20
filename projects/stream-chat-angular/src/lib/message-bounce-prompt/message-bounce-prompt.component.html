@@ -5,10 +5,10 @@
       message: message,
       isOpen: isModalOpen,
       isOpenChangeHandler: messageBounceModalOpenChanged,
-      content: modalContent
+      content: modalContent,
     }
   "
-></ng-container>
+/>
 
 <ng-template
   #defaultModal
@@ -16,13 +16,13 @@
   let-isOpenChangeHandler="isOpenChangeHandler"
   let-content="content"
 >
-  <stream-modal
-    *ngIf="isOpen"
-    [isOpen]="isOpen"
-    [content]="content"
-    (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  @if (isOpen) {
+    <stream-modal
+      [isOpen]="isOpen"
+      [content]="content"
+      (isOpenChange)="isOpenChangeHandler($event)"
+    />
+  }
 </ng-template>
 
 <ng-template #modalContent>

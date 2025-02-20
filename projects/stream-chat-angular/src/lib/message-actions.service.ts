@@ -20,7 +20,7 @@ import { ChannelService } from './channel.service';
   providedIn: 'root',
 })
 export class MessageActionsService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * Default actions - these are the actions that are handled by the built-in component
@@ -44,7 +44,7 @@ export class MessageActionsService<
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage<T>
+        message: StreamMessage<T>,
       ) => enabledActions.indexOf('read-events') !== -1 && !message.parent_id,
     },
     {
@@ -65,7 +65,7 @@ export class MessageActionsService<
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage<T>
+        message: StreamMessage<T>,
       ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
     {
@@ -89,11 +89,11 @@ export class MessageActionsService<
           await this.chatClientService.flagMessage(message.id);
           this.notificationService.addTemporaryNotification(
             'streamChat.Message has been successfully flagged',
-            'success'
+            'success',
           );
         } catch (error) {
           this.notificationService.addTemporaryNotification(
-            'streamChat.Error adding flag'
+            'streamChat.Error adding flag',
           );
         }
       },
@@ -119,7 +119,7 @@ export class MessageActionsService<
           await this.channelService.deleteMessage(message);
         } catch (error) {
           this.notificationService.addTemporaryNotification(
-            'streamChat.Error deleting message'
+            'streamChat.Error deleting message',
           );
         }
       },
@@ -137,7 +137,7 @@ export class MessageActionsService<
         const isClipboardSupported = navigator?.clipboard?.write !== undefined;
         if (!isClipboardSupported && !this.hasDisplayedClipboardWarning) {
           console.warn(
-            `[Stream Chat] Copy action is disabled because clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`
+            `[Stream Chat] Copy action is disabled because clipboard API isn't available, please check security and browser requirements: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/write#security_considerations`,
           );
           this.hasDisplayedClipboardWarning = true;
         }
@@ -149,7 +149,7 @@ export class MessageActionsService<
       },
       actionHandler: (
         message: StreamMessage<T>,
-        extraParams: MessageActionHandlerExtraParams
+        extraParams: MessageActionHandlerExtraParams,
       ) => {
         const fallbackContent = message.text || '';
         // Android Chrome can only copy plain text: https://issues.chromium.org/issues/40851502
@@ -160,14 +160,14 @@ export class MessageActionsService<
                 extraParams.messageTextHtmlElement?.innerText ||
                   fallbackContent,
               ],
-              { type: 'text/plain' }
+              { type: 'text/plain' },
             ),
             'text/html': new Blob(
               [
                 extraParams.messageTextHtmlElement?.innerHTML ||
                   fallbackContent,
               ],
-              { type: 'text/html' }
+              { type: 'text/html' },
             ),
           }),
         ]);
@@ -195,7 +195,7 @@ export class MessageActionsService<
   constructor(
     private chatClientService: ChatClientService,
     private notificationService: NotificationService,
-    private channelService: ChannelService
+    private channelService: ChannelService,
   ) {
     combineLatest([
       this.messageToEdit$,
@@ -230,7 +230,7 @@ export class MessageActionsService<
    */
   getAuthorizedMessageActionsCount(
     message: StreamMessage<T>,
-    enabledActions: string[]
+    enabledActions: string[],
   ) {
     const customActions = this.customActions$.getValue() || [];
     const allActions = [...this.defaultActions, ...customActions];
@@ -238,7 +238,7 @@ export class MessageActionsService<
     const isMine = message.user_id === currentUserId;
 
     return allActions.filter((item) =>
-      item.isVisible(enabledActions, isMine, message)
+      item.isVisible(enabledActions, isMine, message),
     ).length;
   }
 }

@@ -45,7 +45,7 @@ describe('MessageReactionsComponent', () => {
       sad: '😞',
     };
     reactionsServiceMock.reactions$ = new BehaviorSubject(
-      reactionsServiceMock.reactions
+      reactionsServiceMock.reactions,
     );
     await TestBed.configureTestingModule({
       declarations: [
@@ -78,8 +78,8 @@ describe('MessageReactionsComponent', () => {
     queryReactionCountsFromReactionList = () =>
       Array.from(
         nativeElement.querySelectorAll(
-          '[data-testclass="reaction-list-reaction-count"]'
-        )
+          '[data-testclass="reaction-list-reaction-count"]',
+        ),
       );
   });
 
@@ -133,7 +133,7 @@ describe('MessageReactionsComponent', () => {
     fixture.detectChanges();
 
     const container = nativeElement.querySelector(
-      '[data-testid="all-reacting-users"]'
+      '[data-testid="all-reacting-users"]',
     );
 
     expect(container).not.toBeNull();
@@ -142,7 +142,7 @@ describe('MessageReactionsComponent', () => {
     fixture.detectChanges();
 
     let userListComponent = fixture.debugElement.query(
-      By.css('[data-testid="wow-user-list"]')
+      By.css('[data-testid="wow-user-list"]'),
     ).componentInstance as UserListComponent;
 
     expect(userListComponent.users.length).toBe(3);
@@ -156,13 +156,13 @@ describe('MessageReactionsComponent', () => {
     } as unknown as QueryReactionsAPIResponse);
     nativeElement
       .querySelector<HTMLDivElement>(
-        '[data-testid="reaction-details-selector-sad"]'
+        '[data-testid="reaction-details-selector-sad"]',
       )
       ?.click();
     tick();
     fixture.detectChanges();
     userListComponent = fixture.debugElement.query(
-      By.css('[data-testid="sad-user-list"]')
+      By.css('[data-testid="sad-user-list"]'),
     ).componentInstance as UserListComponent;
 
     expect(userListComponent.users.length).toBe(2);
@@ -212,7 +212,7 @@ describe('MessageReactionsComponent', () => {
     fixture.detectChanges();
 
     const userListComponent = fixture.debugElement.query(
-      By.css('[data-testid="wow-user-list"]')
+      By.css('[data-testid="wow-user-list"]'),
     ).componentInstance as UserListComponent;
 
     expect(userListComponent.isLoading).toBeTrue();
@@ -265,7 +265,7 @@ describe('MessageReactionsComponent', () => {
     fixture.detectChanges();
 
     spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
-      new Error('Failed to get reactions')
+      new Error('Failed to get reactions'),
     );
 
     const wowEmoji = queryEmojis()[0];
@@ -290,7 +290,7 @@ describe('MessageReactionsComponent', () => {
 
     expect(reactions[0].classList).toContain('str-chat__message-reaction-own');
     expect(reactions[1].classList).not.toContain(
-      'str-chat__message-reaction-own'
+      'str-chat__message-reaction-own',
     );
   });
 

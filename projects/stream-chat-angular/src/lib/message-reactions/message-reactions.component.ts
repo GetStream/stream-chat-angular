@@ -73,20 +73,8 @@ export class MessageReactionsComponent
   constructor(
     private cdRef: ChangeDetectorRef,
     private messageReactionsService: MessageReactionsService,
-    public customTemplatesService: CustomTemplatesService
+    public customTemplatesService: CustomTemplatesService,
   ) {}
-
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.messageReactionsService.reactions$.subscribe((reactions) => {
-        this.reactionOptions = Object.keys(reactions);
-        this.setExistingReactions();
-        if (this.isViewInited) {
-          this.cdRef.detectChanges();
-        }
-      })
-    );
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.messageReactionCounts || changes.messageReactionGroups) {
@@ -103,6 +91,18 @@ export class MessageReactionsComponent
       }
       this.setExistingReactions();
     }
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.messageReactionsService.reactions$.subscribe((reactions) => {
+        this.reactionOptions = Object.keys(reactions);
+        this.setExistingReactions();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+      }),
+    );
   }
 
   ngAfterViewInit(): void {
@@ -147,7 +147,7 @@ export class MessageReactionsComponent
       const response = await this.messageReactionsService.queryReactions(
         this.messageId,
         this.selectedReactionType,
-        this.usersByReactions[this.selectedReactionType].next
+        this.usersByReactions[this.selectedReactionType].next,
       );
       this.usersByReactions[this.selectedReactionType].users = [
         ...this.usersByReactions[this.selectedReactionType].users,
@@ -156,7 +156,7 @@ export class MessageReactionsComponent
           .filter((u) => !!u) as UserResponse[]),
       ];
       this.usersByReactions[this.selectedReactionType].next = response.next;
-    } catch (_) {
+    } catch (error) {
       this.selectedReactionType = undefined;
     } finally {
       this.isLoading = false;
@@ -164,10 +164,6 @@ export class MessageReactionsComponent
     if (this.isViewInited) {
       this.cdRef.detectChanges();
     }
-  }
-
-  trackByMessageReaction(_: number, item: MessageReactionType) {
-    return item;
   }
 
   isOwnReaction(reactionType: MessageReactionType) {

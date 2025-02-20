@@ -33,7 +33,7 @@ export class MessageReactionsService {
 
   constructor(
     private chatClientService: ChatClientService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {}
 
   /**
@@ -60,7 +60,7 @@ export class MessageReactionsService {
   async queryReactions(messageId: string, type: string, next?: string) {
     if (!this.chatClientService.chatClient) {
       throw new Error(
-        'Intialize the ChatClientService before querying reactions'
+        'Intialize the ChatClientService before querying reactions',
       );
     } else {
       try {
@@ -68,13 +68,13 @@ export class MessageReactionsService {
           messageId,
           { type },
           { created_at: -1 },
-          { next }
+          { next },
         );
 
         return response;
       } catch (error) {
         this.notificationService.addTemporaryNotification(
-          'streamChat.Error loading reactions'
+          'streamChat.Error loading reactions',
         );
         throw error;
       }

@@ -20,7 +20,7 @@ export const mockCurrentUser = () =>
     name: 'Bob',
     image: 'link/to/photo',
     total_unread_count: 0,
-  } as UserResponse<DefaultStreamChatGenerics>);
+  }) as UserResponse<DefaultStreamChatGenerics>;
 
 export const mockMessage = (id?: number) =>
   ({
@@ -33,14 +33,14 @@ export const mockMessage = (id?: number) =>
     created_at: new Date('2021-09-14T13:08:30.004112Z'),
     updated_at: new Date('2021-09-14T13:08:30.004112Z'),
     readBy: [{ id: 'alice', name: 'Alice' }],
-  } as any as StreamMessage);
+  }) as any as StreamMessage;
 
 export const generateMockMessages = (offset = 0, isOlder = false) => {
   const messages = Array.from({ length: 25 }, (_, index) => {
     const message = mockMessage();
     message.created_at = new Date(
       message.created_at.getUTCMilliseconds() +
-        (isOlder ? -1 : 1) * (index + offset)
+        (isOlder ? -1 : 1) * (index + offset),
     );
     message.id = (index + offset).toString();
     return message;
@@ -52,7 +52,7 @@ export const generateMockMessages = (offset = 0, isOlder = false) => {
 export type MockChannel = Channel<DefaultStreamChatGenerics> & {
   handleEvent: (
     name: EventTypes | 'capabilities.changed',
-    payload?: any
+    payload?: any,
   ) => void;
 };
 
@@ -78,7 +78,7 @@ export const generateMockChannels = (length = 25) => {
           'typing-events',
         ],
       },
-      on: (arg1: EventTypes | Function, handler: () => {}) => {
+      on: (arg1: EventTypes | Function, handler: () => void) => {
         eventHandlers[typeof arg1 === 'string' ? (arg1 as string) : 'on'] =
           handler || arg1;
         return {
@@ -142,7 +142,7 @@ export const generateMockChannels = (length = 25) => {
           const existingMessageIndex = array.findIndex((m) =>
             message.id
               ? m.id === message.id
-              : m.created_at === message.created_at
+              : m.created_at === message.created_at,
           );
           if (existingMessageIndex === -1) {
             array.push(message);
@@ -153,7 +153,7 @@ export const generateMockChannels = (length = 25) => {
         removeMessage: () => {},
         loadMessageIntoState: function (
           messageId: string,
-          parentMessageId: string
+          parentMessageId: string,
         ) {
           const surroundingMessages = generateMockMessages();
           const loadedMessage =
@@ -240,7 +240,7 @@ export type MockChannelService = {
   activeChannelMessages: StreamMessage[];
   activeChannelThreadReplies: StreamMessage[];
   loadMoreMessages: (
-    d: 'older' | 'newer'
+    d: 'older' | 'newer',
   ) => Promise<{ messages: StreamMessage[] }> | void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
@@ -256,10 +256,10 @@ export const mockChannelService = (): MockChannelService => {
   const activeChannelMessages$ = new BehaviorSubject<StreamMessage[]>(messages);
   const activeThreadMessages$ = new BehaviorSubject<StreamMessage[]>([]);
   const activeParentMessageId$ = new BehaviorSubject<undefined | string>(
-    undefined
+    undefined,
   );
   const activeParentMessage$ = new BehaviorSubject<undefined | StreamMessage>(
-    undefined
+    undefined,
   );
   const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
@@ -306,9 +306,7 @@ export const mockChannelService = (): MockChannelService => {
 
   const loadMoreChannels = () => {};
   const setAsActiveParentMessage = () => {};
-  const setAsActiveChannel = (channel: Channel) => {
-    channel;
-  };
+  const setAsActiveChannel = (_: Channel) => {};
 
   const jumpToMessage = () => {
     activeChannelMessages$.next(activeChannelMessages$.getValue());
@@ -317,7 +315,7 @@ export const mockChannelService = (): MockChannelService => {
   const clearMessageJump = () => {};
 
   const channelQueryState$ = new BehaviorSubject<ChannelQueryState | undefined>(
-    undefined
+    undefined,
   );
 
   return {
@@ -352,7 +350,7 @@ export type MockStreamChatClient = {
   user: UserResponse;
   connectUser: jasmine.Spy;
   setGuestUser: jasmine.Spy;
-  on: (name: EventTypes, handler: () => {}) => { unsubscribe: () => void };
+  on: (name: EventTypes, handler: () => void) => { unsubscribe: () => void };
   handleEvent: (name: EventTypes, event: Event) => void;
   flagMessage: jasmine.Spy;
   setUserAgent: jasmine.Spy;
@@ -394,7 +392,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     .and.returnValue('stream-chat-javascript-client-browser-2.2.2');
   const connectAnonymousUser = jasmine.createSpy();
   const user = mockCurrentUser();
-  const on = (name: EventTypes | Function, handler: () => {}) => {
+  const on = (name: EventTypes | Function, handler: () => void) => {
     if (typeof name === 'string') {
       eventHandlers[name as string] = handler;
     } else {

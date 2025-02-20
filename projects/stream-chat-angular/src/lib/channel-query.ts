@@ -17,7 +17,7 @@ import { ChatClientService } from './chat-client.service';
  * This class allows you to make paginated channel query requests.
  */
 export class ChannelQuery<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * By default the SDK uses an offset based pagination, you can change/extend this by providing your own custom paginator method.
@@ -39,7 +39,7 @@ export class ChannelQuery<
       state: true,
       presence: true,
       watch: true,
-    }
+    },
   ) {}
 
   async query(queryType: ChannelQueryType): Promise<ChannelQueryResult<T>> {
@@ -71,7 +71,7 @@ export class ChannelQuery<
     const channels = await this.chatService.chatClient.queryChannels(
       filters,
       this.sort || {},
-      options
+      options,
     );
     this.setNextPageConfiguration(channels);
 
@@ -88,7 +88,7 @@ export class ChannelQuery<
         this.chatService.chatClient.logger(
           'warn',
           'Unable to refetch active channel after state recover',
-          error as Record<string, unknown>
+          error as Record<string, unknown>,
         );
       }
     }

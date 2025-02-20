@@ -9,7 +9,7 @@ import { DefaultStreamChatGenerics } from './types';
   providedIn: 'root',
 })
 export class MessageService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * Decides if the message content should be formatted as text or HTML

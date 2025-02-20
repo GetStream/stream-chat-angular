@@ -26,7 +26,7 @@ describe('I18nService', () => {
     expect(translateService['setTranslation']).toHaveBeenCalledWith(
       'en',
       en,
-      true
+      true,
     );
   });
 
@@ -39,7 +39,7 @@ describe('I18nService', () => {
     expect(translateService['setTranslation']).toHaveBeenCalledWith(
       'en',
       { streamChat: jasmine.objectContaining(translationOverride) },
-      true
+      true,
     );
   });
 });

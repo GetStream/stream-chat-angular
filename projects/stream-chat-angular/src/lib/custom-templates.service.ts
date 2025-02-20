@@ -50,7 +50,7 @@ import {
   providedIn: 'root',
 })
 export class CustomTemplatesService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * The autocomplete list item template for mentioning users (used in the [`AutocompleteTextareaComponent`](/chat/docs/sdk/angular/components/AutocompleteTextareaComponent/))
@@ -125,14 +125,14 @@ export class CustomTemplatesService<
    *
    */
   avatarTemplate$ = new BehaviorSubject<TemplateRef<AvatarContext> | undefined>(
-    undefined
+    undefined,
   );
   /**
    * Template for displaying icons (instead of the [default icon component](/chat/docs/sdk/angular/components/IconComponent/))
    *
    */
   iconTemplate$ = new BehaviorSubject<TemplateRef<IconContext> | undefined>(
-    undefined
+    undefined,
   );
   /**
    * Template for displaying the loading indicator (instead of the [default loading indicator](/chat/docs/sdk/angular/components/LoadingIndicatorComponent/))
@@ -174,7 +174,7 @@ export class CustomTemplatesService<
    *
    */
   modalTemplate$ = new BehaviorSubject<TemplateRef<ModalContext> | undefined>(
-    undefined
+    undefined,
   );
   /**
    * The template used to override the [default notification component](/chat/docs/sdk/angular/components/NotificationComponent/)

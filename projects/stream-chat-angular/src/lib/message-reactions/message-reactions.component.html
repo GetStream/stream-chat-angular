@@ -1,35 +1,34 @@
-<div
-  *ngIf="existingReactions.length > 0"
-  data-testid="reaction-list"
-  class="str-chat__reaction-list str-chat__message-reactions-container"
-  [class.str-chat__reaction-list--reverse]="true"
->
-  <ul class="str-chat__message-reactions">
-    <li
-      *ngFor="
-        let reactionType of existingReactions;
-        trackBy: trackByMessageReaction
-      "
-      class="str-chat__message-reaction"
-      data-testclass="emoji"
-      [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
-      (click)="reactionSelected(reactionType)"
-      (keyup.enter)="reactionSelected(reactionType)"
-    >
-      <span class="emoji str-chat__message-reaction-emoji">
-        {{ getEmojiByReaction(reactionType) }}&nbsp;
-      </span>
-      <span
-        data-testclass="reaction-list-reaction-count"
-        class="str-chat__message-reaction-count"
-      >
-        {{ messageReactionGroups?.[reactionType]?.count ?? 0 }}
-      </span>
-    </li>
-  </ul>
-</div>
+@if (existingReactions.length > 0) {
+  <div
+    data-testid="reaction-list"
+    class="str-chat__reaction-list str-chat__message-reactions-container"
+    [class.str-chat__reaction-list--reverse]="true"
+  >
+    <ul class="str-chat__message-reactions">
+      @for (reactionType of existingReactions; track reactionType) {
+        <li
+          class="str-chat__message-reaction"
+          data-testclass="emoji"
+          [class.str-chat__message-reaction-own]="isOwnReaction(reactionType)"
+          (click)="reactionSelected(reactionType)"
+          (keyup.enter)="reactionSelected(reactionType)"
+        >
+          <span class="emoji str-chat__message-reaction-emoji">
+            {{ getEmojiByReaction(reactionType) }}&nbsp;
+          </span>
+          <span
+            data-testclass="reaction-list-reaction-count"
+            class="str-chat__message-reaction-count"
+          >
+            {{ messageReactionGroups?.[reactionType]?.count ?? 0 }}
+          </span>
+        </li>
+      }
+    </ul>
+  </div>
+}
 
-<ng-container *ngIf="selectedReactionType">
+@if (selectedReactionType) {
   <ng-container
     *ngTemplateOutlet="
       (customTemplatesService.modalTemplate$ | async) || defaultModal;
@@ -38,11 +37,11 @@
         messageId: messageId,
         reactionType: selectedReactionType,
         isOpenChangeHandler: isOpenChange,
-        content: modalContent
+        content: modalContent,
       }
     "
-  ></ng-container>
-</ng-container>
+  />
+}
 
 <ng-template
   #defaultModal
@@ -57,33 +56,30 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #modalContent>
   <div class="str-chat__message-reactions-details">
     <div class="str-chat__message-reactions-details-reaction-types">
-      <div
-        *ngFor="
-          let reactionType of existingReactions;
-          trackBy: trackByMessageReaction
-        "
-        class="str-chat__message-reactions-details-reaction-type"
-        attr.data-testid="reaction-details-selector-{{ reactionType }}"
-        [class.str-chat__message-reactions-details-reaction-type--selected]="
-          reactionType === selectedReactionType
-        "
-        (click)="reactionSelected(reactionType)"
-        (keyup.enter)="reactionSelected(reactionType)"
-      >
-        <span class="emoji str-chat__message-reaction-emoji">
-          {{ getEmojiByReaction(reactionType) }}&nbsp;
-        </span>
-        <span class="str-chat__message-reaction-count">
-          {{ messageReactionGroups?.[reactionType]?.count ?? 0 }}
-        </span>
-      </div>
+      @for (reactionType of existingReactions; track reactionType) {
+        <div
+          class="str-chat__message-reactions-details-reaction-type"
+          attr.data-testid="reaction-details-selector-{{ reactionType }}"
+          [class.str-chat__message-reactions-details-reaction-type--selected]="
+            reactionType === selectedReactionType
+          "
+          (click)="reactionSelected(reactionType)"
+          (keyup.enter)="reactionSelected(reactionType)"
+        >
+          <span class="emoji str-chat__message-reaction-emoji">
+            {{ getEmojiByReaction(reactionType) }}&nbsp;
+          </span>
+          <span class="str-chat__message-reaction-count">
+            {{ messageReactionGroups?.[reactionType]?.count ?? 0 }}
+          </span>
+        </div>
+      }
     </div>
     <div
       class="emoji str-chat__message-reaction-emoji str-chat__message-reaction-emoji-big"
@@ -94,12 +90,7 @@
       data-testid="all-reacting-users"
       class="str-chat__message-reactions-details-reacting-users"
     >
-      <ng-container
-        *ngFor="
-          let reactionType of existingReactions;
-          trackBy: trackByMessageReaction
-        "
-      >
+      @for (reactionType of existingReactions; track reactionType) {
         <stream-user-list
           attr.data-testid="{{ reactionType }}-user-list"
           [style.display]="
@@ -109,8 +100,8 @@
           [isLoading]="isLoading"
           [hasMore]="!!usersByReactions[reactionType]?.next || false"
           (loadMore)="loadNextPageOfReactions()"
-        ></stream-user-list>
-      </ng-container>
+        />
+      }
     </div>
   </div>
 </ng-template>

@@ -20,14 +20,10 @@ export class NotificationListComponent {
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private notificationService: NotificationService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
   ) {
     this.notifications$ = this.notificationService.notifications$;
     this.theme$ = this.themeService.theme$;
-  }
-
-  trackById(_: number, item: NotificationPayload) {
-    return item.id;
   }
 
   getNotificationContentContext(notification: NotificationPayload) {

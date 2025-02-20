@@ -36,7 +36,7 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    private chatClientService: ChatClientService
+    private chatClientService: ChatClientService,
   ) {
     this.channelService.activeChannel$.subscribe((c) => {
       this.activeChannel = c;
@@ -55,16 +55,16 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
         (template) => {
           this.channelActionsTemplate = template;
           this.cdRef.detectChanges();
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.channelHeaderInfoTemplate$.subscribe(
         (template) => {
           this.channelHeaderInfoTemplate = template;
           this.cdRef.detectChanges();
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -94,7 +94,7 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
     }
     return getChannelDisplayText(
       this.activeChannel,
-      this.chatClientService.chatClient.user!
+      this.chatClientService.chatClient.user!,
     );
   }
 

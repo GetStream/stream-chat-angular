@@ -33,17 +33,17 @@ export class NotificationService {
     type: NotificationType = 'error',
     timeout: number = 5000,
     translateParams?: object,
-    templateContext?: T
+    templateContext?: T,
   ) {
     const notification = this.createNotification<T>(
       content,
       type,
       translateParams,
-      templateContext
+      templateContext,
     );
     const id = setTimeout(
       () => this.removeNotification(notification.id),
-      timeout
+      timeout,
     );
     notification.dismissFn = () => {
       clearTimeout(id);
@@ -69,13 +69,13 @@ export class NotificationService {
     content: string | TemplateRef<T>,
     type: NotificationType = 'error',
     translateParams?: object,
-    templateContext?: T
+    templateContext?: T,
   ) {
     const notification = this.createNotification<T>(
       content,
       type,
       translateParams,
-      templateContext
+      templateContext,
     );
     this.notificationsSubject.next([
       ...this.notificationsSubject.getValue(),
@@ -89,7 +89,7 @@ export class NotificationService {
     content: string | TemplateRef<T>,
     type: NotificationType,
     translateParams?: object,
-    templateContext?: T
+    templateContext?: T,
   ) {
     const id = new Date().getTime().toString() + Math.random().toString();
     return {

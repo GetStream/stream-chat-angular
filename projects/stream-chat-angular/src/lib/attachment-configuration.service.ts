@@ -14,7 +14,7 @@ import {
   providedIn: 'root',
 })
 export class AttachmentConfigurationService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * A custom handler can be provided to override the default image attachment (images uploaded from files) configuration. By default the SDK uses fixed image height (a size that's known before image is loaded), if you override that with dynamic image height (for example: height: 100%) the scrolling logic inside the message list can break.
@@ -22,26 +22,26 @@ export class AttachmentConfigurationService<
   customImageAttachmentConfigurationHandler?: (
     a: Attachment<T>,
     type: 'gallery' | 'single' | 'carousel',
-    containerElement: HTMLElement
+    containerElement: HTMLElement,
   ) => ImageAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customVideoAttachmentConfigurationHandler?: (
     a: Attachment<T>,
-    containerElement: HTMLElement
+    containerElement: HTMLElement,
   ) => VideoAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customGiphyAttachmentConfigurationHandler?: (
-    a: Attachment<T>
+    a: Attachment<T>,
   ) => AttachmentConfigration;
   /**
    * A custom handler can be provided to override the default scraped image attachment (images found in links inside messages) configuration. By default the SDK uses fixed height (a size that's known before image is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customScrapedImageAttachmentConfigurationHandler?: (
-    a: Attachment<T>
+    a: Attachment<T>,
   ) => AttachmentConfigration;
   /**
    * You can turn on/off thumbnail generation for video attachments
@@ -57,13 +57,13 @@ export class AttachmentConfigurationService<
   getImageAttachmentConfiguration(
     attachment: Attachment<T>,
     location: 'gallery' | 'single' | 'carousel',
-    element: HTMLElement
+    element: HTMLElement,
   ): ImageAttachmentConfiguration {
     if (this.customImageAttachmentConfigurationHandler) {
       return this.customImageAttachmentConfigurationHandler(
         attachment,
         location,
-        element
+        element,
       );
     }
 
@@ -96,7 +96,7 @@ export class AttachmentConfigurationService<
     const sizeRestriction = this.getSizingRestrictions(
       url,
       element,
-      displayWarning
+      displayWarning,
     );
 
     if (sizeRestriction) {
@@ -122,12 +122,12 @@ export class AttachmentConfigurationService<
    */
   getVideoAttachmentConfiguration(
     attachment: Attachment<T>,
-    element: HTMLElement
+    element: HTMLElement,
   ): VideoAttachmentConfiguration {
     if (this.customVideoAttachmentConfigurationHandler) {
       return this.customVideoAttachmentConfigurationHandler(
         attachment,
-        element
+        element,
       );
     }
 
@@ -151,7 +151,7 @@ export class AttachmentConfigurationService<
         const sizeRestriction = this.getSizingRestrictions(
           url,
           element,
-          displayWarning
+          displayWarning,
         );
         if (sizeRestriction) {
           sizeRestriction.height *= 2;
@@ -178,7 +178,7 @@ export class AttachmentConfigurationService<
    * @param attachment The attachment to configure
    */
   getGiphyAttachmentConfiguration(
-    attachment: Attachment<T>
+    attachment: Attachment<T>,
   ): AttachmentConfigration {
     if (this.customGiphyAttachmentConfigurationHandler) {
       return this.customGiphyAttachmentConfigurationHandler(attachment);
@@ -198,7 +198,7 @@ export class AttachmentConfigurationService<
    * @param attachment The attachment to configure
    */
   getScrapedImageAttachmentConfiguration(
-    attachment: Attachment<T>
+    attachment: Attachment<T>,
   ): AttachmentConfigration {
     if (this.customScrapedImageAttachmentConfigurationHandler) {
       return this.customScrapedImageAttachmentConfigurationHandler(attachment);
@@ -213,7 +213,7 @@ export class AttachmentConfigurationService<
 
   private addResizingParamsToUrl(
     sizeRestriction: { width: number; height: number },
-    url: URL
+    url: URL,
   ) {
     url.searchParams.set('h', sizeRestriction.height.toString());
     url.searchParams.set('w', sizeRestriction.width.toString());
@@ -222,7 +222,7 @@ export class AttachmentConfigurationService<
   private getSizingRestrictions(
     url: URL,
     htmlElement: HTMLElement,
-    displayWarning = false
+    displayWarning = false,
   ) {
     const urlParams = url.searchParams;
     const originalHeight = Number(urlParams.get('oh')) || 1;
@@ -238,13 +238,13 @@ export class AttachmentConfigurationService<
         originalHeight,
         originalWidth,
         (cssSizeRestriction.maxHeight || cssSizeRestriction.height)!,
-        cssSizeRestriction.maxWidth
+        cssSizeRestriction.maxWidth,
       );
     } else {
       sizeRestriction = undefined;
       if (displayWarning) {
         console.warn(
-          `Invalid value set for height/max-height and/or max-width for HTML element, this can cause scrolling issues inside the message list, more info https://getstream.io/chat/docs/sdk/angular/components/AttachmentListComponent/#image-and-video-sizing, attachment URL: ${url.toString()}`
+          `Invalid value set for height/max-height and/or max-width for HTML element, this can cause scrolling issues inside the message list, more info https://getstream.io/chat/docs/sdk/angular/components/AttachmentListComponent/#image-and-video-sizing, attachment URL: ${url.toString()}`,
         );
       }
     }
@@ -256,14 +256,14 @@ export class AttachmentConfigurationService<
     originalHeight: number,
     originalWidth: number,
     maxHeight: number,
-    maxWidth: number
+    maxWidth: number,
   ) {
     return {
       height: Math.round(
-        Math.max(maxHeight, (maxWidth / originalWidth) * originalHeight)
+        Math.max(maxHeight, (maxWidth / originalWidth) * originalHeight),
       ),
       width: Math.round(
-        Math.max(maxHeight, (maxWidth / originalHeight) * originalWidth)
+        Math.max(maxHeight, (maxWidth / originalHeight) * originalWidth),
       ),
     };
   }
@@ -271,13 +271,13 @@ export class AttachmentConfigurationService<
   private getCSSSizeRestriction(htmlElement: HTMLElement) {
     const computedStylesheet = getComputedStyle(htmlElement);
     const height = this.getValueRepresentationOfCSSProperty(
-      computedStylesheet.getPropertyValue('height')
+      computedStylesheet.getPropertyValue('height'),
     );
     const maxHeight = this.getValueRepresentationOfCSSProperty(
-      computedStylesheet.getPropertyValue('max-height')
+      computedStylesheet.getPropertyValue('max-height'),
     );
     const maxWidth = this.getValueRepresentationOfCSSProperty(
-      computedStylesheet.getPropertyValue('max-width')
+      computedStylesheet.getPropertyValue('max-width'),
     );
 
     return { height, maxHeight, maxWidth };

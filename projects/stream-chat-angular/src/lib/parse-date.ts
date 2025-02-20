@@ -7,7 +7,7 @@ Dayjs.extend(relativeTime);
 
 export const parseDate = (
   date: Date,
-  format: 'date' | 'date-time' | 'time' = 'date-time'
+  format: 'date' | 'date-time' | 'time' = 'date-time',
 ) => {
   const parsedTime = Dayjs(date);
 

@@ -5,7 +5,7 @@ import { DefaultStreamChatGenerics, StreamMessage } from 'stream-chat-angular';
 @Component({
   selector: 'app-message-text',
   templateUrl: './message-text.component.html',
-  styleUrls: ['./message-text.component.scss'],
+  styleUrl: './message-text.component.scss',
 })
 export class MessageTextComponent {
   @Input() message:

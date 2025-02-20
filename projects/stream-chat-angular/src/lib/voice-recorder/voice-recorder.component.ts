@@ -32,17 +32,6 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(public readonly recorder: AudioRecorderService) {}
 
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.recorder.recordingState$.subscribe((s) => {
-        this.recordState = s;
-        if (this.recordState === MediaRecordingState.ERROR) {
-          this.voiceRecorderService?.isRecorderVisible$.next(false);
-        }
-      })
-    );
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.voiceRecorderService && this.voiceRecorderService) {
       this.isVisibleSubscription =
@@ -55,6 +44,17 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       this.isVisibleSubscription?.unsubscribe();
     }
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.recorder.recordingState$.subscribe((s) => {
+        this.recordState = s;
+        if (this.recordState === MediaRecordingState.ERROR) {
+          this.voiceRecorderService?.isRecorderVisible$.next(false);
+        }
+      }),
+    );
   }
 
   ngOnDestroy(): void {

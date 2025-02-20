@@ -1,11 +1,9 @@
-<ng-container
-  *ngIf="
-    lastReadMessageId &&
-    isUnreadNotificationVisible &&
-    openMessageListAt === 'last-message' &&
-    displayUnreadSeparator
-  "
->
+@if (
+  lastReadMessageId &&
+  isUnreadNotificationVisible &&
+  openMessageListAt === "last-message" &&
+  displayUnreadSeparator
+) {
   <ng-container
     *ngTemplateOutlet="
       customnewMessagesNotificationTemplate ||
@@ -13,11 +11,11 @@
       context: {
         unreadCount: unreadCount,
         onDismiss: messageNotificationDismissClicked,
-        onJump: messageNotificationJumpClicked
+        onJump: messageNotificationJumpClicked,
       }
     "
-  ></ng-container>
-</ng-container>
+  />
+}
 <ng-template
   #defaultUnreadMessagesNotification
   let-unreadCount="unreadCount"
@@ -32,88 +30,83 @@
       data-testid="unread-messages-notification-jump-to-message"
       (click)="onJump()"
     >
-      <ng-container
-        *ngIf="
-          unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator;
-          else noUnreadCount
-        "
-      >
+      @if (unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator) {
         {{
           (unreadCount === 1
             ? "streamChat.\{\{count\}\} unread message"
             : "streamChat.\{\{count\}\} unread messages"
-          ) | translate : { count: unreadCount }
+          ) | translate: { count: unreadCount }
         }}
-      </ng-container>
-      <ng-template #noUnreadCount>
+      } @else {
         {{ "streamChat.Unread messages" | translate }}
-      </ng-template>
+      }
     </button>
     <button
       data-testid="unread-messages-notification-dismiss"
       (click)="onDismiss()"
     >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="close" />
     </button>
   </div>
 </ng-template>
 <div #scrollContainer data-testid="scroll-container" class="str-chat__list">
-  <ng-container *ngIf="mode === 'main' && isEmpty && emptyListTemplate">
-    <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
-  </ng-container>
+  @if (mode === "main" && isEmpty && emptyListTemplate) {
+    <ng-container *ngTemplateOutlet="emptyListTemplate" />
+  }
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
     <ul class="str-chat__ul">
-      <li
-        *ngIf="mode === 'thread' && parentMessage"
-        #parentMessageElement
-        data-testid="parent-message"
-        class="str-chat__parent-message-li"
-      >
-        <ng-container
-          *ngTemplateOutlet="
-            messageTemplateContainer;
-            context: { message: parentMessage, index: 'parent' }
-          "
-        ></ng-container>
-        <div data-testid="reply-count" class="str-chat__thread-start">
-          {{parentMessage.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
-          replies' | translate:replyCountParam)}}
-        </div>
-      </li>
-      <ng-container *ngIf="mode === 'thread' && isEmpty && emptyListTemplate">
-        <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
-      </ng-container>
-      <stream-loading-indicator-placeholder
-        *ngIf="
-          ((loadingState === 'loading-top' && direction === 'bottom-to-top') ||
-            (loadingState === 'loading-bottom' &&
-              direction === 'top-to-bottom')) &&
-            displayLoadingIndicator;
-          else loadingIndicatorPlaceholder
-        "
-        data-testid="top-loading-indicator"
-      ></stream-loading-indicator-placeholder>
-      <ng-container *ngIf="messages$ | async as messages">
-        <ng-container
-          *ngFor="
-            let message of messages;
-            let i = index;
-            let isFirst = first;
-            let isLast = last;
-            trackBy: trackByMessageId
-          "
+      @if (mode === "thread" && parentMessage) {
+        <li
+          #parentMessageElement
+          data-testid="parent-message"
+          class="str-chat__parent-message-li"
         >
-          <ng-container *ngIf="isFirst">
+          <ng-container
+            *ngTemplateOutlet="
+              messageTemplateContainer;
+              context: { message: parentMessage, index: 'parent' }
+            "
+          />
+          <div data-testid="reply-count" class="str-chat__thread-start">
+            {{parentMessage.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
+            replies' | translate:replyCountParam)}}
+          </div>
+        </li>
+      }
+      @if (mode === "thread" && isEmpty && emptyListTemplate) {
+        <ng-container *ngTemplateOutlet="emptyListTemplate" />
+      }
+      @if (
+        ((loadingState === "loading-top" && direction === "bottom-to-top") ||
+          (loadingState === "loading-bottom" &&
+            direction === "top-to-bottom")) &&
+        displayLoadingIndicator
+      ) {
+        <stream-loading-indicator-placeholder
+          data-testid="top-loading-indicator"
+        />
+      } @else {
+        <ng-container *ngTemplateOutlet="loadingIndicatorPlaceholder" />
+      }
+      @if (messages$ | async; as messages) {
+        @for (
+          message of messages;
+          track message.id;
+          let i = $index;
+          let isFirst = $first;
+          let isLast = $last
+        ) {
+          @if (isFirst) {
             <ng-container
               *ngTemplateOutlet="
                 dateSeparator;
                 context: {
                   date: message.created_at,
-                  parsedDate: parseDate(message.created_at)
+                  parsedDate: parseDate(message.created_at),
                 }
               "
-            ></ng-container>
-          </ng-container>
+            />
+          }
           <li
             tabindex="0"
             data-testclass="message"
@@ -125,114 +118,116 @@
                 messageTemplateContainer;
                 context: { message: message, index: i }
               "
-            ></ng-container>
+            />
           </li>
-          <ng-container
-            *ngIf="
-              (lastReadMessageId === message?.id &&
-                direction === 'bottom-to-top') ||
-              (direction === 'top-to-bottom' &&
-                lastReadMessageId === messages[i + 1]?.id)
-            "
-          >
-            <li
-              *ngIf="displayUnreadSeparator"
-              id="stream-chat-new-message-indicator"
-              data-testid="new-messages-indicator"
-              class="str-chat__li str-chat__unread-messages-separator-wrapper"
-            >
-              <ng-container
-                *ngTemplateOutlet="
-                  customnewMessagesIndicatorTemplate ||
-                    defaultNewMessagesIndicator;
-                  context: { unreadCount: unreadCount }
-                "
-              ></ng-container>
-            </li>
-          </ng-container>
-          <ng-container *ngIf="isNextMessageOnSeparateDate[i]">
+          @if (
+            (lastReadMessageId === message?.id &&
+              direction === "bottom-to-top") ||
+            (direction === "top-to-bottom" &&
+              lastReadMessageId === messages[i + 1]?.id)
+          ) {
+            @if (displayUnreadSeparator) {
+              <li
+                id="stream-chat-new-message-indicator"
+                data-testid="new-messages-indicator"
+                class="str-chat__li str-chat__unread-messages-separator-wrapper"
+              >
+                <ng-container
+                  *ngTemplateOutlet="
+                    customnewMessagesIndicatorTemplate ||
+                      defaultNewMessagesIndicator;
+                    context: { unreadCount: unreadCount }
+                  "
+                />
+              </li>
+            }
+          }
+          @if (isNextMessageOnSeparateDate[i]) {
             <ng-container
               *ngTemplateOutlet="
                 dateSeparator;
                 context: {
                   date: messages[i + 1].created_at,
-                  parsedDate: parseDate(messages[i + 1].created_at)
+                  parsedDate: parseDate(messages[i + 1].created_at),
                 }
               "
-            ></ng-container>
-          </ng-container>
-        </ng-container>
-      </ng-container>
-      <stream-loading-indicator-placeholder
-        *ngIf="
-          ((loadingState === 'loading-bottom' &&
-            direction === 'bottom-to-top') ||
-            (loadingState === 'loading-top' &&
-              direction === 'top-to-bottom')) &&
-            displayLoadingIndicator;
-          else loadingIndicatorPlaceholder
-        "
-        data-testid="bottom-loading-indicator"
-      ></stream-loading-indicator-placeholder>
+            />
+          }
+        }
+      }
+      @if (
+        ((loadingState === "loading-bottom" && direction === "bottom-to-top") ||
+          (loadingState === "loading-top" && direction === "top-to-bottom")) &&
+        displayLoadingIndicator
+      ) {
+        <stream-loading-indicator-placeholder
+          data-testid="bottom-loading-indicator"
+        />
+      } @else {
+        <ng-container *ngTemplateOutlet="loadingIndicatorPlaceholder" />
+      }
       <ng-template #loadingIndicatorPlaceholder>
         <div class="str-chat__loading-indicator-placeholder"></div>
       </ng-template>
     </ul>
     <ng-template #defaultTypingIndicator let-usersTyping$="usersTyping$">
       <!-- eslint-disable-next-line @angular-eslint/template/no-any -->
-      <ng-container *ngIf="$any(usersTyping$ | async) as users">
-        <div
-          *ngIf="users.length > 0"
-          data-testid="typing-indicator"
-          class="str-chat__typing-indicator str-chat__typing-indicator--typing"
-        >
-          <div class="str-chat__typing-indicator__dots">
-            <span class="str-chat__typing-indicator__dot"></span>
-            <span class="str-chat__typing-indicator__dot"></span>
-            <span class="str-chat__typing-indicator__dot"></span>
-          </div>
+      @if ($any(usersTyping$ | async); as users) {
+        @if (users.length > 0) {
           <div
-            data-testid="typing-users"
-            class="str-chat__typing-indicator__users"
+            data-testid="typing-indicator"
+            class="str-chat__typing-indicator str-chat__typing-indicator--typing"
           >
-            {{
-              users.length === 1
-                ? ("streamChat.user is typing"
-                  | translate : { user: getTypingIndicatorText(users) })
-                : ("streamChat.users are typing"
-                  | translate : { users: getTypingIndicatorText(users) })
-            }}
+            <div class="str-chat__typing-indicator__dots">
+              <span class="str-chat__typing-indicator__dot"></span>
+              <span class="str-chat__typing-indicator__dot"></span>
+              <span class="str-chat__typing-indicator__dot"></span>
+            </div>
+            <div
+              data-testid="typing-users"
+              class="str-chat__typing-indicator__users"
+            >
+              {{
+                users.length === 1
+                  ? ("streamChat.user is typing"
+                    | translate: { user: getTypingIndicatorText(users) })
+                  : ("streamChat.users are typing"
+                    | translate: { users: getTypingIndicatorText(users) })
+              }}
+            </div>
           </div>
-        </div>
-      </ng-container>
+        }
+      }
     </ng-template>
     <ng-container
       *ngTemplateOutlet="
         typingIndicatorTemplate || defaultTypingIndicator;
         context: getTypingIndicatorContext()
       "
-    ></ng-container>
+    />
   </div>
 </div>
 <div class="str-chat__jump-to-latest-message">
-  <button
-    *ngIf="isUserScrolled && isJumpToLatestButtonVisible"
-    data-testid="scroll-to-latest"
-    class="str-chat__message-notification-scroll-to-latest str-chat__message-notification-scroll-to-latest-right str-chat__circle-fab"
-    (keyup.enter)="jumpToLatestMessage()"
-    (click)="jumpToLatestMessage()"
-  >
-    <stream-icon
-      class="str-chat__jump-to-latest-icon str-chat__circle-fab-icon"
-      [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
-    ></stream-icon>
-    <div
-      *ngIf="newMessageCountWhileBeingScrolled > 0"
-      class="str-chat__message-notification str-chat__message-notification-scroll-to-latest-unread-count str-chat__jump-to-latest-unread-count"
+  @if (isUserScrolled && isJumpToLatestButtonVisible) {
+    <button
+      data-testid="scroll-to-latest"
+      class="str-chat__message-notification-scroll-to-latest str-chat__message-notification-scroll-to-latest-right str-chat__circle-fab"
+      (keyup.enter)="jumpToLatestMessage()"
+      (click)="jumpToLatestMessage()"
     >
-      {{ newMessageCountWhileBeingScrolled }}
-    </div>
-  </button>
+      <stream-icon
+        class="str-chat__jump-to-latest-icon str-chat__circle-fab-icon"
+        [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
+      />
+      @if (newMessageCountWhileBeingScrolled > 0) {
+        <div
+          class="str-chat__message-notification str-chat__message-notification-scroll-to-latest-unread-count str-chat__jump-to-latest-unread-count"
+        >
+          {{ newMessageCountWhileBeingScrolled }}
+        </div>
+      }
+    </button>
+  }
 </div>
 
 <ng-template #messageTemplateContainer let-message="message" let-index="index">
@@ -252,7 +247,7 @@
       [mode]="mode"
       [isHighlighted]="isHighlighted"
       [scroll$]="scroll$"
-    ></stream-message>
+    />
   </ng-template>
   <ng-container
     *ngTemplateOutlet="
@@ -265,24 +260,24 @@
         enabledMessageActions: enabledMessageActions,
         mode: mode,
         isHighlighted: message?.id === highlightedMessageId,
-        scroll$: scroll$
+        scroll$: scroll$,
       }
     "
-  ></ng-container>
+  />
 </ng-template>
 
 <ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
-  <ng-container *ngIf="displayDateSeparator">
+  @if (displayDateSeparator) {
     <ng-container
       *ngTemplateOutlet="
         customDateSeparatorTemplate || defaultDateSeparator;
         context: {
           date: date,
-          parsedDate: parsedDate
+          parsedDate: parsedDate,
         }
       "
-    ></ng-container>
-  </ng-container>
+    />
+  }
 
   <ng-template
     #defaultDateSeparator
@@ -290,42 +285,34 @@
     let-parsedDate="parsedDate"
   >
     <div data-testid="date-separator" class="str-chat__date-separator">
-      <hr
-        *ngIf="
-          dateSeparatorTextPos === 'right' || dateSeparatorTextPos === 'center'
-        "
-        class="str-chat__date-separator-line"
-      />
+      @if (
+        dateSeparatorTextPos === "right" || dateSeparatorTextPos === "center"
+      ) {
+        <hr class="str-chat__date-separator-line" />
+      }
       <div class="str-chat__date-separator-date">
         {{ parsedDate }}
       </div>
-      <hr
-        *ngIf="
-          dateSeparatorTextPos === 'left' || dateSeparatorTextPos === 'center'
-        "
-        class="str-chat__date-separator-line"
-      />
+      @if (
+        dateSeparatorTextPos === "left" || dateSeparatorTextPos === "center"
+      ) {
+        <hr class="str-chat__date-separator-line" />
+      }
     </div>
   </ng-template>
 </ng-template>
 
 <ng-template #defaultNewMessagesIndicator let-unreadCount="unreadCount">
   <div class="str-chat__unread-messages-separator">
-    <ng-container
-      *ngIf="
-        unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator;
-        else noUnreadCount
-      "
-    >
+    @if (unreadCount > 0 && !hideUnreadCountForNotificationAndIndicator) {
       {{
         (unreadCount === 1
           ? "streamChat.\{\{count\}\} unread message"
           : "streamChat.\{\{count\}\} unread messages"
-        ) | translate : { count: unreadCount }
+        ) | translate: { count: unreadCount }
       }}
-    </ng-container>
-    <ng-template #noUnreadCount>
+    } @else {
       {{ "streamChat.Unread messages" | translate }}
-    </ng-template>
+    }
   </div>
 </ng-template>

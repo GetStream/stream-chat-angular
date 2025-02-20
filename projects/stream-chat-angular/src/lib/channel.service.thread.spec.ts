@@ -35,7 +35,7 @@ describe('ChannelService - threads', () => {
   let init: (
     c?: Channel<DefaultStreamChatGenerics>[],
     sort?: ChannelSort<DefaultStreamChatGenerics>,
-    options?: ChannelOptions
+    options?: ChannelOptions,
   ) => Promise<void>;
   let user: UserResponse<DefaultStreamChatGenerics>;
   const filters = { type: 'messaging' };
@@ -70,10 +70,10 @@ describe('ChannelService - threads', () => {
     init = async (
       channels?: Channel<DefaultStreamChatGenerics>[],
       sort?: ChannelSort<DefaultStreamChatGenerics>,
-      options?: ChannelOptions
+      options?: ChannelOptions,
     ) => {
       mockChatClient.queryChannels.and.returnValue(
-        channels || generateMockChannels()
+        channels || generateMockChannels(),
       );
 
       await service.init(filters, sort, options);
@@ -380,7 +380,7 @@ describe('ChannelService - threads', () => {
     });
     let message!: StreamMessage;
     service.activeThreadMessages$.subscribe(
-      (messages) => (message = messages[0])
+      (messages) => (message = messages[0]),
     );
 
     expect(message.text).toBe('updated');
@@ -404,7 +404,7 @@ describe('ChannelService - threads', () => {
     });
     let message!: StreamMessage;
     service.activeThreadMessages$.subscribe(
-      (messages) => (message = messages[0])
+      (messages) => (message = messages[0]),
     );
 
     expect(message.deleted_at).toBeDefined();
@@ -443,12 +443,12 @@ describe('ChannelService - threads', () => {
           __,
           ___,
           ____,
-          threadListSetter: (list: StreamMessage[]) => {},
-          parentMessageSetter: (id: string | undefined) => {}
+          threadListSetter: (list: StreamMessage[]) => void,
+          parentMessageSetter: (id: string | undefined) => void,
         ) => {
           threadListSetter([]);
           parentMessageSetter(undefined);
-        }
+        },
       );
     service.customChannelTruncatedHandler = spy;
     const event = {
@@ -472,7 +472,7 @@ describe('ChannelService - threads', () => {
       jasmine.any(Function),
       jasmine.any(Function),
       jasmine.any(Function),
-      jasmine.any(Function)
+      jasmine.any(Function),
     );
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -541,7 +541,7 @@ describe('ChannelService - threads', () => {
       mentionedUsers,
       parentMessage.id,
       undefined,
-      customData
+      customData,
     );
     let latestMessage!: StreamMessage;
     let messageCount!: number;
@@ -562,7 +562,7 @@ describe('ChannelService - threads', () => {
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
       jasmine.objectContaining({ text, user, attachments }),
-      true
+      true,
     );
 
     expect(latestMessage.text).toBe(text);
@@ -619,7 +619,7 @@ describe('ChannelService - threads', () => {
     } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
     await service.setAsActiveParentMessage(parentMessage);
     spyOn(channel, 'sendAction').and.resolveTo(
-      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>
+      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>,
     );
     spyOn(channel.state, 'removeMessage');
     await service.sendAction(
@@ -627,7 +627,7 @@ describe('ChannelService - threads', () => {
       {
         image_action: 'send',
       },
-      parentMessage.id
+      parentMessage.id,
     );
 
     expect(channel.state.removeMessage).toHaveBeenCalledWith({
@@ -659,7 +659,7 @@ describe('ChannelService - threads', () => {
     } as SendMessageAPIResponse<DefaultStreamChatGenerics>);
     let latestMessage!: StreamMessage;
     service.activeThreadMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage(text, [], [], parentMessage.id);
 
@@ -683,7 +683,7 @@ describe('ChannelService - threads', () => {
     spyOn(channel, 'sendMessage').and.rejectWith({ status: 500 });
     let latestMessage!: StreamMessage;
     service.activeThreadMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage(text, [], [], parentMessage.id);
 
@@ -714,7 +714,7 @@ describe('ChannelService - threads', () => {
     } as SendMessageAPIResponse<DefaultStreamChatGenerics>);
     let latestMessage!: StreamMessage;
     service.activeThreadMessages$.subscribe(
-      (m) => (latestMessage = m[m.length - 1])
+      (m) => (latestMessage = m[m.length - 1]),
     );
     await service.sendMessage(text, [], [], parentMessage.id);
 
@@ -828,13 +828,13 @@ describe('ChannelService - threads', () => {
     expect(messagesSpy).toHaveBeenCalledWith(
       jasmine.arrayContaining([
         jasmine.objectContaining({ id: parentMessageId }),
-      ])
+      ]),
     );
 
     expect(activeParentMessageSpy).toHaveBeenCalledWith(parentMessageId);
 
     expect(threadMessagesSpy).toHaveBeenCalledWith(
-      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })])
+      jasmine.arrayContaining([jasmine.objectContaining({ id: messageId })]),
     );
   });
 
