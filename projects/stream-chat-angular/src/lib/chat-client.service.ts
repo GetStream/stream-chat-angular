@@ -119,28 +119,32 @@ export class ChatClientService<
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
-    await this.ngZone.runOutsideAngular(async () => {
-      const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
-      try {
-        result = await (
-          {
-            guest: () => this.chatClient.setGuestUser(user!),
-            anonymous: () => this.chatClient.connectAnonymousUser(),
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          }[`${userTokenOrProvider}`] ??
-          (() => this.chatClient.connectUser(user!, userTokenOrProvider))
-        )();
-      } catch (error) {
-        this.notificationService.addPermanentNotification(
-          'streamChat.Error connecting to chat, refresh the page to try again.',
-          'error'
-        );
-        throw error;
-      }
-      this.userSubject.next(
-        this.chatClient.user ? { ...this.chatClient.user } : undefined
+    const startCleaning = this.chatClient._startCleaning;
+    this.chatClient._startCleaning = (...params) => {
+      this.ngZone.runOutsideAngular(() => {
+        startCleaning.apply(this.chatClient, ...params);
+      });
+    };
+    const user = typeof userOrId === 'string' ? { id: userOrId } : userOrId;
+    try {
+      result = await (
+        {
+          guest: () => this.chatClient.setGuestUser(user!),
+          anonymous: () => this.chatClient.connectAnonymousUser(),
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        }[`${userTokenOrProvider}`] ??
+        (() => this.chatClient.connectUser(user!, userTokenOrProvider))
+      )();
+    } catch (error) {
+      this.notificationService.addPermanentNotification(
+        'streamChat.Error connecting to chat, refresh the page to try again.',
+        'error'
       );
-    });
+      throw error;
+    }
+    this.userSubject.next(
+      this.chatClient.user ? { ...this.chatClient.user } : undefined
+    );
     if (this.chatClient.user?.id && this.trackPendingChannelInvites) {
       const channels = await this.chatClient.queryChannels(
         {
@@ -163,20 +167,18 @@ export class ChatClientService<
     let removeNotification: undefined | (() => void);
     this.subscriptions.push(
       this.chatClient.on('connection.changed', (e) => {
-        this.ngZone.run(() => {
-          const isOnline = e.online;
-          if (isOnline) {
-            if (removeNotification) {
-              removeNotification();
-            }
-          } else {
-            removeNotification =
-              this.notificationService.addPermanentNotification(
-                'streamChat.Connection failure, reconnecting now...'
-              );
+        const isOnline = e.online;
+        if (isOnline) {
+          if (removeNotification) {
+            removeNotification();
           }
-          this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
-        });
+        } else {
+          removeNotification =
+            this.notificationService.addPermanentNotification(
+              'streamChat.Connection failure, reconnecting now...'
+            );
+        }
+        this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
       })
     );
     return result;

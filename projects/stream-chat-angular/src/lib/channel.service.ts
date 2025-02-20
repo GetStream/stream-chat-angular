@@ -1346,120 +1346,110 @@ export class ChannelService<
     }
   }
 
-  private handleNotification(clientEvent: ClientEvent<T>) {
+  private async handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
-        void this.ngZone.run(async () => {
-          if (this.isStateRecoveryInProgress) {
-            return;
-          }
-          this.isStateRecoveryInProgress = true;
-          try {
-            // If channel list is not inited, we set the active channel
-            const shoulSetActiveChannel =
-              this.shouldSetActiveChannel &&
-              !this.activeChannelSubject.getValue();
-            await this.queryChannels(
-              shoulSetActiveChannel || false,
-              'recover-state'
+        if (this.isStateRecoveryInProgress) {
+          return;
+        }
+        this.isStateRecoveryInProgress = true;
+        try {
+          // If channel list is not inited, we set the active channel
+          const shoulSetActiveChannel =
+            this.shouldSetActiveChannel &&
+            !this.activeChannelSubject.getValue();
+          await this.queryChannels(
+            shoulSetActiveChannel || false,
+            'recover-state'
+          );
+          if (this.activeChannelSubject.getValue()) {
+            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+            void this.setAsActiveParentMessage(undefined);
+            // Update and reselect message to quote
+            const messageToQuote = this.messageToQuoteSubject.getValue();
+            this.setChannelState(this.activeChannelSubject.getValue()!);
+            let messages!: StreamMessage<T>[];
+            this.activeChannelMessages$
+              .pipe(take(1))
+              .subscribe((m) => (messages = m));
+            const updatedMessageToQuote = messages.find(
+              (m) => m.id === messageToQuote?.id
             );
-            if (this.activeChannelSubject.getValue()) {
-              // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
-              void this.setAsActiveParentMessage(undefined);
-              // Update and reselect message to quote
-              const messageToQuote = this.messageToQuoteSubject.getValue();
-              this.setChannelState(this.activeChannelSubject.getValue()!);
-              let messages!: StreamMessage<T>[];
-              this.activeChannelMessages$
-                .pipe(take(1))
-                .subscribe((m) => (messages = m));
-              const updatedMessageToQuote = messages.find(
-                (m) => m.id === messageToQuote?.id
-              );
-              if (updatedMessageToQuote) {
-                this.selectMessageToQuote(updatedMessageToQuote);
-              }
+            if (updatedMessageToQuote) {
+              this.selectMessageToQuote(updatedMessageToQuote);
             }
-            this.isStateRecoveryInProgress = false;
-          } catch {
-            this.isStateRecoveryInProgress = false;
           }
-        });
+          this.isStateRecoveryInProgress = false;
+        } catch {
+          this.isStateRecoveryInProgress = false;
+        }
         break;
       }
       case 'notification.message_new': {
-        this.ngZone.run(() => {
-          if (this.customNewMessageNotificationHandler) {
-            this.customNewMessageNotificationHandler(
-              clientEvent,
-              this.channelListSetter
-            );
-          } else {
-            this.handleNewMessageNotification(clientEvent);
-          }
-        });
+        if (this.customNewMessageNotificationHandler) {
+          this.customNewMessageNotificationHandler(
+            clientEvent,
+            this.channelListSetter
+          );
+        } else {
+          this.handleNewMessageNotification(clientEvent);
+        }
         break;
       }
       case 'notification.added_to_channel': {
-        this.ngZone.run(() => {
-          if (this.customAddedToChannelNotificationHandler) {
-            this.customAddedToChannelNotificationHandler(
-              clientEvent,
-              this.channelListSetter
-            );
-          } else {
-            this.handleAddedToChannelNotification(clientEvent);
-          }
-        });
+        if (this.customAddedToChannelNotificationHandler) {
+          this.customAddedToChannelNotificationHandler(
+            clientEvent,
+            this.channelListSetter
+          );
+        } else {
+          this.handleAddedToChannelNotification(clientEvent);
+        }
         break;
       }
       case 'notification.removed_from_channel': {
-        this.ngZone.run(() => {
-          if (this.customRemovedFromChannelNotificationHandler) {
-            this.customRemovedFromChannelNotificationHandler(
-              clientEvent,
-              this.channelListSetter
-            );
-          } else {
-            this.handleRemovedFromChannelNotification(clientEvent);
-          }
-        });
+        if (this.customRemovedFromChannelNotificationHandler) {
+          this.customRemovedFromChannelNotificationHandler(
+            clientEvent,
+            this.channelListSetter
+          );
+        } else {
+          this.handleRemovedFromChannelNotification(clientEvent);
+        }
         break;
       }
       case 'user.updated': {
-        this.ngZone.run(() => {
-          const updatedChannels = this.channelsSubject.getValue()?.map((c) => {
-            if (this.chatClientService.chatClient.activeChannels[c.cid]) {
-              return this.chatClientService.chatClient.activeChannels[c.cid];
-            } else {
-              return c;
-            }
-          });
-          this.channelsSubject.next(updatedChannels);
-          const activeChannel = this.activeChannelSubject.getValue();
-          if (activeChannel) {
-            this.activeChannelSubject.next(
-              this.chatClientService.chatClient.activeChannels[
-                activeChannel.cid
-              ] || activeChannel
-            );
-            this.activeChannelMessagesSubject.next(
-              activeChannel.state.messages.map((m) => {
-                m.readBy = getReadBy(m, activeChannel);
-                return { ...m };
-              })
-            );
-            const activeParentMessage =
-              this.activeParentMessageIdSubject.getValue();
-            if (activeParentMessage) {
-              const messages = activeChannel.state.threads[activeParentMessage];
-              this.activeThreadMessagesSubject.next([...messages]);
-            }
-            this.activeChannelPinnedMessagesSubject.next([
-              ...activeChannel.state.pinnedMessages,
-            ]);
+        const updatedChannels = this.channelsSubject.getValue()?.map((c) => {
+          if (this.chatClientService.chatClient.activeChannels[c.cid]) {
+            return this.chatClientService.chatClient.activeChannels[c.cid];
+          } else {
+            return c;
           }
         });
+        this.channelsSubject.next(updatedChannels);
+        const activeChannel = this.activeChannelSubject.getValue();
+        if (activeChannel) {
+          this.activeChannelSubject.next(
+            this.chatClientService.chatClient.activeChannels[
+              activeChannel.cid
+            ] || activeChannel
+          );
+          this.activeChannelMessagesSubject.next(
+            activeChannel.state.messages.map((m) => {
+              m.readBy = getReadBy(m, activeChannel);
+              return { ...m };
+            })
+          );
+          const activeParentMessage =
+            this.activeParentMessageIdSubject.getValue();
+          if (activeParentMessage) {
+            const messages = activeChannel.state.threads[activeParentMessage];
+            this.activeThreadMessagesSubject.next([...messages]);
+          }
+          this.activeChannelPinnedMessagesSubject.next([
+            ...activeChannel.state.pinnedMessages,
+          ]);
+        }
         break;
       }
     }
@@ -1511,24 +1501,20 @@ export class ChannelService<
   private watchForActiveChannelEvents(channel: Channel<T>) {
     this.activeChannelSubscriptions.push(
       channel.on('message.new', (event) => {
-        this.ngZone.run(() => {
-          event.message && event.message.parent_id
-            ? event.message.parent_id ===
-              this.activeParentMessageIdSubject.getValue()
-              ? this.activeThreadMessagesSubject.next([
-                  ...channel.state.threads[event.message.parent_id],
-                ])
-              : null
-            : this.activeChannelMessagesSubject.next([
-                ...channel.state.messages,
-              ]);
-          this.activeChannel$.pipe(first()).subscribe((c) => {
-            if (c) {
-              this.markRead(c);
-            }
-          });
-          this.updateLatestMessages(event);
+        event.message && event.message.parent_id
+          ? event.message.parent_id ===
+            this.activeParentMessageIdSubject.getValue()
+            ? this.activeThreadMessagesSubject.next([
+                ...channel.state.threads[event.message.parent_id],
+              ])
+            : null
+          : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+        this.activeChannel$.pipe(first()).subscribe((c) => {
+          if (c) {
+            this.markRead(c);
+          }
         });
+        this.updateLatestMessages(event);
       })
     );
     this.activeChannelSubscriptions.push(
@@ -1552,26 +1538,24 @@ export class ChannelService<
     );
     this.activeChannelSubscriptions.push(
       channel.on('message.read', (e) => {
-        this.ngZone.run(() => {
-          let latestMessage!: StreamMessage;
-          let messages!: StreamMessage[];
-          this.activeChannelMessages$.pipe(first()).subscribe((m) => {
-            messages = m;
-            latestMessage = messages[messages.length - 1];
-          });
-          if (!latestMessage || !e.user) {
-            return;
-          }
-          if (latestMessage.readBy) {
-            latestMessage.readBy.splice(0, latestMessage.readBy.length);
-          } else {
-            latestMessage.readBy = [];
-          }
-          latestMessage.readBy.push(...getReadBy(latestMessage, channel));
-          messages[messages.length - 1] = { ...latestMessage };
-
-          this.activeChannelMessagesSubject.next([...messages]);
+        let latestMessage!: StreamMessage;
+        let messages!: StreamMessage[];
+        this.activeChannelMessages$.pipe(first()).subscribe((m) => {
+          messages = m;
+          latestMessage = messages[messages.length - 1];
         });
+        if (!latestMessage || !e.user) {
+          return;
+        }
+        if (latestMessage.readBy) {
+          latestMessage.readBy.splice(0, latestMessage.readBy.length);
+        } else {
+          latestMessage.readBy = [];
+        }
+        latestMessage.readBy.push(...getReadBy(latestMessage, channel));
+        messages[messages.length - 1] = { ...latestMessage };
+
+        this.activeChannelMessagesSubject.next([...messages]);
       })
     );
     this.activeChannelSubscriptions.push(
@@ -1585,19 +1569,17 @@ export class ChannelService<
           map((e) => e.event)
         )
         .subscribe((e) => {
-          this.ngZone.run(() => {
-            this.activeChannelLastReadMessageId = e.last_read_message_id;
-            this.activeChannelUnreadCount = e.unread_messages;
-            this.activeChannelSubject.next(this.activeChannel);
-          });
+          this.activeChannelLastReadMessageId = e.last_read_message_id;
+          this.activeChannelUnreadCount = e.unread_messages;
+          this.activeChannelSubject.next(this.activeChannel);
         })
     );
     this.activeChannelSubscriptions.push(
-      channel.on('typing.start', (e) =>
-        this.ngZone.run(() => this.handleTypingStartEvent(e))
-      )
+      channel.on('typing.start', (e) => this.handleTypingStartEvent(e))
     );
     this.activeChannelSubscriptions.push(
+      // client._startCleaning can emit typing.stop events
+      // since client._startCleaning runs outside Angular, we need to reenter Angular here
       channel.on('typing.stop', (e) =>
         this.ngZone.run(() => this.handleTypingStopEvent(e))
       )
@@ -1739,59 +1721,50 @@ export class ChannelService<
   }
 
   private messageUpdated(event: Event<T>) {
-    this.ngZone.run(() => {
-      const isThreadReply = event.message && event.message.parent_id;
-      const channel = this.activeChannelSubject.getValue();
-      if (!channel) {
-        return;
-      }
-      // Get messages from state as message order could change, and message could've been deleted
-      const messages: FormatMessageResponse<T>[] = isThreadReply
-        ? channel.state.threads[event?.message?.parent_id || '']
-        : channel.state.messages;
-      if (!messages) {
-        return;
-      }
-      const messageIndex = messages.findIndex(
-        (m) => m.id === event?.message?.id
-      );
-      if (messageIndex !== -1 || event.type === 'message.deleted') {
-        isThreadReply
-          ? this.activeThreadMessagesSubject.next([...messages])
-          : this.activeChannelMessagesSubject.next([...messages]);
-        this.activeChannelPinnedMessagesSubject.next([
-          ...channel.state.pinnedMessages,
-        ]);
-      }
-    });
+    const isThreadReply = event.message && event.message.parent_id;
+    const channel = this.activeChannelSubject.getValue();
+    if (!channel) {
+      return;
+    }
+    // Get messages from state as message order could change, and message could've been deleted
+    const messages: FormatMessageResponse<T>[] = isThreadReply
+      ? channel.state.threads[event?.message?.parent_id || '']
+      : channel.state.messages;
+    if (!messages) {
+      return;
+    }
+    const messageIndex = messages.findIndex((m) => m.id === event?.message?.id);
+    if (messageIndex !== -1 || event.type === 'message.deleted') {
+      isThreadReply
+        ? this.activeThreadMessagesSubject.next([...messages])
+        : this.activeChannelMessagesSubject.next([...messages]);
+      this.activeChannelPinnedMessagesSubject.next([
+        ...channel.state.pinnedMessages,
+      ]);
+    }
   }
 
   private messageReactionEventReceived(e: Event<T>) {
-    this.ngZone.run(() => {
-      const isThreadMessage = e.message && e.message.parent_id;
-      let messages!: StreamMessage[];
-      (isThreadMessage
-        ? this.activeThreadMessages$
-        : this.activeChannelMessages$
-      )
-        .pipe(first())
-        .subscribe((m) => (messages = m));
-      const messageIndex = messages.findIndex((m) => m.id === e?.message?.id);
-      if (messageIndex === -1) {
-        return;
-      }
-      const message = messages[messageIndex];
-      message.reaction_counts = { ...e.message?.reaction_counts };
-      message.reaction_scores = { ...e.message?.reaction_scores };
-      message.latest_reactions = [...(e.message?.latest_reactions || [])];
-      message.own_reactions = [...(e.message?.own_reactions || [])];
-      message.reaction_groups = { ...e.message?.reaction_groups };
+    const isThreadMessage = e.message && e.message.parent_id;
+    let messages!: StreamMessage[];
+    (isThreadMessage ? this.activeThreadMessages$ : this.activeChannelMessages$)
+      .pipe(first())
+      .subscribe((m) => (messages = m));
+    const messageIndex = messages.findIndex((m) => m.id === e?.message?.id);
+    if (messageIndex === -1) {
+      return;
+    }
+    const message = messages[messageIndex];
+    message.reaction_counts = { ...e.message?.reaction_counts };
+    message.reaction_scores = { ...e.message?.reaction_scores };
+    message.latest_reactions = [...(e.message?.latest_reactions || [])];
+    message.own_reactions = [...(e.message?.own_reactions || [])];
+    message.reaction_groups = { ...e.message?.reaction_groups };
 
-      messages[messageIndex] = { ...message };
-      isThreadMessage
-        ? this.activeThreadMessagesSubject.next([...messages])
-        : this.activeChannelMessagesSubject.next([...messages]);
-    });
+    messages[messageIndex] = { ...message };
+    isThreadMessage
+      ? this.activeThreadMessagesSubject.next([...messages])
+      : this.activeChannelMessagesSubject.next([...messages]);
   }
 
   private formatMessage(message: MessageResponse<T>) {
@@ -1890,123 +1863,109 @@ export class ChannelService<
       const type = event.type as EventTypes | 'capabilities.changed';
       switch (type) {
         case 'message.new': {
-          this.ngZone.run(() => {
-            if (this.customNewMessageHandler) {
-              this.customNewMessageHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleNewMessage(event, channel);
-            }
-          });
+          if (this.customNewMessageHandler) {
+            this.customNewMessageHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleNewMessage(event, channel);
+          }
           break;
         }
         case 'channel.hidden': {
-          this.ngZone.run(() => {
-            if (this.customChannelHiddenHandler) {
-              this.customChannelHiddenHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleChannelHidden(event);
-            }
-          });
+          if (this.customChannelHiddenHandler) {
+            this.customChannelHiddenHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleChannelHidden(event);
+          }
           break;
         }
         case 'channel.deleted': {
-          this.ngZone.run(() => {
-            if (this.customChannelDeletedHandler) {
-              this.customChannelDeletedHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleChannelDeleted(event);
-            }
-          });
+          if (this.customChannelDeletedHandler) {
+            this.customChannelDeletedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleChannelDeleted(event);
+          }
           break;
         }
         case 'channel.visible': {
-          this.ngZone.run(() => {
-            if (this.customChannelVisibleHandler) {
-              this.customChannelVisibleHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleChannelVisible(event, channel);
-            }
-          });
+          if (this.customChannelVisibleHandler) {
+            this.customChannelVisibleHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleChannelVisible(event, channel);
+          }
           break;
         }
         case 'channel.updated': {
-          this.ngZone.run(() => {
-            if (this.customChannelUpdatedHandler) {
-              this.customChannelUpdatedHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleChannelUpdate(event);
-            }
-          });
+          if (this.customChannelUpdatedHandler) {
+            this.customChannelUpdatedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleChannelUpdate(event);
+          }
           break;
         }
         case 'channel.truncated': {
-          this.ngZone.run(() => {
-            if (this.customChannelTruncatedHandler) {
-              this.customChannelTruncatedHandler(
-                event,
-                channel,
-                this.channelListSetter,
-                this.messageListSetter,
-                this.threadListSetter,
-                this.parentMessageSetter
-              );
-            } else {
-              this.handleChannelTruncate(event);
-            }
-          });
+          if (this.customChannelTruncatedHandler) {
+            this.customChannelTruncatedHandler(
+              event,
+              channel,
+              this.channelListSetter,
+              this.messageListSetter,
+              this.threadListSetter,
+              this.parentMessageSetter
+            );
+          } else {
+            this.handleChannelTruncate(event);
+          }
           break;
         }
         case 'capabilities.changed': {
-          this.ngZone.run(() => {
-            const cid = event.cid;
-            if (cid) {
-              const currentChannels = this.channelsSubject.getValue();
-              const index = currentChannels?.findIndex((c) => c.cid === cid);
-              if (index !== -1 && index !== undefined) {
-                this.channelsSubject.next([...currentChannels!]);
-                if (cid === this.activeChannelSubject.getValue()?.cid) {
-                  this.activeChannelSubject.next(
-                    this.activeChannelSubject.getValue()
-                  );
-                }
+          const cid = event.cid;
+          if (cid) {
+            const currentChannels = this.channelsSubject.getValue();
+            const index = currentChannels?.findIndex((c) => c.cid === cid);
+            if (index !== -1 && index !== undefined) {
+              this.channelsSubject.next([...currentChannels!]);
+              if (cid === this.activeChannelSubject.getValue()?.cid) {
+                this.activeChannelSubject.next(
+                  this.activeChannelSubject.getValue()
+                );
               }
             }
-          });
+          }
           break;
         }
       }
@@ -2030,9 +1989,7 @@ export class ChannelService<
 
   private handleChannelVisible(event: Event, channel: Channel<T>) {
     if (!this.channels.find((c) => c.cid === event.cid)) {
-      this.ngZone.run(() =>
-        this.channelsSubject.next([...this.channels, channel])
-      );
+      this.channelsSubject.next([...this.channels, channel]);
     }
   }
 
