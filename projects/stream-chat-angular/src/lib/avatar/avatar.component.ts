@@ -163,9 +163,7 @@ export class AvatarComponent
           .pipe(filter((e) => e.eventType === 'user.presence.changed'))
           .subscribe((event) => {
             if (event.event.user?.id === otherMember.id) {
-              this.ngZone.run(() => {
-                this.isOnline = event.event.user?.online || false;
-              });
+              this.isOnline = event.event.user?.online || false;
             }
           });
       } else {

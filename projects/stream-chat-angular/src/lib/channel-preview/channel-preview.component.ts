@@ -85,12 +85,10 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
     );
     this.subscriptions.push(
-      this.channel!.on('message.read', () =>
-        this.ngZone.run(() => {
-          this.isUnreadMessageWasCalled = false;
-          this.updateUnreadState();
-        })
-      )
+      this.channel!.on('message.read', () => {
+        this.isUnreadMessageWasCalled = false;
+        this.updateUnreadState();
+      })
     );
     this.subscriptions.push(
       this.chatClientService.events$
@@ -102,10 +100,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           )
         )
         .subscribe(() => {
-          this.ngZone.run(() => {
-            this.isUnreadMessageWasCalled = true;
-            this.updateUnreadState();
-          });
+          this.isUnreadMessageWasCalled = true;
+          this.updateUnreadState();
         })
     );
   }
@@ -137,24 +133,22 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private handleMessageEvent(event: Event) {
-    this.ngZone.run(() => {
-      if (this.channel?.state.latestMessages.length === 0) {
-        this.latestMessage = undefined;
-        this.latestMessageStatus = undefined;
-        this.latestMessageText = 'streamChat.Nothing yet...';
-        this.latestMessageTime = undefined;
-        return;
-      }
-      const latestMessage =
-        this.channel?.state.latestMessages[
-          this.channel?.state.latestMessages.length - 1
-        ];
-      if (!event.message || latestMessage?.id !== event.message.id) {
-        return;
-      }
-      this.setLatestMessage(latestMessage);
-      this.updateUnreadState();
-    });
+    if (this.channel?.state.latestMessages.length === 0) {
+      this.latestMessage = undefined;
+      this.latestMessageStatus = undefined;
+      this.latestMessageText = 'streamChat.Nothing yet...';
+      this.latestMessageTime = undefined;
+      return;
+    }
+    const latestMessage =
+      this.channel?.state.latestMessages[
+        this.channel?.state.latestMessages.length - 1
+      ];
+    if (!event.message || latestMessage?.id !== event.message.id) {
+      return;
+    }
+    this.setLatestMessage(latestMessage);
+    this.updateUnreadState();
   }
 
   private setLatestMessage(
