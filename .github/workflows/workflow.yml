@@ -3,13 +3,11 @@ on:
   push:
     branches:
       - master
-      - angular-19
-      - test-update
-      - fix-voice-recording
+      - 6.x.x
   pull_request:
     branches:
       - master
-      - 5.x.x-beta
+      - 6.x.x
 jobs:
   workflow:
     runs-on: ubuntu-latest

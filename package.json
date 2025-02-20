@@ -41,19 +41,9 @@
     "branches": [
       "master",
       {
-        "name": "test-update",
+        "name": "6.x.x",
         "prerelease": true,
-        "channel": "beta"
-      },
-      {
-        "name": "fix-voice-recording",
-        "prerelease": true,
-        "channel": "beta"
-      },
-      {
-        "name": "5.x.x-beta",
-        "prerelease": true,
-        "channel": "beta"
+        "channel": "rc"
       }
     ],
     "dryRun": false,
