@@ -38,7 +38,6 @@ import {
   DefaultStreamChatGenerics,
   MessageInput,
   MessageReactionType,
-  NextPageConfiguration,
   StreamMessage,
 } from './types';
 import { ChannelQuery } from './channel-query';
@@ -360,9 +359,6 @@ export class ChannelService<
   private channelQuery?:
     | ChannelQuery<T>
     | ((queryType: ChannelQueryType) => Promise<ChannelQueryResult<T>>);
-  private _customPaginator:
-    | ((channelQueryResult: Channel<T>[]) => NextPageConfiguration)
-    | undefined;
 
   private channelListSetter = (
     channels: Channel<T>[],
@@ -531,24 +527,6 @@ export class ChannelService<
       }
     }
     this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
-  }
-
-  /**
-   * By default the SDK uses an offset based pagination, you can change/extend this by providing your own custom paginator method.
-   *
-   * The method will be called with the result of the latest channel query.
-   *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
-   */
-  set customPaginator(
-    paginator:
-      | ((channelQueryResult: Channel<T>[]) => NextPageConfiguration)
-      | undefined,
-  ) {
-    this._customPaginator = paginator;
-    if (this.channelQuery && 'customPaginator' in this.channelQuery) {
-      this.channelQuery.customPaginator = this._customPaginator;
-    }
   }
 
   /**
@@ -745,7 +723,6 @@ export class ChannelService<
         ...options,
       },
     );
-    this.channelQuery.customPaginator = this._customPaginator;
 
     return this._init({
       shouldSetActiveChannel,

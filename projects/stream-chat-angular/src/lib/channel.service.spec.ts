@@ -248,37 +248,6 @@ describe('ChannelService', () => {
     /* eslint-enable  @typescript-eslint/no-unsafe-member-access */
   });
 
-  it('should set pagination options correctly if #customPaginator is provided', async () => {
-    service.customPaginator = (
-      channelQueryResult: Channel<DefaultStreamChatGenerics>[],
-    ) => {
-      const lastChannel = channelQueryResult[channelQueryResult.length - 1];
-      if (!lastChannel) {
-        return {
-          type: 'filter',
-          paginationFilter: {},
-        };
-      } else {
-        return {
-          type: 'filter',
-          paginationFilter: {
-            cid: { $gte: lastChannel.cid },
-          },
-        };
-      }
-    };
-
-    await init();
-
-    // @ts-expect-error we know channelQuery exists, TS doesn't
-    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
-      type: 'filter',
-      paginationFilter: {
-        cid: { $gte: jasmine.any(String) },
-      },
-    });
-  });
-
   it('should not set active channel if #shouldSetActiveChannel is false', async () => {
     const activeChannelSpy = jasmine.createSpy();
     service.activeChannel$.subscribe(activeChannelSpy);
