@@ -38,9 +38,6 @@ export class ChatClientService<
   chatClient!: StreamChat<T>;
   /**
    * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event_object/).
-   * :::important
-   * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
-   * :::
    */
   events$: Observable<ClientEvent<T>>;
   /**

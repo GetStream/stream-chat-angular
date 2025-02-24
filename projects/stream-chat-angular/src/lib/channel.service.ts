@@ -58,10 +58,6 @@ export class ChannelService<
   hasMoreChannels$: Observable<boolean>;
   /**
    * Emits the currently loaded and [watched](/chat/docs/javascript/watch_channel/) channel list.
-   *
-   * :::important
-   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
-   * :::
    */
   channels$: Observable<Channel<T>[] | undefined>;
   /**
@@ -70,10 +66,6 @@ export class ChannelService<
   channelQueryState$: Observable<ChannelQueryState | undefined>;
   /**
    * Emits the currently active channel.
-   *
-   * :::important
-   * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
-   * :::
    *
    * The active channel will always be marked as read when a new message is received
    */
