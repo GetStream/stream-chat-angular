@@ -42,7 +42,7 @@
       "master",
       {
         "name": "6.x.x-beta",
-        "prerelease": true,
+        "prerelease": "beta",
         "channel": "beta"
       }
     ],
