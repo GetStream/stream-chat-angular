@@ -41,9 +41,9 @@
     "branches": [
       "master",
       {
-        "name": "6.x.x",
+        "name": "6.x.x-beta",
         "prerelease": true,
-        "channel": "rc"
+        "channel": "beta"
       }
     ],
     "dryRun": true,
