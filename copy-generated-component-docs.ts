@@ -13,7 +13,7 @@ const extractProperties = (content: string) => {
   const endOfPropertiesLineNumber = lines.findIndex(
     (line, index) =>
       line.startsWith(endOfPropertiesMark) &&
-      index > startOfPropertiesLineNumber
+      index > startOfPropertiesLineNumber,
   );
 
   if (startOfPropertiesLineNumber === -1) {
@@ -24,24 +24,24 @@ const extractProperties = (content: string) => {
     (_, lineNumber) =>
       lineNumber > startOfPropertiesLineNumber &&
       (endOfPropertiesLineNumber === -1 ||
-        lineNumber < endOfPropertiesLineNumber)
+        lineNumber < endOfPropertiesLineNumber),
   );
 };
 
 const insertGeneratedParts = (
   fileContent: string,
-  generatedContent: string[]
+  generatedContent: string[],
 ) => {
   generatedContent = generatedContent.map((l) =>
-    l.replace(/•\s/g, '').replace(/▸\s/g, '')
+    l.replace(/•\s/g, '').replace(/▸\s/g, ''),
   );
   const lines: string[] = fileContent.split('\n');
   const startOfGeneratedContentLineNumber = lines.indexOf(
-    startOfGeneratedContentMark
+    startOfGeneratedContentMark,
   );
   const result = [
     ...lines.splice(0, startOfGeneratedContentLineNumber + 1),
-    generatedContent.length ? '## Inputs and outputs \n' : '\n',
+    generatedContent.length ? '\n## Inputs and outputs\n' : '\n',
     ...generatedContent,
     ...lines.splice(0),
   ];
@@ -70,7 +70,7 @@ fs.readdir(generatedDocsPath, (err: any, files: string[]) => {
           (err: any, docFile: any) => {
             if (err)
               throw new Error(
-                `${componentDocsPath}/${file} couldn't be opened, error: ${err}, make sure that this file exists`
+                `${componentDocsPath}/${file} couldn't be opened, error: ${err}, make sure that this file exists`,
               );
 
             if (file !== '_category_.json') {
@@ -82,12 +82,12 @@ fs.readdir(generatedDocsPath, (err: any, files: string[]) => {
                 'utf8',
                 (err: any) => {
                   if (err) throw err;
-                }
+                },
               );
             }
-          }
+          },
         );
-      }
+      },
     );
   });
 });

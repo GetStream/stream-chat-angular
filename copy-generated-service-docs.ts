@@ -42,6 +42,7 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
         '\n\n' +
         data
           .replace(`# Class: ${file.replace('.md', '')}`, '')
+          .replace(`# Class: \`abstract\` ${file.replace('.md', '')}`, '')
           .replace(
             /\b(?!README)(\w+)\.md\b/g,
             '/chat/docs/sdk/angular/services/$1',
