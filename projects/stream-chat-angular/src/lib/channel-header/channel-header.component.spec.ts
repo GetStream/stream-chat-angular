@@ -112,7 +112,7 @@ describe('ChannelHeaderComponent', () => {
     expect(avatar.type).toBe('channel');
     expect(avatar.location).toBe('channel-header');
     expect(avatar.channel).toBe(
-      channel as any as Channel<DefaultStreamChatGenerics>
+      channel as any as Channel<DefaultStreamChatGenerics>,
     );
   });
 });

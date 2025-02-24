@@ -3,7 +3,7 @@ import { UserResponse } from 'stream-chat';
 export const listUsers = (
   users: UserResponse[],
   displayRestCount = true,
-  othersText = ''
+  othersText = '',
 ) => {
   let outStr = '';
 

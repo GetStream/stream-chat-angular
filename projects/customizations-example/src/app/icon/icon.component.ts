@@ -4,7 +4,7 @@ import { Icon } from 'stream-chat-angular';
 @Component({
   selector: 'app-icon',
   templateUrl: './icon.component.html',
-  styleUrls: ['./icon.component.scss'],
+  styleUrl: './icon.component.scss',
 })
 export class IconComponent {
   @Input() icon: Icon | undefined;

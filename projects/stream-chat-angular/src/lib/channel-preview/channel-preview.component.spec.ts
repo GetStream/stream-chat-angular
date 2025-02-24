@@ -253,7 +253,7 @@ describe('ChannelPreviewComponent', () => {
 
       expect(queryLatestMessage()?.textContent).toContain(
         channel.state.latestMessages[channel.state.latestMessages.length - 1]
-          .text
+          .text,
       );
     });
 
@@ -329,7 +329,7 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(queryLatestMessage()?.textContent).not.toContain(
-      updatedMessage.text
+      updatedMessage.text,
     );
   });
 
@@ -368,14 +368,14 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(nativeElement.querySelector('[data-testid="html-content"]')).toBe(
-      null
+      null,
     );
 
     component.displayAs = 'html';
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="html-content"]')
+      nativeElement.querySelector('[data-testid="html-content"]'),
     ).not.toBe(null);
   });
 
@@ -384,11 +384,11 @@ describe('ChannelPreviewComponent', () => {
     component.channel = channel;
     fixture.detectChanges();
     const iconComponent = fixture.debugElement.query(
-      By.directive(IconPlaceholderComponent)
+      By.directive(IconPlaceholderComponent),
     )?.componentInstance as IconPlaceholderComponent;
 
     expect(
-      nativeElement.querySelector('[data-testid="latest-message-status"]')
+      nativeElement.querySelector('[data-testid="latest-message-status"]'),
     ).not.toBeNull();
 
     expect(iconComponent.icon).toBe('delivered');

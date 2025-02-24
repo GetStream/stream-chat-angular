@@ -19,8 +19,8 @@
   [class.str-chat__message-with-touch-support]="hasTouchSupport"
   [class.str-chat__message-without-touch-support]="!hasTouchSupport"
 >
-  <ng-container *ngIf="!message?.deleted_at; else deletedMessage">
-    <ng-container *ngIf="message?.type !== 'system'; else systemMessage">
+  @if (!message?.deleted_at) {
+    @if (message?.type !== "system") {
       <stream-avatar-placeholder
         data-testid="avatar"
         class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
@@ -29,59 +29,61 @@
         [imageUrl]="message?.user?.image"
         [name]="message?.user?.name || message?.user?.id"
         [user]="message?.user || undefined"
-      ></stream-avatar-placeholder>
+      />
       <div class="str-chat__message-inner">
-        <div
-          *ngIf="!hasTouchSupport && areOptionsVisible"
-          class="str-chat__message-simple__actions str-chat__message-options"
-          data-testid="message-options"
-          [class.str-chat__message-actions-open]="areMessageOptionsOpen"
-        >
+        @if (!hasTouchSupport && areOptionsVisible) {
           <div
-            #messageActionsToggle
-            data-testid="message-actions-container"
-            class="str-chat__message-actions-container str-chat__message-simple__actions__action str-chat__message-simple__actions__action--options"
-            [floatUiLoose]="messageMenuFloat"
-            [looseTrigger]="
-              messageActionsService.customActionClickHandler ? 'none' : 'click'
-            "
-            [hideOnScroll]="false"
-            [hideOnClickOutside]="true"
-            [hideOnMouseLeave]="false"
-            [disableAnimation]="false"
-            [preventOverflow]="true"
-            [positionFixed]="true"
-            (onSHown)="areMessageOptionsOpen = true"
-            (onHidden)="areMessageOptionsOpen = false"
+            class="str-chat__message-simple__actions str-chat__message-options"
+            data-testid="message-options"
+            [class.str-chat__message-actions-open]="areMessageOptionsOpen"
           >
             <div
-              *ngIf="visibleMessageActionsCount > 0"
-              class="str-chat__message-actions-box-button"
-              data-testid="message-options-button"
-              (click)="messageOptionsButtonClicked()"
-              (keyup.enter)="messageOptionsButtonClicked()"
+              #messageActionsToggle
+              data-testid="message-actions-container"
+              class="str-chat__message-actions-container str-chat__message-simple__actions__action str-chat__message-simple__actions__action--options"
+              [floatUiLoose]="messageMenuFloat"
+              [looseTrigger]="
+                messageActionsService.customActionClickHandler
+                  ? 'none'
+                  : 'click'
+              "
+              [hideOnScroll]="false"
+              [hideOnClickOutside]="true"
+              [hideOnMouseLeave]="false"
+              [disableAnimation]="false"
+              [preventOverflow]="true"
+              [positionFixed]="true"
+              (onSHown)="areMessageOptionsOpen = true"
+              (onHidden)="areMessageOptionsOpen = false"
             >
-              <stream-icon-placeholder
-                icon="action"
-                class="str-chat__message-action-icon"
-              ></stream-icon-placeholder>
+              @if (visibleMessageActionsCount > 0) {
+                <div
+                  class="str-chat__message-actions-box-button"
+                  data-testid="message-options-button"
+                  (click)="messageOptionsButtonClicked()"
+                  (keyup.enter)="messageOptionsButtonClicked()"
+                >
+                  <stream-icon-placeholder
+                    icon="action"
+                    class="str-chat__message-action-icon"
+                  />
+                </div>
+              }
             </div>
           </div>
-        </div>
-        <ng-container
-          *ngIf="
-            customTemplatesService.customMessageMetadataInsideBubbleTemplate$
-              | async
-          "
-        >
+        }
+        @if (
+          customTemplatesService.customMessageMetadataInsideBubbleTemplate$
+            | async
+        ) {
           <ng-template
             *ngTemplateOutlet="
               (customTemplatesService.customMessageMetadataInsideBubbleTemplate$
                 | async)!;
               context: { message: message }
             "
-          ></ng-template>
-        </ng-container>
+          />
+        }
         <div class="str-chat__message-reactions-host">
           <ng-template
             #defaultMessageReactions
@@ -97,7 +99,7 @@
               [messageId]="messageId"
               [ownReactions]="ownReactions"
               [messageReactionGroups]="messageReactionGroups"
-            ></stream-message-reactions>
+            />
           </ng-template>
           <ng-container
             *ngTemplateOutlet="
@@ -105,7 +107,7 @@
                 defaultMessageReactions;
               context: getMessageReactionsContext()
             "
-          ></ng-container>
+          />
         </div>
         <float-ui-content #messageMenuFloat>
           <ng-template
@@ -120,7 +122,7 @@
               [message]="messageInput"
               [enabledActions]="enabledActions"
               [messageTextHtmlElement]="messageTextHtmlElement"
-            ></stream-message-actions-box>
+            />
           </ng-template>
           <ng-container>
             <div
@@ -133,8 +135,7 @@
                     defaultMessageActionsBox;
                   context: getMessageActionsBoxContext()
                 "
-              >
-              </ng-container>
+              />
             </div>
           </ng-container>
         </float-ui-content>
@@ -157,96 +158,99 @@
           (onHidden)="areMessageOptionsOpen = false"
           [positionFixed]="true"
         >
-          <ng-container *ngIf="hasAttachment && !message?.quoted_message">
+          @if (hasAttachment && !message?.quoted_message) {
             <div class="str-chat__attachments-container">
-              <ng-container
-                *ngTemplateOutlet="attachmentsTemplate"
-              ></ng-container>
+              <ng-container *ngTemplateOutlet="attachmentsTemplate" />
             </div>
-          </ng-container>
-          <div
-            *ngIf="message?.text || (message?.quoted_message && hasAttachment)"
-            class="str-chat__message-text"
-            tabindex="0"
-            [class.str-chat__message-text--pointer-cursor]="
-              (message?.status === 'failed' &&
-                message?.errorStatusCode !== 403) ||
-              (this.message?.type === 'error' &&
-                this.message?.moderation_details) ||
-              message?.message_text_updated_at
-            "
-            (click)="messageClicked()"
-            (keyup.enter)="messageClicked()"
-          >
+          }
+          @if (message?.text || (message?.quoted_message && hasAttachment)) {
             <div
-              data-testid="inner-message"
-              class="str-chat__message-text-inner str-chat__message-simple-text-inner"
-              [class.str-chat__message-light-text-inner--has-attachment]="
-                hasAttachment
+              class="str-chat__message-text"
+              tabindex="0"
+              [class.str-chat__message-text--pointer-cursor]="
+                (message?.status === 'failed' &&
+                  message?.errorStatusCode !== 403) ||
+                (this.message?.type === 'error' &&
+                  this.message?.moderation_details) ||
+                message?.message_text_updated_at
               "
+              (click)="messageClicked()"
+              (keyup.enter)="messageClicked()"
             >
-              <ng-container *ngTemplateOutlet="quotedMessage"></ng-container>
-              <ng-container *ngIf="hasAttachment && message?.quoted_message">
-                <ng-container
-                  *ngTemplateOutlet="attachmentsTemplate"
-                ></ng-container>
-              </ng-container>
               <div
-                *ngIf="message?.type === 'error'"
-                data-testid="client-error-message"
-                class="str-chat__simple-message--error-message str-chat__message--error-message"
-              >
-                <ng-container *ngIf="!message?.moderation_details">{{
-                  "streamChat.Error · Unsent" | translate
-                }}</ng-container>
-              </div>
-              <div
-                *ngIf="message?.status === 'failed'"
-                data-testid="error-message"
-                class="str-chat__simple-message--error-message str-chat__message--error-message"
-              >
-                {{
-                  (message?.errorStatusCode === 403
-                    ? "streamChat.Message Failed · Unauthorized"
-                    : "streamChat.Message Failed · Click to try again"
-                  ) | translate
-                }}
-              </div>
-              <ng-container
-                *ngTemplateOutlet="
-                  (customTemplatesService.messageTextTemplate$ | async) ||
-                    defaultText;
-                  context: getMessageTextContext()
+                data-testid="inner-message"
+                class="str-chat__message-text-inner str-chat__message-simple-text-inner"
+                [class.str-chat__message-light-text-inner--has-attachment]="
+                  hasAttachment
                 "
-              ></ng-container>
-              <ng-template
-                #defaultText
-                let-message="message"
-                let-isQuoted="isQuoted"
-                let-shouldTranslate="shouldTranslate"
               >
-                <stream-message-text
-                  [message]="message"
-                  [isQuoted]="isQuoted"
-                  [shouldTranslate]="shouldTranslate"
-                  data-testid="quoted-message-text"
-                ></stream-message-text>
-              </ng-template>
+                <ng-template [ngTemplateOutlet]="quotedMessage" />
+                @if (hasAttachment && message?.quoted_message) {
+                  <ng-container *ngTemplateOutlet="attachmentsTemplate" />
+                }
+                @if (message?.type === "error") {
+                  <div
+                    data-testid="client-error-message"
+                    class="str-chat__simple-message--error-message str-chat__message--error-message"
+                  >
+                    @if (!message?.moderation_details) {
+                      {{ "streamChat.Error · Unsent" | translate }}
+                    }
+                  </div>
+                }
+                @if (message?.status === "failed") {
+                  <div
+                    data-testid="error-message"
+                    class="str-chat__simple-message--error-message str-chat__message--error-message"
+                  >
+                    {{
+                      (message?.errorStatusCode === 403
+                        ? "streamChat.Message Failed · Unauthorized"
+                        : "streamChat.Message Failed · Click to try again"
+                      ) | translate
+                    }}
+                  </div>
+                }
+                <ng-template
+                  [ngTemplateOutlet]="
+                    (customTemplatesService.messageTextTemplate$ | async) ||
+                    defaultText
+                  "
+                  [ngTemplateOutletContext]="getMessageTextContext()"
+                />
+                <ng-template
+                  #defaultText
+                  let-message="message"
+                  let-isQuoted="isQuoted"
+                  let-shouldTranslate="shouldTranslate"
+                >
+                  <stream-message-text
+                    [message]="message"
+                    [isQuoted]="isQuoted"
+                    [shouldTranslate]="shouldTranslate"
+                    data-testid="quoted-message-text"
+                  />
+                </ng-template>
+              </div>
             </div>
-          </div>
+          }
           <stream-icon-placeholder
             class="str-chat__message-error-icon"
             icon="error"
-          ></stream-icon-placeholder>
+          />
         </div>
       </div>
       <ng-container
         *ngTemplateOutlet="replyCountButton; context: { message: message }"
-      ></ng-container>
+      />
 
-      <ng-container *ngTemplateOutlet="messageDateAndSender"></ng-container>
-    </ng-container>
-  </ng-container>
+      <ng-container *ngTemplateOutlet="messageDateAndSender" />
+    } @else {
+      <ng-template [ngTemplateOutlet]="systemMessage" />
+    }
+  } @else {
+    <ng-template [ngTemplateOutlet]="deletedMessage" />
+  }
 </div>
 
 <ng-template #deletedMessage>
@@ -264,7 +268,7 @@
         defaultSystemMessage;
       context: getMessageContext()
     "
-  ></ng-container>
+  />
   <ng-template #defaultSystemMessage let-messageInput="message">
     <div data-testid="system-message" class="str-chat__message--system">
       <div class="str-chat__message--system__text">
@@ -280,147 +284,149 @@
 </ng-template>
 
 <ng-template #quotedMessage>
-  <div
-    *ngIf="message?.quoted_message"
-    class="quoted-message str-chat__quoted-message-preview"
-    data-testid="quoted-message-container"
-    [class.mine]="isSentByCurrentUser"
-    (click)="
-      jumpToMessage(
-        (message?.quoted_message)!.id,
-        message?.quoted_message?.parent_id
-      )
-    "
-    (keyup.enter)="
-      jumpToMessage(
-        (message?.quoted_message)!.id,
-        message?.quoted_message?.parent_id
-      )
-    "
-  >
-    <stream-avatar-placeholder
-      data-testid="qouted-message-avatar"
-      class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
-      type="user"
-      location="quoted-message-sender"
-      [imageUrl]="message?.quoted_message?.user?.image"
-      [name]="
-        message?.quoted_message?.user?.name || message?.quoted_message?.user?.id
+  @if (message?.quoted_message) {
+    <div
+      class="quoted-message str-chat__quoted-message-preview"
+      data-testid="quoted-message-container"
+      [class.mine]="isSentByCurrentUser"
+      (click)="
+        jumpToMessage(
+          (message?.quoted_message)!.id,
+          message?.quoted_message?.parent_id
+        )
       "
-      [user]="message?.quoted_message?.user || undefined"
-    ></stream-avatar-placeholder>
-    <div class="quoted-message-inner str-chat__quoted-message-bubble">
-      <ng-container
-        *ngIf="
+      (keyup.enter)="
+        jumpToMessage(
+          (message?.quoted_message)!.id,
+          message?.quoted_message?.parent_id
+        )
+      "
+    >
+      <stream-avatar-placeholder
+        data-testid="qouted-message-avatar"
+        class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
+        type="user"
+        location="quoted-message-sender"
+        [imageUrl]="message?.quoted_message?.user?.image"
+        [name]="
+          message?.quoted_message?.user?.name ||
+          message?.quoted_message?.user?.id
+        "
+        [user]="message?.quoted_message?.user || undefined"
+      />
+      <div class="quoted-message-inner str-chat__quoted-message-bubble">
+        @if (
           message?.quoted_message?.attachments &&
           message?.quoted_message?.attachments?.length
-        "
-      >
-        <ng-template
-          #defaultAttachments
-          let-messageId="messageId"
-          let-attachments="attachments"
-          let-parentMessageId="parentMessageId"
-          let-imageModalStateChangeHandler="imageModalStateChangeHandler"
-        >
-          <stream-attachment-list
-            [messageId]="messageId"
-            [attachments]="attachments"
-            [parentMessageId]="parentMessageId"
-            (imageModalStateChange)="imageModalStateChangeHandler($event)"
-          ></stream-attachment-list>
-        </ng-template>
-        <ng-container
-          *ngTemplateOutlet="
-            (customTemplatesService.attachmentListTemplate$ | async) ||
-              defaultAttachments;
-            context: getQuotedMessageAttachmentListContext()
-          "
-        ></ng-container>
-      </ng-container>
-      <ng-container *ngIf="message?.quoted_message">
-        <ng-container
-          *ngTemplateOutlet="
-            (customTemplatesService.messageTextTemplate$ | async) ||
-              defaultText;
-            context: getQuotedMessageTextContext()
-          "
-        ></ng-container>
-        <ng-template
-          #defaultText
-          let-message="message"
-          let-isQuoted="isQuoted"
-          let-shouldTranslate="shouldTranslate"
-        >
-          <stream-message-text
-            [message]="message"
-            [isQuoted]="isQuoted"
-            [shouldTranslate]="shouldTranslate"
-            data-testid="quoted-message-text"
-          ></stream-message-text>
-        </ng-template>
-      </ng-container>
+        ) {
+          <ng-template
+            #defaultAttachments
+            let-messageId="messageId"
+            let-attachments="attachments"
+            let-parentMessageId="parentMessageId"
+            let-imageModalStateChangeHandler="imageModalStateChangeHandler"
+          >
+            <stream-attachment-list
+              [messageId]="messageId"
+              [attachments]="attachments"
+              [parentMessageId]="parentMessageId"
+              (imageModalStateChange)="imageModalStateChangeHandler($event)"
+            />
+          </ng-template>
+          <ng-container
+            *ngTemplateOutlet="
+              (customTemplatesService.attachmentListTemplate$ | async) ||
+                defaultAttachments;
+              context: getQuotedMessageAttachmentListContext()
+            "
+          />
+        }
+        @if (message?.quoted_message) {
+          <ng-container
+            *ngTemplateOutlet="
+              (customTemplatesService.messageTextTemplate$ | async) ||
+                defaultText;
+              context: getQuotedMessageTextContext()
+            "
+          />
+          <ng-template
+            #defaultText
+            let-message="message"
+            let-isQuoted="isQuoted"
+            let-shouldTranslate="shouldTranslate"
+          >
+            <stream-message-text
+              [message]="message"
+              [isQuoted]="isQuoted"
+              [shouldTranslate]="shouldTranslate"
+              data-testid="quoted-message-text"
+            />
+          </ng-template>
+        }
+      </div>
     </div>
-  </div>
+  }
 </ng-template>
 
 <ng-template #messageDateAndSender>
   <ng-container>
-    <div
-      *ngIf="shouldDisplayTranslationNotice"
-      class="str-chat__translation-notice"
-      data-testid="translation-notice"
-    >
-      <button
-        *ngIf="displayedMessageTextContent === 'translation'"
-        data-testid="see-original"
-        translate
-        (click)="displayOriginalMessage()"
-        (keyup.enter)="displayOriginalMessage()"
+    @if (shouldDisplayTranslationNotice) {
+      <div
+        class="str-chat__translation-notice"
+        data-testid="translation-notice"
       >
-        streamChat.See original (automatically translated)
-      </button>
-      <button
-        *ngIf="displayedMessageTextContent === 'original'"
-        data-testid="see-translation"
-        translate
-        (click)="displayTranslatedMessage()"
-        (keyup.enter)="displayTranslatedMessage()"
-      >
-        streamChat.See translation
-      </button>
-    </div>
-    <ng-container
-      *ngIf="customTemplatesService.customMessageMetadataTemplate$ | async"
-    >
+        @if (displayedMessageTextContent === "translation") {
+          <button
+            data-testid="see-original"
+            translate
+            (click)="displayOriginalMessage()"
+            (keyup.enter)="displayOriginalMessage()"
+          >
+            streamChat.See original (automatically translated)
+          </button>
+        }
+        @if (displayedMessageTextContent === "original") {
+          <button
+            data-testid="see-translation"
+            translate
+            (click)="displayTranslatedMessage()"
+            (keyup.enter)="displayTranslatedMessage()"
+          >
+            streamChat.See translation
+          </button>
+        }
+      </div>
+    }
+    @if (customTemplatesService.customMessageMetadataTemplate$ | async) {
       <div class="str-chat__custom-message-metadata">
         <ng-container
           *ngTemplateOutlet="
             (customTemplatesService.customMessageMetadataTemplate$ | async)!;
             context: getMessageMetadataContext()
           "
-        ></ng-container>
+        />
       </div>
-    </ng-container>
+    }
     <div
       class="str-chat__message-data str-chat__message-simple-data str-chat__message-metadata"
     >
-      <ng-container *ngTemplateOutlet="messageStatus"></ng-container>
+      <ng-container *ngTemplateOutlet="messageStatus" />
 
-      <span
-        *ngIf="!isSentByCurrentUser"
-        data-testid="sender"
-        class="str-chat__message-simple-name str-chat__message-sender-name"
-      >
-        {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
-      </span>
+      @if (!isSentByCurrentUser) {
+        <span
+          data-testid="sender"
+          class="str-chat__message-simple-name str-chat__message-sender-name"
+        >
+          {{ message?.user?.name ? message?.user?.name : message?.user?.id }}
+        </span>
+      }
       <span
         data-testid="date"
         class="str-chat__message-simple-timestamp str-chat__message-simple-time"
       >
         {{ parsedDate }}
       </span>
-      <ng-container *ngIf="message?.message_text_updated_at">
+      @if (message?.message_text_updated_at) {
         <span
           data-testid="edited-flag"
           class="str-chat__mesage-simple-edited"
@@ -432,7 +438,8 @@
           class="str-chat__message-edited-timestamp"
           [ngClass]="{
             'str-chat__message-edited-timestamp--open': isEditedFlagOpened,
-            'str-chat__message-edited-timestamp--collapsed': !isEditedFlagOpened
+            'str-chat__message-edited-timestamp--collapsed':
+              !isEditedFlagOpened,
           }"
         >
           <span translate>streamChat.Edited</span>
@@ -443,65 +450,60 @@
             {{ pasedEditedDate }}
           </time>
         </div>
-      </ng-container>
+      }
     </div>
   </ng-container>
 </ng-template>
 
 <ng-template #messageStatus>
-  <ng-container
-    *ngIf="
-      isSentByCurrentUser &&
-      ((isLastSentMessage && message?.status === 'received') ||
-        message?.status === 'sending')
-    "
-  >
-    <ng-container *ngIf="message?.status === 'sending'; else sentStatus">
-      <ng-container *ngTemplateOutlet="sendingStatus"></ng-container>
-    </ng-container>
-    <ng-template #sentStatus>
-      <ng-container
-        *ngIf="
-          mode === 'main' && isMessageDeliveredAndRead && canDisplayReadStatus;
-          else deliveredStatus
-        "
-      >
-        <ng-container *ngTemplateOutlet="readStatus"></ng-container>
-      </ng-container>
-    </ng-template>
-    <ng-template #deliveredStatus>
-      <ng-container
-        *ngTemplateOutlet="
-          (customTemplatesService.deliveredStatusTemplate$ | async) ||
-            defaultDeliveredStatus;
-          context: getDeliveredStatusContext()
-        "
-      ></ng-container>
-    </ng-template>
+  @if (
+    isSentByCurrentUser &&
+    ((isLastSentMessage && message?.status === "received") ||
+      message?.status === "sending")
+  ) {
+    @if (message?.status === "sending") {
+      <ng-container *ngTemplateOutlet="sendingStatus" />
+    } @else {
+      @if (
+        mode === "main" && isMessageDeliveredAndRead && canDisplayReadStatus
+      ) {
+        <ng-container *ngTemplateOutlet="readStatus" />
+      } @else {
+        <ng-container
+          *ngTemplateOutlet="
+            (customTemplatesService.deliveredStatusTemplate$ | async) ||
+              defaultDeliveredStatus;
+            context: getDeliveredStatusContext()
+          "
+        />
+      }
+    }
+
     <ng-template #defaultDeliveredStatus>
-      <span
-        *ngIf="mode === 'main'"
-        class="str-chat__message-simple-status str-chat__message-simple-status-angular str-chat__message-status"
-        data-testid="delivered-indicator"
-        tabindex="0"
-        [floatUiLoose]="floatingContent"
-        loosePlacement="top"
-        [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
-        [disableAnimation]="true"
-        [hideOnClickOutside]="true"
-        [positionFixed]="true"
-        [preventOverflow]="true"
-      >
-        <float-ui-content #floatingContent>
-          <div class="str-chat__tooltip str-chat__tooltip-angular">
-            {{ "streamChat.Delivered" | translate }}
-          </div>
-        </float-ui-content>
-        <stream-icon-placeholder
-          data-testid="delivered-icon"
-          icon="delivered"
-        ></stream-icon-placeholder>
-      </span>
+      @if (mode === "main") {
+        <span
+          class="str-chat__message-simple-status str-chat__message-simple-status-angular str-chat__message-status"
+          data-testid="delivered-indicator"
+          tabindex="0"
+          [floatUiLoose]="floatingContent"
+          loosePlacement="top"
+          [looseTrigger]="hasTouchSupport ? 'click' : 'hover'"
+          [disableAnimation]="true"
+          [hideOnClickOutside]="true"
+          [positionFixed]="true"
+          [preventOverflow]="true"
+        >
+          <float-ui-content #floatingContent>
+            <div class="str-chat__tooltip str-chat__tooltip-angular">
+              {{ "streamChat.Delivered" | translate }}
+            </div>
+          </float-ui-content>
+          <stream-icon-placeholder
+            data-testid="delivered-icon"
+            icon="delivered"
+          />
+        </span>
+      }
     </ng-template>
     <ng-template #sendingStatus>
       <ng-container
@@ -510,7 +512,7 @@
             defaultSendingStatus;
           context: getSendingStatusContext()
         "
-      ></ng-container>
+      />
     </ng-template>
     <ng-template #defaultSendingStatus>
       <span
@@ -530,9 +532,7 @@
             {{ "streamChat.Sending..." | translate }}
           </div>
         </float-ui-content>
-        <stream-loading-indicator-placeholder
-          data-testid="loading-indicator"
-        ></stream-loading-indicator-placeholder>
+        <stream-loading-indicator-placeholder data-testid="loading-indicator" />
       </span>
     </ng-template>
     <ng-template #readStatus>
@@ -542,7 +542,7 @@
             defaultReadStatus;
           context: getReadStatusContext()
         "
-      ></ng-container>
+      />
     </ng-template>
     <ng-template #defaultReadStatus let-readByText="readByText">
       <span
@@ -565,24 +565,24 @@
             {{ readByText }}
           </div>
         </float-ui-content>
-        <stream-icon-placeholder icon="read"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="read" />
       </span>
     </ng-template>
-  </ng-container>
+  }
 </ng-template>
 
 <ng-template #replyCountButton>
   <div
     class="str-chat__message-simple-reply-button str-chat__message-replies-count-button-wrapper"
   >
-    <ng-container *ngIf="shouldDisplayThreadLink">
+    @if (shouldDisplayThreadLink) {
       <ng-template
         *ngTemplateOutlet="
           (customTemplatesService.threadLinkButton$ | async) || defaultButton;
           context: { message: message }
         "
-      ></ng-template>
-    </ng-container>
+      />
+    }
     <ng-template #defaultButton let-message="message">
       <button
         class="str-chat__message-replies-count-button"
@@ -609,7 +609,7 @@
       [attachments]="attachments"
       [parentMessageId]="parentMessageId"
       (imageModalStateChange)="imageModalStateChangeHandler($event)"
-    ></stream-attachment-list>
+    />
   </ng-template>
   <ng-container
     *ngTemplateOutlet="
@@ -617,5 +617,5 @@
         defaultAttachments;
       context: getAttachmentListContext()
     "
-  ></ng-container>
+  />
 </ng-template>

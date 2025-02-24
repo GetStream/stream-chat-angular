@@ -2,11 +2,11 @@ import { Injectable, NgModule } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ChatClientService } from '../chat-client.service';
 
-const MAX_FREQUENCY_AMPLITUDE = 255 as const;
+const MAX_FREQUENCY_AMPLITUDE = 255;
 
 const rootMeanSquare = (values: Uint8Array) =>
   Math.sqrt(
-    values.reduce((acc, val) => acc + Math.pow(val, 2), 0) / values.length
+    values.reduce((acc, val) => acc + Math.pow(val, 2), 0) / values.length,
   );
 
 /**

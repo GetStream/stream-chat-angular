@@ -23,7 +23,7 @@ export class StreamI18nService {
     this.translteService.setTranslation(
       lang,
       { streamChat: { ...en.streamChat, ...overrides } },
-      true
+      true,
     );
   }
 }

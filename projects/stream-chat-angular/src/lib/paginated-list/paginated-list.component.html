@@ -1,27 +1,30 @@
 <div class="stream-chat__paginated-list" #container>
+  <!-- eslint-disable @angular-eslint/template/prefer-control-flow -->
   <div
     data-testid="item"
     class="stream-chat__paginated-list-item"
     *ngFor="let item of items; let index = index; trackBy: trackBy"
   >
-    <ng-template
-      *ngIf="itemTempalteRef"
-      [ngTemplateOutlet]="itemTempalteRef"
-      [ngTemplateOutletContext]="{ item: item, index: index }"
-    ></ng-template>
+    <!-- eslint-enable  @angular-eslint/template/prefer-control-flow -->
+    @if (itemTempalteRef) {
+      <ng-template
+        [ngTemplateOutlet]="itemTempalteRef"
+        [ngTemplateOutletContext]="{ item: item, index: index }"
+      />
+    }
   </div>
-  <button
-    *ngIf="hasMore && !isScrollable"
-    class="str-chat__load-more-button__button str-chat__cta-button"
-    data-testid="load-more-button"
-    [disabled]="isLoading"
-    (click)="loadMore.emit()"
-    (keyup.enter)="loadMore.emit()"
-  >
-    <span>{{ "Load more" | translate }}</span>
-  </button>
-  <stream-loading-indicator-placeholder
-    data-testid="loading-indicator"
-    *ngIf="isLoading"
-  ></stream-loading-indicator-placeholder>
+  @if (hasMore && !isScrollable) {
+    <button
+      class="str-chat__load-more-button__button str-chat__cta-button"
+      data-testid="load-more-button"
+      [disabled]="isLoading"
+      (click)="loadMore.emit()"
+      (keyup.enter)="loadMore.emit()"
+    >
+      <span>{{ "Load more" | translate }}</span>
+    </button>
+  }
+  @if (isLoading) {
+    <stream-loading-indicator-placeholder data-testid="loading-indicator" />
+  }
 </div>

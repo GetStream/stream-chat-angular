@@ -43,7 +43,7 @@ import { environment } from '../environments/environment';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  styleUrl: './app.component.scss',
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('mentionAutocompleteItemTemplate')
@@ -104,7 +104,7 @@ export class AppComponent implements AfterViewInit {
     public channelService: ChannelService,
     private streamI18nService: StreamI18nService,
     private customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService
+    private messageActionsService: MessageActionsService,
   ) {
     this.messageActionsService.customActions$.next([
       {
@@ -117,7 +117,7 @@ export class AppComponent implements AfterViewInit {
     void this.chatService.init(
       environment.apiKey,
       environment.userId,
-      environment.userToken
+      environment.userToken,
     );
     void this.channelService.init({
       type: 'messaging',
@@ -128,72 +128,72 @@ export class AppComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.customTemplatesService.mentionAutocompleteItemTemplate$.next(
-      this.mentionAutocompleteItemTemplate
+      this.mentionAutocompleteItemTemplate,
     );
     this.customTemplatesService.commandAutocompleteItemTemplate$.next(
-      this.commandAutocompleteItemTemplate
+      this.commandAutocompleteItemTemplate,
     );
     this.customTemplatesService.channelPreviewInfoTemplate$.next(
-      this.channelPreviewInfoTemplate
+      this.channelPreviewInfoTemplate,
     );
     this.customTemplatesService.mentionTemplate$.next(this.mentionTemplate);
     this.customTemplatesService.emojiPickerTemplate$.next(
-      this.emojiPickerTemplate
+      this.emojiPickerTemplate,
     );
     this.customTemplatesService.typingIndicatorTemplate$.next(
-      this.typingIndicatorTemplate
+      this.typingIndicatorTemplate,
     );
     this.customTemplatesService.messageTemplate$.next(this.messageTemplate);
     this.customTemplatesService.channelActionsTemplate$.next(
-      this.channelActionsTemplate
+      this.channelActionsTemplate,
     );
     this.customTemplatesService.attachmentListTemplate$.next(
-      this.attachmentListTemplate
+      this.attachmentListTemplate,
     );
     this.customTemplatesService.attachmentPreviewListTemplate$.next(
-      this.attachmentPreviewListTemplate
+      this.attachmentPreviewListTemplate,
     );
     this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
     this.customTemplatesService.iconTemplate$.next(this.iconTemplate);
     this.customTemplatesService.loadingIndicatorTemplate$.next(
-      this.loadingIndicatorTemplate
+      this.loadingIndicatorTemplate,
     );
     this.customTemplatesService.messageActionsBoxTemplate$.next(
-      this.messageActionsBoxTemplate
+      this.messageActionsBoxTemplate,
     );
     this.customTemplatesService.messageActionsBoxItemTemplate$.next(
-      this.messageActionItemTemplate
+      this.messageActionItemTemplate,
     );
     this.customTemplatesService.messageReactionsTemplate$.next(
-      this.messageReactionsTemplate
+      this.messageReactionsTemplate,
     );
     this.customTemplatesService.messageReactionsSelectorTemplate$.next(
-      this.messageReactionsSelectorTemplate
+      this.messageReactionsSelectorTemplate,
     );
     this.customTemplatesService.modalTemplate$.next(this.modalTemplate);
     this.customTemplatesService.notificationTemplate$.next(
-      this.notificationTemplate
+      this.notificationTemplate,
     );
     this.customTemplatesService.threadHeaderTemplate$.next(
-      this.threadHeaderTemplate
+      this.threadHeaderTemplate,
     );
     this.customTemplatesService.channelHeaderInfoTemplate$.next(
-      this.chstomChannelInfoTemplate
+      this.chstomChannelInfoTemplate,
     );
     this.customTemplatesService.customAttachmentUploadTemplate$.next(
-      this.customAttachmentUploadTemplate
+      this.customAttachmentUploadTemplate,
     );
     this.customTemplatesService.dateSeparatorTemplate$.next(
-      this.dateSeparatorTemplate
+      this.dateSeparatorTemplate,
     );
     this.customTemplatesService.emptyMainMessageListPlaceholder$.next(
-      this.emptyMainMessageListTemplate
+      this.emptyMainMessageListTemplate,
     );
     this.customTemplatesService.emptyThreadMessageListPlaceholder$.next(
-      this.emptyThreadMessageListTemplate
+      this.emptyThreadMessageListTemplate,
     );
     this.customTemplatesService.messageTextTemplate$.next(
-      this.messageTextTemplate
+      this.messageTextTemplate,
     );
   }
 
@@ -201,7 +201,7 @@ export class AppComponent implements AfterViewInit {
     alert(
       `You can add channel actions to the channel header to manage the ${
         channel.data?.name || (channel.data?.id as string)
-      } channel`
+      } channel`,
     );
   }
 

@@ -167,7 +167,7 @@ export class MessageInputComponent
     readonly customTemplatesService: CustomTemplatesService,
     private messageActionsService: MessageActionsService,
     public readonly voiceRecorderService: VoiceRecorderService,
-    @Optional() public audioRecorder?: AudioRecorderService
+    @Optional() public audioRecorder?: AudioRecorderService,
   ) {
     this.textareaPlaceholder = this.defaultTextareaPlaceholder;
     this.subscriptions.push(
@@ -177,8 +177,8 @@ export class MessageInputComponent
             this.hideNotification();
             this.hideNotification = undefined;
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -195,7 +195,7 @@ export class MessageInputComponent
           this.channel = channel;
           this.setCanSendMessages();
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.channelService.messageToQuote$.subscribe((m) => {
@@ -207,13 +207,13 @@ export class MessageInputComponent
         ) {
           this.quotedMessage = m;
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.messageActionsService.messageToEdit$.subscribe((message) => {
         this.messageToEdit = message;
         this.checkIfInEditMode();
-      })
+      }),
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
     this.customAttachments$ = this.attachmentService.customAttachments$;
@@ -228,13 +228,13 @@ export class MessageInputComponent
 
     this.subscriptions.push(
       this.typingStart$.subscribe(
-        () => void this.channelService.typingStarted(this.parentMessageId)
-      )
+        () => void this.channelService.typingStarted(this.parentMessageId),
+      ),
     );
     this.subscriptions.push(
       this.voiceRecorderService.isRecorderVisible$.subscribe((isVisible) => {
         this.isVoiceRecording = isVisible;
-      })
+      }),
     );
 
     this.subscriptions.push(
@@ -246,9 +246,9 @@ export class MessageInputComponent
           map(
             ([latestMessages, channel]): [
               Date | undefined,
-              Channel<DefaultStreamChatGenerics> | undefined
-            ] => [latestMessages[channel?.cid || ''], channel!]
-          )
+              Channel<DefaultStreamChatGenerics> | undefined,
+            ] => [latestMessages[channel?.cid || ''], channel!],
+          ),
         )
         .subscribe(([latestMessageDate, channel]) => {
           const cooldown =
@@ -256,7 +256,7 @@ export class MessageInputComponent
             latestMessageDate &&
             Math.round(
               (channel?.data?.cooldown as number) -
-                (new Date().getTime() - latestMessageDate.getTime()) / 1000
+                (new Date().getTime() - latestMessageDate.getTime()) / 1000,
             );
           if (
             cooldown &&
@@ -267,45 +267,15 @@ export class MessageInputComponent
           } else if (this.isCooldownInProgress) {
             this.stopCooldown();
           }
-        })
+        }),
     );
     this.subscriptions.push(
       this.voiceRecorderService.recording$.subscribe((recording) => {
         if (recording) {
           void this.voiceRecordingReady(recording);
         }
-      })
+      }),
     );
-  }
-
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.customTemplatesService.emojiPickerTemplate$.subscribe((template) => {
-        this.emojiPickerTemplate = template;
-        this.cdRef.detectChanges();
-      })
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
-        (template) => {
-          this.attachmentPreviewListTemplate = template;
-          this.cdRef.detectChanges();
-        }
-      )
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.customAttachmentUploadTemplate$.subscribe(
-        (template) => {
-          this.customAttachmentUploadTemplate = template;
-          this.cdRef.detectChanges();
-        }
-      )
-    );
-  }
-
-  ngAfterViewInit(): void {
-    this.isViewInited = true;
-    this.initTextarea();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -341,10 +311,40 @@ export class MessageInputComponent
       }
       if (this.sendMessage$) {
         this.sendMessageSubcription = this.sendMessage$.subscribe(
-          () => void this.messageSent()
+          () => void this.messageSent(),
         );
       }
     }
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.emojiPickerTemplate$.subscribe((template) => {
+        this.emojiPickerTemplate = template;
+        this.cdRef.detectChanges();
+      }),
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
+        (template) => {
+          this.attachmentPreviewListTemplate = template;
+          this.cdRef.detectChanges();
+        },
+      ),
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.customAttachmentUploadTemplate$.subscribe(
+        (template) => {
+          this.customAttachmentUploadTemplate = template;
+          this.cdRef.detectChanges();
+        },
+      ),
+    );
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInited = true;
+    this.initTextarea();
   }
 
   ngOnDestroy(): void {
@@ -366,7 +366,7 @@ export class MessageInputComponent
       if (!this.hideNotification) {
         this.hideNotification =
           this.notificationService.addPermanentNotification(
-            'streamChat.Wait until all attachments have uploaded'
+            'streamChat.Wait until all attachments have uploaded',
           );
       }
       return;
@@ -387,7 +387,7 @@ export class MessageInputComponent
     }
     if (this.containsLinks && !this.canSendLinks) {
       this.notificationService.addTemporaryNotification(
-        'streamChat.Sending links is not allowed in this conversation'
+        'streamChat.Sending links is not allowed in this conversation',
       );
       return;
     }
@@ -406,7 +406,7 @@ export class MessageInputComponent
             attachments,
             this.mentionedUsers,
             this.parentMessageId,
-            this.quotedMessage?.id
+            this.quotedMessage?.id,
           ));
       this.messageUpdate.emit({ message });
       if (this.isUpdate) {
@@ -417,7 +417,7 @@ export class MessageInputComponent
     } catch (error) {
       if (this.isUpdate) {
         this.notificationService.addTemporaryNotification(
-          'streamChat.Edit message request failed'
+          'streamChat.Edit message request failed',
         );
       }
     }
@@ -429,7 +429,7 @@ export class MessageInputComponent
 
   get containsLinks() {
     return /(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+/.test(
-      this.textareaValue
+      this.textareaValue,
     );
   }
 
@@ -558,7 +558,7 @@ export class MessageInputComponent
       this.componentFactoryResolver.resolveComponentFactory(this.textareaType);
     this.textareaRef =
       this.textareaAnchor.viewContainerRef.createComponent<TextareaInterface>(
-        componentFactory
+        componentFactory,
       );
     this.cdRef.detectChanges();
   }
@@ -570,7 +570,7 @@ export class MessageInputComponent
     } else {
       this.canSendMessages =
         capabilities.indexOf(
-          this.mode === 'main' ? 'send-message' : 'send-reply'
+          this.mode === 'main' ? 'send-message' : 'send-reply',
         ) !== -1 || this.isUpdate;
     }
     if (this.isViewInited) {
@@ -600,7 +600,7 @@ export class MessageInputComponent
         if (v === 0) {
           this.stopCooldown();
         }
-      })
+      }),
     );
   }
 
@@ -639,7 +639,7 @@ export class MessageInputComponent
     this.setCanSendMessages();
     if (this.isUpdate) {
       this.attachmentService.createFromAttachments(
-        this.message!.attachments || []
+        this.message!.attachments || [],
       );
       this.textareaValue = this.message!.text || '';
     } else {

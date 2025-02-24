@@ -66,7 +66,7 @@ describe('AutocompleteTextareaComponent', () => {
       Array.from(nativeElement.querySelectorAll('[data-testclass="username"]'));
     queryCommands = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="command-name"]')
+        nativeElement.querySelectorAll('[data-testclass="command-name"]'),
       );
   });
 
@@ -165,7 +165,7 @@ describe('AutocompleteTextareaComponent', () => {
     const textarea = queryTextarea();
     textarea!.value = 'This is my message';
     textarea?.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }),
     );
     fixture.detectChanges();
 
@@ -179,7 +179,7 @@ describe('AutocompleteTextareaComponent', () => {
     const initialHeight = textarea!.offsetHeight;
     textarea!.value = 'This is my message \n';
     textarea?.dispatchEvent(
-      new KeyboardEvent('input', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('input', { key: 'Enter', shiftKey: true }),
     );
     fixture.detectChanges();
     const newHeight = textarea!.offsetHeight;
@@ -234,7 +234,7 @@ describe('AutocompleteTextareaComponent', () => {
       {
         user: { id: 'jack', name: 'Jack' },
       },
-      '@'
+      '@',
     );
 
     expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
@@ -256,8 +256,8 @@ describe('AutocompleteTextareaComponent', () => {
           user: { id: 'jack', name: 'Jack' },
           autocompleteLabel: 'Jack',
         },
-        '@'
-      )
+        '@',
+      ),
     ).toBe('@Jack ');
   });
 
@@ -268,7 +268,7 @@ describe('AutocompleteTextareaComponent', () => {
       {
         user: { id: 'jack', name: 'Jack' },
       },
-      '@'
+      '@',
     );
 
     expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
@@ -292,7 +292,7 @@ describe('AutocompleteTextareaComponent', () => {
       {
         user: { id: 'jack', name: 'Jack' },
       },
-      '@'
+      '@',
     );
 
     expect(userMentionSpy).toHaveBeenCalledWith([{ id: 'jack', name: 'Jack' }]);
@@ -427,7 +427,7 @@ describe('AutocompleteTextareaComponent', () => {
     const textarea = queryTextarea();
     textarea!.value = 'This is my message';
     textarea?.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true })
+      new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }),
     );
     fixture.detectChanges();
 
@@ -465,8 +465,8 @@ describe('AutocompleteTextareaComponent', () => {
         {
           autocompleteLabel: 'giphy',
         },
-        '/'
-      )
+        '/',
+      ),
     ).toBe('/giphy ');
   });
 

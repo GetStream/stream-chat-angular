@@ -1,18 +1,16 @@
-<ng-container *ngIf="isQuoted; else regularMessageText">
-  <!-- Quoted message are clamped by default, so need there -->
+@if (isQuoted) {
   <stream-message-text
     [message]="message"
     [shouldTranslate]="shouldTranslate"
     [isQuoted]="isQuoted"
-  ></stream-message-text>
-</ng-container>
-<ng-template #regularMessageText>
+  />
+} @else {
   <div class="message-text" [class.message-text-expanded]="isExpanded" #text>
     <stream-message-text
       [message]="message"
       [shouldTranslate]="shouldTranslate"
       [isQuoted]="isQuoted"
-    ></stream-message-text>
+    />
   </div>
   <!-- 5px diff is due to Firefox issue -->
   <button
@@ -21,4 +19,4 @@
   >
     {{ "Show" + (isExpanded ? " less" : " more") }}
   </button>
-</ng-template>
+}

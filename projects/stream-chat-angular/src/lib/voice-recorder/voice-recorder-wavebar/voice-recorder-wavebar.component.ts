@@ -20,22 +20,18 @@ export class VoiceRecorderWavebarComponent implements OnDestroy {
 
   constructor(
     private amplitudeRecorder: AmplitudeRecorderService,
-    private audioRecorder: AudioRecorderService
+    private audioRecorder: AudioRecorderService,
   ) {
     this.amplitudes$ = this.amplitudeRecorder.amplitudes$;
     this.formattedDuration = formatDuration(
-      this.audioRecorder.durationMs / 1000
+      this.audioRecorder.durationMs / 1000,
     );
     this.durationComputeInterval = setInterval(() => {
       this.isLongerThanOneHour = this.audioRecorder.durationMs / 1000 > 3600;
       this.formattedDuration = formatDuration(
-        this.audioRecorder.durationMs / 1000
+        this.audioRecorder.durationMs / 1000,
       );
     }, 1000);
-  }
-
-  trackByIndex(i: number) {
-    return i;
   }
 
   ngOnDestroy(): void {

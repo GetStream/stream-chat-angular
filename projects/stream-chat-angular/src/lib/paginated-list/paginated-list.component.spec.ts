@@ -49,11 +49,11 @@ describe('PaginatedListComponentt', () => {
     hostFixture.detectChanges();
 
     expect(
-      hostFixture.nativeElement.querySelectorAll('[data-testid="item"]').length
+      hostFixture.nativeElement.querySelectorAll('[data-testid="item"]').length,
     ).toBe(3);
 
     const testItems = hostFixture.nativeElement.querySelectorAll(
-      '[data-testid="test-item"]'
+      '[data-testid="test-item"]',
     );
 
     hostComponent.items.forEach((item, index) => {
@@ -64,7 +64,7 @@ describe('PaginatedListComponentt', () => {
   describe('load more button', () => {
     const queryLoadMore = () =>
       hostFixture.nativeElement.querySelector(
-        '[data-testid="load-more-button"]'
+        '[data-testid="load-more-button"]',
       ) as HTMLButtonElement;
 
     it('should display load more button if #hasMore is true', () => {
@@ -108,8 +108,8 @@ describe('PaginatedListComponentt', () => {
 
     expect(
       hostFixture.nativeElement.querySelector(
-        '[data-testid="loading-indicator"]'
-      )
+        '[data-testid="loading-indicator"]',
+      ),
     ).not.toBeNull();
 
     hostComponent.isLoading = false;
@@ -117,8 +117,8 @@ describe('PaginatedListComponentt', () => {
 
     expect(
       hostFixture.nativeElement.querySelector(
-        '[data-testid="loading-indicator"]'
-      )
+        '[data-testid="loading-indicator"]',
+      ),
     ).toBeNull();
   });
 
@@ -128,7 +128,7 @@ describe('PaginatedListComponentt', () => {
     beforeEach(() => {
       hostComponent.height = '200px';
       scrollContainer = hostFixture.nativeElement.querySelector(
-        '.stream-chat__paginated-list'
+        '.stream-chat__paginated-list',
       ) as HTMLElement;
       scrollContainer.style.height = '500px';
       scrollContainer.style.overflowY = 'auto';
@@ -138,8 +138,8 @@ describe('PaginatedListComponentt', () => {
     it(`shouldn't display load more button if scrollbar is visible`, () => {
       expect(
         hostFixture.nativeElement.querySelector(
-          '[data-testid="load-more-button"]'
-        ) as HTMLButtonElement
+          '[data-testid="load-more-button"]',
+        ) as HTMLButtonElement,
       ).toBeNull();
     });
 

@@ -35,7 +35,7 @@ describe('MessageReactionsSelectorComponent', () => {
       sad: '😞',
     };
     reactionsServiceMock.reactions$ = new BehaviorSubject(
-      reactionsServiceMock.reactions
+      reactionsServiceMock.reactions,
     );
     await TestBed.configureTestingModule({
       declarations: [MessageReactionsSelectorComponent],
@@ -53,7 +53,7 @@ describe('MessageReactionsSelectorComponent', () => {
     fixture.detectChanges();
     queryEmojiOptions = () =>
       Array.from(
-        nativeElement.querySelectorAll('[data-testclass="emoji-option"]')
+        nativeElement.querySelectorAll('[data-testclass="emoji-option"]'),
       );
     queryEmojiOption = (type) =>
       nativeElement.querySelector(`[data-testid=${type}]`);
@@ -83,7 +83,7 @@ describe('MessageReactionsSelectorComponent', () => {
 
     expect(channelServiceMock.addReaction).toHaveBeenCalledWith(
       component.messageId,
-      'like'
+      'like',
     );
   });
 
@@ -101,7 +101,7 @@ describe('MessageReactionsSelectorComponent', () => {
 
     expect(channelServiceMock.removeReaction).toHaveBeenCalledWith(
       component.messageId,
-      'like'
+      'like',
     );
   });
 
@@ -117,12 +117,12 @@ describe('MessageReactionsSelectorComponent', () => {
     fixture.detectChanges();
 
     expect(likeEmojiOption.classList).toContain(
-      'str-chat__message-reactions-option-selected'
+      'str-chat__message-reactions-option-selected',
     );
     otherEmojiOptions.forEach((o) =>
       expect(o.classList).not.toContain(
-        'str-chat__message-reactions-option-selected'
-      )
+        'str-chat__message-reactions-option-selected',
+      ),
     );
   });
 

@@ -5,83 +5,65 @@
     theme$ | async
   }}"
 >
-  <div
-    *ngIf="
-      (isError$ | async) === false && (isInitializing$ | async) === false;
-      else statusIndicator
-    "
-    class="str-chat__channel-list-messenger"
-  >
-    <div class="str-chat__channel-list-messenger__main">
-      <ng-content select="[channel-list-top]"></ng-content>
-      <div
-        *ngIf="!(channels$ | async)?.length"
-        class="str-chat__channel-list-empty"
-      >
-        <stream-icon icon="chat-bubble"></stream-icon>
-        <p data-testid="empty-channel-list-indicator">
-          {{ "streamChat.You have no channels currently" | translate }}
-        </p>
-      </div>
-      <p
-        *ngIf="!(channels$ | async)?.length"
-        class="str-chat__channel-list-empty-v1"
-        data-testid="empty-channel-list-indicator"
-      >
-        {{ "streamChat.You have no channels currently" | translate }}
-      </p>
-      <stream-paginated-list
-        [items]="(channels$ | async) ?? []"
-        [hasMore]="(hasMoreChannels$ | async) ?? false"
-        [isLoading]="isLoadingMoreChannels"
-        (loadMore)="loadMoreChannels()"
-        [trackBy]="trackByChannelId"
-      >
-        <ng-template let-channel="item">
-          <ng-template #defaultTemplate let-channelInput="channel">
-            <stream-channel-preview
-              data-testclass="channel-preview"
-              [channel]="channelInput"
-            ></stream-channel-preview>
-          </ng-template>
-          <div>
-            <ng-container
-              *ngTemplateOutlet="
-                customChannelPreviewTemplate || defaultTemplate;
-                context: { channel: channel }
-              "
-            ></ng-container>
+  @if ((isError$ | async) === false && (isInitializing$ | async) === false) {
+    <div class="str-chat__channel-list-messenger">
+      <div class="str-chat__channel-list-messenger__main">
+        <ng-content select="[channel-list-top]" />
+        @if (!(channels$ | async)?.length) {
+          <div class="str-chat__channel-list-empty">
+            <stream-icon icon="chat-bubble" />
+            <p data-testid="empty-channel-list-indicator">
+              {{ "streamChat.You have no channels currently" | translate }}
+            </p>
           </div>
-        </ng-template>
-      </stream-paginated-list>
-      <ng-content select="[channel-list-bottom]"></ng-content>
+        }
+        <stream-paginated-list
+          [items]="(channels$ | async) ?? []"
+          [hasMore]="(hasMoreChannels$ | async) ?? false"
+          [isLoading]="isLoadingMoreChannels"
+          (loadMore)="loadMoreChannels()"
+          [trackBy]="trackByChannelId"
+        >
+          <ng-template let-channel="item">
+            <ng-template #defaultTemplate let-channelInput="channel">
+              <stream-channel-preview
+                data-testclass="channel-preview"
+                [channel]="channelInput"
+              />
+            </ng-template>
+            <div>
+              <ng-container
+                *ngTemplateOutlet="
+                  customChannelPreviewTemplate || defaultTemplate;
+                  context: { channel: channel }
+                "
+              />
+            </div>
+          </ng-template>
+        </stream-paginated-list>
+        <ng-content select="[channel-list-bottom]" />
+      </div>
     </div>
-  </div>
+  } @else {
+    @if (isError$ | async) {
+      <div data-testid="chatdown-container" class="str-chat__down">
+        <ng-container *ngTemplateOutlet="loadingChannels" />
+      </div>
+    }
+    @if (isInitializing$ | async) {
+      <ng-container *ngTemplateOutlet="loadingChannels" />
+    }
+  }
 </div>
-
-<ng-template #statusIndicator>
-  <ng-container *ngIf="isError$ | async">
-    <ng-container *ngTemplateOutlet="chatDown"></ng-container>
-  </ng-container>
-  <ng-container *ngIf="isInitializing$ | async">
-    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
-  </ng-container>
-</ng-template>
-
-<ng-template #chatDown>
-  <div data-testid="chatdown-container" class="str-chat__down">
-    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
-  </div>
-</ng-template>
 
 <ng-template #loadingChannels>
   <div
     data-testid="loading-indicator-full-size"
     class="str-chat__loading-channels"
   >
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannel" />
+    <ng-container *ngTemplateOutlet="loadingChannel" />
+    <ng-container *ngTemplateOutlet="loadingChannel" />
   </div>
 </ng-template>
 

@@ -125,7 +125,7 @@ export class MessageComponent
     private dateParser: DateParserService,
     public messageActionsService: MessageActionsService,
     private ngZone: NgZone,
-    private translateService: TranslateService
+    private translateService: TranslateService,
   ) {}
 
   get visibleMessageActionsCount() {
@@ -137,58 +137,6 @@ export class MessageComponent
     if (this.areOptionsVisible && this._visibleMessageActionsCount === 0) {
       this.areOptionsVisible = false;
     }
-  }
-
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.chatClientService.user$.subscribe((u) => {
-        if (u?.id !== this.userId) {
-          this.userId = u?.id;
-          this.setIsSentByCurrentUser();
-          this.setLastReadUser();
-          if (this.isViewInited) {
-            this.cdRef.detectChanges();
-          }
-        }
-      })
-    );
-    this.subscriptions.push(
-      this.messageActionsService.customActions$.subscribe(() => {
-        if (this.message) {
-          const numberOfEnabledActions =
-            this.messageActionsService.getAuthorizedMessageActionsCount(
-              this.message,
-              this.enabledMessageActions
-            );
-          if (numberOfEnabledActions !== this.visibleMessageActionsCount) {
-            this.visibleMessageActionsCount = numberOfEnabledActions;
-            if (this.isViewInited) {
-              this.cdRef.detectChanges();
-            }
-          }
-        }
-      })
-    );
-    this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe((activeChannel) => {
-        const newChannelMemberCount = activeChannel?.data?.member_count;
-        if (newChannelMemberCount !== this.channelMemberCount) {
-          const shouldUpdateText =
-            this.channelMemberCount !== undefined &&
-            newChannelMemberCount != undefined &&
-            ((this.channelMemberCount <= 1000 && newChannelMemberCount > 100) ||
-              (this.channelMemberCount > 100 && newChannelMemberCount <= 100));
-          this.channelMemberCount = activeChannel?.data?.member_count;
-          if (
-            this.message &&
-            this.message.cid === activeChannel?.cid &&
-            shouldUpdateText
-          ) {
-            this.updateReadByText();
-          }
-        }
-      })
-    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -231,7 +179,7 @@ export class MessageComponent
         (this.message &&
           this.message.message_text_updated_at &&
           this.dateParser.parseDateTime(
-            new Date(this.message.message_text_updated_at)
+            new Date(this.message.message_text_updated_at),
           )) ||
         '';
       this.hasAttachment =
@@ -275,12 +223,64 @@ export class MessageComponent
         this.visibleMessageActionsCount =
           this.messageActionsService.getAuthorizedMessageActionsCount(
             this.message,
-            this.enabledMessageActions
+            this.enabledMessageActions,
           );
       } else {
         this.visibleMessageActionsCount = 0;
       }
     }
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.chatClientService.user$.subscribe((u) => {
+        if (u?.id !== this.userId) {
+          this.userId = u?.id;
+          this.setIsSentByCurrentUser();
+          this.setLastReadUser();
+          if (this.isViewInited) {
+            this.cdRef.detectChanges();
+          }
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.messageActionsService.customActions$.subscribe(() => {
+        if (this.message) {
+          const numberOfEnabledActions =
+            this.messageActionsService.getAuthorizedMessageActionsCount(
+              this.message,
+              this.enabledMessageActions,
+            );
+          if (numberOfEnabledActions !== this.visibleMessageActionsCount) {
+            this.visibleMessageActionsCount = numberOfEnabledActions;
+            if (this.isViewInited) {
+              this.cdRef.detectChanges();
+            }
+          }
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.channelService.activeChannel$.subscribe((activeChannel) => {
+        const newChannelMemberCount = activeChannel?.data?.member_count;
+        if (newChannelMemberCount !== this.channelMemberCount) {
+          const shouldUpdateText =
+            this.channelMemberCount !== undefined &&
+            newChannelMemberCount != undefined &&
+            ((this.channelMemberCount <= 1000 && newChannelMemberCount > 100) ||
+              (this.channelMemberCount > 100 && newChannelMemberCount <= 100));
+          this.channelMemberCount = activeChannel?.data?.member_count;
+          if (
+            this.message &&
+            this.message.cid === activeChannel?.cid &&
+            shouldUpdateText
+          ) {
+            this.updateReadByText();
+          }
+        }
+      }),
+    );
   }
 
   ngAfterViewInit(): void {
@@ -302,7 +302,7 @@ export class MessageComponent
         ) {
           this.messageMenuTrigger?.hide();
         }
-      })
+      }),
     );
   }
 
@@ -506,7 +506,7 @@ export class MessageComponent
 
   private updateReadByText() {
     const others = this.translateService.instant(
-      'streamChat.and others'
+      'streamChat.and others',
     ) as string;
     const hasMoreThan100Members = (this.channelMemberCount ?? 0) > 100;
     this.readByText = this.message?.readBy
@@ -520,7 +520,7 @@ export class MessageComponent
 
   private setLastReadUser() {
     this.lastReadUser = this.message?.readBy?.filter(
-      (u) => u.id !== this.userId
+      (u) => u.id !== this.userId,
     )[0];
   }
 
@@ -530,7 +530,7 @@ export class MessageComponent
       this.subscriptions.push(
         this.scroll$.pipe(take(1)).subscribe(() => {
           this.stopMessageMenuShowTimer();
-        })
+        }),
       );
     }
     this.showMessageMenuTimeout = setTimeout(() => {
@@ -559,7 +559,7 @@ export class MessageComponent
             (document.activeElement as HTMLInputElement).blur();
           this.messageMenuTrigger.show();
           this.messageActionsService.messageMenuOpenedFor$.next(
-            this.message?.id
+            this.message?.id,
           );
         }
         if (this.isViewInited) {
@@ -572,19 +572,19 @@ export class MessageComponent
 
   private registerMenuTriggerEventHandlers() {
     this.messageBubble!.nativeElement.addEventListener('touchstart', () =>
-      this.touchStarted()
+      this.touchStarted(),
     );
     this.messageBubble!.nativeElement.addEventListener('touchend', () =>
-      this.touchEnded()
+      this.touchEnded(),
     );
     this.messageBubble!.nativeElement.addEventListener('mousedown', (e) =>
-      this.mousePushedDown(e)
+      this.mousePushedDown(e),
     );
     this.messageBubble!.nativeElement.addEventListener('mouseup', () =>
-      this.mouseReleased()
+      this.mouseReleased(),
     );
     this.messageBubble!.nativeElement.addEventListener('click', (e) =>
-      this.messageBubbleClicked(e)
+      this.messageBubbleClicked(e),
     );
   }
 

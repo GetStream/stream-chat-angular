@@ -21,7 +21,7 @@ import { resampleWaveForm } from '../../wave-form-sampler';
   styles: [],
 })
 export class VoiceRecordingWavebarComponent
-  implements OnInit, OnChanges, AfterViewInit
+  implements OnChanges, OnInit, AfterViewInit
 {
   /**
    * The audio element that plays the voice recording
@@ -43,24 +43,16 @@ export class VoiceRecordingWavebarComponent
   private container?: ElementRef<HTMLElement>;
   private isViewInited = false;
 
-  constructor(private ngZone: NgZone, private cdRef: ChangeDetectorRef) {}
-
-  ngOnInit(): void {
-    this.containerSizeChanged();
-    if (this.container?.nativeElement) {
-      this.ngZone.runOutsideAngular(() => {
-        new ResizeObserver(() => {
-          this.containerSizeChanged();
-        }).observe(this.container!.nativeElement);
-      });
-    }
-  }
+  constructor(
+    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.waveFormData) {
       this.resampledWaveFormData = resampleWaveForm(
         this.waveFormData,
-        this.sampleSize
+        this.sampleSize,
       );
     }
     if (changes.audioElement) {
@@ -75,6 +67,17 @@ export class VoiceRecordingWavebarComponent
             });
           }
         });
+      });
+    }
+  }
+
+  ngOnInit(): void {
+    this.containerSizeChanged();
+    if (this.container?.nativeElement) {
+      this.ngZone.runOutsideAngular(() => {
+        new ResizeObserver(() => {
+          this.containerSizeChanged();
+        }).observe(this.container!.nativeElement);
       });
     }
   }
@@ -127,7 +130,7 @@ export class VoiceRecordingWavebarComponent
           this.sampleSize = sampleSize;
           this.resampledWaveFormData = resampleWaveForm(
             this.waveFormData,
-            this.sampleSize
+            this.sampleSize,
           );
           if (this.isViewInited) {
             this.cdRef.detectChanges();

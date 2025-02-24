@@ -66,9 +66,15 @@ export class MessageActionsBoxComponent
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
     private messageActionsService: MessageActionsService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
   ) {
     this.messageActionItems = this.messageActionsService.defaultActions;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.isMine || changes.enabledActions || changes.message) {
+      this.setVisibleActions();
+    }
   }
 
   ngOnInit(): void {
@@ -79,7 +85,7 @@ export class MessageActionsBoxComponent
         if (this.isViewInited) {
           this.cdRef.detectChanges();
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.messageActionsService.messageToEdit$.subscribe((m) => {
@@ -93,14 +99,8 @@ export class MessageActionsBoxComponent
             this.cdRef.detectChanges();
           }
         }
-      })
+      }),
     );
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.isMine || changes.enabledActions || changes.message) {
-      this.setVisibleActions();
-    }
   }
 
   ngAfterViewInit(): void {
@@ -112,7 +112,7 @@ export class MessageActionsBoxComponent
   }
 
   getActionLabel(
-    actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string
+    actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string,
   ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey
@@ -130,7 +130,7 @@ export class MessageActionsBoxComponent
     item:
       | MessageActionItem
       | CustomMessageActionItem
-      | MessageReactionActionItem
+      | MessageReactionActionItem,
   ): MessageActionBoxItemContext {
     if (this.isReactAction(item)) {
       return {} as MessageActionBoxItemContext;
@@ -148,21 +148,11 @@ export class MessageActionsBoxComponent
     }
   }
 
-  trackByActionName(
-    _: number,
-    item:
-      | MessageActionItem
-      | CustomMessageActionItem
-      | MessageReactionActionItem
-  ) {
-    return item.actionName;
-  }
-
   private isReactAction(
     item:
       | MessageActionItem
       | CustomMessageActionItem
-      | MessageReactionActionItem
+      | MessageReactionActionItem,
   ): item is MessageReactionActionItem {
     return item.actionName === 'react';
   }
@@ -175,7 +165,7 @@ export class MessageActionsBoxComponent
         ...this.messageActionItems,
         ...this.customActions,
       ].filter((item) =>
-        item.isVisible(this.enabledActions, this.isMine, this.message!)
+        item.isVisible(this.enabledActions, this.isMine, this.message!),
       );
     }
   }

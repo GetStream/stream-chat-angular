@@ -90,7 +90,7 @@ describe('TextareaDirective', () => {
 
       expect(mockComponent.areMentionsEnabled).toBeFalse();
       expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
-        jasmine.any(Object)
+        jasmine.any(Object),
       );
     });
 
@@ -101,7 +101,7 @@ describe('TextareaDirective', () => {
 
       expect(mockComponent.inputMode).toBe('mobile');
       expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
-        jasmine.any(Object)
+        jasmine.any(Object),
       );
     });
 
@@ -112,7 +112,7 @@ describe('TextareaDirective', () => {
 
       expect(mockComponent.autoFocus).toBe(true);
       expect(mockComponent.ngOnChanges).toHaveBeenCalledWith(
-        jasmine.any(Object)
+        jasmine.any(Object),
       );
     });
   });

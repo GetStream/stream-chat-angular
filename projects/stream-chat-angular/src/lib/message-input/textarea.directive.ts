@@ -43,25 +43,25 @@ export class TextareaDirective implements OnChanges {
       if (this.componentRef) {
         this.subscriptions.push(
           this.componentRef.instance.valueChange.subscribe((value) =>
-            this.valueChange.next(value)
-          )
+            this.valueChange.next(value),
+          ),
         );
         this.subscriptions.push(
           this.componentRef.instance.send.subscribe((value) =>
-            this.send.next(value)
-          )
+            this.send.next(value),
+          ),
         );
         if (this.componentRef.instance.userMentions) {
           this.subscriptions.push(
             this.componentRef.instance.userMentions.subscribe((value) =>
-              this.userMentions.next(value)
-            )
+              this.userMentions.next(value),
+            ),
           );
         }
         this.subscriptions.push(
           this.componentRef.instance.pasteFromClipboard.subscribe((value) =>
-            this.pasteFromClipboard.next(value)
-          )
+            this.pasteFromClipboard.next(value),
+          ),
         );
         this.componentRef.instance.areMentionsEnabled = this.areMentionsEnabled;
         this.componentRef.instance.mentionScope = this.mentionScope;
@@ -92,7 +92,7 @@ export class TextareaDirective implements OnChanges {
     // ngOnChanges not called for dynamic components since we don't use template binding
     let changesToPropagate = {};
     this.unpropagatedChanges.forEach(
-      (c) => (changesToPropagate = { ...changesToPropagate, ...c })
+      (c) => (changesToPropagate = { ...changesToPropagate, ...c }),
     );
     // eslint-disable-next-line @angular-eslint/no-lifecycle-call
     this.componentRef.instance.ngOnChanges?.(changesToPropagate);

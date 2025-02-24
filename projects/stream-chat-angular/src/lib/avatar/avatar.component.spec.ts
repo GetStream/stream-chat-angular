@@ -48,7 +48,7 @@ describe('AvatarComponent', () => {
     const img = queryImg();
     return new Promise((resolve, reject) => {
       if (!img) {
-        return reject();
+        return reject(new Error('Image not found'));
       }
       img.addEventListener('load', () => resolve(undefined));
       img.addEventListener('error', () => resolve(undefined));

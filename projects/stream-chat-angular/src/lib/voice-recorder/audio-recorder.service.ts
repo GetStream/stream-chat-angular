@@ -29,7 +29,7 @@ export class AudioRecorderService extends MultimediaRecorder<
     notificationService: NotificationService,
     chatService: ChatClientService,
     transcoder: TranscoderService,
-    private amplitudeRecorder: AmplitudeRecorderService
+    private amplitudeRecorder: AmplitudeRecorderService,
   ) {
     super(notificationService, chatService, transcoder);
   }
@@ -37,7 +37,7 @@ export class AudioRecorderService extends MultimediaRecorder<
   protected enrichWithExtraData() {
     const waveformData = resampleWaveForm(
       this.amplitudeRecorder.amplitudes,
-      this.amplitudeRecorder.config.sampleCount
+      this.amplitudeRecorder.config.sampleCount,
     );
 
     return { waveform_data: waveformData };

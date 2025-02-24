@@ -40,7 +40,9 @@ export class PaginatedListComponent<T> implements AfterViewInit {
    * @returns the track by id
    */
   @Input() trackBy: TrackByFunction<T> = (i) => i;
-  @ContentChild(TemplateRef) itemTempalteRef: TemplateRef<T> | undefined;
+  @ContentChild(TemplateRef) itemTempalteRef:
+    | TemplateRef<{ item: T; index: number }>
+    | undefined;
   /**
    * The component will signal via this output when more items should be fetched
    *
@@ -52,12 +54,15 @@ export class PaginatedListComponent<T> implements AfterViewInit {
   @ViewChild('container')
   private scrollContainer!: ElementRef<HTMLElement>;
 
-  constructor(private ngZone: NgZone, private cdRef: ChangeDetectorRef) {}
+  constructor(
+    private ngZone: NgZone,
+    private cdRef: ChangeDetectorRef,
+  ) {}
 
   ngAfterViewInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer?.nativeElement?.addEventListener('scroll', () =>
-        this.scrolled()
+        this.scrolled(),
       );
     });
   }

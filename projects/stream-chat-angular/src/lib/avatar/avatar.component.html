@@ -8,23 +8,24 @@
   }}"
   title="{{ name }}"
 >
-  <img
-    *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
-    class="str-chat__avatar-image"
-    data-testid="avatar-img"
-    fetchpriority="high"
-    src="{{ imageUrl || fallbackChannelImage }}"
-    alt="{{ initials }}"
-    (error)="isError = true"
-  />
-  <ng-template #fallback>
+  @if ((imageUrl || fallbackChannelImage) && !isError) {
+    <img
+      class="str-chat__avatar-image"
+      data-testid="avatar-img"
+      fetchpriority="high"
+      src="{{ imageUrl || fallbackChannelImage }}"
+      alt="{{ initials }}"
+      (error)="isError = true"
+    />
+  } @else {
     <div data-testid="fallback-img" class="str-chat__avatar-fallback">
       {{ initials }}
     </div>
-  </ng-template>
-  <div
-    *ngIf="isOnline && showOnlineIndicator"
-    data-testid="online-indicator"
-    class="str-chat__avatar--online-indicator"
-  ></div>
+  }
+  @if (isOnline && showOnlineIndicator) {
+    <div
+      data-testid="online-indicator"
+      class="str-chat__avatar--online-indicator"
+    ></div>
+  }
 </div>

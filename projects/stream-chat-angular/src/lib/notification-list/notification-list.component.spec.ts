@@ -31,12 +31,12 @@ describe('NotificationListComponent', () => {
     queryNotificationContents = () =>
       Array.from(
         (fixture.nativeElement as HTMLElement).querySelectorAll(
-          '[data-testclass="notification-content"]'
-        )
+          '[data-testclass="notification-content"]',
+        ),
       );
     queryContainer = () =>
       (fixture.nativeElement as HTMLElement).querySelector(
-        '[data-testid="notification-list"]'
+        '[data-testid="notification-list"]',
       ) as HTMLElement;
   });
 

@@ -75,7 +75,7 @@ export class TextareaComponent
         this.messageInput.nativeElement.selectionEnd =
           selectionStart! + emoji.length;
         this.inputChanged();
-      })
+      }),
     );
   }
 

@@ -83,7 +83,7 @@ describe('MessageInputComponent', () => {
     channel = generateMockChannels(1)[0];
     mockActiveChannel$ = new BehaviorSubject(channel);
     mockActiveParentMessageId$ = new BehaviorSubject<string | undefined>(
-      undefined
+      undefined,
     );
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
@@ -104,7 +104,7 @@ describe('MessageInputComponent', () => {
       retryAttachmentUpload: jasmine.createSpy(),
     };
     mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
-      undefined
+      undefined,
     );
     latestMessageDateByUserByChannels$ = new BehaviorSubject({});
     selectMessageToQuoteSpy = jasmine.createSpy();
@@ -224,7 +224,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(updateMessageSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: messageToEdit.id, text: message })
+      jasmine.objectContaining({ id: messageToEdit.id, text: message }),
     );
     expect(messageToEditSpy).toHaveBeenCalledWith(undefined);
   }));
@@ -241,7 +241,7 @@ describe('MessageInputComponent', () => {
     await component.messageSent();
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Edit message request failed'
+      'streamChat.Edit message request failed',
     );
 
     expect(spy).not.toHaveBeenCalledWith();
@@ -311,7 +311,7 @@ describe('MessageInputComponent', () => {
       [],
       mentionedUsers,
       undefined,
-      undefined
+      undefined,
     );
 
     expect(typingStoppedSpy).toHaveBeenCalledWith(undefined);
@@ -435,7 +435,7 @@ describe('MessageInputComponent', () => {
 
     expect(sendMessageSpy).not.toHaveBeenCalled();
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
-      'streamChat.Wait until all attachments have uploaded'
+      'streamChat.Wait until all attachments have uploaded',
     );
   });
 
@@ -443,7 +443,7 @@ describe('MessageInputComponent', () => {
     const notificationService = TestBed.inject(NotificationService);
     const removeNotificationSpy = jasmine.createSpy();
     spyOn(notificationService, 'addPermanentNotification').and.returnValue(
-      removeNotificationSpy
+      removeNotificationSpy,
     );
     attachmentService.attachmentUploadInProgressCounter$.next(1);
     void component.messageSent();
@@ -490,7 +490,7 @@ describe('MessageInputComponent', () => {
       attachments,
       [],
       undefined,
-      undefined
+      undefined,
     );
   });
 
@@ -555,7 +555,7 @@ describe('MessageInputComponent', () => {
 
     expect(attachmentService.resetAttachmentUploads).toHaveBeenCalledWith();
     expect(attachmentService.createFromAttachments).toHaveBeenCalledWith(
-      attachments
+      attachments,
     );
   });
 
@@ -593,7 +593,7 @@ describe('MessageInputComponent', () => {
       jasmine.any(Array),
       jasmine.any(Object),
       undefined,
-      undefined
+      undefined,
     );
   });
 
@@ -620,7 +620,7 @@ describe('MessageInputComponent', () => {
 
     expect(sendMessageSpy).not.toHaveBeenCalled();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Sending links is not allowed in this conversation'
+      'streamChat.Sending links is not allowed in this conversation',
     );
 
     component.canSendLinks = true;
@@ -631,7 +631,7 @@ describe('MessageInputComponent', () => {
       undefined,
       [],
       undefined,
-      undefined
+      undefined,
     );
   });
 
@@ -713,7 +713,7 @@ describe('MessageInputComponent', () => {
       [],
       [],
       'parent message',
-      'message-to-quote'
+      'message-to-quote',
     );
 
     expect(typingStoppedSpy).toHaveBeenCalledWith('parent message');
@@ -768,7 +768,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector(quotedMessageContainerSelector)
+      nativeElement.querySelector(quotedMessageContainerSelector),
     ).not.toBeNull();
     const avatar = fixture.debugElement
       .query(By.css(quotedMessageContainerSelector))
@@ -799,7 +799,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector(quotedMessageContainerSelector)
+      nativeElement.querySelector(quotedMessageContainerSelector),
     ).toBeNull();
   });
 
@@ -808,7 +808,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
     (
       nativeElement.querySelector(
-        '[data-testid="remove-quote"]'
+        '[data-testid="remove-quote"]',
       ) as HTMLButtonElement
     )?.click();
     fixture.detectChanges();
@@ -824,7 +824,7 @@ describe('MessageInputComponent', () => {
       '[data-testid="quoted-message-container"]';
 
     expect(
-      nativeElement.querySelector(quotedMessageContainerSelector)
+      nativeElement.querySelector(quotedMessageContainerSelector),
     ).toBeNull();
 
     const threadReply = mockMessage();
@@ -833,7 +833,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector(quotedMessageContainerSelector)
+      nativeElement.querySelector(quotedMessageContainerSelector),
     ).not.toBeNull();
   });
 
@@ -941,7 +941,7 @@ describe('MessageInputComponent', () => {
 
     expect(queryattachmentUploadButton()).toBeNull();
     expect(
-      nativeElement.querySelector('[data-testid="emoji-picker"]')
+      nativeElement.querySelector('[data-testid="emoji-picker"]'),
     ).toBeNull();
 
     flush();
@@ -994,7 +994,7 @@ describe('MessageInputComponent', () => {
 
     expect(attachmentPreviews).not.toBeUndefined();
     expect(attachmentPreviews.attachmentUploads$).toBe(
-      attachmentService.attachmentUploads$
+      attachmentService.attachmentUploads$,
     );
   });
 
@@ -1036,7 +1036,7 @@ describe('MessageInputComponent', () => {
     let sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(
-      'This is a multiline text\nthis should be left unchanged'
+      'This is a multiline text\nthis should be left unchanged',
     );
 
     component.textareaValue =
@@ -1046,7 +1046,7 @@ describe('MessageInputComponent', () => {
     sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(
-      'Leading and trailing empty \nlines should be removed'
+      'Leading and trailing empty \nlines should be removed',
     );
 
     component.textareaValue =
@@ -1056,7 +1056,7 @@ describe('MessageInputComponent', () => {
     sentText = sendMessageSpy.calls.mostRecent().args[0];
 
     expect(sentText).toEqual(
-      'Multiple empty line inside the message\n\n\nis allowed'
+      'Multiple empty line inside the message\n\n\nis allowed',
     );
   });
 
@@ -1120,7 +1120,7 @@ describe('MessageInputComponent', () => {
 
   it('should disable send button if uploaded attachments exceed limit', () => {
     attachmentService.attachmentsCounter$.next(
-      attachmentService.maxNumberOfAttachments + 1
+      attachmentService.maxNumberOfAttachments + 1,
     );
     component.textareaValue = 'text message';
     fixture.detectChanges();
@@ -1131,7 +1131,7 @@ describe('MessageInputComponent', () => {
   it('should disable upload buttons if attachment counter limit is reached', () => {
     component.displayVoiceRecordingButton = true;
     attachmentService.attachmentsCounter$.next(
-      attachmentService.maxNumberOfAttachments
+      attachmentService.maxNumberOfAttachments,
     );
     fixture.detectChanges();
 

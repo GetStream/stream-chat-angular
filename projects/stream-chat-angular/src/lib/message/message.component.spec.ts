@@ -69,7 +69,7 @@ describe('MessageComponent', () => {
   beforeEach(() => {
     resendMessageSpy = jasmine.createSpy('resendMessage');
     setAsActiveParentMessageSpy = jasmine.createSpy(
-      'setAsActiveParentMessageSpy'
+      'setAsActiveParentMessageSpy',
     );
     bouncedMessage$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
     jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
@@ -188,11 +188,11 @@ describe('MessageComponent', () => {
     let classList = container?.classList;
 
     expect(
-      classList?.contains(`str-chat__message--${message.type as string}`)
+      classList?.contains(`str-chat__message--${message.type as string}`),
     ).toBeTrue();
 
     expect(
-      classList?.contains(`str-chat__message--${message.status}`)
+      classList?.contains(`str-chat__message--${message.status}`),
     ).toBeTrue();
 
     expect(classList?.contains('str-chat__message--has-text')).toBeTrue();
@@ -200,7 +200,7 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message-simple--me')).toBeTrue();
     expect(classList?.contains('str-chat__message--with-reactions')).toBeTrue();
     expect(
-      classList?.contains('str-chat__message-with-thread-link')
+      classList?.contains('str-chat__message-with-thread-link'),
     ).toBeFalse();
 
     component.message.user = { id: 'notcurrentUser', name: 'Jane' };
@@ -214,11 +214,11 @@ describe('MessageComponent', () => {
     expect(classList?.contains('str-chat__message-simple--me')).toBeFalse();
     expect(classList?.contains('str-chat__message--other')).toBeTrue();
     expect(
-      classList?.contains('str-chat__message--with-reactions')
+      classList?.contains('str-chat__message--with-reactions'),
     ).toBeFalse();
 
     expect(
-      classList?.contains('str-chat__message-with-thread-link')
+      classList?.contains('str-chat__message-with-thread-link'),
     ).toBeTrue();
   });
 
@@ -249,7 +249,7 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
       const deliveredIndicator = queryDeliveredIndicator();
       const icon = nativeElement.querySelector(
-        '[data-testid="delivered-icon"]'
+        '[data-testid="delivered-icon"]',
       );
       const readIndicator = queryReadIndicator();
 
@@ -311,7 +311,7 @@ describe('MessageComponent', () => {
 
     expect(messageTextComponent.message).toBe(component.message);
     expect(messageTextComponent.shouldTranslate).toBe(
-      component.displayedMessageTextContent === 'translation'
+      component.displayedMessageTextContent === 'translation',
     );
     expect(messageTextComponent.isQuoted).toBe(false);
   });
@@ -341,7 +341,7 @@ describe('MessageComponent', () => {
       expect(errorMessage).not.toBeNull();
       expect(errorMessage!.textContent).toContain('Unauthorized');
       expect(
-        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried'),
       ).toBeNull();
     });
 
@@ -363,7 +363,7 @@ describe('MessageComponent', () => {
       expect(errorMessage!.textContent).toContain('Message Failed');
       expect(errorMessage!.textContent).not.toContain('Unauthorized');
       expect(
-        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried'),
       ).not.toBeNull();
     });
 
@@ -404,7 +404,7 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(
-        nativeElement.querySelector('.str-chat__message-send-can-be-retried')
+        nativeElement.querySelector('.str-chat__message-send-can-be-retried'),
       ).not.toBeNull();
 
       const spy = jasmine.createSpy();
@@ -620,7 +620,7 @@ describe('MessageComponent', () => {
     component.enabledMessageActions = ['flag-message'];
     const service = TestBed.inject(MessageActionsService);
     service.defaultActions.find(
-      (a) => a.actionName === 'copy-message-text'
+      (a) => a.actionName === 'copy-message-text',
     )!.isVisible = () => false;
     component.ngOnChanges({ enabledMessageActions: {} as SimpleChange });
     fixture.detectChanges();
@@ -650,13 +650,13 @@ describe('MessageComponent', () => {
 
   it('should display attachment if message has attachment', () => {
     expect(
-      queryContainer()?.classList.contains('str-chat__message--has-attachment')
+      queryContainer()?.classList.contains('str-chat__message--has-attachment'),
     ).toBeFalse();
 
     expect(
       queryMessageInner()?.classList.contains(
-        'str-chat__message-light-text-inner--has-attachment'
-      )
+        'str-chat__message-light-text-inner--has-attachment',
+      ),
     ).toBeFalse();
 
     expect(queryAttachmentComponent()).toBeUndefined();
@@ -672,20 +672,20 @@ describe('MessageComponent', () => {
     const attachmentComponent = queryAttachmentComponent();
 
     expect(
-      queryContainer()?.classList.contains('str-chat__message--has-attachment')
+      queryContainer()?.classList.contains('str-chat__message--has-attachment'),
     ).toBeTrue();
 
     expect(
       queryMessageInner()?.classList.contains(
-        'str-chat__message-light-text-inner--has-attachment'
-      )
+        'str-chat__message-light-text-inner--has-attachment',
+      ),
     ).toBeTrue();
 
     expect(attachmentComponent).not.toBeUndefined();
     expect(attachmentComponent.attachments).toBe(attachments);
     expect(attachmentComponent.messageId).toBe(component.message.id);
     expect(attachmentComponent.parentMessageId).toBe(
-      component.message.parent_id
+      component.message.parent_id,
     );
   });
 
@@ -813,14 +813,14 @@ describe('MessageComponent', () => {
 
   it('should apply necessary CSS class, if highlighted', () => {
     expect(
-      nativeElement.querySelector('.str-chat__message--highlighted')
+      nativeElement.querySelector('.str-chat__message--highlighted'),
     ).toBeNull();
 
     component.isHighlighted = true;
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('.str-chat__message--highlighted')
+      nativeElement.querySelector('.str-chat__message--highlighted'),
     ).not.toBeNull();
   });
 
@@ -892,7 +892,7 @@ describe('MessageComponent', () => {
 
     it('should display quoted message', () => {
       expect(
-        nativeElement.querySelector(quotedMessageContainerSelector)
+        nativeElement.querySelector(quotedMessageContainerSelector),
       ).not.toBeNull();
       const avatar = fixture.debugElement
         .query(By.css(quotedMessageContainerSelector))
@@ -905,7 +905,7 @@ describe('MessageComponent', () => {
 
       expect(avatar.name).toBe(component.message!.quoted_message!.user!.name);
       expect(avatar.imageUrl).toBe(
-        component.message!.quoted_message!.user!.image
+        component.message!.quoted_message!.user!.image,
       );
 
       expect(avatar.type).toBe('user');
@@ -914,7 +914,7 @@ describe('MessageComponent', () => {
       expect(attachments.attachments).toEqual([{ id: '1' }]);
       expect(
         nativeElement.querySelector('[data-testid="quoted-message-text"]')
-          ?.innerHTML
+          ?.innerHTML,
       ).toContain('This message was quoted');
 
       component.message = { ...component.message!, quoted_message: undefined };
@@ -922,13 +922,13 @@ describe('MessageComponent', () => {
       fixture.detectChanges();
 
       expect(
-        nativeElement.querySelector(quotedMessageContainerSelector)
+        nativeElement.querySelector(quotedMessageContainerSelector),
       ).toBeNull();
     });
 
     it('should apply necessary CSS classes for quoted message', () => {
       const quotedMessageContainer = nativeElement.querySelector(
-        quotedMessageContainerSelector
+        quotedMessageContainerSelector,
       );
 
       expect(quotedMessageContainer?.classList).toContain('mine');
@@ -958,7 +958,7 @@ describe('MessageComponent', () => {
 
       expect(jumpToMessageSpy).toHaveBeenCalledWith(
         quotedMessage.id,
-        quotedMessage.parent_id
+        quotedMessage.parent_id,
       );
     });
 
@@ -971,7 +971,7 @@ describe('MessageComponent', () => {
       expect(querySeeTranslationButton()).toBeNull();
       expect(queryMessageTextComponent('text').shouldTranslate).toBeTrue();
       expect(
-        queryMessageTextComponent('quoted-message-text').shouldTranslate
+        queryMessageTextComponent('quoted-message-text').shouldTranslate,
       ).toBeTrue();
 
       querySeeOriginalButton()?.click();
@@ -979,7 +979,7 @@ describe('MessageComponent', () => {
 
       expect(queryMessageTextComponent('text').shouldTranslate).toBeFalse();
       expect(
-        queryMessageTextComponent('quoted-message-text').shouldTranslate
+        queryMessageTextComponent('quoted-message-text').shouldTranslate,
       ).toBeFalse();
 
       expect(querySeeOriginalButton()).toBeNull();
@@ -989,7 +989,7 @@ describe('MessageComponent', () => {
 
       expect(queryMessageTextComponent('text').shouldTranslate).toBeTrue();
       expect(
-        queryMessageTextComponent('quoted-message-text').shouldTranslate
+        queryMessageTextComponent('quoted-message-text').shouldTranslate,
       ).toBeTrue();
     });
 
@@ -1004,7 +1004,7 @@ describe('MessageComponent', () => {
 
   it(`shouldn't display edited flag if message wasn't edited`, () => {
     expect(
-      nativeElement.querySelector('[data-testid="edited-flag"]')
+      nativeElement.querySelector('[data-testid="edited-flag"]'),
     ).toBeNull();
   });
 
@@ -1014,11 +1014,11 @@ describe('MessageComponent', () => {
     fixture.detectChanges();
 
     expect(
-      nativeElement.querySelector('[data-testid="edited-flag"]')
+      nativeElement.querySelector('[data-testid="edited-flag"]'),
     ).not.toBeNull();
 
     expect(
-      nativeElement.querySelector('[data-testid="edited-timestamp"]')
+      nativeElement.querySelector('[data-testid="edited-timestamp"]'),
     ).not.toBeNull();
   });
 
@@ -1029,7 +1029,7 @@ describe('MessageComponent', () => {
     queryMessageInner()?.click();
     fixture.detectChanges();
     const timestamp = nativeElement.querySelector(
-      '[data-testid="edited-timestamp"]'
+      '[data-testid="edited-timestamp"]',
     );
 
     expect(timestamp?.innerHTML).toContain(component.pasedEditedDate);

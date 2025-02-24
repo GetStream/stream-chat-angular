@@ -17,7 +17,7 @@ import { DefaultStreamChatGenerics } from './types';
 import { take } from 'rxjs/operators';
 
 export type ClientEvent<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   eventType: string;
   event: Event<T>;
@@ -30,7 +30,7 @@ export type ClientEvent<
   providedIn: 'root',
 })
 export class ChatClientService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * The [StreamChat client](https://github.com/GetStream/stream-chat-js/blob/master/src/client.ts) instance. In general you shouldn't need to access the client, but it's there if you want to use it.
@@ -62,7 +62,7 @@ export class ChatClientService<
   private notificationSubject = new ReplaySubject<ClientEvent<T>>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
-    undefined
+    undefined,
   );
   private pendingInvitesSubject = new BehaviorSubject<Channel<T>[]>([]);
   private userSubject = new ReplaySubject<
@@ -74,7 +74,7 @@ export class ChatClientService<
 
   constructor(
     private ngZone: NgZone,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {
     this.events$ = this.notificationSubject.asObservable();
     this.connectionState$ = this.connectionStateSubject.asObservable();
@@ -101,7 +101,7 @@ export class ChatClientService<
     userTokenOrProvider: TokenOrProvider,
     clientOptions?: StreamChatOptions & {
       trackPendingChannelInvites?: boolean;
-    }
+    },
   ): ConnectAPIResponse<T> {
     if (this.chatClient && this.chatClient.key !== apiKey) {
       this.appSettingsSubject.next(undefined);
@@ -113,11 +113,10 @@ export class ChatClientService<
     const sdkPrefix = 'stream-chat-angular';
     if (!this.chatClient.getUserAgent().includes(sdkPrefix)) {
       this.chatClient.setUserAgent(
-        `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`
+        `${sdkPrefix}-${version}-${this.chatClient.getUserAgent()}`,
       );
     }
     this.chatClient.recoverStateOnReconnect = false;
-    this.chatClient.devToken;
     let result;
     const startCleaning = this.chatClient._startCleaning;
     this.chatClient._startCleaning = (...params) => {
@@ -138,19 +137,19 @@ export class ChatClientService<
     } catch (error) {
       this.notificationService.addPermanentNotification(
         'streamChat.Error connecting to chat, refresh the page to try again.',
-        'error'
+        'error',
       );
       throw error;
     }
     this.userSubject.next(
-      this.chatClient.user ? { ...this.chatClient.user } : undefined
+      this.chatClient.user ? { ...this.chatClient.user } : undefined,
     );
     if (this.chatClient.user?.id && this.trackPendingChannelInvites) {
       const channels = await this.chatClient.queryChannels(
         {
           invite: 'pending',
           members: { $in: [this.chatClient.user?.id] },
-        } as unknown as ChannelFilters<T> // TODO: find out why we need this typecast
+        } as unknown as ChannelFilters<T>, // TODO: find out why we need this typecast
       );
       this.pendingInvitesSubject.next(channels);
     }
@@ -162,7 +161,7 @@ export class ChatClientService<
           eventType: e.type,
           event: e,
         });
-      })
+      }),
     );
     let removeNotification: undefined | (() => void);
     this.subscriptions.push(
@@ -175,11 +174,11 @@ export class ChatClientService<
         } else {
           removeNotification =
             this.notificationService.addPermanentNotification(
-              'streamChat.Connection failure, reconnecting now...'
+              'streamChat.Connection failure, reconnecting now...',
             );
         }
         this.connectionStateSubject.next(isOnline ? 'online' : 'offline');
-      })
+      }),
     );
     return result;
   }
@@ -252,7 +251,7 @@ export class ChatClientService<
         e.type === 'notification.invite_rejected'
       ) {
         const index = pendingInvites.findIndex(
-          (i) => i?.cid === e.channel?.cid
+          (i) => i?.cid === e.channel?.cid,
         );
         if (index !== -1) {
           pendingInvites.splice(index, 1);

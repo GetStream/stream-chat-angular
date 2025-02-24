@@ -2,46 +2,48 @@
   class="str-chat__message-input str-chat-angular__message-input"
   [style.display]="isVoiceRecording ? 'none' : 'flex'"
 >
-  <div *ngIf="quotedMessage" class="str-chat__quoted-message-preview-header">
-    <div class="str-chat__quoted-message-reply-to-message">
-      {{ "streamChat.Reply to Message" | translate }}
+  @if (quotedMessage) {
+    <div class="str-chat__quoted-message-preview-header">
+      <div class="str-chat__quoted-message-reply-to-message">
+        {{ "streamChat.Reply to Message" | translate }}
+      </div>
+      <button
+        class="str-chat__quoted-message-remove"
+        data-testid="remove-quote"
+        (click)="deselectMessageToQuote()"
+        (keyup.enter)="deselectMessageToQuote()"
+      >
+        <stream-icon-placeholder icon="close" />
+      </button>
     </div>
-    <button
-      class="str-chat__quoted-message-remove"
-      data-testid="remove-quote"
-      (click)="deselectMessageToQuote()"
-      (keyup.enter)="deselectMessageToQuote()"
-    >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
-    </button>
-  </div>
-  <div *ngIf="isUpdate" class="str-chat__quoted-message-preview-header">
-    <div class="str-chat__quoted-message-reply-to-message">
-      {{ "streamChat.Edit Message" | translate }}
+  }
+  @if (isUpdate) {
+    <div class="str-chat__quoted-message-preview-header">
+      <div class="str-chat__quoted-message-reply-to-message">
+        {{ "streamChat.Edit Message" | translate }}
+      </div>
+      <button
+        class="str-chat__quoted-message-remove"
+        data-testid="remove-quote"
+        (click)="deselectMessageToEdit()"
+        (keyup.enter)="deselectMessageToEdit()"
+      >
+        <stream-icon-placeholder icon="close" />
+      </button>
     </div>
-    <button
-      class="str-chat__quoted-message-remove"
-      data-testid="remove-quote"
-      (click)="deselectMessageToEdit()"
-      (keyup.enter)="deselectMessageToEdit()"
-    >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
-    </button>
-  </div>
-  <ng-container *ngIf="canSendMessages; else notAllowed">
+  }
+  @if (canSendMessages) {
     <div
       class="str-chat__message-input-inner str-chat-angular__message-input-inner"
     >
-      <ng-content select="[message-input-start]"></ng-content>
-      <ng-container
-        *ngIf="isFileUploadEnabled && isFileUploadAuthorized && canSendMessages"
-      >
+      <ng-content select="[message-input-start]" />
+      @if (isFileUploadEnabled && isFileUploadAuthorized && canSendMessages) {
         <ng-container
           *ngTemplateOutlet="
             customAttachmentUploadTemplate || defaultAttachmentUpload;
             context: getAttachmentUploadContext()
           "
-        ></ng-container>
+        />
         <ng-template #defaultAttachmentUpload>
           <div
             class="str-chat__file-input-container"
@@ -61,60 +63,62 @@
               (change)="filesSelected(fileInput.files)"
             />
             <label class="str-chat__file-input-label" for="{{ fileInputId }}">
-              <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
+              <stream-icon-placeholder icon="attach" />
             </label>
           </div>
         </ng-template>
-      </ng-container>
+      }
       <div class="str-chat__message-textarea-container">
-        <div
-          *ngIf="quotedMessage"
-          data-testid="quoted-message-container"
-          class="str-chat__quoted-message-preview"
-        >
-          <stream-avatar-placeholder
-            data-testid="qouted-message-avatar"
-            class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
-            type="user"
-            location="quoted-message-sender"
-            [imageUrl]="quotedMessage.user?.image"
-            [name]="quotedMessage.user?.name || quotedMessage.user?.id"
-            [user]="quotedMessage.user || undefined"
-          ></stream-avatar-placeholder>
+        @if (quotedMessage) {
           <div
-            class="quoted-message-preview-content-inner str-chat__quoted-message-bubble"
+            data-testid="quoted-message-container"
+            class="str-chat__quoted-message-preview"
           >
-            <stream-attachment-list
-              *ngIf="
-                quotedMessage?.attachments && quotedMessage?.attachments?.length
-              "
-              [attachments]="quotedMessageAttachments"
-              [messageId]="quotedMessage.id"
-            ></stream-attachment-list>
-            <div class="str-chat__quoted-message-text">
-              <ng-container
-                *ngTemplateOutlet="
-                  (customTemplatesService.messageTextTemplate$ | async) ||
-                    defaultText;
-                  context: getQuotedMessageTextContext()
-                "
-              ></ng-container>
-              <ng-template
-                #defaultText
-                let-message="message"
-                let-isQuoted="isQuoted"
-                let-shouldTranslate="shouldTranslate"
-              >
-                <stream-message-text
-                  [message]="message"
-                  [isQuoted]="isQuoted"
-                  [shouldTranslate]="shouldTranslate"
-                  data-testid="quoted-message-text"
-                ></stream-message-text>
-              </ng-template>
+            <stream-avatar-placeholder
+              data-testid="qouted-message-avatar"
+              class="str-chat-angular__avatar-host str-chat__message-sender-avatar"
+              type="user"
+              location="quoted-message-sender"
+              [imageUrl]="quotedMessage.user?.image"
+              [name]="quotedMessage.user?.name || quotedMessage.user?.id"
+              [user]="quotedMessage.user || undefined"
+            />
+            <div
+              class="quoted-message-preview-content-inner str-chat__quoted-message-bubble"
+            >
+              @if (
+                quotedMessage.attachments && quotedMessage.attachments.length
+              ) {
+                <stream-attachment-list
+                  [attachments]="quotedMessageAttachments"
+                  [messageId]="quotedMessage.id"
+                />
+              }
+              <div class="str-chat__quoted-message-text">
+                <ng-container
+                  *ngTemplateOutlet="
+                    (customTemplatesService.messageTextTemplate$ | async) ||
+                      defaultText;
+                    context: getQuotedMessageTextContext()
+                  "
+                />
+                <ng-template
+                  #defaultText
+                  let-message="message"
+                  let-isQuoted="isQuoted"
+                  let-shouldTranslate="shouldTranslate"
+                >
+                  <stream-message-text
+                    [message]="message"
+                    [isQuoted]="isQuoted"
+                    [shouldTranslate]="shouldTranslate"
+                    data-testid="quoted-message-text"
+                  />
+                </ng-template>
+              </div>
             </div>
           </div>
-        </div>
+        }
         <ng-template
           #defaultAttachmentsPreview
           let-attachmentUploads$="attachmentUploads$"
@@ -126,14 +130,14 @@
             [attachmentUploads$]="attachmentUploads$"
             (retryAttachmentUpload)="retryUploadHandler($event)"
             (deleteAttachment)="deleteUploadHandler($event)"
-          ></stream-attachment-preview-list>
+          />
         </ng-template>
         <ng-container
           *ngTemplateOutlet="
             attachmentPreviewListTemplate || defaultAttachmentsPreview;
             context: getAttachmentPreviewListContext()
           "
-        ></ng-container>
+        />
         <div class="str-chat__message-textarea-with-emoji-picker">
           <ng-container
             streamTextarea
@@ -148,70 +152,73 @@
             (send)="messageSent()"
             (userMentions)="mentionedUsers = $event"
             (pasteFromClipboard)="itemsPasted($event)"
-          ></ng-container>
-          <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
+          />
+          @if (emojiPickerTemplate) {
             <ng-container
               *ngTemplateOutlet="
                 emojiPickerTemplate;
                 context: getEmojiPickerContext()
               "
-            ></ng-container>
-          </ng-container>
+            />
+          }
         </div>
       </div>
-      <button
-        *ngIf="canSendMessages && !isCooldownInProgress && displaySendButton"
-        data-testid="send-button"
-        class="str-chat__send-button"
-        [disabled]="
-          (attachmentUploadInProgressCounter$ | async)! > 0 ||
-          (attachmentService.attachmentsCounter$ | async)! >
-            attachmentService.maxNumberOfAttachments ||
-          (!textareaValue &&
-            (attachmentUploads$ | async)!.length === 0 &&
-            (customAttachments$ | async)!.length === 0)
-        "
-        (click)="messageSent()"
-        (keyup.enter)="messageSent()"
-      >
-        <stream-icon-placeholder icon="send"></stream-icon-placeholder>
-      </button>
-      <div
-        *ngIf="isCooldownInProgress"
-        class="str-chat__message-input-cooldown"
-        data-testid="cooldown-timer"
-      >
-        {{ cooldown$ | async }}
-      </div>
-      <button
-        *ngIf="displayVoiceRecordingButton"
-        class="str-chat__start-recording-audio-button"
-        data-testid="start-voice-recording"
-        [disabled]="
-          voiceRecorderService.isRecorderVisible$.value ||
-          audioRecorder?.isRecording ||
-          (attachmentService.attachmentsCounter$ | async)! >=
-            attachmentService.maxNumberOfAttachments
-        "
-        (click)="startVoiceRecording()"
-        (keyup.enter)="startVoiceRecording()"
-      >
-        <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
-      </button>
-      <ng-content select="[message-input-end]"></ng-content>
+      @if (canSendMessages && !isCooldownInProgress && displaySendButton) {
+        <button
+          data-testid="send-button"
+          class="str-chat__send-button"
+          [disabled]="
+            (attachmentUploadInProgressCounter$ | async)! > 0 ||
+            (attachmentService.attachmentsCounter$ | async)! >
+              attachmentService.maxNumberOfAttachments ||
+            (!textareaValue &&
+              (attachmentUploads$ | async)!.length === 0 &&
+              (customAttachments$ | async)!.length === 0)
+          "
+          (click)="messageSent()"
+          (keyup.enter)="messageSent()"
+        >
+          <stream-icon-placeholder icon="send" />
+        </button>
+      }
+      @if (isCooldownInProgress) {
+        <div
+          class="str-chat__message-input-cooldown"
+          data-testid="cooldown-timer"
+        >
+          {{ cooldown$ | async }}
+        </div>
+      }
+      @if (displayVoiceRecordingButton) {
+        <button
+          class="str-chat__start-recording-audio-button"
+          data-testid="start-voice-recording"
+          [disabled]="
+            voiceRecorderService.isRecorderVisible$.value ||
+            audioRecorder?.isRecording ||
+            (attachmentService.attachmentsCounter$ | async)! >=
+              attachmentService.maxNumberOfAttachments
+          "
+          (click)="startVoiceRecording()"
+          (keyup.enter)="startVoiceRecording()"
+        >
+          <stream-icon-placeholder icon="mic" />
+        </button>
+      }
+      <ng-content select="[message-input-end]" />
     </div>
-  </ng-container>
-  <ng-template #notAllowed>
+  } @else {
     <div
       class="str-chat__message-input-not-allowed"
       data-testid="disabled-textarea"
     >
       {{ disabledTextareaText | translate }}
     </div>
-  </ng-template>
+  }
 </div>
-<ng-template
-  *ngIf="voiceRecorderRef"
-  [ngTemplateOutlet]="voiceRecorderRef"
-  [ngTemplateOutletContext]="{ service: voiceRecorderService }"
-></ng-template>
+@if (voiceRecorderRef) {
+  <ng-template
+    [ngTemplateOutlet]="voiceRecorderRef"
+    [ngTemplateOutletContext]="{ service: voiceRecorderService }"
+  />
+}

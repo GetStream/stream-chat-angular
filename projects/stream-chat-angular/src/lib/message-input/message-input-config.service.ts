@@ -47,7 +47,7 @@ export class MessageInputConfigService {
    */
   customPasteEventHandler?: (
     event: ClipboardEvent,
-    inputComponent: MessageInputComponent
+    inputComponent: MessageInputComponent,
   ) => void;
   /**
    * Add custom autocomplete configurations to the message input

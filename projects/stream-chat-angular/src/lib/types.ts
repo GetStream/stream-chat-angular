@@ -77,7 +77,7 @@ export type DefaultUserType = UnknownType &
   };
 
 export type StreamMessage<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = FormatMessageResponse<T>;
 
 export type AttachmentUploadErrorReason =
@@ -86,7 +86,7 @@ export type AttachmentUploadErrorReason =
   | 'unknown';
 
 export type AttachmentUpload<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   file: File;
   state: 'error' | 'success' | 'uploading';
@@ -132,13 +132,13 @@ export type NotificationPayload<T = object> = {
 };
 
 export type ChannelPreviewContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   channel: Channel<T>;
 };
 
 export type ChannelPreviewInfoContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = ChannelPreviewContext & {
   latestMessage?: StreamMessage<T>;
   /**
@@ -184,11 +184,11 @@ export type MessageContext = {
 };
 
 export type ChannelActionsContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = { channel: Channel<T> };
 
 export type CustomAttachmentListContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   messageId: string;
   attachments: Attachment<T>[];
@@ -237,7 +237,7 @@ export type IconContext = {
 };
 
 export type MessageActionsBoxContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   isMine: boolean;
   message: StreamMessage<T> | undefined;
@@ -251,14 +251,14 @@ export type MessageActionHandlerExtraParams = {
 };
 
 export type MessageActionHandler<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = (
   message: StreamMessage<T>,
-  params: MessageActionHandlerExtraParams
+  params: MessageActionHandlerExtraParams,
 ) => void;
 
 export type MessageActionBoxItemContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   actionName: string;
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
@@ -268,30 +268,30 @@ export type MessageActionBoxItemContext<
 };
 
 export type MessageReactionActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   actionName: 'react';
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage<T>
+    message: StreamMessage<T>,
   ) => boolean;
 };
 
 type MessageActionItemBase<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage<T>
+    message: StreamMessage<T>,
   ) => boolean;
   actionHandler: MessageActionHandler;
 };
 
 export type MessageActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = MessageActionItemBase<T> & {
   actionName:
     | 'quote'
@@ -305,7 +305,7 @@ export type MessageActionItem<
 };
 
 export type CustomMessageActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = MessageActionItemBase<T> & {
   actionName: string;
 };
@@ -369,7 +369,7 @@ export type SendingStatusContext = {
 };
 
 export type CustomMetadataContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   message: StreamMessage<T>;
 };
@@ -380,7 +380,7 @@ export type ReadStatusContext = {
 };
 
 export type ChannelHeaderInfoContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = { channel: Channel<T> };
 
 export type CustomAttachmentUploadContext = {
@@ -418,7 +418,7 @@ export type ChannelQueryState = {
 };
 
 export type MessageInput<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   text: string;
   attachments: Attachment<T>[];
@@ -434,7 +434,7 @@ export type OffsetNextPageConfiguration = {
 };
 
 export type FiltertNextPageConfiguration<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   type: 'filter';
   paginationFilter: ChannelFilters<T>;
@@ -451,7 +451,7 @@ export type MessageReactionClickDetails = {
 };
 
 export type MessageActionsClickDetails<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = MessageActionsBoxContext<T> & { customActions: CustomMessageActionItem[] };
 
 export type GroupStyleOptions = {
@@ -463,7 +463,7 @@ export type GroupStyleOptions = {
 export type ChannelQueryType = 'first-page' | 'next-page' | 'recover-state';
 
 export type ChannelQueryResult<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   channels: Channel<T>[];
   hasMorePage: boolean;
@@ -490,13 +490,13 @@ export type MediaRecording = {
 };
 
 export type CustomAttachmentPreviewListContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
-  attachmentService: AttachmentService<T>;
+  service: AttachmentService<T>;
 };
 
 export type ThreadReplyButtonContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > = {
   message: StreamMessage<T>;
 };

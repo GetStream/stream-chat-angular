@@ -4,19 +4,19 @@
     <button channel-list-bottom>Add new channel</button>
   </stream-channel-list>
   <stream-channel>
-    <stream-channel-header></stream-channel-header>
-    <stream-message-list></stream-message-list>
-    <stream-notification-list></stream-notification-list>
-    <stream-message-input></stream-message-input>
+    <stream-channel-header />
+    <stream-message-list />
+    <stream-notification-list />
+    <stream-message-input />
     <stream-thread name="thread">
-      <stream-message-list mode="thread"></stream-message-list>
-      <stream-message-input mode="thread"></stream-message-input>
+      <stream-message-list mode="thread" />
+      <stream-message-input mode="thread" />
     </stream-thread>
   </stream-channel>
 </div>
 
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
-  <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
+  <app-emoji-picker [emojiInput$]="emojiInput$" />
 </ng-template>
 
 <ng-template
@@ -36,7 +36,7 @@
       [mode]="mode"
       [isHighlighted]="isHighlighted"
       [scroll$]="scroll$"
-    ></stream-message>
+    />
   </div>
 </ng-template>
 
@@ -45,16 +45,14 @@
 </ng-template>
 
 <ng-template #typingIndicator let-usersTyping$="usersTyping$">
-  <div
-    *ngIf="$any(usersTyping$ | async)?.length"
-    class="str-chat__typing-indicator str-chat__typing-indicator--typing"
-  >
-    Currently typing...&nbsp;
-    <!--eslint-disable-next-line @angular-eslint/template/use-track-by-function-->
-    <span *ngFor="let user of usersTyping$ | async">{{
-      user.name || user.id
-    }}</span>
-  </div>
+  @if ($any(usersTyping$ | async)?.length; as users) {
+    <div class="str-chat__typing-indicator str-chat__typing-indicator--typing">
+      Currently typing...&nbsp;
+      @for (user of users; track $index) {
+        <span>{{ user.name || user.id }}</span>
+      }
+    </div>
+  }
 </ng-template>
 
 <ng-template #mentionAutocompleteItemTemplate let-item="item">
@@ -81,7 +79,7 @@
     [attachments]="attachments"
     [parentMessageId]="parentMessageId"
     (imageModalStateChange)="imageModalStateChangeHandler($event)"
-  ></stream-attachment-list>
+  />
 </ng-template>
 
 <ng-template
@@ -95,7 +93,7 @@
     [attachmentUploads$]="attachmentUploads$"
     (retryAttachmentUpload)="retryUploadHandler($event)"
     (deleteAttachment)="deleteUploadHandler($event)"
-  ></stream-attachment-preview-list>
+  />
 </ng-template>
 
 <ng-template
@@ -118,15 +116,15 @@
     [channel]="channel"
     [initialsType]="initialsType"
     [showOnlineIndicator]="showOnlineIndicator"
-  ></stream-avatar>
+  />
 </ng-template>
 
 <ng-template #iconTemplate let-icon="icon">
-  <app-icon [icon]="icon"></app-icon>
+  <app-icon [icon]="icon" />
 </ng-template>
 
 <ng-template #loadingIndicatorTemplate let-color="color">
-  <stream-loading-indicator color="#F1F8E9"></stream-loading-indicator>
+  <stream-loading-indicator color="#F1F8E9" />
 </ng-template>
 
 <ng-template
@@ -141,7 +139,7 @@
     [enabledActions]="enabledActions"
     [message]="message"
     [messageTextHtmlElement]="messageTextHtmlElement"
-  ></stream-message-actions-box>
+  />
 </ng-template>
 
 <ng-template
@@ -158,7 +156,7 @@
     [message]="message"
     [extraParams]="actionHandlerExtraParams"
     [actionLabelOrTranslationKey]="actionLabelOrTranslationKey"
-  ></app-message-action>
+  />
 </ng-template>
 
 <ng-template
@@ -171,7 +169,7 @@
     [messageReactionGroups]="messageReactionGroups"
     [messageId]="messageId"
     [ownReactions]="ownReactions"
-  ></stream-message-reactions>
+  />
 </ng-template>
 
 <ng-template
@@ -182,7 +180,7 @@
   <stream-message-reactions-selector
     [messageId]="messageId"
     [ownReactions]="ownReactions"
-  ></stream-message-reactions-selector>
+  />
 </ng-template>
 
 <ng-template
@@ -195,14 +193,13 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #notificationTemplate let-type="type" let-content="content">
   <div class="str-chat__custom-notification">
     {{ type | uppercase }}
-    <ng-container *ngTemplateOutlet="content"></ng-container>
+    <ng-container *ngTemplateOutlet="content" />
   </div>
 </ng-template>
 
@@ -214,7 +211,7 @@
   <app-thread-header
     [parentMessage]="parentMessage"
     (closeThread)="closeThreadHandler()"
-  ></app-thread-header>
+  />
 </ng-template>
 
 <ng-template #customChannelInfo let-channel="channel">
@@ -273,5 +270,5 @@
     [message]="message"
     [shouldTranslate]="shouldTranslate"
     [isQuoted]="isQuoted"
-  ></app-message-text>
+  />
 </ng-template>

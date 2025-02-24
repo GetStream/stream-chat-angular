@@ -40,13 +40,13 @@ export abstract class MultimediaRecorder<T = null> {
   protected startTime: number | undefined;
   protected recordedChunkDurations: number[] = [];
   private recordingStateSubject = new BehaviorSubject<MediaRecordingState>(
-    MediaRecordingState.STOPPED
+    MediaRecordingState.STOPPED,
   );
 
   constructor(
     protected notificationService: NotificationService,
     protected chatService: ChatClientService,
-    private transcoder: TranscoderService
+    private transcoder: TranscoderService,
   ) {
     this.recording$ = this.recordingSubject.asObservable();
     this.recordingState$ = this.recordingStateSubject.asObservable();
@@ -77,7 +77,7 @@ export abstract class MultimediaRecorder<T = null> {
       return `${
         this.mediaType
       }_recording_${new Date().toISOString()}.${getExtensionFromMimeType(
-        mimeType
+        mimeType,
       )}`; // extension needed so that desktop Safari can play the asset
     }
   };
@@ -123,7 +123,7 @@ export abstract class MultimediaRecorder<T = null> {
     this.logError((e as ErrorEvent).error);
     this.recordingStateSubject.next(MediaRecordingState.ERROR);
     this.notificationService.addTemporaryNotification(
-      'streamChat.An error has occurred during recording'
+      'streamChat.An error has occurred during recording',
     );
     void this.stop({ cancel: true });
   };
@@ -140,7 +140,7 @@ export abstract class MultimediaRecorder<T = null> {
   async start() {
     if (
       [MediaRecordingState.RECORDING, MediaRecordingState.PAUSED].includes(
-        this.recordingStateSubject.value
+        this.recordingStateSubject.value,
       )
     ) {
       return;
@@ -151,13 +151,13 @@ export abstract class MultimediaRecorder<T = null> {
     // account for requirement on iOS as per this bug report: https://bugs.webkit.org/show_bug.cgi?id=252303
     if (!navigator.mediaDevices) {
       console.warn(
-        `[Stream Chat] Media devices API missing, it's possible your app is not served from a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)`
+        `[Stream Chat] Media devices API missing, it's possible your app is not served from a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)`,
       );
       const error = new Error('Media recording is not supported');
       this.logError(error);
       this.recordingStateSubject.next(MediaRecordingState.ERROR);
       this.notificationService.addTemporaryNotification(
-        `streamChat.Media recording not supported`
+        `streamChat.Media recording not supported`,
       );
       return;
     }
@@ -168,7 +168,7 @@ export abstract class MultimediaRecorder<T = null> {
 
       this.mediaRecorder.addEventListener(
         'dataavailable',
-        this.handleDataavailableEvent
+        this.handleDataavailableEvent,
       );
       this.mediaRecorder.addEventListener('error', this.handleErrorEvent);
 
@@ -184,7 +184,7 @@ export abstract class MultimediaRecorder<T = null> {
       this.notificationService.addTemporaryNotification(
         isNotAllowed
           ? `streamChat.Please grant permission to use microhpone`
-          : `streamChat.Error starting recording`
+          : `streamChat.Error starting recording`,
       );
     }
   }
@@ -234,7 +234,7 @@ export abstract class MultimediaRecorder<T = null> {
       }
     } catch {
       this.notificationService.addTemporaryNotification(
-        'streamChat.An error has occurred during recording'
+        'streamChat.An error has occurred during recording',
       );
     } finally {
       this.recordedChunkDurations = [];
@@ -242,7 +242,7 @@ export abstract class MultimediaRecorder<T = null> {
 
       this.mediaRecorder?.removeEventListener(
         'dataavailable',
-        this.handleDataavailableEvent
+        this.handleDataavailableEvent,
       );
       this.mediaRecorder?.removeEventListener('error', this.handleErrorEvent);
       if (this.mediaRecorder?.stream?.active) {

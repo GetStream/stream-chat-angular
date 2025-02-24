@@ -23,7 +23,7 @@ describe('ChatClientService', () => {
     userToken = 'userToken';
     mockChatClient = mockStreamChatClient();
     spyOn(StreamChat, 'getInstance').and.returnValue(
-      mockChatClient as any as StreamChat
+      mockChatClient as any as StreamChat,
     );
     service = TestBed.inject(ChatClientService);
     await service.init(apiKey, userId, userToken);
@@ -43,7 +43,7 @@ describe('ChatClientService', () => {
     expect(userSpy).toHaveBeenCalledWith(mockCurrentUser());
     expect(mockChatClient.connectUser).toHaveBeenCalledWith(
       { id: userId },
-      userToken
+      userToken,
     );
   });
 
@@ -90,7 +90,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.and.rejectWith(error);
 
     await expectAsync(service.init(apiKey, userId, userToken)).toBeRejectedWith(
-      error
+      error,
     );
 
     expect(spy).toHaveBeenCalledWith(
@@ -99,7 +99,7 @@ describe('ChatClientService', () => {
           type: 'error',
           text: 'streamChat.Error connecting to chat, refresh the page to try again.',
         }),
-      ])
+      ]),
     );
   });
 
@@ -156,7 +156,7 @@ describe('ChatClientService', () => {
 
     expect(mockChatClient.connectUser).toHaveBeenCalledWith(
       { id: userId },
-      tokenProvider
+      tokenProvider,
     );
   });
 
@@ -169,7 +169,7 @@ describe('ChatClientService', () => {
       jasmine.objectContaining({
         file_upload_config: jasmine.any(Object),
         image_upload_config: jasmine.any(Object),
-      })
+      }),
     );
 
     mockChatClient.getAppSettings.calls.reset();
@@ -227,7 +227,7 @@ describe('ChatClientService', () => {
 
   it('should set SDK information only once', async () => {
     mockChatClient.getUserAgent.and.returnValue(
-      'stream-chat-angular-stream-chat-javascript-client-browser-2.2.2'
+      'stream-chat-angular-stream-chat-javascript-client-browser-2.2.2',
     );
     mockChatClient.setUserAgent.calls.reset();
     await service.init(apiKey, userId, userToken);
@@ -290,7 +290,7 @@ describe('ChatClientService', () => {
 
     expect(spy).toHaveBeenCalledWith('offline');
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
-      'streamChat.Connection failure, reconnecting now...'
+      'streamChat.Connection failure, reconnecting now...',
     );
   });
 
@@ -298,7 +298,7 @@ describe('ChatClientService', () => {
     const removeNotificationSpy = jasmine.createSpy();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification').and.returnValue(
-      removeNotificationSpy
+      removeNotificationSpy,
     );
     mockChatClient.handleEvent('connection.changed', {
       id: 'event',
@@ -336,7 +336,7 @@ describe('ChatClientService', () => {
           { id: { $autocomplete: 'zi' } },
           { name: { $autocomplete: 'zi' } },
         ],
-      })
+      }),
     );
 
     expect(result.length).toBe(1);
@@ -467,7 +467,7 @@ describe('ChatClientService', () => {
     service.user$.subscribe(spy);
 
     expect(spy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ total_unread_count: 0 })
+      jasmine.objectContaining({ total_unread_count: 0 }),
     );
 
     spy.calls.reset();
@@ -492,7 +492,7 @@ describe('ChatClientService', () => {
     mockChatClient.handleEvent(event2.type, event2);
 
     expect(spy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ total_unread_count: 2 })
+      jasmine.objectContaining({ total_unread_count: 2 }),
     );
   });
 
@@ -513,7 +513,7 @@ describe('ChatClientService', () => {
     mockChatClient.handleEvent(event.type, event);
 
     expect(spy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ name: updatedName })
+      jasmine.objectContaining({ name: updatedName }),
     );
   });
 });

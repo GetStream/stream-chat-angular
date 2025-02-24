@@ -49,8 +49,8 @@ describe('ThreadComponent', () => {
   it('should display channel name', () => {
     expect(
       (fixture.nativeElement as HTMLElement).querySelector(
-        '[data-testid="channel-name"]'
-      )!.innerHTML
+        '[data-testid="channel-name"]',
+      )!.innerHTML,
     ).toContain(channel.data!.name!);
   });
 
@@ -64,7 +64,7 @@ describe('ThreadComponent', () => {
     fixture.detectChanges();
 
     expect(channelServiceMock.setAsActiveParentMessage).toHaveBeenCalledWith(
-      undefined
+      undefined,
     );
   });
 });

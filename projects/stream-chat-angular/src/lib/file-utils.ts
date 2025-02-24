@@ -11,7 +11,7 @@ export const readBlobAsArrayBuffer = (blob: Blob): Promise<ArrayBuffer> =>
     };
 
     fileReader.onerror = () => {
-      reject(fileReader.error);
+      reject(new Error(fileReader.error?.message));
     };
 
     fileReader.readAsArrayBuffer(blob);
@@ -43,7 +43,8 @@ export const createUriFromBlob = (blob: Blob) => {
     reader.onload = (event) => {
       resolve(event.target?.result ?? undefined);
     };
-    reader.onerror = (e) => reject(e);
+    reader.onerror = (_) =>
+      reject(new Error('Failed to read blob as data URL'));
     reader.readAsDataURL(blob);
   });
 };

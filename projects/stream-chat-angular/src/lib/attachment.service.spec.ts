@@ -68,7 +68,7 @@ describe('AttachmentService', () => {
 
   it('should delete attachment, if file is uploading', fakeAsync(() => {
     const file = { name: 'myimage.jpg', type: 'image/jpg' } as any as File;
-    let resolver!: Function;
+    let resolver!: (value?: unknown) => any;
     uploadAttachmentsSpy.and.returnValue(
       new Promise((resolve) => {
         resolver = () =>
@@ -80,7 +80,7 @@ describe('AttachmentService', () => {
               type: 'image' as const,
             },
           ]);
-      })
+      }),
     );
     const attachmentUploadsSpy = jasmine.createSpy('attachmentUploadsSpy');
     service.attachmentUploads$.subscribe(attachmentUploadsSpy);
@@ -191,14 +191,14 @@ describe('AttachmentService', () => {
       'streamChat.Error uploading file, extension not supported',
       'error',
       undefined,
-      { name: image.name, ext: '.jpg' }
+      { name: image.name, ext: '.jpg' },
     );
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Error uploading file, maximum file size exceeded',
       'error',
       undefined,
-      { name: file.name, limit: '50MB' }
+      { name: file.name, limit: '50MB' },
     );
   });
 
@@ -220,7 +220,7 @@ describe('AttachmentService', () => {
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
       'streamChat.You currently have {{count}} attachments, the maximum is {{max}}',
       'error',
-      { count: 31, max: service.maxNumberOfAttachments }
+      { count: 31, max: service.maxNumberOfAttachments },
     );
   });
 
@@ -236,14 +236,14 @@ describe('AttachmentService', () => {
 
     const files = new Array(3)
       .fill(null)
-      .map(() => ({ name: 'my_image.png', type: 'image/png' } as File));
+      .map(() => ({ name: 'my_image.png', type: 'image/png' }) as File);
     await service.filesSelected(files);
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       `streamChat.You can't uplod more than {{max}} attachments`,
       'error',
       undefined,
-      { max: service.maxNumberOfAttachments }
+      { max: service.maxNumberOfAttachments },
     );
 
     expect(uploadAttachmentsSpy).not.toHaveBeenCalled();
@@ -290,7 +290,7 @@ describe('AttachmentService', () => {
       `streamChat.You can't uplod more than {{max}} attachments`,
       'error',
       undefined,
-      { max: service.maxNumberOfAttachments }
+      { max: service.maxNumberOfAttachments },
     );
 
     expect(uploadAttachmentsSpy).not.toHaveBeenCalled();
@@ -382,7 +382,7 @@ describe('AttachmentService', () => {
       { type: 'video/x-msvideo' },
     ];
     const files = [...imageFiles, ...dataFiles, ...videoFiles];
-    let resolver!: Function;
+    let resolver!: (value?: unknown) => any;
     uploadAttachmentsSpy.and.returnValue(
       new Promise((resolve) => {
         resolver = () =>
@@ -414,7 +414,7 @@ describe('AttachmentService', () => {
               type: 'video',
             },
           ]);
-      })
+      }),
     );
     void service.filesSelected(files as any as FileList);
     tick();
@@ -446,11 +446,11 @@ describe('AttachmentService', () => {
   it('should emit the number of uploads in progress', fakeAsync(() => {
     const spy = jasmine.createSpy();
     service.attachmentUploadInProgressCounter$.subscribe(spy);
-    let resolver!: Function;
+    let resolver!: (value?: unknown) => any;
     uploadAttachmentsSpy.and.returnValue(
       new Promise((resovle) => {
         resolver = () => resovle([{}, {}]);
-      })
+      }),
     );
 
     expect(spy).toHaveBeenCalledWith(0);
@@ -578,7 +578,7 @@ describe('AttachmentService', () => {
     const messageService = TestBed.inject(MessageService);
     const filterSpy = spyOn(
       messageService,
-      'isCustomAttachment'
+      'isCustomAttachment',
     ).and.callThrough();
     const customAttachment = {
       type: 'custom',
@@ -716,7 +716,7 @@ describe('AttachmentService', () => {
     const notificationService = TestBed.inject(NotificationService);
     const errorNotificationSpy = spyOn(
       notificationService,
-      'addTemporaryNotification'
+      'addTemporaryNotification',
     );
     appSettings$.next({
       file_upload_config: {
@@ -766,7 +766,7 @@ describe('AttachmentService', () => {
     const notificationService = TestBed.inject(NotificationService);
     const errorNotificationSpy = spyOn(
       notificationService,
-      'addTemporaryNotification'
+      'addTemporaryNotification',
     );
     appSettings$.next({
       file_upload_config: {
@@ -834,7 +834,7 @@ describe('AttachmentService', () => {
 
     expect(result).toBeFalse();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledTimes(
-      2
+      2,
     );
   });
 

@@ -76,16 +76,8 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     public readonly customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
     private attachmentConfigurationService: AttachmentConfigurationService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {}
-
-  ngOnInit(): void {
-    this.subscriptions.push(
-      this.customTemplatesService.customAttachmentListTemplate$.subscribe(
-        (t) => (this.customAttachmentsTemplate = t)
-      )
-    );
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.attachments) {
@@ -111,24 +103,23 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
       // Giphy-s always sent without other attachments
       if (this.orderedAttachments.length === 0) {
         this.orderedAttachments.push(
-          ...builtInAttachments.filter((a) => this.isCard(a))
+          ...builtInAttachments.filter((a) => this.isCard(a)),
         );
       }
       this.customAttachments = customAttachments;
     }
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((s) => s.unsubscribe());
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.customTemplatesService.customAttachmentListTemplate$.subscribe(
+        (t) => (this.customAttachmentsTemplate = t),
+      ),
+    );
   }
 
-  trackByUrl(_: number, attachment: Attachment) {
-    return (
-      attachment.image_url ||
-      attachment.img_url ||
-      attachment.asset_url ||
-      attachment.thumb_url
-    );
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   isImage(attachment: Attachment) {
@@ -204,12 +195,8 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
       {
         [action.name!]: action.value!,
       },
-      this.parentMessageId
+      this.parentMessageId,
     );
-  }
-
-  trackByActionValue(_: number, item: Action) {
-    return item.value;
   }
 
   openImageModal(attachments: Attachment[], selectedIndex = 0) {
@@ -222,12 +209,8 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     this.imagesToViewCurrentIndex += dir * 1;
   }
 
-  trackByImageUrl(_: number, item: Attachment) {
-    return item.image_url || item.img_url || item.thumb_url;
-  }
-
   getAttachmentContext(
-    attachment: Attachment<DefaultStreamChatGenerics>
+    attachment: Attachment<DefaultStreamChatGenerics>,
   ): AttachmentContext {
     return { attachment };
   }
@@ -235,7 +218,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   getImageAttachmentConfiguration(
     attachment: Attachment,
     type: 'gallery' | 'single',
-    element: HTMLElement
+    element: HTMLElement,
   ): ImageAttachmentConfiguration {
     const existingConfiguration = this.attachmentConfigurations.get(attachment);
     if (existingConfiguration) {
@@ -245,7 +228,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
       this.attachmentConfigurationService.getImageAttachmentConfiguration(
         attachment,
         type,
-        element
+        element,
       );
     this.attachmentConfigurations.set(attachment, configuration);
     return configuration;
@@ -253,18 +236,18 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
 
   getCarouselImageAttachmentConfiguration(
     attachment: Attachment,
-    element: HTMLElement
+    element: HTMLElement,
   ) {
     return this.attachmentConfigurationService.getImageAttachmentConfiguration(
       attachment,
       'carousel',
-      element
+      element,
     );
   }
 
   getVideoAttachmentConfiguration(
     attachment: Attachment,
-    element: HTMLElement
+    element: HTMLElement,
   ): VideoAttachmentConfiguration {
     const existingConfiguration = this.attachmentConfigurations.get(attachment);
     if (existingConfiguration) {
@@ -273,7 +256,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     const configuration =
       this.attachmentConfigurationService.getVideoAttachmentConfiguration(
         attachment,
-        element
+        element,
       );
     this.attachmentConfigurations.set(attachment, configuration);
     return configuration;
@@ -286,12 +269,12 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     }
     if (attachment.type === 'giphy') {
       return this.attachmentConfigurationService.getGiphyAttachmentConfiguration(
-        attachment
+        attachment,
       );
     } else {
       const configuration =
         this.attachmentConfigurationService.getScrapedImageAttachmentConfiguration(
-          attachment
+          attachment,
         );
       this.attachmentConfigurations.set(attachment, configuration);
       return configuration;

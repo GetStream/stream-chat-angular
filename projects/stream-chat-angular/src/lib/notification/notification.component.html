@@ -4,10 +4,7 @@
     type
   }} str-chat__notification"
 >
-  <ng-container *ngIf="content; else elseContent">
-    <ng-container *ngTemplateOutlet="content"></ng-container>
-  </ng-container>
-  <ng-template #elseContent>
-    <ng-content></ng-content>
-  </ng-template>
+  @if (content) {
+    <ng-container *ngTemplateOutlet="content" />
+  }
 </div>

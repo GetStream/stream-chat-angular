@@ -13,7 +13,7 @@
       name="{{ avatarName }}"
       imageUrl="{{ avatarImage }}"
       [channel]="channel"
-    ></stream-avatar-placeholder>
+    />
   </div>
   <div
     class="str-chat__channel-preview-messenger--right str-chat__channel-preview-end"
@@ -29,10 +29,10 @@
           latestMessageText: latestMessageText,
           latestMessageStatus: latestMessageStatus,
           latestMessageTime: latestMessageTime,
-          latestMessage: latestMessage
+          latestMessage: latestMessage,
         }
       "
-    ></ng-container>
+    />
     <ng-template
       #defaultChannelInfo
       let-channelDisplayTitle="channelDisplayTitle"
@@ -47,47 +47,51 @@
             channelDisplayTitle
           }}</span>
         </div>
-        <div
-          *ngIf="unreadCount"
-          data-testid="unread-badge"
-          class="str-chat__channel-preview-unread-badge"
-        >
-          {{ unreadCount }}
-        </div>
+        @if (unreadCount) {
+          <div
+            data-testid="unread-badge"
+            class="str-chat__channel-preview-unread-badge"
+          >
+            {{ unreadCount }}
+          </div>
+        }
       </div>
       <div class="str-chat__channel-preview-end-second-row">
         <div
           data-testid="latest-message"
           class="str-chat__channel-preview-messenger--last-message"
         >
-          <ng-container *ngIf="displayAs === 'text'; else asHTML">
+          @if (displayAs === "text") {
             {{ latestMessageText | translate }}
-          </ng-container>
-          <ng-template #asHTML>
+          } @else {
             <span
               data-testid="html-content"
               [innerHTML]="latestMessageText | translate"
             ></span>
-          </ng-template>
+          }
         </div>
-        <div
-          *ngIf="latestMessageStatus"
-          data-testid="latest-message-status"
-          class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
-            latestMessageStatus
-          }}"
-        >
-          <stream-icon-placeholder
-            [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
-          ></stream-icon-placeholder>
-        </div>
-        <div
-          *ngIf="latestMessageTime"
-          data-testid="latest-message-time"
-          class="str-chat__channel-preview-messenger--time"
-        >
-          {{ latestMessageTime }}
-        </div>
+        @if (latestMessageStatus) {
+          <div
+            data-testid="latest-message-status"
+            class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
+              latestMessageStatus
+            }}"
+          >
+            <stream-icon-placeholder
+              [icon]="
+                latestMessageStatus === 'delivered' ? 'delivered' : 'read'
+              "
+            />
+          </div>
+        }
+        @if (latestMessageTime) {
+          <div
+            data-testid="latest-message-time"
+            class="str-chat__channel-preview-messenger--time"
+          >
+            {{ latestMessageTime }}
+          </div>
+        }
       </div>
     </ng-template>
   </div>

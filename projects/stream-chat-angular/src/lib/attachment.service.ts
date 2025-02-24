@@ -29,7 +29,7 @@ import { MessageService } from './message.service';
   providedIn: 'root',
 })
 export class AttachmentService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
 > {
   /**
    * Emits the number of uploads in progress.
@@ -60,7 +60,7 @@ export class AttachmentService<
    */
   maxNumberOfAttachments = 30;
   private attachmentUploadsSubject = new BehaviorSubject<AttachmentUpload[]>(
-    []
+    [],
   );
   private appSettings: AppSettings | undefined;
   private attachmentLimitNotificationHide?: () => void;
@@ -69,11 +69,11 @@ export class AttachmentService<
     private channelService: ChannelService,
     private notificationService: NotificationService,
     private chatClientService: ChatClientService,
-    private messageService: MessageService
+    private messageService: MessageService,
   ) {
     this.attachmentUploads$ = this.attachmentUploadsSubject.asObservable();
     this.chatClientService.appSettings$.subscribe(
-      (appSettings) => (this.appSettings = appSettings)
+      (appSettings) => (this.appSettings = appSettings),
     );
     this.attachmentsCounter$ = combineLatest([
       this.attachmentUploads$,
@@ -85,7 +85,7 @@ export class AttachmentService<
           customAttachments.length
         );
       }),
-      shareReplay(1)
+      shareReplay(1),
     );
     this.attachmentsCounter$.subscribe((count) => {
       if (count > this.maxNumberOfAttachments) {
@@ -93,7 +93,7 @@ export class AttachmentService<
           this.notificationService.addPermanentNotification(
             'streamChat.You currently have {{count}} attachments, the maximum is {{max}}',
             'error',
-            { count, max: this.maxNumberOfAttachments }
+            { count, max: this.maxNumberOfAttachments },
           );
       } else {
         this.attachmentLimitNotificationHide?.();
@@ -253,7 +253,7 @@ export class AttachmentService<
       } catch (error) {
         result = attachmentUploads;
         this.notificationService.addTemporaryNotification(
-          'streamChat.Error deleting attachment'
+          'streamChat.Error deleting attachment',
         );
       }
     } else {
@@ -385,14 +385,14 @@ export class AttachmentService<
       this.chatClientService?.chatClient?.logger(
         'error',
         e instanceof Error ? e.message : `Can't create image preview`,
-        { error: e, tag: ['AttachmentService'] }
+        { error: e, tag: ['AttachmentService'] },
       );
     }
   }
 
   private async uploadAttachments(uploads: AttachmentUpload[]) {
     this.attachmentUploadInProgressCounter$.next(
-      this.attachmentUploadInProgressCounter$.value + 1
+      this.attachmentUploadInProgressCounter$.value + 1,
     );
     const result = await this.channelService.uploadAttachments(uploads);
     const attachmentUploads = this.attachmentUploadsSubject.getValue();
@@ -431,12 +431,12 @@ export class AttachmentService<
           errorKey,
           'error',
           undefined,
-          translateParams
+          translateParams,
         );
       }
     });
     this.attachmentUploadInProgressCounter$.next(
-      this.attachmentUploadInProgressCounter$.value - 1
+      this.attachmentUploadInProgressCounter$.value - 1,
     );
     this.attachmentUploadsSubject.next([...attachmentUploads]);
   }
@@ -458,42 +458,42 @@ export class AttachmentService<
       if (isImageFile(f)) {
         hasBlockedExtension =
           !!this.appSettings?.image_upload_config?.blocked_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
+            (ext) => f.name.endsWith(ext),
           );
         hasBlockedMimeType =
           !!this.appSettings?.image_upload_config?.blocked_mime_types?.find(
-            (type) => f.type === type
+            (type) => f.type === type,
           );
         hasNotAllowedExtension =
           !!this.appSettings?.image_upload_config?.allowed_file_extensions
             ?.length &&
           !this.appSettings?.image_upload_config?.allowed_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
+            (ext) => f.name.endsWith(ext),
           );
         hasNotAllowedMimeType =
           !!this.appSettings?.image_upload_config?.allowed_mime_types?.length &&
           !this.appSettings?.image_upload_config?.allowed_mime_types?.find(
-            (type) => f.type === type
+            (type) => f.type === type,
           );
       } else {
         hasBlockedExtension =
           !!this.appSettings?.file_upload_config?.blocked_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
+            (ext) => f.name.endsWith(ext),
           );
         hasBlockedMimeType =
           !!this.appSettings?.file_upload_config?.blocked_mime_types?.find(
-            (type) => f.type === type
+            (type) => f.type === type,
           );
         hasNotAllowedExtension =
           !!this.appSettings?.file_upload_config?.allowed_file_extensions
             ?.length &&
           !this.appSettings?.file_upload_config?.allowed_file_extensions?.find(
-            (ext) => f.name.endsWith(ext)
+            (ext) => f.name.endsWith(ext),
           );
         hasNotAllowedMimeType =
           !!this.appSettings?.file_upload_config?.allowed_mime_types?.length &&
           !this.appSettings?.file_upload_config?.allowed_mime_types?.find(
-            (type) => f.type === type
+            (type) => f.type === type,
           );
       }
       if (
@@ -506,7 +506,7 @@ export class AttachmentService<
           'streamChat.Error uploading file, extension not supported',
           undefined,
           undefined,
-          { name: f.name, ext: f.type }
+          { name: f.name, ext: f.type },
         );
         isValid = false;
       }
@@ -544,7 +544,7 @@ export class AttachmentService<
           'streamChat.Error uploading file, maximum file size exceeded',
           undefined,
           undefined,
-          { name: f.name, limit: limit }
+          { name: f.name, limit: limit },
         );
         isValid = false;
       }
@@ -565,7 +565,7 @@ export class AttachmentService<
         `streamChat.You can't uplod more than {{max}} attachments`,
         'error',
         undefined,
-        { max: this.maxNumberOfAttachments }
+        { max: this.maxNumberOfAttachments },
       );
       return false;
     } else {

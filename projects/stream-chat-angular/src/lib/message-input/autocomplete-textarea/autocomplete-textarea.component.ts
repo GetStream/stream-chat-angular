@@ -106,12 +106,12 @@ export class AutocompleteTextareaComponent
     returnTrigger: true,
     mentionFilter: (
       searchString: string,
-      items: { autocompleteLabel: string }[]
+      items: { autocompleteLabel: string }[],
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
       this.itemSelectedFromAutocompleteList(
         item as MentionAutcompleteListItem,
-        triggerChar
+        triggerChar,
       ),
   };
   private slashCommandConfig: Mentions = {
@@ -121,12 +121,12 @@ export class AutocompleteTextareaComponent
     returnTrigger: true,
     mentionFilter: (
       searchString: string,
-      items: { autocompleteLabel: string }[]
+      items: { autocompleteLabel: string }[],
     ) => this.filter(searchString, items),
     mentionSelect: (item, triggerChar) =>
       this.itemSelectedFromAutocompleteList(
         item as MentionAutcompleteListItem,
-        triggerChar
+        triggerChar,
       ),
   };
   private searchTerm$ = new BehaviorSubject<string>('');
@@ -139,12 +139,12 @@ export class AutocompleteTextareaComponent
     private emojiInputService: EmojiInputService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    private messageInputConfigService: MessageInputConfigService
+    private messageInputConfigService: MessageInputConfigService,
   ) {
     this.searchTerm$
       .pipe(
         filter((searchTerm) => searchTerm.length !== 1),
-        debounceTime(300)
+        debounceTime(300),
       )
       .subscribe((searchTerm) => {
         if (searchTerm.startsWith(this.mentionTriggerChar)) {
@@ -165,7 +165,7 @@ export class AutocompleteTextareaComponent
         this.userMentions.next([...this.mentionedUsers]);
         void this.updateMentionOptions(this.searchTerm$.getValue());
         void this.updateCustomAutocompleteOptions(this.searchTerm$.getValue());
-      })
+      }),
     );
     this.subscriptions.push(
       this.emojiInputService.emojiInput$.subscribe((emoji) => {
@@ -177,17 +177,17 @@ export class AutocompleteTextareaComponent
         this.messageInput.nativeElement.selectionEnd =
           selectionStart! + emoji.length;
         this.inputChanged();
-      })
+      }),
     );
     this.subscriptions.push(
       this.customTemplatesService.mentionAutocompleteItemTemplate$.subscribe(
-        (template) => (this.mentionAutocompleteItemTemplate = template)
-      )
+        (template) => (this.mentionAutocompleteItemTemplate = template),
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.commandAutocompleteItemTemplate$.subscribe(
-        (template) => (this.commandAutocompleteItemTemplate = template)
-      )
+        (template) => (this.commandAutocompleteItemTemplate = template),
+      ),
     );
     this.autocompleteConfig.mentions = [
       this.userMentionConfig,
@@ -199,7 +199,7 @@ export class AutocompleteTextareaComponent
           const builtInItems =
             this.autocompleteConfig.mentions?.filter(
               (m) =>
-                m === this.userMentionConfig || m === this.slashCommandConfig
+                m === this.userMentionConfig || m === this.slashCommandConfig,
             ) ?? [];
           const transformedCustomConfigs = customConfigs.map((c) => {
             const copy: Mentions = {
@@ -214,12 +214,12 @@ export class AutocompleteTextareaComponent
               allowSpace: c.allowSpace,
               mentionFilter: (
                 searchString: string,
-                items: { autocompleteLabel: string }[]
+                items: { autocompleteLabel: string }[],
               ) => this.filter(searchString, items),
               mentionSelect: (item, triggerChar) =>
                 this.itemSelectedFromAutocompleteList(
                   item as MentionAutcompleteListItem,
-                  triggerChar
+                  triggerChar,
                 ),
             };
 
@@ -231,8 +231,8 @@ export class AutocompleteTextareaComponent
             ...transformedCustomConfigs,
           ];
           this.autocompleteConfig = { ...this.autocompleteConfig };
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -255,7 +255,7 @@ export class AutocompleteTextareaComponent
       this.messageInput.nativeElement.style.height = 'auto';
       this.chatClientService?.chatClient?.logger?.(
         'info',
-        '[Autocomplete textarea] Value reset, adjusting textarea height to auto'
+        '[Autocomplete textarea] Value reset, adjusting textarea height to auto',
       );
       this.updateMentionedUsersFromText();
     } else if (
@@ -266,7 +266,7 @@ export class AutocompleteTextareaComponent
     ) {
       this.chatClientService?.chatClient?.logger?.(
         'info',
-        '[Autocomplete textarea] Value changed'
+        '[Autocomplete textarea] Value changed',
       );
       setTimeout(() => {
         if (this.messageInput.nativeElement.scrollHeight > 0) {
@@ -280,7 +280,7 @@ export class AutocompleteTextareaComponent
     this.isViewInited = true;
     this.chatClientService?.chatClient?.logger?.(
       'info',
-      '[Autocomplete textarea] View inited'
+      '[Autocomplete textarea] View inited',
     );
     if (this.messageInput.nativeElement.scrollHeight > 0 && this.value) {
       this.adjustTextareaHeight();
@@ -290,14 +290,14 @@ export class AutocompleteTextareaComponent
   filter(searchString: string, items: { autocompleteLabel: string }[]) {
     return items.filter((item) =>
       this.transliterate(item.autocompleteLabel.toLowerCase()).includes(
-        this.transliterate(searchString.toLowerCase())
-      )
+        this.transliterate(searchString.toLowerCase()),
+      ),
     );
   }
 
   itemSelectedFromAutocompleteList(
     item: MentionAutcompleteListItem,
-    triggerChar = ''
+    triggerChar = '',
   ) {
     if (triggerChar === this.mentionTriggerChar) {
       this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
@@ -321,7 +321,7 @@ export class AutocompleteTextareaComponent
   inputChanged() {
     this.chatClientService?.chatClient?.logger?.(
       'info',
-      '[Autocomplete textarea] Input changed'
+      '[Autocomplete textarea] Input changed',
     );
     this.valueChange.emit(this.messageInput.nativeElement.value);
     this.adjustTextareaHeight();
@@ -342,7 +342,7 @@ export class AutocompleteTextareaComponent
   private adjustTextareaHeight() {
     this.chatClientService?.chatClient?.logger?.(
       'info',
-      `[Autocomplete textarea] Textarea height set from ${this.messageInput.nativeElement.style.height} to ${this.messageInput.nativeElement.scrollHeight}px`
+      `[Autocomplete textarea] Textarea height set from ${this.messageInput.nativeElement.style.height} to ${this.messageInput.nativeElement.scrollHeight}px`,
     );
     this.messageInput.nativeElement.style.height = '';
     this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
@@ -375,7 +375,7 @@ export class AutocompleteTextareaComponent
           autocompleteLabel: user.name || user.id,
           type: 'mention',
         };
-      })
+      }),
     );
     this.userMentionConfig.items = items;
     this.autocompleteConfig.mentions = [
@@ -407,7 +407,7 @@ export class AutocompleteTextareaComponent
       return;
     }
     const customMentionConfig = this.autocompleteConfig.mentions?.find(
-      (c) => c.triggerChar && searchTerm.startsWith(c.triggerChar)
+      (c) => c.triggerChar && searchTerm.startsWith(c.triggerChar),
     );
     const customAutocompleteConfig = customMentionConfig
       ? this.messageInputConfigService.customAutocompletes$
@@ -416,7 +416,7 @@ export class AutocompleteTextareaComponent
       : undefined;
     if (customMentionConfig && customAutocompleteConfig?.updateOptions) {
       const newOptions = await customAutocompleteConfig.updateOptions(
-        searchTerm.replace(customMentionConfig.triggerChar || '', '')
+        searchTerm.replace(customMentionConfig.triggerChar || '', ''),
       );
       customMentionConfig.items = newOptions.map((o) => ({
         ...o,

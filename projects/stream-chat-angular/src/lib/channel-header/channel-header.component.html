@@ -1,12 +1,12 @@
 <div class="str-chat__header-livestream str-chat__channel-header">
-  <ng-content></ng-content>
+  <ng-content />
   <stream-avatar-placeholder
     type="channel"
     location="channel-header"
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ avatarName }}"
     [channel]="activeChannel"
-  ></stream-avatar-placeholder>
+  />
   <div class="str-chat__header-livestream-left str-chat__channel-header-end">
     <p
       data-testid="name"
@@ -19,7 +19,7 @@
         channelHeaderInfoTemplate || defaultChannelInfo;
         context: getChannelInfoContext()
       "
-    ></ng-container>
+    />
     <ng-template #defaultChannelInfo>
       <p
         data-testid="info"
@@ -31,12 +31,12 @@
       </p>
     </ng-template>
   </div>
-  <ng-container *ngIf="channelActionsTemplate">
+  @if (channelActionsTemplate) {
     <ng-container
       *ngTemplateOutlet="
         channelActionsTemplate;
         context: getChannelActionsContext()
       "
-    ></ng-container>
-  </ng-container>
+    />
+  }
 </div>

@@ -163,7 +163,7 @@ export class MessageListComponent
   }
   private virtualizedList?: VirtualizedMessageListService;
   private scrollPosition$ = new BehaviorSubject<VirtualizedListScrollPosition>(
-    'bottom'
+    'bottom',
   );
   private jumpToItemSubscription?: Subscription;
   private queryStateSubscription?: Subscription;
@@ -174,7 +174,7 @@ export class MessageListComponent
     private customTemplatesService: CustomTemplatesService,
     private dateParser: DateParserService,
     private ngZone: NgZone,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
   ) {
     this.usersTypingInChannel$ = this.channelService.usersTypingInChannel$;
     this.usersTypingInThread$ = this.channelService.usersTypingInThread$;
@@ -189,11 +189,23 @@ export class MessageListComponent
     this.isUnreadNotificationVisible = false;
   };
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.mode || changes.direction) {
+      this.resetScrollState();
+      this.setMessages$();
+    }
+    if (changes.direction) {
+      if (this.scrollContainer?.nativeElement) {
+        this.jumpToLatestMessage();
+      }
+    }
+  }
+
   ngOnInit(): void {
     this.subscriptions.push(
       this.forceRepaintSubject.pipe(throttleTime(1000)).subscribe(() => {
         this.forceRepaint();
-      })
+      }),
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
@@ -204,7 +216,7 @@ export class MessageListComponent
             clearTimeout(this.checkIfUnreadNotificationIsVisibleTimeout);
           }
           this.jumpToMessageTimeouts.forEach((timeout) =>
-            clearTimeout(timeout)
+            clearTimeout(timeout),
           );
           this.jumpToMessageTimeouts = [];
           this.highlightedMessageId = undefined;
@@ -244,7 +256,7 @@ export class MessageListComponent
                 // If unread banner isn't visible on the screen, we display the unread notificaion
                 setTimeout(() => {
                   const bannerElement = document.getElementById(
-                    'stream-chat-new-message-indicator'
+                    'stream-chat-new-message-indicator',
                   );
                   if (
                     !bannerElement ||
@@ -292,7 +304,7 @@ export class MessageListComponent
             }
           });
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.channelService.activeParentMessage$.subscribe((message) => {
@@ -315,7 +327,7 @@ export class MessageListComponent
         if (this.isViewInited) {
           this.cdRef.detectChanges();
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.customTemplatesService.messageTemplate$.subscribe((template) => {
@@ -326,7 +338,7 @@ export class MessageListComponent
         if (this.isViewInited) {
           this.cdRef.detectChanges();
         }
-      })
+      }),
     );
     this.subscriptions.push(
       this.customTemplatesService.dateSeparatorTemplate$.subscribe(
@@ -338,8 +350,8 @@ export class MessageListComponent
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.newMessagesIndicatorTemplate$.subscribe(
@@ -351,8 +363,8 @@ export class MessageListComponent
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.newMessagesNotificationTemplate$.subscribe(
@@ -364,8 +376,8 @@ export class MessageListComponent
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.typingIndicatorTemplate$.subscribe(
@@ -377,8 +389,8 @@ export class MessageListComponent
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.emptyMainMessageListPlaceholder$.subscribe(
@@ -388,8 +400,8 @@ export class MessageListComponent
           if (isChanged && this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.subscriptions.push(
       this.customTemplatesService.emptyThreadMessageListPlaceholder$.subscribe(
@@ -399,29 +411,17 @@ export class MessageListComponent
           if (isChanged && this.isViewInited) {
             this.cdRef.detectChanges();
           }
-        }
-      )
+        },
+      ),
     );
     this.setMessages$();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.mode || changes.direction) {
-      this.resetScrollState();
-      this.setMessages$();
-    }
-    if (changes.direction) {
-      if (this.scrollContainer?.nativeElement) {
-        this.jumpToLatestMessage();
-      }
-    }
   }
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer?.nativeElement?.addEventListener('scroll', () =>
-        this.scrolled()
+        this.scrolled(),
       );
     });
   }
@@ -464,10 +464,6 @@ export class MessageListComponent
     this.disposeVirtualizedList();
   }
 
-  trackByMessageId(_: number, item: StreamMessage) {
-    return item.id;
-  }
-
   trackByUserId(_: number, user: UserResponse) {
     return user.id;
   }
@@ -480,7 +476,7 @@ export class MessageListComponent
     } else {
       void this.channelService.jumpToMessage(
         'latest',
-        this.mode === 'thread' ? this.parentMessage?.id : undefined
+        this.mode === 'thread' ? this.parentMessage?.id : undefined,
       );
     }
   }
@@ -651,6 +647,7 @@ export class MessageListComponent
   private forceRepaint() {
     // Solves the issue of empty screen on Safari when scrolling
     this.scrollContainer.nativeElement.style.display = 'none';
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     this.scrollContainer.nativeElement.offsetHeight; // no need to store this anywhere, the reference is enough
     this.scrollContainer.nativeElement.style.display = '';
   }
@@ -679,7 +676,7 @@ export class MessageListComponent
     this.virtualizedList = new VirtualizedMessageListService(
       this.mode,
       this.scrollPosition$,
-      this.channelService
+      this.channelService,
     );
     this.queryStateSubscription = this.virtualizedList.queryState$.subscribe(
       (queryState) => {
@@ -693,7 +690,7 @@ export class MessageListComponent
             this.cdRef.detectChanges();
           }
         }
-      }
+      },
     );
     this.messages$ = this.virtualizedList.virtualizedItems$.pipe(
       tap(() => {
@@ -709,7 +706,7 @@ export class MessageListComponent
           this.lastReadMessageId
         ) {
           const lastReadIndex = messages.findIndex(
-            (m) => m.id === this.lastReadMessageId
+            (m) => m.id === this.lastReadMessageId,
           );
           if (lastReadIndex !== -1) {
             this.firstUnreadMessageId = messages[lastReadIndex + 1]?.id;
@@ -723,8 +720,8 @@ export class MessageListComponent
             .find(
               (m) =>
                 m.user?.id === this.chatClientService.chatClient?.user?.id &&
-                m.status !== 'sending'
-            )?.id)
+                m.status !== 'sending',
+            )?.id),
       ),
       tap((messages) => {
         const latestMessageInList = messages[messages.length - 1];
@@ -753,13 +750,13 @@ export class MessageListComponent
         this.groupStyles = messages.map((m, i) =>
           getGroupStyles(m, messages[i - 1], messages[i + 1], {
             lastReadMessageId: this.lastReadMessageId,
-          })
+          }),
         );
         this.isNextMessageOnSeparateDate = messages.map((m, i) =>
-          this.checkIfOnSeparateDates(m, messages[i + 1])
+          this.checkIfOnSeparateDates(m, messages[i + 1]),
         );
       }),
-      shareReplay(1)
+      shareReplay(1),
     );
     if (this.virtualizedList?.jumpToItem$) {
       this.jumpToItemSubscription = this.virtualizedList.jumpToItem$
@@ -812,7 +809,7 @@ export class MessageListComponent
 
   private scrollMessageIntoView(
     options: { messageId: string; position: 'top' | 'bottom' | 'middle' },
-    withRetry: boolean = true
+    withRetry: boolean = true,
   ) {
     const element = document.getElementById(options.messageId);
     this.jumpToMessageTimeouts.forEach((t) => clearTimeout(t));
@@ -820,7 +817,7 @@ export class MessageListComponent
     if (!element && withRetry) {
       // If the message was newly inserted into activeChannelMessages$, the message will be rendered after the current change detection cycle -> wait for this cycle to complete
       this.jumpToMessageTimeouts.push(
-        setTimeout(() => this.scrollMessageIntoView(options, false))
+        setTimeout(() => this.scrollMessageIntoView(options, false)),
       );
     } else if (element) {
       const blockMapping: { [key: string]: ScrollLogicalPosition } = {
@@ -844,7 +841,7 @@ export class MessageListComponent
           if (!this.isUserScrolled) {
             this.checkIfUserScrolled();
           }
-        }, 200)
+        }, 200),
       );
       this.jumpToMessageTimeouts.push(
         setTimeout(() => {
@@ -853,7 +850,7 @@ export class MessageListComponent
           this.isJumpingToLatestUnreadMessage = false;
           this.jumpToMessageTimeouts = [];
           this.cdRef.detectChanges();
-        }, 1000)
+        }, 1000),
       );
     } else {
       this.isJumpingToMessage = false;
@@ -896,7 +893,7 @@ export class MessageListComponent
 
   private checkIfOnSeparateDates(
     message?: StreamMessage,
-    nextMessage?: StreamMessage
+    nextMessage?: StreamMessage,
   ) {
     if (!message || !nextMessage) {
       return false;

@@ -15,34 +15,36 @@
   (paste)="pasteFromClipboard.emit($event)"
 ></textarea>
 <ng-template #autocompleteItem let-item="item">
-  <ng-container *ngIf="item.templateRef; else builtinItem">
+  @if (item.templateRef) {
     <ng-container
       *ngTemplateOutlet="item.templateRef; context: { item: item }"
-    ></ng-container>
-  </ng-container>
-  <ng-template #builtinItem>
-    <div
-      class="rta rta__item str-chat__emojisearch__item"
-      [ngSwitch]="item.type"
-    >
-      <div *ngSwitchCase="'mention'" class="rta__entity">
-        <ng-container
-          *ngTemplateOutlet="
-            mentionAutocompleteItemTemplate || defaultMentionTemplate;
-            context: { item: item }
-          "
-        ></ng-container>
-      </div>
-      <div *ngSwitchCase="'command'" class="rta__entity">
-        <ng-container
-          *ngTemplateOutlet="
-            commandAutocompleteItemTemplate || defaultCommandTemplate;
-            context: { item: item }
-          "
-        ></ng-container>
-      </div>
+    />
+  } @else {
+    <div class="rta rta__item str-chat__emojisearch__item">
+      @switch (item.type) {
+        @case ("mention") {
+          <div class="rta__entity">
+            <ng-container
+              *ngTemplateOutlet="
+                mentionAutocompleteItemTemplate || defaultMentionTemplate;
+                context: { item: item }
+              "
+            />
+          </div>
+        }
+        @case ("command") {
+          <div class="rta__entity">
+            <ng-container
+              *ngTemplateOutlet="
+                commandAutocompleteItemTemplate || defaultCommandTemplate;
+                context: { item: item }
+              "
+            />
+          </div>
+        }
+      }
     </div>
-  </ng-template>
+  }
 </ng-template>
 
 <ng-template #defaultCommandTemplate let-item="item">
@@ -71,7 +73,7 @@
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
       [user]="item.user || item"
-    ></stream-avatar-placeholder>
+    />
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel
     }}</span>

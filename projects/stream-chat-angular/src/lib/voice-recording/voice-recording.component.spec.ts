@@ -38,7 +38,7 @@ describe('VoiceRecordingComponent', () => {
     spyOn(audioElement, 'pause').and.callFake(() => {});
 
     const button = nativeElement.querySelector<HTMLButtonElement>(
-      '[data-testid="play-button"]'
+      '[data-testid="play-button"]',
     )!;
 
     button.click();
@@ -59,7 +59,7 @@ describe('VoiceRecordingComponent', () => {
     Object.defineProperty(audioElement, 'paused', { value: false });
     fixture.detectChanges();
     const button = nativeElement.querySelector<HTMLButtonElement>(
-      '[data-testid="playback-rate-button"]'
+      '[data-testid="playback-rate-button"]',
     )!;
     button.click();
     fixture.detectChanges();
@@ -111,7 +111,7 @@ describe('VoiceRecordingComponent', () => {
   });
 
   it('should set error state from play', async () => {
-    spyOn(audioElement, 'play').and.callFake(() => Promise.reject());
+    spyOn(audioElement, 'play').and.callFake(() => Promise.reject(new Error()));
 
     expect(component.isError).toBeFalse();
 
@@ -120,7 +120,7 @@ describe('VoiceRecordingComponent', () => {
 
     expect(component.isError).toBeTrue();
     expect(
-      nativeElement.querySelector('[data-testid="error-message"]')?.innerHTML
+      nativeElement.querySelector('[data-testid="error-message"]')?.innerHTML,
     ).toContain('Error playing audio');
   });
 

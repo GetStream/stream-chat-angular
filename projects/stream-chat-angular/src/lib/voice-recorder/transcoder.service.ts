@@ -9,9 +9,9 @@ export type TranscodeParams = TranscoderConfig & {
   blob: Blob;
 };
 
-const WAV_HEADER_LENGTH_BYTES = 44 as const;
-const BYTES_PER_SAMPLE = 2 as const;
-const RIFF_FILE_MAX_BYTES = 4294967295 as const;
+const WAV_HEADER_LENGTH_BYTES = 44;
+const BYTES_PER_SAMPLE = 2;
+const RIFF_FILE_MAX_BYTES = 4294967295;
 
 const HEADER = {
   AUDIO_FORMAT: { offset: 20, value: 1 }, // PCM = 1
@@ -69,7 +69,7 @@ export class TranscoderService {
     }
     const audioBuffer = await this.renderAudio(
       await this.toAudioBuffer(blob),
-      this.config.sampleRate
+      this.config.sampleRate,
     );
     const numberOfSamples = audioBuffer.duration * this.config.sampleRate;
     const fileSizeBytes =
@@ -93,7 +93,7 @@ export class TranscoderService {
     const offlineAudioCtx = new OfflineAudioContext(
       audioBuffer.numberOfChannels,
       audioBuffer.duration * sampleRate,
-      sampleRate
+      sampleRate,
     );
     const source = offlineAudioCtx.createBufferSource();
     source.buffer = audioBuffer;
@@ -128,7 +128,7 @@ export class TranscoderService {
           float32Value < 0
             ? Math.max(-1, float32Value) * 32768
             : Math.min(1, float32Value) * 32767,
-          true
+          true,
         );
         writeOffset += channelCount * BYTES_PER_SAMPLE;
       });
@@ -150,14 +150,14 @@ export class TranscoderService {
      */
     const dataChunkSize = Math.min(
       dataView.byteLength - WAV_HEADER_LENGTH_BYTES,
-      RIFF_FILE_MAX_BYTES - WAV_HEADER_LENGTH_BYTES
+      RIFF_FILE_MAX_BYTES - WAV_HEADER_LENGTH_BYTES,
     );
 
     dataView.setUint32(HEADER.CHUNK_ID.offset, HEADER.CHUNK_ID.value); // "RIFF"
     dataView.setUint32(
       HEADER.CHUNK_SIZE.offset,
       arrayBuffer.byteLength - 8,
-      true
+      true,
     ); // adjustment for the first two headers - chunk id + file size
     dataView.setUint32(HEADER.FILE_FORMAT.offset, HEADER.FILE_FORMAT.value); // "WAVE"
 
@@ -165,12 +165,12 @@ export class TranscoderService {
     dataView.setUint32(
       HEADER.SUBCHUNK1_SIZE.offset,
       HEADER.SUBCHUNK1_SIZE.value,
-      true
+      true,
     );
     dataView.setUint16(
       HEADER.AUDIO_FORMAT.offset,
       HEADER.AUDIO_FORMAT.value,
-      true
+      true,
     );
     dataView.setUint16(HEADER.CHANNEL_COUNT.offset, channelCount, true);
     dataView.setUint32(HEADER.SAMPLE_RATE.offset, sampleRate, true);
@@ -179,7 +179,7 @@ export class TranscoderService {
     dataView.setUint16(
       HEADER.BITS_PER_SAMPLE.offset,
       HEADER.BITS_PER_SAMPLE.value,
-      true
+      true,
     );
 
     dataView.setUint32(HEADER.SUBCHUNK2_ID.offset, HEADER.SUBCHUNK2_ID.value); // "data"
@@ -188,6 +188,6 @@ export class TranscoderService {
 
   protected splitDataByChannel = (audioBuffer: AudioBuffer) =>
     Array.from({ length: audioBuffer.numberOfChannels }, (_, i) =>
-      audioBuffer.getChannelData(i)
+      audioBuffer.getChannelData(i),
     );
 }

@@ -16,13 +16,13 @@ describe('VirtualizedMessageListService', () => {
   describe('main mode', () => {
     beforeEach(() => {
       scrollPosition$ = new BehaviorSubject<VirtualizedListScrollPosition>(
-        'middle'
+        'middle',
       );
       channelService = mockChannelService();
       service = new VirtualizedMessageListService(
         'main',
         scrollPosition$,
-        channelService as unknown as ChannelService
+        channelService as unknown as ChannelService,
       );
     });
 
@@ -113,13 +113,13 @@ describe('VirtualizedMessageListService', () => {
   describe('thread mode', () => {
     beforeEach(() => {
       scrollPosition$ = new BehaviorSubject<VirtualizedListScrollPosition>(
-        'middle'
+        'middle',
       );
       channelService = mockChannelService();
       service = new VirtualizedMessageListService(
         'thread',
         scrollPosition$,
-        channelService as unknown as ChannelService
+        channelService as unknown as ChannelService,
       );
     });
 
@@ -129,13 +129,13 @@ describe('VirtualizedMessageListService', () => {
       void service['query']('top');
 
       expect(channelService['loadMoreThreadReplies']).toHaveBeenCalledWith(
-        'older'
+        'older',
       );
 
       void service['query']('bottom');
 
       expect(channelService['loadMoreThreadReplies']).toHaveBeenCalledWith(
-        'newer'
+        'newer',
       );
     });
 

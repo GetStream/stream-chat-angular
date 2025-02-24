@@ -25,10 +25,10 @@ import {
 @Component({
   selector: 'stream-avatar',
   templateUrl: './avatar.component.html',
-  styleUrls: ['./avatar.component.scss'],
+  styleUrl: './avatar.component.scss',
 })
 export class AvatarComponent
-  implements OnChanges, OnInit, OnChanges, AfterViewInit, OnDestroy
+  implements OnChanges, OnInit, AfterViewInit, OnDestroy
 {
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
@@ -76,8 +76,21 @@ export class AvatarComponent
   constructor(
     private chatClientService: ChatClientService,
     private ngZone: NgZone,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
   ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['channel']) {
+      this.updateIsOnlineSubscription();
+    }
+    if (changes.type || changes.name || changes.channel) {
+      this.setInitials();
+    }
+
+    if (changes.type || changes.channel) {
+      this.setFallbackChannelImage();
+    }
+  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -93,21 +106,12 @@ export class AvatarComponent
             this.cdRef.detectChanges();
           }
         }
-      })
+      }),
     );
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['channel']) {
-      this.updateIsOnlineSubscription();
-    }
-    if (changes.type || changes.name || changes.channel) {
-      this.setInitials();
-    }
-
-    if (changes.type || changes.channel) {
-      this.setFallbackChannelImage();
-    }
+  ngAfterViewInit(): void {
+    this.isViewInited = true;
   }
 
   ngOnDestroy(): void {
@@ -176,13 +180,9 @@ export class AvatarComponent
     }
   }
 
-  ngAfterViewInit(): void {
-    this.isViewInited = true;
-  }
-
   private getOtherMemberIfOneToOneChannel() {
     const otherMembers = Object.values(
-      this.channel?.state?.members || {}
+      this.channel?.state?.members || {},
     ).filter((m) => m.user_id !== this.userId);
     if (otherMembers.length === 1) {
       return otherMembers[0].user;

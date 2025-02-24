@@ -1,6 +1,6 @@
 export const resampleWaveForm = (
   waveFormData: number[],
-  sampleSize: number
+  sampleSize: number,
 ) => {
   return waveFormData.length > sampleSize
     ? downsample(waveFormData, sampleSize)
@@ -26,7 +26,7 @@ const downsample = (waveFormData: number[], sampleSize: number) => {
     const nextBucketMean = getNextBucketMean(
       waveFormData,
       bucketIndex,
-      bucketSize
+      bucketSize,
     );
 
     const currentBucketStartIndex =
@@ -51,16 +51,16 @@ const downsample = (waveFormData: number[], sampleSize: number) => {
       triangleArea = triangleAreaHeron(
         triangleBase(
           Math.abs(previousBucketRefPoint - currentPointValue),
-          countUnitsBetweenAtoB
+          countUnitsBetweenAtoB,
         ),
         triangleBase(
           Math.abs(currentPointValue - nextBucketMean),
-          countUnitsBetweenBtoC
+          countUnitsBetweenBtoC,
         ),
         triangleBase(
           Math.abs(previousBucketRefPoint - nextBucketMean),
-          countUnitsBetweenAtoC
-        )
+          countUnitsBetweenAtoC,
+        ),
       );
 
       if (triangleArea > maxArea) {
@@ -95,7 +95,7 @@ const upsample = (waveFormData: number[], sampleSize: number) => {
 const getNextBucketMean = (
   data: number[],
   currentBucketIndex: number,
-  bucketSize: number
+  bucketSize: number,
 ) => {
   const nextBucketStartIndex = Math.floor(currentBucketIndex * bucketSize) + 1;
   let nextNextBucketStartIndex =

@@ -45,7 +45,7 @@ describe('createMessagePreview', () => {
       {
         isVote: true,
         options: ['Monday', 'Tuesday', 'Friday'],
-      }
+      },
     );
 
     expect(preview.created_at).not.toBeUndefined();

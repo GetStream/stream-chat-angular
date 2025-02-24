@@ -24,7 +24,7 @@ export class ChannelComponent {
   constructor(
     private channelService: ChannelService,
     private themeService: ThemeService,
-    readonly customTemplatesService: CustomTemplatesService
+    readonly customTemplatesService: CustomTemplatesService,
   ) {
     this.isError$ = combineLatest([
       this.channelService.channelQueryState$,
@@ -32,7 +32,7 @@ export class ChannelComponent {
     ]).pipe(
       map(([state, activeChannel]) => {
         return !activeChannel && state?.state === 'error';
-      })
+      }),
     );
     this.isInitializing$ = combineLatest([
       this.channelService.channelQueryState$,
@@ -40,14 +40,14 @@ export class ChannelComponent {
     ]).pipe(
       map(([state, activeChannel]) => {
         return !activeChannel && state?.state === 'in-progress';
-      })
+      }),
     );
     this.isActiveThread$ = this.channelService.activeParentMessageId$.pipe(
-      map((id) => !!id)
+      map((id) => !!id),
     );
     this.theme$ = this.themeService.theme$;
     this.isActiveChannel$ = this.channelService.activeChannel$.pipe(
-      map((c) => !!c)
+      map((c) => !!c),
     );
   }
 }

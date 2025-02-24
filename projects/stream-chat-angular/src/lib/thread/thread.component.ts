@@ -28,17 +28,17 @@ export class ThreadComponent implements OnDestroy {
   constructor(
     public customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
-    private chatClientService: ChatClientService
+    private chatClientService: ChatClientService,
   ) {
     this.subscriptions.push(
       this.channelService.activeParentMessage$.subscribe(
-        (parentMessage) => (this.parentMessage = parentMessage)
-      )
+        (parentMessage) => (this.parentMessage = parentMessage),
+      ),
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe(
-        (channel) => (this.channel = channel)
-      )
+        (channel) => (this.channel = channel),
+      ),
     );
   }
 
@@ -63,7 +63,7 @@ export class ThreadComponent implements OnDestroy {
     }
     return getChannelDisplayText(
       this.channel,
-      this.chatClientService.chatClient.user
+      this.chatClientService.chatClient.user,
     );
   }
 }

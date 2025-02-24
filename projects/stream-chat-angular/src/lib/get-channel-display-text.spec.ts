@@ -15,7 +15,7 @@ describe('getChannelDisplayText', () => {
     } as any as Channel<DefaultStreamChatGenerics>;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe(
-      'Hobby Chefs🧁🥩🥗🥑🥘'
+      'Hobby Chefs🧁🥩🥗🥑🥘',
     );
   });
 
@@ -40,7 +40,7 @@ describe('getChannelDisplayText', () => {
     } as Channel<DefaultStreamChatGenerics>;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe(
-      listUsers(members)
+      listUsers(members),
     );
   });
 
@@ -65,7 +65,7 @@ describe('getChannelDisplayText', () => {
     } as Channel<DefaultStreamChatGenerics>;
 
     expect(getChannelDisplayText(channel, currentUser)).not.toContain(
-      currentUser.id
+      currentUser.id,
     );
   });
 

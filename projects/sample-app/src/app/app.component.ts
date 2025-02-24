@@ -22,7 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  styleUrl: './app.component.scss',
 })
 export class AppComponent implements AfterViewInit {
   isMenuOpen = false;
@@ -38,7 +38,7 @@ export class AppComponent implements AfterViewInit {
     private channelService: ChannelService,
     private streamI18nService: StreamI18nService,
     private customTemplateService: CustomTemplatesService,
-    themeService: ThemeService
+    themeService: ThemeService,
   ) {
     const isDynamicUser = environment.userId === '<dynamic user>';
     const userId = isDynamicUser ? uuidv4() : environment.userId;
@@ -49,7 +49,7 @@ export class AppComponent implements AfterViewInit {
         ? async () => {
             const url = environment.tokenUrl.replace(
               environment.userId,
-              userId
+              userId,
             );
             const response = await fetch(url);
             const body = (await response.json()) as { token: string };
@@ -57,7 +57,7 @@ export class AppComponent implements AfterViewInit {
             return body.token;
           }
         : environment.userToken,
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
     void this.channelService.init(
       environment.channelsFilter || {
@@ -65,7 +65,7 @@ export class AppComponent implements AfterViewInit {
         members: { $in: [environment.userId] },
       },
       undefined,
-      { limit: 10 }
+      { limit: 10 },
     );
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
@@ -76,7 +76,7 @@ export class AppComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.customTemplateService.emojiPickerTemplate$.next(
-      this.emojiPickerTemplate
+      this.emojiPickerTemplate,
     );
   }
 

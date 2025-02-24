@@ -1,9 +1,9 @@
 <ng-template #defaultLoadingIndicator>
-  <stream-loading-indicator></stream-loading-indicator>
+  <stream-loading-indicator />
 </ng-template>
 <ng-container
   *ngTemplateOutlet="
     (customTemplatesService.loadingIndicatorTemplate$ | async) ||
     defaultLoadingIndicator
   "
-></ng-container>
+/>

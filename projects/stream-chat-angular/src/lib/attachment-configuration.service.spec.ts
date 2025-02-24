@@ -11,7 +11,7 @@ describe('AttachmentConfigurationService', () => {
         ({
           getPropertyValue: (property) =>
             htmlElement[property as keyof Element] || '',
-        } as CSSStyleDeclaration)
+        }) as CSSStyleDeclaration,
     );
     service = TestBed.inject(AttachmentConfigurationService);
   });
@@ -28,7 +28,11 @@ describe('AttachmentConfigurationService', () => {
     } as unknown as HTMLElement;
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'single',
+        htmlElement,
+      ),
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
       height: '',
@@ -42,7 +46,11 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'single',
+        htmlElement,
+      ),
     ).toEqual({
       url: 'http://url/to/img?oh=1200&ow=800&h=900&w=600',
       height: '',
@@ -56,7 +64,11 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'single',
+        htmlElement,
+      ),
     ).toEqual({
       url: 'http://url/to/img?oh=1&ow=1&h=600&w=600',
       originalHeight: 1000000,
@@ -80,7 +92,7 @@ describe('AttachmentConfigurationService', () => {
     service.getImageAttachmentConfiguration(
       attachment,
       'carousel',
-      htmlElement
+      htmlElement,
     );
 
     expect(spy).toHaveBeenCalledWith(attachment, 'carousel', htmlElement);
@@ -99,8 +111,8 @@ describe('AttachmentConfigurationService', () => {
       service.getImageAttachmentConfiguration(
         attachment,
         'gallery',
-        htmlElement
-      )
+        htmlElement,
+      ),
     ).toEqual({
       url: 'http://url/to/img?h=600&w=600',
       height: '',
@@ -123,8 +135,8 @@ describe('AttachmentConfigurationService', () => {
       service.getImageAttachmentConfiguration(
         attachment,
         'carousel',
-        htmlElement
-      )
+        htmlElement,
+      ),
     ).toEqual({
       url: 'http://url/to/img',
       height: '',
@@ -145,7 +157,7 @@ describe('AttachmentConfigurationService', () => {
     } as unknown as HTMLElement;
 
     expect(
-      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+      service.getVideoAttachmentConfiguration(attachment, htmlElement),
     ).toEqual({
       url: 'http://url/to/video',
       height: '',
@@ -161,7 +173,7 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+      service.getVideoAttachmentConfiguration(attachment, htmlElement),
     ).toEqual({
       url: 'http://url/to/video',
       height: '',
@@ -176,7 +188,7 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getVideoAttachmentConfiguration(attachment, htmlElement)
+      service.getVideoAttachmentConfiguration(attachment, htmlElement),
     ).toEqual({
       url: 'http://url/to/video',
       height: '',
@@ -358,7 +370,7 @@ describe('AttachmentConfigurationService', () => {
     const result = service.getImageAttachmentConfiguration(
       attachment,
       'gallery',
-      htmlElement
+      htmlElement,
     );
 
     expect(result.url).toContain('h=750&w=600');
@@ -377,7 +389,7 @@ describe('AttachmentConfigurationService', () => {
     };
 
     expect(
-      service.getVideoAttachmentConfiguration(attachment, htmlElement).thumbUrl
+      service.getVideoAttachmentConfiguration(attachment, htmlElement).thumbUrl,
     ).toBeUndefined();
   });
 
@@ -393,7 +405,7 @@ describe('AttachmentConfigurationService', () => {
     const url = service.getImageAttachmentConfiguration(
       attachment,
       'single',
-      htmlElement
+      htmlElement,
     ).url;
 
     expect(url).not.toContain('h=*');
@@ -411,7 +423,11 @@ describe('AttachmentConfigurationService', () => {
     } as any as HTMLElement;
 
     expect(() =>
-      service.getImageAttachmentConfiguration(attachment, 'single', htmlElement)
+      service.getImageAttachmentConfiguration(
+        attachment,
+        'single',
+        htmlElement,
+      ),
     ).not.toThrow(jasmine.any(Error));
   });
 });

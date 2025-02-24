@@ -149,8 +149,16 @@
           {
             "order": ["[inputs]", "[outputs]"],
             "groups": {
-              "inputs": [{ "groupByDecorator": "Input" }],
-              "outputs": [{ "groupByDecorator": "Output" }]
+              "inputs": [
+                {
+                  "groupByDecorator": "Input"
+                }
+              ],
+              "outputs": [
+                {
+                  "groupByDecorator": "Output"
+                }
+              ]
             }
           }
         ]

@@ -28,7 +28,7 @@ describe('NotificationComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryNotification()?.classList.contains('notification-error')
+      queryNotification()?.classList.contains('notification-error'),
     ).toBeTrue();
   });
 
@@ -38,11 +38,11 @@ describe('NotificationComponent', () => {
     const notificationElement = queryNotification();
 
     expect(
-      notificationElement?.classList.contains('notification-success')
+      notificationElement?.classList.contains('notification-success'),
     ).toBeTrue();
 
     expect(
-      notificationElement?.classList.contains('notification-error')
+      notificationElement?.classList.contains('notification-error'),
     ).toBeFalse();
   });
 
@@ -51,7 +51,7 @@ describe('NotificationComponent', () => {
     fixture.detectChanges();
 
     expect(
-      queryNotification()?.classList.contains('notification-info')
+      queryNotification()?.classList.contains('notification-info'),
     ).toBeTrue();
   });
 });

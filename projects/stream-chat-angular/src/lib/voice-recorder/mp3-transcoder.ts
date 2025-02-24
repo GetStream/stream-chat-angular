@@ -10,7 +10,7 @@ const readFileAsArrayBuffer = (blob: Blob): Promise<ArrayBuffer> =>
     };
 
     blobReader.onerror = () => {
-      reject(blobReader.error);
+      reject(new Error(blobReader.error?.message));
     };
 
     blobReader.readAsArrayBuffer(blob);
@@ -29,7 +29,7 @@ const renderAudio = async (audioBuffer: AudioBuffer, sampleRate: number) => {
   const offlineAudioCtx = new OfflineAudioContext(
     audioBuffer.numberOfChannels,
     audioBuffer.duration * sampleRate,
-    sampleRate
+    sampleRate,
   );
   const source = offlineAudioCtx.createBufferSource();
   source.buffer = audioBuffer;
@@ -53,7 +53,7 @@ const float32ArrayToInt16Array = (float32Arr: Float32Array) => {
 
 const splitDataByChannel = (audioBuffer: AudioBuffer) =>
   Array.from({ length: audioBuffer.numberOfChannels }, (_, i) =>
-    audioBuffer.getChannelData(i)
+    audioBuffer.getChannelData(i),
   ).map(float32ArrayToInt16Array);
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
@@ -64,7 +64,7 @@ export async function encodeWebmToMp3(blob: Blob, lameJs: any) {
   const mp3Encoder = new lameJs.Mp3Encoder(
     channelCount,
     SAMPLE_RATE,
-    ENCODING_BIT_RATE
+    ENCODING_BIT_RATE,
   );
 
   const dataBuffer: Int8Array[] = [];
@@ -75,12 +75,12 @@ export async function encodeWebmToMp3(blob: Blob, lameJs: any) {
     i += COUNT_SAMPLES_PER_ENCODED_BLOCK
   ) {
     const [leftChannelBlock, rightChannelBlock] = dataByChannel.map((channel) =>
-      channel.subarray(i, i + COUNT_SAMPLES_PER_ENCODED_BLOCK)
+      channel.subarray(i, i + COUNT_SAMPLES_PER_ENCODED_BLOCK),
     );
     dataBuffer.push(
       new Int8Array(
-        mp3Encoder.encodeBuffer(leftChannelBlock, rightChannelBlock)
-      )
+        mp3Encoder.encodeBuffer(leftChannelBlock, rightChannelBlock),
+      ),
     );
     remaining -= COUNT_SAMPLES_PER_ENCODED_BLOCK;
   }

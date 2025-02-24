@@ -5,7 +5,7 @@ import { ThemeService } from 'stream-chat-angular';
 @Component({
   selector: 'app-emoji-picker',
   templateUrl: './emoji-picker.component.html',
-  styleUrls: ['./emoji-picker.component.scss'],
+  styleUrl: './emoji-picker.component.scss',
 })
 export class EmojiPickerComponent {
   isOpened = false;

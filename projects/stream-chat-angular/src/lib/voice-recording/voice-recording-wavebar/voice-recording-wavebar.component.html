@@ -11,20 +11,17 @@
   (click)="seek($event)"
 >
   <!--eslint-enable @angular-eslint/template/click-events-have-key-events-->
-  <div
-    *ngFor="
-      let dataPoint of resampledWaveFormData;
-      let i = index;
-      trackBy: trackByIndex
-    "
-    class="str-chat__wave-progress-bar__amplitude-bar"
-    [class.str-chat__wave-progress-bar__amplitude-bar--active]="
-      progress > i / resampledWaveFormData.length
-    "
-    [style.--str-chat__wave-progress-bar__amplitude-bar-height]="
-      dataPoint ? dataPoint * 100 + '%' : '0%'
-    "
-  ></div>
+  @for (dataPoint of resampledWaveFormData; track dataPoint; let i = $index) {
+    <div
+      class="str-chat__wave-progress-bar__amplitude-bar"
+      [class.str-chat__wave-progress-bar__amplitude-bar--active]="
+        progress > i / resampledWaveFormData.length
+      "
+      [style.--str-chat__wave-progress-bar__amplitude-bar-height]="
+        dataPoint ? dataPoint * 100 + '%' : '0%'
+      "
+    ></div>
+  }
   <div
     class="str-chat__wave-progress-bar__progress-indicator"
     data-testid="wave-progress-bar-progress-indicator"

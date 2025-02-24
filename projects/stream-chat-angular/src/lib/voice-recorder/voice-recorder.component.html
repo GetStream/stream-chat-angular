@@ -1,75 +1,70 @@
-<div
-  class="str-chat__audio_recorder-container"
-  *ngIf="voiceRecorderService?.isRecorderVisible$ | async"
->
-  <div class="str-chat__audio_recorder" data-testid="audio-recorder">
-    <button
-      class="str-chat__audio_recorder__cancel-button"
-      data-testid="cancel-recording-audio-button"
-      [disabled]="isLoading"
-      (click)="cancel()"
-      (keyup.enter)="cancel()"
-    >
-      <stream-icon-placeholder icon="bin"></stream-icon-placeholder>
-    </button>
-    <stream-voice-recorder-wavebar
-      *ngIf="
+@if (voiceRecorderService?.isRecorderVisible$ | async) {
+  <div class="str-chat__audio_recorder-container">
+    <div class="str-chat__audio_recorder" data-testid="audio-recorder">
+      <button
+        class="str-chat__audio_recorder__cancel-button"
+        data-testid="cancel-recording-audio-button"
+        [disabled]="isLoading"
+        (click)="cancel()"
+        (keyup.enter)="cancel()"
+      >
+        <stream-icon-placeholder icon="bin" />
+      </button>
+      @if (
         (recordState === MediaRecordingState.RECORDING ||
           recordState === MediaRecordingState.PAUSED) &&
         !recording
-      "
-    ></stream-voice-recorder-wavebar>
-    <!-- eslint-disable @angular-eslint/template/no-any -->
-    <stream-voice-recording
-      [attachment]="$any(recording)"
-      *ngIf="!!recording"
-    ></stream-voice-recording>
-    <!-- eslint-enable @angular-eslint/template/no-any -->
-    <button
-      *ngIf="recordState === MediaRecordingState.PAUSED && !recording"
-      class="str-chat__audio_recorder__resume-recording-button"
-      (click)="resume()"
-      (keyup.enter)="resume()"
-    >
-      <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
-    </button>
-    <button
-      *ngIf="recordState === MediaRecordingState.RECORDING && !recording"
-      class="str-chat__audio_recorder__pause-recording-button"
-      data-testid="pause-recording-audio-button"
-      (click)="pause()"
-      (keyup.enter)="pause()"
-    >
-      <stream-icon-placeholder icon="pause"></stream-icon-placeholder>
-    </button>
-    <ng-container
-      *ngIf="recordState === MediaRecordingState.STOPPED; else stopButton"
-    >
-      <button
-        class="str-chat__audio_recorder__complete-button"
-        data-testid="audio-recorder-complete-button"
-        [disabled]="!recording"
-        (click)="uploadRecording()"
-        (keyup.enter)="uploadRecording()"
-      >
-        <stream-loading-indicator
-          *ngIf="isLoading; else sendIcon"
-        ></stream-loading-indicator>
-        <ng-template #sendIcon>
-          <stream-icon-placeholder icon="send"></stream-icon-placeholder>
-        </ng-template>
-      </button>
-    </ng-container>
-    <ng-template #stopButton>
-      <button
-        class="str-chat__audio_recorder__stop-button"
-        data-testid="audio-recorder-stop-button"
-        [disabled]="recordState === MediaRecordingState.STOPPED"
-        (click)="stop()"
-        (keyup.enter)="stop()"
-      >
-        <stream-icon-placeholder icon="delivered"></stream-icon-placeholder>
-      </button>
-    </ng-template>
+      ) {
+        <stream-voice-recorder-wavebar />
+      }
+      <!-- eslint-disable @angular-eslint/template/no-any -->
+      @if (!!recording) {
+        <stream-voice-recording [attachment]="$any(recording)" />
+      }
+      <!-- eslint-enable @angular-eslint/template/no-any -->
+      @if (recordState === MediaRecordingState.PAUSED && !recording) {
+        <button
+          class="str-chat__audio_recorder__resume-recording-button"
+          (click)="resume()"
+          (keyup.enter)="resume()"
+        >
+          <stream-icon-placeholder icon="mic" />
+        </button>
+      }
+      @if (recordState === MediaRecordingState.RECORDING && !recording) {
+        <button
+          class="str-chat__audio_recorder__pause-recording-button"
+          data-testid="pause-recording-audio-button"
+          (click)="pause()"
+          (keyup.enter)="pause()"
+        >
+          <stream-icon-placeholder icon="pause" />
+        </button>
+      }
+      @if (recordState === MediaRecordingState.STOPPED) {
+        <button
+          class="str-chat__audio_recorder__complete-button"
+          data-testid="audio-recorder-complete-button"
+          [disabled]="!recording"
+          (click)="uploadRecording()"
+          (keyup.enter)="uploadRecording()"
+        >
+          @if (isLoading) {
+            <stream-loading-indicator />
+          } @else {
+            <stream-icon-placeholder icon="send" />
+          }
+        </button>
+      } @else {
+        <button
+          class="str-chat__audio_recorder__stop-button"
+          data-testid="audio-recorder-stop-button"
+          (click)="stop()"
+          (keyup.enter)="stop()"
+        >
+          <stream-icon-placeholder icon="delivered" />
+        </button>
+      }
+    </div>
   </div>
-</div>
+}

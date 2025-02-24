@@ -10,13 +10,13 @@ describe('listUsers', () => {
       listUsers([
         { id: 'id1', name: 'Sara' },
         { id: 'id2', name: 'Jane' },
-      ])
+      ]),
     ).toBe('Sara, Jane');
   });
 
   it('should return correct result if user has no name, the fallback should be id', () => {
     expect(listUsers([{ id: 'id1' }, { id: 'id2', name: 'Jane' }])).toBe(
-      'id1, Jane'
+      'id1, Jane',
     );
   });
 
@@ -60,7 +60,7 @@ describe('listUsers', () => {
     ];
 
     expect(listUsers(readBy, false, 'and more')).toBe(
-      'Bob, Sophie, Jack, Rose, John and more'
+      'Bob, Sophie, Jack, Rose, John and more',
     );
   });
 });
