@@ -62,6 +62,7 @@ export const generateMockChannels = (length = 25) => {
     const channel = {
       cid: 'cid' + index.toString(),
       id: index.toString(),
+      type: 'messaging',
       data: {
         id: index.toString(),
         name: `Channel${index}`,
@@ -117,6 +118,7 @@ export const generateMockChannels = (length = 25) => {
         pinnedMessages: [],
         threads: {},
         read: {},
+        membership: {},
         members: {
           jack: { user: { id: 'jack', name: 'Jack' } },
           sara: { user: { id: 'sara', name: 'Sara' } },

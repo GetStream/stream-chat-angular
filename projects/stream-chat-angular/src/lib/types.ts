@@ -4,7 +4,11 @@ import type {
   Attachment,
   Channel,
   ChannelFilters,
+  ChannelManagerEventHandlerOverrides,
+  ChannelManagerOptions,
   ChannelMemberResponse,
+  ChannelOptions,
+  ChannelSort,
   CommandResponse,
   Event,
   ExtendableGenerics,
@@ -545,4 +549,27 @@ export type MessageTextContext = {
   message: StreamMessage | undefined | MessageResponseBase;
   isQuoted: boolean;
   shouldTranslate: boolean;
+};
+
+export type ChannelServiceOptions<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
+> = ChannelManagerOptions & {
+  shouldSetActiveChannel?: boolean;
+  eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
+};
+
+export type ChannelQueryConfig<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
+> = {
+  filters: ChannelFilters<T>;
+  sort: ChannelSort<T>;
+  options: ChannelOptions;
+};
+
+export type ChannelQueryConfigInput<
+  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
+> = {
+  filters: ChannelFilters<T>;
+  sort?: ChannelSort<T>;
+  options?: ChannelOptions;
 };

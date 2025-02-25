@@ -34,6 +34,7 @@ import {
 describe('ChannelService', () => {
   let service: ChannelService;
   let mockChatClient: {
+    dispatchEvent: (event: Event) => void;
     queryChannels: jasmine.Spy;
     channel: jasmine.Spy;
     updateMessage: jasmine.Spy;
@@ -41,7 +42,9 @@ describe('ChannelService', () => {
     userID: string;
     pinMessage: jasmine.Spy;
     unpinMessage: jasmine.Spy;
+    logger: () => void;
     activeChannels: { [key: string]: Channel<DefaultStreamChatGenerics> };
+    on: (eventType: string, callback: (event: Event) => void) => void;
   };
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
@@ -58,6 +61,7 @@ describe('ChannelService', () => {
   beforeEach(() => {
     user = mockCurrentUser();
     connectionState$ = new Subject<'online' | 'offline'>();
+    const eventHandlers: { [key: string]: (event: Event) => void } = {};
     mockChatClient = {
       queryChannels: jasmine
         .createSpy()
@@ -69,6 +73,14 @@ describe('ChannelService', () => {
       pinMessage: jasmine.createSpy(),
       unpinMessage: jasmine.createSpy(),
       activeChannels: {},
+      logger: () => undefined,
+      on: (eventType: string, callback: (event: Event) => void) => {
+        eventHandlers[eventType] = callback;
+        return { unsubscribe: () => delete eventHandlers[eventType] };
+      },
+      dispatchEvent: (event: Event) => {
+        eventHandlers[event.type]?.(event);
+      },
     };
     events$ = new Subject();
     TestBed.configureTestingModule({
@@ -100,7 +112,10 @@ describe('ChannelService', () => {
         );
       }
 
-      return service.init(filters, sort, options, shouldSetActiveChannel);
+      return service.init(
+        { filters, sort, options },
+        { shouldSetActiveChannel },
+      );
     };
   });
 
@@ -111,6 +126,7 @@ describe('ChannelService', () => {
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       jasmine.any(Object),
       sort,
+      jasmine.any(Object),
       jasmine.any(Object),
     );
   });
@@ -123,6 +139,7 @@ describe('ChannelService', () => {
       jasmine.any(Object),
       jasmine.any(Object),
       jasmine.objectContaining(options),
+      jasmine.any(Object),
     );
   });
 
@@ -131,6 +148,7 @@ describe('ChannelService', () => {
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
       filters,
+      jasmine.any(Object),
       jasmine.any(Object),
       jasmine.any(Object),
     );
@@ -143,6 +161,9 @@ describe('ChannelService', () => {
     const mockChannels = generateMockChannels();
 
     const result = spy.calls.mostRecent().args[0] as Channel[];
+
+    expect(result.length).toBe(mockChannels.length);
+
     result.forEach((channel, index) => {
       expect(channel.cid).toEqual(mockChannels[index].cid);
     });
@@ -381,11 +402,11 @@ describe('ChannelService', () => {
     await init();
 
     // Check that offset is set properly after query
-    // @ts-expect-error we know channelQuery exists, TS doesn't
-    expect(service['channelQuery']?.['nextPageConfiguration']).toEqual({
-      type: 'offset',
-      offset: service.channels.length,
-    });
+    expect(
+      // @ts-expect-error we know channelManager exists, TS doesn't
+      service.channelManager?.state?.getLatestValue().pagination?.options
+        .offset,
+    ).toEqual(service.channels.length);
 
     mockChatClient.queryChannels.calls.reset();
     const existingChannel = service.channels[0];
@@ -396,6 +417,7 @@ describe('ChannelService', () => {
     await service.loadMoreChannels();
 
     expect(mockChatClient.queryChannels).toHaveBeenCalledWith(
+      jasmine.any(Object),
       jasmine.any(Object),
       jasmine.any(Object),
       jasmine.any(Object),
@@ -669,39 +691,18 @@ describe('ChannelService', () => {
       .subscribe((channels) => (channel = channels![1]));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
+    mockChatClient.channel.and.returnValue(channel);
     const event = {
       message: mockMessage(),
       type: 'message.new',
+      channel_type: channel.type,
+      channel_id: channel.id,
     } as any as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('message.new', event);
+    mockChatClient.dispatchEvent(event);
 
-    const firtChannel = (spy.calls.mostRecent().args[0] as Channel[])[0];
+    const firstChannel = (spy.calls.mostRecent().args[0] as Channel[])[0];
 
-    expect(firtChannel).toBe(channel);
-  });
-
-  it('should call custom #customNewMessageHandler, if handler is provided', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.channels$
-      .pipe(first())
-      .subscribe((channels) => (channel = channels![1]));
-    const spy = jasmine.createSpy();
-    service.customNewMessageHandler = spy;
-    const event = {
-      message: mockMessage(),
-      type: 'message.new',
-    } as any as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('message.new', event);
-
-    expect(spy).toHaveBeenCalledWith(
-      event,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
+    expect(firstChannel).toBe(channel);
   });
 
   it('should handle if channel visibility changes', async () => {
@@ -710,11 +711,13 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    mockChatClient.activeChannels[channel.cid] = channel;
     spyOn(channel, 'stopWatching');
-    (channel as MockChannel).handleEvent('channel.hidden', {
+    mockChatClient.channel.and.returnValue(channel);
+    mockChatClient.dispatchEvent({
       type: 'channel.hidden',
-      channel,
+      cid: channel.cid,
+      channel_type: channel.type,
+      channel_id: channel.id,
     });
 
     let channels = spy.calls.mostRecent().args[0] as Channel[];
@@ -722,53 +725,17 @@ describe('ChannelService', () => {
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
     expect(channel.stopWatching).not.toHaveBeenCalledWith();
 
-    (channel as MockChannel).handleEvent('channel.visible', {
+    // @ts-expect-error white-box testing so we can wait for event handler promise to run
+    await service.channelManager?.channelVisibleHandler({
       type: 'channel.visible',
-      channel,
+      cid: channel.cid,
+      channel_type: channel.type,
+      channel_id: channel.id,
     });
 
     channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).not.toBeUndefined();
-  });
-
-  it('should handle if channel visibility changes, if custom event handlers are provided', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const visibleSpy = jasmine.createSpy();
-    const hiddenSpy = jasmine.createSpy();
-    service.customChannelVisibleHandler = visibleSpy;
-    service.customChannelHiddenHandler = hiddenSpy;
-    const hiddenEvent = {
-      type: 'channel.hidden',
-      channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('channel.hidden', hiddenEvent);
-
-    expect(hiddenSpy).toHaveBeenCalledWith(
-      hiddenEvent,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
-
-    const visibleEvent = {
-      type: 'channel.visible',
-      channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('channel.hidden', visibleEvent);
-
-    expect(visibleSpy).toHaveBeenCalledWith(
-      visibleEvent,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
   });
 
   it('should remove channel from list, if deleted', async () => {
@@ -777,11 +744,11 @@ describe('ChannelService', () => {
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    mockChatClient.activeChannels[channel.cid] = channel;
+    mockChatClient.channel.and.returnValue(channel);
     spyOn(channel, 'stopWatching');
-    (channel as MockChannel).handleEvent('channel.deleted', {
+    mockChatClient.dispatchEvent({
       type: 'channel.deleted',
-      channel,
+      cid: channel.cid,
     });
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
@@ -790,143 +757,19 @@ describe('ChannelService', () => {
     expect(channel.stopWatching).not.toHaveBeenCalledWith();
   });
 
-  it('should call #customChannelDeletedHandler, if channel is deleted and handler is provided', async () => {
+  it('should emit changed active channel if `capabilities.changed` dispatched', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
+    const channel = service.activeChannel!;
     const spy = jasmine.createSpy();
-    service.customChannelDeletedHandler = spy;
-    const event = {
-      type: 'channel.deleted',
-      channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('channel.deleted', event);
-
-    expect(spy).toHaveBeenCalledWith(
-      event,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
-  });
-
-  it('should update channel in list, if updated', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const spy = jasmine.createSpy();
-    service.channels$.subscribe(spy);
-    (channel as MockChannel).handleEvent('channel.updated', {
-      type: 'channel.updated',
-      channel: {
-        cid: channel.cid,
-        name: 'New name',
-      },
-    });
-
-    const channels = spy.calls.mostRecent().args[0] as Channel[];
-
-    const updatedChannel = channels.find((c) => c.cid === channel.cid);
-
-    expect(updatedChannel!.data!.name).toBe('New name');
-    expect(updatedChannel!.data!.own_capabilities).toBeDefined();
-    expect(updatedChannel!.data!.hidden).toBeDefined();
-  });
-
-  it('should emit changed channel if `capabilities.changed` dispatched', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const spy = jasmine.createSpy();
-    service.channels$.subscribe(spy);
-    channel.data!.own_capabilities = ['send-message'];
+    service.activeChannel$.subscribe(spy);
+    spy.calls.reset();
+    channel.data = { ...channel.data!, own_capabilities: ['send-message'] };
     (channel as MockChannel).handleEvent('capabilities.changed', {
       type: 'capabilities.changed',
       cid: channel.cid,
     });
 
-    const channels = spy.calls.mostRecent().args[0] as Channel[];
-
-    const updatedChannel = channels.find((c) => c.cid === channel.cid);
-
-    expect(updatedChannel!.data!.own_capabilities).toEqual(['send-message']);
-  });
-
-  it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const spy = jasmine.createSpy();
-    service.customChannelUpdatedHandler = spy;
-    const event = {
-      type: 'channel.updated',
-      channel: {
-        cid: channel.cid,
-        name: 'New name',
-      },
-    } as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('channel.updated', event);
-
-    expect(spy).toHaveBeenCalledWith(
-      event,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
-  });
-
-  it('should handle if channel is truncated', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const channelsSpy = jasmine.createSpy();
-    service.channels$.subscribe(channelsSpy);
-    const messagesSpy = jasmine.createSpy();
-    service.activeChannelMessages$.subscribe(messagesSpy);
-    (channel as MockChannel).handleEvent('channel.truncated', {
-      type: 'channel.truncated',
-      channel: {
-        cid: channel.cid,
-        name: 'New name',
-      },
-    });
-
-    const channels = channelsSpy.calls.mostRecent().args[0] as Channel[];
-
-    expect(
-      channels.find((c) => c.cid === channel.cid)!.state.messages.length,
-    ).toBe(0);
-
-    expect(messagesSpy).toHaveBeenCalledWith([]);
-  });
-
-  it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const spy = jasmine.createSpy();
-    service.customChannelTruncatedHandler = spy;
-    const event = {
-      type: 'channel.truncated',
-      channel: {
-        cid: channel.cid,
-        name: 'New name',
-      },
-    } as Event<DefaultStreamChatGenerics>;
-    (channel as MockChannel).handleEvent('channel.truncated', event);
-
-    expect(spy).toHaveBeenCalledWith(
-      event,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
+    expect(spy).toHaveBeenCalledWith(channel);
   });
 
   it('should watch for reaction events', async () => {
@@ -952,19 +795,6 @@ describe('ChannelService', () => {
     expect(spy).toHaveBeenCalledWith(jasmine.any(Object));
   });
 
-  it('should watch for channel events', async () => {
-    const channel = generateMockChannels(1)[0];
-    const unsubscribeSpy = jasmine.createSpy();
-    spyOn(channel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
-    await init([channel], undefined, undefined, undefined, false);
-
-    expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
-
-    service.reset();
-
-    expect(unsubscribeSpy).toHaveBeenCalledWith();
-  });
-
   it('should add the new channel to the top of the list, and start watching it, if user is added to a channel', fakeAsync(async () => {
     await init();
     flush();
@@ -974,21 +804,19 @@ describe('ChannelService', () => {
     newChannel.type = 'messaging';
     mockChatClient.channel.and.returnValue(newChannel);
     spyOn(newChannel, 'watch').and.callThrough();
-    spyOn(newChannel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    events$.next({
-      eventType: 'notification.added_to_channel',
-      event: { channel: newChannel } as any as Event<DefaultStreamChatGenerics>,
-    });
+    mockChatClient.dispatchEvent({
+      type: 'notification.added_to_channel',
+      channel: newChannel,
+    } as any as Event<DefaultStreamChatGenerics>);
     tick();
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
     const firstChannel = channels[0];
 
     expect(firstChannel.cid).toBe(newChannel.cid);
-    expect(newChannel.watch).toHaveBeenCalledWith();
-    expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
+    expect(newChannel.watch).toHaveBeenCalled();
   }));
 
   it('should add the new channel to the top of the list, and start watching it, if a new message is received from the channel', fakeAsync(async () => {
@@ -999,13 +827,12 @@ describe('ChannelService', () => {
     channel.type = 'messaging';
     mockChatClient.channel.and.returnValue(channel);
     spyOn(channel, 'watch').and.callThrough();
-    spyOn(channel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    events$.next({
-      eventType: 'notification.message_new',
-      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
-    });
+    mockChatClient.dispatchEvent({
+      type: 'notification.message_new',
+      channel: channel,
+    } as any as Event<DefaultStreamChatGenerics>);
     tick();
     flush();
 
@@ -1013,8 +840,7 @@ describe('ChannelService', () => {
     const firstChannel = channels[0];
 
     expect(firstChannel.cid).toBe(channel.cid);
-    expect(channel.watch).toHaveBeenCalledWith();
-    expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
+    expect(channel.watch).toHaveBeenCalled();
   }));
 
   it(`shouldn't add channels twice if two notification events were received for the same channel`, fakeAsync(async () => {
@@ -1025,24 +851,22 @@ describe('ChannelService', () => {
     channel.type = 'messaging';
     mockChatClient.channel.and.returnValue(channel);
     spyOn(channel, 'watch').and.callThrough();
-    spyOn(channel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    events$.next({
-      eventType: 'notification.added_to_channel',
-      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
-    });
-    events$.next({
-      eventType: 'notification.message_new',
-      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
-    });
+    mockChatClient.dispatchEvent({
+      channel: channel,
+      type: 'notification.added_to_channel',
+    } as any as Event<DefaultStreamChatGenerics>);
+    mockChatClient.dispatchEvent({
+      channel: channel,
+      type: 'notification.added_to_channel',
+    } as any as Event<DefaultStreamChatGenerics>);
     tick();
     flush();
 
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.filter((c) => c.cid === channel.cid).length).toBe(1);
-    expect(channel.on).toHaveBeenCalledOnceWith(jasmine.any(Function));
   }));
 
   it('should remove channel form the list if user is removed from channel', async () => {
@@ -1054,136 +878,48 @@ describe('ChannelService', () => {
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
     mockChatClient.activeChannels[channel.cid] = channel;
-    spyOn(channel, 'stopWatching').and.callThrough();
     spyOn(service, 'setAsActiveChannel');
 
-    events$.next({
-      eventType: 'notification.removed_from_channel',
-      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
-    });
+    mockChatClient.dispatchEvent({
+      channel: channel,
+      type: 'notification.removed_from_channel',
+    } as any as Event<DefaultStreamChatGenerics>);
 
     let channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
     expect(service.setAsActiveChannel).not.toHaveBeenCalled();
-    expect(channel.stopWatching).toHaveBeenCalledWith();
 
-    // Check that new messages won't readd the channel to the list
-    (channel as MockChannel).handleEvent('message.new', {
+    mockChatClient.dispatchEvent({
       id: 'new-message',
       type: 'message.new',
-    });
+      cid: channel.cid,
+      channel_type: channel.type,
+      channel_id: channel.id,
+    } as any as Event<DefaultStreamChatGenerics>);
 
     channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
   });
 
-  it('should remove channel form the list if user is removed from channel, and emit new active channel', async () => {
+  it('should remove channel form the list if user is removed from channel, deselect active channel', async () => {
     await init();
     let channel!: Channel<DefaultStreamChatGenerics>;
-    let newActiveChannel!: Channel<DefaultStreamChatGenerics>;
     service.channels$.pipe(first()).subscribe((channels) => {
       channel = channels![0];
-      newActiveChannel = channels![1];
     });
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    spyOn(service, 'setAsActiveChannel');
-    events$.next({
-      eventType: 'notification.removed_from_channel',
-      event: { channel: channel } as any as Event<DefaultStreamChatGenerics>,
+    spyOn(service, 'deselectActiveChannel');
+    mockChatClient.dispatchEvent({
+      type: 'notification.removed_from_channel',
+      cid: channel.cid,
     });
-
     const channels = spy.calls.mostRecent().args[0] as Channel[];
 
     expect(channels.find((c) => c.cid === channel.cid)).toBeUndefined();
-    expect(service.setAsActiveChannel).toHaveBeenCalledWith(newActiveChannel);
-  });
-
-  it('should call custom new message notification handler, if custom handler is provided', async () => {
-    await init();
-    const spy = jasmine.createSpy();
-    service.customNewMessageNotificationHandler = spy;
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.channels$
-      .pipe(first())
-      .subscribe((channels) => (channel = channels![1]));
-    const event = {
-      channel: channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    const channelsSpy = jasmine.createSpy();
-    service.channels$.subscribe(channelsSpy);
-    channelsSpy.calls.reset();
-    events$.next({
-      eventType: 'notification.message_new',
-      event: event,
-    });
-
-    expect(spy).toHaveBeenCalledWith(
-      { eventType: 'notification.message_new', event },
-      jasmine.any(Function),
-    );
-
-    expect(channelsSpy).not.toHaveBeenCalled();
-  });
-
-  it('should call custom added to channel notification handler, if custom handler is provided', async () => {
-    await init();
-    const spy = jasmine
-      .createSpy()
-      .and.callFake((_: ClientEvent, setter: (channels: Channel[]) => []) =>
-        setter([]),
-      );
-    service.customAddedToChannelNotificationHandler = spy;
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.channels$
-      .pipe(first())
-      .subscribe((channels) => (channel = channels![1]));
-    const event = {
-      channel: channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    const channelsSpy = jasmine.createSpy();
-    service.channels$.subscribe(channelsSpy);
-    channelsSpy.calls.reset();
-    events$.next({
-      eventType: 'notification.added_to_channel',
-      event: event,
-    });
-
-    expect(spy).toHaveBeenCalledWith(
-      { eventType: 'notification.added_to_channel', event },
-      jasmine.any(Function),
-    );
-
-    expect(channelsSpy).toHaveBeenCalledWith([]);
-  });
-
-  it('should call custom removed from channel notification handler, if custom handler is provided', async () => {
-    await init();
-    const spy = jasmine.createSpy();
-    service.customRemovedFromChannelNotificationHandler = spy;
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.channels$
-      .pipe(first())
-      .subscribe((channels) => (channel = channels![1]));
-    const event = {
-      channel: channel,
-    } as any as Event<DefaultStreamChatGenerics>;
-    const channelsSpy = jasmine.createSpy();
-    service.channels$.subscribe(channelsSpy);
-    channelsSpy.calls.reset();
-    events$.next({
-      eventType: 'notification.removed_from_channel',
-      event: event,
-    });
-
-    expect(spy).toHaveBeenCalledWith(
-      { eventType: 'notification.removed_from_channel', event },
-      jasmine.any(Function),
-    );
-
-    expect(channelsSpy).not.toHaveBeenCalled();
+    expect(service.deselectActiveChannel).toHaveBeenCalled();
   });
 
   it('should send message', async () => {
@@ -2113,6 +1849,7 @@ describe('ChannelService', () => {
       jasmine.any(Object),
       jasmine.any(Object),
       jasmine.any(Object),
+      jasmine.any(Object),
     );
   });
 
@@ -2140,6 +1877,7 @@ describe('ChannelService', () => {
         watch: true,
         message_limit: 25,
       },
+      jasmine.any(Object),
     );
   });
 
@@ -2260,19 +1998,15 @@ describe('ChannelService', () => {
     expect(activeChannel.watch).toHaveBeenCalledWith();
   }));
 
-  it(`shouldn't deselect active channel if active channel is present after state reconnect`, fakeAsync(async () => {
+  it(`should reselect active channel if active channel is present after state reconnect, new messages are fetched`, fakeAsync(async () => {
     await init();
     let channels!: Channel<DefaultStreamChatGenerics>[];
     service.channels$.subscribe((c) => (channels = c!));
     const activeChannel = channels[0];
-    const spy = jasmine.createSpy();
-    service.activeChannel$.subscribe(spy);
-    spy.calls.reset();
     const messagesSpy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     mockChatClient.queryChannels.and.resolveTo(channels);
-    spyOn(service, 'deselectActiveChannel').and.callThrough();
     const newMessage = generateMockMessages()[0];
     newMessage.text = 'new message received while offline';
     activeChannel.state.messages.push(newMessage);
@@ -2280,34 +2014,29 @@ describe('ChannelService', () => {
     tick();
     flush();
 
-    expect(spy).not.toHaveBeenCalled();
-    expect(service.deselectActiveChannel).not.toHaveBeenCalled();
+    expect(service.activeChannel).toBe(activeChannel);
     expect(messagesSpy).toHaveBeenCalledWith(
       jasmine.arrayContaining([newMessage]),
     );
   }));
 
-  it('should add new channel to channel list', () => {
+  it('should add new channel to channel list', async () => {
+    await init();
     const channelsSpy = jasmine.createSpy();
     service.channels$.subscribe(channelsSpy);
     channelsSpy.calls.reset();
 
     const newChannel = generateMockChannels(1)[0];
     newChannel.cid = 'my-new-channel';
-    spyOn(service as any, 'watchForChannelEvents').and.callThrough();
     service.setAsActiveChannel(newChannel);
 
     expect(channelsSpy).toHaveBeenCalledWith(
       jasmine.arrayContaining([newChannel]),
     );
-
-    //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect((service as any).watchForChannelEvents).toHaveBeenCalledWith(
-      newChannel,
-    );
   });
 
-  it('should do nothing if same channel is selected twice', () => {
+  it('should do nothing if same channel is selected twice', async () => {
+    await init();
     const activeChannel = generateMockChannels()[0];
 
     service.setAsActiveChannel(activeChannel);
@@ -2320,8 +2049,9 @@ describe('ChannelService', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should set last read message id', () => {
-    const activeChannel = generateMockChannels()[0];
+  it('should set last read message id', async () => {
+    await init();
+    const activeChannel = generateMockChannels()[1];
     activeChannel.id = 'next-active-channel';
     activeChannel.state.read[user.id] = {
       last_read: new Date(),
@@ -2336,7 +2066,8 @@ describe('ChannelService', () => {
     expect(service.activeChannelUnreadCount).toBe(5);
   });
 
-  it(`should set last read message id to undefined if it's the last message`, () => {
+  it(`should set last read message id to undefined if it's the last message`, async () => {
+    await init();
     const activeChannel = generateMockChannels()[0];
     activeChannel.id = 'next-active-channel';
     activeChannel.state.read[user.id] = {
@@ -2357,8 +2088,9 @@ describe('ChannelService', () => {
     expect(service.activeChannelUnreadCount).toBe(0);
   });
 
-  it('should be able to select empty channel as active channel', () => {
-    const channel = generateMockChannels()[0];
+  it('should be able to select empty channel as active channel', async () => {
+    await init();
+    const channel = generateMockChannels()[1];
     channel.id = 'new-empty-channel';
     channel.state.messages = [];
     channel.state.latestMessages = [];
@@ -2579,38 +2311,6 @@ describe('ChannelService', () => {
     expect(activeChannel.markRead).toHaveBeenCalledWith();
   });
 
-  it('channel list setter should respect channel order', async () => {
-    await init();
-    const currentChannels = service.channels;
-    const newChannel = generateMockChannels()[0];
-    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
-    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
-    newChannels.forEach((c) => (c._client = {}));
-    const spy = jasmine.createSpy();
-    service.channels$.subscribe(spy);
-    spy.calls.reset();
-
-    service['channelListSetter'](newChannels);
-
-    expect(spy).toHaveBeenCalledOnceWith(newChannels);
-  });
-
-  it('channel list setter should watch for channel events', async () => {
-    await init();
-    const currentChannels = service.channels;
-    const newChannel = generateMockChannels()[0];
-    newChannel.cid = 'new-channel';
-    const unsubscribeSpy = jasmine.createSpy();
-    spyOn(newChannel, 'on').and.returnValue({ unsubscribe: unsubscribeSpy });
-    const newChannels = [currentChannels[0], newChannel, currentChannels[1]];
-    // @ts-expect-error this is how we can differentiate between Channel and ChannelResponse
-    newChannels.forEach((c) => (c._client = {}));
-
-    service['channelListSetter'](newChannels);
-
-    expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
-  });
-
   it('init with custom query', async () => {
     const mockChannels = generateMockChannels();
     const customQuery = jasmine
@@ -2623,7 +2323,7 @@ describe('ChannelService', () => {
     const hasMoreSpy = jasmine.createSpy();
     service.hasMoreChannels$.subscribe(hasMoreSpy);
 
-    expect(result).toBe(mockChannels);
+    expect(result).toEqual(mockChannels);
     expect(customQuery).toHaveBeenCalledWith('first-page');
     expect(service['shouldSetActiveChannel']).toBeFalse();
     expect(service['messagePageSize']).toBe(30);
