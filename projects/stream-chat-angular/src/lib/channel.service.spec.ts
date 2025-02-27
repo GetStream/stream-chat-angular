@@ -1841,6 +1841,9 @@ describe('ChannelService', () => {
   });
 
   it('should reset state after connection recovered', async () => {
+    const spy = jasmine.createSpy();
+    service.shouldRecoverState$.subscribe(spy);
+    spy.calls.reset();
     await init();
     mockChatClient.queryChannels.calls.reset();
     events$.next({ eventType: 'connection.recovered' } as ClientEvent);
@@ -1851,6 +1854,8 @@ describe('ChannelService', () => {
       jasmine.any(Object),
       jasmine.any(Object),
     );
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it(`shouldn't do duplicate state reset after connection recovered`, async () => {
@@ -2414,4 +2419,52 @@ describe('ChannelService', () => {
 
     expect(activeChannel.markRead).toHaveBeenCalledTimes(2);
   });
+
+  it('should signal if state recovery is needed - initial load', async () => {
+    const spy = jasmine.createSpy();
+    service.shouldRecoverState$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith(false);
+    spy.calls.reset();
+    const error = 'there was an error';
+
+    await expectAsync(
+      init(undefined, undefined, undefined, () =>
+        mockChatClient.queryChannels.and.rejectWith(error),
+      ),
+    ).toBeRejectedWith(error);
+
+    expect(spy).toHaveBeenCalledWith(true);
+
+    spy.calls.reset();
+    mockChatClient.queryChannels.and.resolveTo([]);
+    await service.recoverState();
+
+    expect(spy).toHaveBeenCalledWith(false);
+  });
+
+  it('should signal if state recovery is needed - failed state recover after connection.recovered', fakeAsync(() => {
+    void init();
+    tick();
+    const spy = jasmine.createSpy();
+    service.shouldRecoverState$.subscribe(spy);
+    spy.calls.reset();
+    mockChatClient.queryChannels.and.rejectWith(
+      new Error('there was an error'),
+    );
+    events$.next({ eventType: 'connection.recovered' } as ClientEvent);
+
+    tick();
+    flush();
+
+    expect(spy).toHaveBeenCalledWith(true);
+
+    spy.calls.reset();
+    mockChatClient.queryChannels.and.resolveTo([]);
+    void service.recoverState();
+    tick();
+    flush();
+
+    expect(spy).toHaveBeenCalledWith(false);
+  }));
 });

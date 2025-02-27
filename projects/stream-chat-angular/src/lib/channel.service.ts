@@ -6,7 +6,14 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { filter, first, map, shareReplay, take } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  first,
+  map,
+  shareReplay,
+  take,
+} from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -65,6 +72,12 @@ export class ChannelService<
    * The result of the latest channel query request.
    */
   channelQueryState$: Observable<ChannelQueryState | undefined>;
+  /**
+   * Emits `true` when the state needs to be recovered after an error
+   *
+   * You can recover it by calling the `recoverState` method
+   */
+  shouldRecoverState$: Observable<boolean>;
   /**
    * Emits the currently active channel.
    *
@@ -224,7 +237,7 @@ export class ChannelService<
   private _shouldMarkActiveChannelAsRead = true;
   private shouldSetActiveChannel = true;
   private clientEventsSubscription: Subscription | undefined;
-  private isStateRecoveryInProgress = false;
+  private isStateRecoveryInProgress$ = new BehaviorSubject(false);
   private channelQueryStateSubject = new BehaviorSubject<
     ChannelQueryState | undefined
   >(undefined);
@@ -323,6 +336,20 @@ export class ChannelService<
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
+    this.shouldRecoverState$ = combineLatest([
+      this.channels$,
+      this.channelQueryState$,
+      this.isStateRecoveryInProgress$,
+    ]).pipe(
+      map(([channels, queryState, isStateRecoveryInProgress]) => {
+        return (
+          (!channels || channels.length === 0) &&
+          queryState?.state === 'error' &&
+          !isStateRecoveryInProgress
+        );
+      }),
+      distinctUntilChanged(),
+    );
   }
 
   /**
@@ -583,6 +610,7 @@ export class ChannelService<
     this.dismissErrorNotification = undefined;
     this.channelQueryConfig = undefined;
     this.destroyChannelManager();
+    this.isStateRecoveryInProgress$.next(false);
   }
 
   /**
@@ -1120,36 +1148,52 @@ export class ChannelService<
     }
   }
 
-  private async handleNotification(clientEvent: ClientEvent<T>) {
+  /**
+   * Reloads all channels and messages. Useful if state is empty due to an error.
+   *
+   * The SDK will automatically call this after `connection.recovered` event. In other cases it's up to integrators to recover state.
+   *
+   * Use the `shouldRecoverState$` to know if state recover is necessary.
+   * @returns when recovery is completed
+   */
+  async recoverState() {
+    if (this.isStateRecoveryInProgress$.getValue()) {
+      return;
+    }
+    this.isStateRecoveryInProgress$.next(true);
+    try {
+      await this.queryChannels('recover-state');
+      if (this.activeChannelSubject.getValue()) {
+        // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+        void this.setAsActiveParentMessage(undefined);
+        // Update and reselect message to quote
+        const messageToQuote = this.messageToQuoteSubject.getValue();
+        this.setChannelState(this.activeChannelSubject.getValue()!);
+        let messages!: StreamMessage<T>[];
+        this.activeChannelMessages$
+          .pipe(take(1))
+          .subscribe((m) => (messages = m));
+        const updatedMessageToQuote = messages.find(
+          (m) => m.id === messageToQuote?.id,
+        );
+        if (updatedMessageToQuote) {
+          this.selectMessageToQuote(updatedMessageToQuote);
+        }
+      }
+    } finally {
+      this.isStateRecoveryInProgress$.next(false);
+    }
+  }
+
+  private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
-        if (this.isStateRecoveryInProgress) {
-          return;
-        }
-        this.isStateRecoveryInProgress = true;
-        try {
-          await this.queryChannels('recover-state');
-          if (this.activeChannelSubject.getValue()) {
-            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
-            void this.setAsActiveParentMessage(undefined);
-            // Update and reselect message to quote
-            const messageToQuote = this.messageToQuoteSubject.getValue();
-            this.setChannelState(this.activeChannelSubject.getValue()!);
-            let messages!: StreamMessage<T>[];
-            this.activeChannelMessages$
-              .pipe(take(1))
-              .subscribe((m) => (messages = m));
-            const updatedMessageToQuote = messages.find(
-              (m) => m.id === messageToQuote?.id,
-            );
-            if (updatedMessageToQuote) {
-              this.selectMessageToQuote(updatedMessageToQuote);
-            }
-          }
-          this.isStateRecoveryInProgress = false;
-        } catch {
-          this.isStateRecoveryInProgress = false;
-        }
+        void this.recoverState().catch((error) =>
+          this.chatClientService.chatClient.logger(
+            'warn',
+            `Failed to recover state after connection recovery: ${error}`,
+          ),
+        );
         break;
       }
       case 'user.updated': {
@@ -1511,12 +1555,6 @@ export class ChannelService<
     try {
       this.channelQueryStateSubject.next({ state: 'in-progress' });
 
-      const previousActiveChannel = this.activeChannelSubject.getValue();
-      if (queryType === 'recover-state') {
-        this.activeChannelSubject.next(undefined);
-        this.channelManager.setChannels([]);
-      }
-
       if (this.customChannelQuery) {
         const result = await this.customChannelQuery(queryType);
         const currentChannels = this.channels;
@@ -1548,6 +1586,7 @@ export class ChannelService<
             ({ channels }) => {
               const activeChannel = this.activeChannel;
               if (
+                !this.isStateRecoveryInProgress$.getValue() &&
                 activeChannel &&
                 !channels.find((c) => c.cid === activeChannel.cid)
               ) {
@@ -1567,37 +1606,21 @@ export class ChannelService<
         }
       }
 
+      if (queryType === 'recover-state') {
+        await this.maybeRestoreActiveChannelAfterRecovery();
+      }
+
+      const activeChannel = this.activeChannelSubject.getValue();
       const shouldSetActiveChannel =
         queryType === 'next-page' ? false : this.shouldSetActiveChannel;
-      if (previousActiveChannel && queryType === 'recover-state') {
-        try {
-          if (
-            !this.channels.find((c) => c.cid === previousActiveChannel?.cid)
-          ) {
-            await previousActiveChannel.watch();
-            this.channelManager.setChannels(
-              promoteChannel({
-                channels: this.channels,
-                channelToMove: previousActiveChannel,
-                sort: this.channelQueryConfig?.sort ?? [],
-              }),
-            );
-          }
-          this.setAsActiveChannel(previousActiveChannel);
-        } catch (error) {
-          this.chatClientService.chatClient.logger(
-            'warn',
-            'Unable to refetch active channel after state recover',
-            error as Record<string, unknown>,
-          );
-        }
-      } else if (
+      if (
         this.channels.length > 0 &&
-        !previousActiveChannel &&
+        !activeChannel &&
         shouldSetActiveChannel
       ) {
         this.setAsActiveChannel(this.channels[0]);
       }
+
       this.channelQueryStateSubject.next({ state: 'success' });
       this.dismissErrorNotification?.();
       return this.channels;
@@ -1608,7 +1631,15 @@ export class ChannelService<
         error,
       });
       if (queryType === 'recover-state') {
+        this.deselectActiveChannel();
         this.channelManager.setChannels([]);
+      }
+      if (queryType !== 'next-page') {
+        this.dismissErrorNotification =
+          this.notificationService.addPermanentNotification(
+            'streamChat.Error loading channels',
+            'error',
+          );
       }
       throw error;
     }
@@ -1818,7 +1849,7 @@ export class ChannelService<
     this.markReadTimeout = undefined;
   }
 
-  private async _init(
+  private _init(
     options: ChannelServiceOptions<T> & { messagePageSize: number },
   ) {
     this.messagePageSize = options.messagePageSize;
@@ -1838,17 +1869,7 @@ export class ChannelService<
     this.clientEventsSubscription = this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification),
     );
-    try {
-      const result = await this.queryChannels('first-page');
-      return result;
-    } catch (error) {
-      this.dismissErrorNotification =
-        this.notificationService.addPermanentNotification(
-          'streamChat.Error loading channels',
-          'error',
-        );
-      throw error;
-    }
+    return this.queryChannels('first-page');
   }
 
   private createChannelManager({
@@ -1882,5 +1903,46 @@ export class ChannelService<
     this.channelManagerSubscriptions = [];
     this.channelsSubject.next(undefined);
     this.hasMoreChannelsSubject.next(true);
+  }
+
+  private async maybeRestoreActiveChannelAfterRecovery() {
+    const previousActiveChannel = this.activeChannelSubject.getValue();
+    if (!previousActiveChannel) {
+      return;
+    }
+    try {
+      if (!this.channels.find((c) => c.cid === previousActiveChannel?.cid)) {
+        await previousActiveChannel.watch();
+        // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+        void this.setAsActiveParentMessage(undefined);
+        // Update and reselect message to quote
+        const messageToQuote = this.messageToQuoteSubject.getValue();
+        this.setChannelState(previousActiveChannel);
+        let messages!: StreamMessage<T>[];
+        this.activeChannelMessages$
+          .pipe(take(1))
+          .subscribe((m) => (messages = m));
+        const updatedMessageToQuote = messages.find(
+          (m) => m.id === messageToQuote?.id,
+        );
+        if (updatedMessageToQuote) {
+          this.selectMessageToQuote(updatedMessageToQuote);
+        }
+        this.channelManager?.setChannels(
+          promoteChannel({
+            channels: this.channels,
+            channelToMove: previousActiveChannel,
+            sort: this.channelQueryConfig?.sort ?? [],
+          }),
+        );
+      }
+    } catch (error) {
+      this.chatClientService.chatClient.logger(
+        'warn',
+        'Unable to refetch active channel after state recover',
+        error as Record<string, unknown>,
+      );
+      this.deselectActiveChannel();
+    }
   }
 }

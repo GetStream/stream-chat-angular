@@ -131,5 +131,6 @@ export const en = {
     'You currently have {{count}} attachments, the maximum is {{max}}':
       'You currently have {{count}} attachments, the maximum is {{max}}',
     'and others': 'and others',
+    'Reload channels': 'Reload channels',
   },
 };
