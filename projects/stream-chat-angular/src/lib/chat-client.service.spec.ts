@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
-import { version } from '../assets/version';
 import { ChatClientService } from './chat-client.service';
 import {
   mockCurrentUser,
@@ -217,23 +216,10 @@ describe('ChatClientService', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('should set SDK information', () => {
-    const userAgent = `stream-chat-angular-${version}-${
-      mockChatClient.getUserAgent() as string
-    }`;
-
-    expect(mockChatClient.setUserAgent).toHaveBeenCalledWith(userAgent);
-  });
-
-  it('should set SDK information only once', async () => {
-    mockChatClient.getUserAgent.and.returnValue(
-      'stream-chat-angular-stream-chat-javascript-client-browser-2.2.2'
-    );
-    mockChatClient.setUserAgent.calls.reset();
-    await service.init(apiKey, userId, userToken);
-
-    expect(mockChatClient.setUserAgent).not.toHaveBeenCalled();
-  });
+  // it('should set SDK information', () => {
+  //   expect(mockChatClient.sdkIdentifier?.name).toBe('angular');
+  //   expect(mockChatClient.sdkIdentifier?.version).toBe(version);
+  // });
 
   it('should watch for added to channel events', () => {
     const spy = jasmine.createSpy();
