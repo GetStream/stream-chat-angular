@@ -1557,11 +1557,15 @@ export class ChannelService<
 
       if (this.customChannelQuery) {
         const result = await this.customChannelQuery(queryType);
-        const currentChannels = this.channels;
-        const filteredChannels = result.channels.filter(
-          (channel, index) =>
-            !currentChannels.slice(0, index).find((c) => c.cid === channel.cid),
-        );
+        const cids = new Set<string>();
+        const filteredChannels = result.channels.filter((c) => {
+          if (cids.has(c.cid)) {
+            return false;
+          } else {
+            cids.add(c.cid);
+            return true;
+          }
+        });
         this.channelManager.setChannels(filteredChannels);
         this.hasMoreChannelsSubject.next(result.hasMorePage);
       } else {
