@@ -958,7 +958,7 @@ export class ChannelService<
    */
   addChannel(channel: Channel<T>) {
     if (!this.channelManager) {
-      throw new Error('Channel service not initialized');
+      this.createChannelManager({ eventHandlerOverrides: undefined });
     }
     if (!this.channels.find((c) => c.cid === channel.cid)) {
       this.channelManager?.setChannels(
@@ -977,7 +977,7 @@ export class ChannelService<
    */
   removeChannel(cid: string) {
     if (!this.channelManager) {
-      throw new Error('Channel service not initialized');
+      this.createChannelManager({ eventHandlerOverrides: undefined });
     }
     const remainingChannels = this.channels.filter((c) => c.cid !== cid);
 
@@ -1878,6 +1878,9 @@ export class ChannelService<
   }: {
     eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
   }) {
+    if (this.channelManager) {
+      this.destroyChannelManager();
+    }
     this.channelManager = new ChannelManager({
       client: this.chatClientService.chatClient,
       options: {
