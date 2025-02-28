@@ -1186,12 +1186,16 @@ export class ChannelService<
   private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
-        void this.recoverState().catch((error) =>
-          this.chatClientService.chatClient.logger(
-            'warn',
-            `Failed to recover state after connection recovery: ${error}`,
-          ),
-        );
+        if (this.channelManager) {
+          void this.recoverState().catch((error) =>
+            this.chatClientService.chatClient.logger(
+              'warn',
+              `Failed to recover state after connection recovery: ${error}`,
+            ),
+          );
+        } else {
+          this.reset();
+        }
         break;
       }
       case 'user.updated': {
