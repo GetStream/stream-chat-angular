@@ -19,7 +19,6 @@ import {
   Channel,
   ChannelManager,
   ChannelManagerEventHandlerOverrides,
-  ChannelManagerOptions,
   Event,
   FormatMessageResponse,
   MemberFilters,
@@ -593,7 +592,6 @@ export class ChannelService<
     this.customChannelQuery = query;
     this.createChannelManager({
       eventHandlerOverrides,
-      options: managerOptions,
     });
 
     return this._init(options);
@@ -1867,7 +1865,6 @@ export class ChannelService<
 
     this.createChannelManager({
       eventHandlerOverrides,
-      options: managerOptions,
     });
 
     this.clientEventsSubscription = this.chatClientService.events$.subscribe(
@@ -1878,21 +1875,17 @@ export class ChannelService<
 
   private createChannelManager({
     eventHandlerOverrides,
-    options,
   }: {
     eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
-    options?: ChannelManagerOptions;
   }) {
     this.channelManager = new ChannelManager({
       client: this.chatClientService.chatClient,
       options: {
-        ...options,
         allowNotLoadedChannelPromotionForEvent: {
           'message.new': false,
           'channel.visible': true,
           'notification.added_to_channel': true,
           'notification.message_new': true,
-          ...options?.allowNotLoadedChannelPromotionForEvent,
         },
       },
       eventHandlerOverrides,

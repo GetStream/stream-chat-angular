@@ -5,7 +5,6 @@ import type {
   Channel,
   ChannelFilters,
   ChannelManagerEventHandlerOverrides,
-  ChannelManagerOptions,
   ChannelMemberResponse,
   ChannelOptions,
   ChannelSort,
@@ -551,9 +550,10 @@ export type MessageTextContext = {
   shouldTranslate: boolean;
 };
 
+// TODO: add ChannelManagerOptions once it's stable
 export type ChannelServiceOptions<
   T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = ChannelManagerOptions & {
+> = {
   shouldSetActiveChannel?: boolean;
   eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
 };
