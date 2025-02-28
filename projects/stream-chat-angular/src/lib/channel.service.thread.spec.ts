@@ -5,7 +5,6 @@ import {
   Channel,
   ChannelOptions,
   ChannelSort,
-  Event,
   GetRepliesAPIResponse,
   SendMessageAPIResponse,
   UserResponse,
@@ -24,11 +23,17 @@ import { DefaultStreamChatGenerics, StreamMessage } from './types';
 describe('ChannelService - threads', () => {
   let service: ChannelService;
   let mockChatClient: {
+    dispatchEvent: (event: Event) => void;
     queryChannels: jasmine.Spy;
     channel: jasmine.Spy;
     updateMessage: jasmine.Spy;
     deleteMessage: jasmine.Spy;
     userID: string;
+    pinMessage: jasmine.Spy;
+    unpinMessage: jasmine.Spy;
+    logger: () => void;
+    activeChannels: { [key: string]: Channel<DefaultStreamChatGenerics> };
+    on: (eventType: string, callback: (event: Event) => void) => void;
   };
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
@@ -43,6 +48,7 @@ describe('ChannelService - threads', () => {
   beforeEach(() => {
     user = mockCurrentUser();
     connectionState$ = new Subject<'online' | 'offline'>();
+    const eventHandlers: { [key: string]: (event: Event) => void } = {};
     mockChatClient = {
       queryChannels: jasmine
         .createSpy()
@@ -51,6 +57,17 @@ describe('ChannelService - threads', () => {
       updateMessage: jasmine.createSpy(),
       deleteMessage: jasmine.createSpy(),
       userID: user.id,
+      pinMessage: jasmine.createSpy(),
+      unpinMessage: jasmine.createSpy(),
+      activeChannels: {},
+      logger: () => undefined,
+      on: (eventType: string, callback: (event: Event) => void) => {
+        eventHandlers[eventType] = callback;
+        return { unsubscribe: () => delete eventHandlers[eventType] };
+      },
+      dispatchEvent: (event: Event) => {
+        eventHandlers[event.type]?.(event);
+      },
     };
     events$ = new Subject();
     TestBed.configureTestingModule({
@@ -76,7 +93,7 @@ describe('ChannelService - threads', () => {
         channels || generateMockChannels(),
       );
 
-      await service.init(filters, sort, options);
+      await service.init({ filters, sort, options });
     };
   });
 
@@ -426,54 +443,6 @@ describe('ChannelService - threads', () => {
         cid: channel.cid,
       },
     });
-
-    expect(messagesSpy).toHaveBeenCalledWith([]);
-    expect(parentMessageSpy).toHaveBeenCalledWith(undefined);
-  });
-
-  it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
-    await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
-    service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
-    const spy = jasmine
-      .createSpy()
-      .and.callFake(
-        (
-          _,
-          __,
-          ___,
-          ____,
-          threadListSetter: (list: StreamMessage[]) => void,
-          parentMessageSetter: (id: string | undefined) => void,
-        ) => {
-          threadListSetter([]);
-          parentMessageSetter(undefined);
-        },
-      );
-    service.customChannelTruncatedHandler = spy;
-    const event = {
-      type: 'channel.truncated',
-      channel: {
-        cid: channel.cid,
-        name: 'New name',
-      },
-    } as any as Event<DefaultStreamChatGenerics>;
-    const messagesSpy = jasmine.createSpy();
-    service.activeThreadMessages$.subscribe(messagesSpy);
-    const parentMessageSpy = jasmine.createSpy();
-    service.activeParentMessageId$.subscribe(parentMessageSpy);
-    messagesSpy.calls.reset();
-    parentMessageSpy.calls.reset();
-    (channel as MockChannel).handleEvent('channel.truncated', event);
-
-    expect(spy).toHaveBeenCalledWith(
-      event,
-      channel,
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-      jasmine.any(Function),
-    );
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(parentMessageSpy).toHaveBeenCalledWith(undefined);

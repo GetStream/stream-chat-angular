@@ -6,21 +6,28 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { filter, first, map, shareReplay, take } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  first,
+  map,
+  shareReplay,
+  take,
+} from 'rxjs/operators';
 import {
   Attachment,
   Channel,
-  ChannelFilters,
-  ChannelOptions,
-  ChannelResponse,
-  ChannelSort,
+  ChannelManager,
+  ChannelManagerEventHandlerOverrides,
+  ChannelManagerOptions,
   Event,
-  EventTypes,
   FormatMessageResponse,
   MemberFilters,
   Message,
   MessageResponse,
+  promoteChannel,
   ReactionResponse,
+  Unsubscribe,
   UpdatedMessage,
   UserResponse,
 } from 'stream-chat';
@@ -32,16 +39,17 @@ import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
   AttachmentUploadErrorReason,
+  ChannelQueryConfig,
+  ChannelQueryConfigInput,
   ChannelQueryResult,
   ChannelQueryState,
   ChannelQueryType,
+  ChannelServiceOptions,
   DefaultStreamChatGenerics,
   MessageInput,
   MessageReactionType,
-  NextPageConfiguration,
   StreamMessage,
 } from './types';
-import { ChannelQuery } from './channel-query';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list.
@@ -64,6 +72,12 @@ export class ChannelService<
    * The result of the latest channel query request.
    */
   channelQueryState$: Observable<ChannelQueryState | undefined>;
+  /**
+   * Emits `true` when the state needs to be recovered after an error
+   *
+   * You can recover it by calling the `recoverState` method
+   */
+  shouldRecoverState$: Observable<boolean>;
   /**
    * Emits the currently active channel.
    *
@@ -129,138 +143,6 @@ export class ChannelService<
    */
   activeChannelUnreadCount?: number;
   /**
-   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/)
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customNewMessageNotificationHandler?: (
-    clientEvent: ClientEvent,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customAddedToChannelNotificationHandler?: (
-    clientEvent: ClientEvent,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customRemovedFromChannelNotificationHandler?: (
-    clientEvent: ClientEvent,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customChannelDeletedHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage<T>[]) => void,
-    threadListSetter: (messages: StreamMessage<T>[]) => void,
-    parentMessageSetter: (message: StreamMessage<T> | undefined) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customChannelUpdatedHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customChannelTruncatedHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage<T>[]) => void,
-    threadListSetter: (messages: StreamMessage<T>[]) => void,
-    parentMessageSetter: (message: StreamMessage<T> | undefined) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customChannelHiddenHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage<T>[]) => void,
-    threadListSetter: (messages: StreamMessage<T>[]) => void,
-    parentMessageSetter: (message: StreamMessage<T> | undefined) => void,
-  ) => void;
-  /**
-   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customChannelVisibleHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage<T>[]) => void,
-    threadListSetter: (messages: StreamMessage<T>[]) => void,
-    parentMessageSetter: (message: StreamMessage<T> | undefined) => void,
-  ) => void;
-  /**
-   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
-   *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
-   */
-  customNewMessageHandler?: (
-    event: Event,
-    channel: Channel<T>,
-    channelListSetter: (
-      channels: Channel<T>[],
-      shouldStopWatchingRemovedChannels?: boolean,
-    ) => void,
-    messageListSetter: (messages: StreamMessage<T>[]) => void,
-    threadListSetter: (messages: StreamMessage<T>[]) => void,
-    parentMessageSetter: (message: StreamMessage<T> | undefined) => void,
-  ) => void;
-  /**
    * You can override the default file upload request - you can use this to upload files to your own CDN
    */
   customFileUploadRequest?: (
@@ -311,6 +193,9 @@ export class ChannelService<
    * @internal
    */
   isMessageLoadingInProgress = false;
+  /**
+   * @internal
+   */
   messagePageSize = 25;
   private channelsSubject = new BehaviorSubject<Channel<T>[] | undefined>(
     undefined,
@@ -326,7 +211,6 @@ export class ChannelService<
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
-  private channelSubscriptions: { [key: string]: () => void } = {};
   private activeParentMessageIdSubject = new BehaviorSubject<
     string | undefined
   >(undefined);
@@ -351,82 +235,23 @@ export class ChannelService<
     [],
   );
   private _shouldMarkActiveChannelAsRead = true;
-  private shouldSetActiveChannel: boolean | undefined;
+  private shouldSetActiveChannel = true;
   private clientEventsSubscription: Subscription | undefined;
-  private isStateRecoveryInProgress = false;
+  private isStateRecoveryInProgress$ = new BehaviorSubject(false);
   private channelQueryStateSubject = new BehaviorSubject<
     ChannelQueryState | undefined
   >(undefined);
-  private channelQuery?:
-    | ChannelQuery<T>
-    | ((queryType: ChannelQueryType) => Promise<ChannelQueryResult<T>>);
-  private _customPaginator:
-    | ((channelQueryResult: Channel<T>[]) => NextPageConfiguration)
-    | undefined;
-
-  private channelListSetter = (
-    channels: Channel<T>[],
-    shouldStopWatchingRemovedChannels = true,
-  ) => {
-    const currentChannels = this.channelsSubject.getValue() || [];
-    const deletedChannels = currentChannels.filter(
-      (c) => !channels?.find((channel) => channel.cid === c.cid),
-    );
-
-    for (let i = 0; i < channels.length; i++) {
-      const channel = channels[i];
-      if (!this.channelSubscriptions[channel.cid]) {
-        this.watchForChannelEvents(channel);
-      }
-      if (deletedChannels.includes(channel)) {
-        if (shouldStopWatchingRemovedChannels) {
-          if (this.channelSubscriptions[channel.cid]) {
-            this.channelSubscriptions[channel.cid]();
-            delete this.channelSubscriptions.cid;
-          }
-          void this.chatClientService.chatClient.activeChannels[channel.cid]
-            ?.stopWatching()
-            .catch((err) =>
-              this.chatClientService.chatClient.logger(
-                'warn',
-                'Failed to unwatch channel',
-                err as Record<string, unknown>,
-              ),
-            );
-        }
-      }
-    }
-    const nextChannels = channels;
-    this.channelsSubject.next(nextChannels);
-    if (
-      !nextChannels.find(
-        (c) => c.cid === this.activeChannelSubject.getValue()?.cid,
-      )
-    ) {
-      if (nextChannels.length > 0) {
-        this.setAsActiveChannel(nextChannels[0]);
-      } else {
-        this.activeChannelSubject.next(undefined);
-      }
-    }
-  };
-
-  private messageListSetter = (messages: StreamMessage<T>[]) => {
-    this.activeChannelMessagesSubject.next(messages);
-  };
-
-  private threadListSetter = (messages: StreamMessage<T>[]) => {
-    this.activeThreadMessagesSubject.next(messages);
-  };
-
-  private parentMessageSetter = (message: StreamMessage<T> | undefined) => {
-    this.activeParentMessageIdSubject.next(message?.id);
-  };
+  private customChannelQuery?: (
+    queryType: ChannelQueryType,
+  ) => Promise<ChannelQueryResult<T>>;
+  private channelManager?: ChannelManager<T>;
+  private channelQueryConfig?: ChannelQueryConfig<T>;
   private dismissErrorNotification?: () => void;
   private areReadEventsPaused = false;
   private markReadThrottleTime = 1050;
   private markReadTimeout?: ReturnType<typeof setTimeout>;
   private scheduledMarkReadRequest?: () => void;
+  private channelManagerSubscriptions: Unsubscribe[] = [];
 
   constructor(
     private chatClientService: ChatClientService<T>,
@@ -511,6 +336,20 @@ export class ChannelService<
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
+    this.shouldRecoverState$ = combineLatest([
+      this.channels$,
+      this.channelQueryState$,
+      this.isStateRecoveryInProgress$,
+    ]).pipe(
+      map(([channels, queryState, isStateRecoveryInProgress]) => {
+        return (
+          (!channels || channels.length === 0) &&
+          queryState?.state === 'error' &&
+          !isStateRecoveryInProgress
+        );
+      }),
+      distinctUntilChanged(),
+    );
   }
 
   /**
@@ -531,24 +370,6 @@ export class ChannelService<
       }
     }
     this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
-  }
-
-  /**
-   * By default the SDK uses an offset based pagination, you can change/extend this by providing your own custom paginator method.
-   *
-   * The method will be called with the result of the latest channel query.
-   *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
-   */
-  set customPaginator(
-    paginator:
-      | ((channelQueryResult: Channel<T>[]) => NextPageConfiguration)
-      | undefined,
-  ) {
-    this._customPaginator = paginator;
-    if (this.channelQuery && 'customPaginator' in this.channelQuery) {
-      this.channelQuery.customPaginator = this._customPaginator;
-    }
   }
 
   /**
@@ -719,56 +540,62 @@ export class ChannelService<
 
   /**
    * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
-   * @param filters
-   * @param sort
-   * @param options
-   * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel or not.
+   * @param queryConfig the filter, sort and options for the query
+   * @param options behavior customization for the channel list and WebSocket event handling
    * @returns the list of channels found by the query
    */
   init(
-    filters: ChannelFilters<T>,
-    sort?: ChannelSort<T>,
-    options?: ChannelOptions,
-    shouldSetActiveChannel: boolean = true,
+    queryConfig: ChannelQueryConfigInput<T>,
+    options?: ChannelServiceOptions<T>,
   ) {
-    this.channelQuery = new ChannelQuery(
-      this.chatClientService,
-      this,
-      filters,
-      sort || { last_message_at: -1 },
-      {
+    this.channelQueryConfig = {
+      filters: queryConfig.filters,
+      sort: queryConfig.sort ?? { last_message_at: -1 },
+      options: {
         limit: 25,
         state: true,
         presence: true,
         watch: true,
         message_limit: this.messagePageSize,
-        ...options,
+        ...queryConfig.options,
       },
-    );
-    this.channelQuery.customPaginator = this._customPaginator;
+    };
 
     return this._init({
-      shouldSetActiveChannel,
-      messagePageSize: options?.message_limit ?? this.messagePageSize,
+      ...options,
+      messagePageSize:
+        queryConfig.options?.message_limit ?? this.messagePageSize,
     });
   }
-
   /**
    * Queries the channels with the given query function. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation.
    * @param query
-   * @param options
-   * @param options.shouldSetActiveChannel The `shouldSetActiveChannel` specifies if the first channel in the result should be selected as the active channel or not. Default is `true`.
+   * @param options behavior customization for the channel list and WebSocket event handling
    * @param options.messagePageSize How many messages should we load? The default is 25
    * @returns the channels that were loaded
    */
   initWithCustomQuery(
     query: (queryType: ChannelQueryType) => Promise<ChannelQueryResult<T>>,
-    options: { shouldSetActiveChannel: boolean; messagePageSize: number } = {
+    options: ChannelServiceOptions<T> & { messagePageSize: number } = {
       shouldSetActiveChannel: true,
       messagePageSize: this.messagePageSize,
     },
   ) {
-    this.channelQuery = query;
+    this.messagePageSize = options?.messagePageSize ?? this.messagePageSize;
+
+    this.shouldSetActiveChannel =
+      options?.shouldSetActiveChannel ?? this.shouldSetActiveChannel;
+    const eventHandlerOverrides = options?.eventHandlerOverrides;
+    const managerOptions = { ...options };
+    delete managerOptions?.eventHandlerOverrides;
+    delete managerOptions?.shouldSetActiveChannel;
+
+    this.customChannelQuery = query;
+    this.createChannelManager({
+      eventHandlerOverrides,
+      options: managerOptions,
+    });
+
     return this._init(options);
   }
 
@@ -777,22 +604,20 @@ export class ChannelService<
    */
   reset() {
     this.deselectActiveChannel();
-    this.channelsSubject.next(undefined);
     this.channelQueryStateSubject.next(undefined);
     this.clientEventsSubscription?.unsubscribe();
     this.dismissErrorNotification?.();
     this.dismissErrorNotification = undefined;
-    Object.keys(this.channelSubscriptions).forEach((cid) => {
-      this.channelSubscriptions[cid]();
-    });
-    this.channelSubscriptions = {};
+    this.channelQueryConfig = undefined;
+    this.destroyChannelManager();
+    this.isStateRecoveryInProgress$.next(false);
   }
 
   /**
    * Loads the next page of channels. The page size can be set in the [query option](/chat/docs/javascript/query_channels/#query-options) object.
    */
   async loadMoreChannels() {
-    await this.queryChannels(false, 'next-page');
+    await this.queryChannels('next-page');
   }
 
   /**
@@ -1134,46 +959,31 @@ export class ChannelService<
    * @param channel
    */
   addChannel(channel: Channel<T>) {
+    if (!this.channelManager) {
+      throw new Error('Channel service not initialized');
+    }
     if (!this.channels.find((c) => c.cid === channel.cid)) {
-      this.channelsSubject.next([channel, ...this.channels]);
-      this.watchForChannelEvents(channel);
+      this.channelManager?.setChannels(
+        promoteChannel({
+          channels: this.channels,
+          channelToMove: channel,
+          sort: this.channelQueryConfig?.sort ?? [],
+        }),
+      );
     }
   }
 
   /**
    *
    * @param cid
-   * @param shouldStopWatching
    */
-  removeChannel(cid: string, shouldStopWatching = true) {
+  removeChannel(cid: string) {
+    if (!this.channelManager) {
+      throw new Error('Channel service not initialized');
+    }
     const remainingChannels = this.channels.filter((c) => c.cid !== cid);
 
-    if (shouldStopWatching) {
-      if (this.channelSubscriptions[cid]) {
-        this.channelSubscriptions[cid]();
-        delete this.channelSubscriptions.cid;
-      }
-      void this.chatClientService.chatClient.activeChannels[cid]
-        ?.stopWatching()
-        .catch((err) =>
-          this.chatClientService.chatClient.logger(
-            'warn',
-            'Failed to unwatch channel',
-            err as Record<string, unknown>,
-          ),
-        );
-    }
-
-    if (remainingChannels.length < this.channels.length) {
-      this.channelsSubject.next(remainingChannels);
-      if (cid === this.activeChannelSubject.getValue()?.cid) {
-        if (remainingChannels.length > 0) {
-          this.setAsActiveChannel(remainingChannels[0]);
-        } else {
-          this.activeChannelSubject.next(undefined);
-        }
-      }
-    }
+    this.channelManager?.setChannels(remainingChannels);
   }
 
   private async sendMessageRequest(
@@ -1338,87 +1148,55 @@ export class ChannelService<
     }
   }
 
-  private async handleNotification(clientEvent: ClientEvent<T>) {
+  /**
+   * Reloads all channels and messages. Useful if state is empty due to an error.
+   *
+   * The SDK will automatically call this after `connection.recovered` event. In other cases it's up to integrators to recover state.
+   *
+   * Use the `shouldRecoverState$` to know if state recover is necessary.
+   * @returns when recovery is completed
+   */
+  async recoverState() {
+    if (this.isStateRecoveryInProgress$.getValue()) {
+      return;
+    }
+    this.isStateRecoveryInProgress$.next(true);
+    try {
+      await this.queryChannels('recover-state');
+      if (this.activeChannelSubject.getValue()) {
+        // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+        void this.setAsActiveParentMessage(undefined);
+        // Update and reselect message to quote
+        const messageToQuote = this.messageToQuoteSubject.getValue();
+        this.setChannelState(this.activeChannelSubject.getValue()!);
+        let messages!: StreamMessage<T>[];
+        this.activeChannelMessages$
+          .pipe(take(1))
+          .subscribe((m) => (messages = m));
+        const updatedMessageToQuote = messages.find(
+          (m) => m.id === messageToQuote?.id,
+        );
+        if (updatedMessageToQuote) {
+          this.selectMessageToQuote(updatedMessageToQuote);
+        }
+      }
+    } finally {
+      this.isStateRecoveryInProgress$.next(false);
+    }
+  }
+
+  private handleNotification(clientEvent: ClientEvent<T>) {
     switch (clientEvent.eventType) {
       case 'connection.recovered': {
-        if (this.isStateRecoveryInProgress) {
-          return;
-        }
-        this.isStateRecoveryInProgress = true;
-        try {
-          // If channel list is not inited, we set the active channel
-          const shoulSetActiveChannel =
-            this.shouldSetActiveChannel &&
-            !this.activeChannelSubject.getValue();
-          await this.queryChannels(
-            shoulSetActiveChannel || false,
-            'recover-state',
-          );
-          if (this.activeChannelSubject.getValue()) {
-            // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
-            void this.setAsActiveParentMessage(undefined);
-            // Update and reselect message to quote
-            const messageToQuote = this.messageToQuoteSubject.getValue();
-            this.setChannelState(this.activeChannelSubject.getValue()!);
-            let messages!: StreamMessage<T>[];
-            this.activeChannelMessages$
-              .pipe(take(1))
-              .subscribe((m) => (messages = m));
-            const updatedMessageToQuote = messages.find(
-              (m) => m.id === messageToQuote?.id,
-            );
-            if (updatedMessageToQuote) {
-              this.selectMessageToQuote(updatedMessageToQuote);
-            }
-          }
-          this.isStateRecoveryInProgress = false;
-        } catch {
-          this.isStateRecoveryInProgress = false;
-        }
-        break;
-      }
-      case 'notification.message_new': {
-        if (this.customNewMessageNotificationHandler) {
-          this.customNewMessageNotificationHandler(
-            clientEvent,
-            this.channelListSetter,
-          );
-        } else {
-          this.handleNewMessageNotification(clientEvent);
-        }
-        break;
-      }
-      case 'notification.added_to_channel': {
-        if (this.customAddedToChannelNotificationHandler) {
-          this.customAddedToChannelNotificationHandler(
-            clientEvent,
-            this.channelListSetter,
-          );
-        } else {
-          this.handleAddedToChannelNotification(clientEvent);
-        }
-        break;
-      }
-      case 'notification.removed_from_channel': {
-        if (this.customRemovedFromChannelNotificationHandler) {
-          this.customRemovedFromChannelNotificationHandler(
-            clientEvent,
-            this.channelListSetter,
-          );
-        } else {
-          this.handleRemovedFromChannelNotification(clientEvent);
-        }
+        void this.recoverState().catch((error) =>
+          this.chatClientService.chatClient.logger(
+            'warn',
+            `Failed to recover state after connection recovery: ${error}`,
+          ),
+        );
         break;
       }
       case 'user.updated': {
-        const updatedChannels = this.channelsSubject.getValue()?.map((c) => {
-          if (this.chatClientService.chatClient.activeChannels[c.cid]) {
-            return this.chatClientService.chatClient.activeChannels[c.cid];
-          } else {
-            return c;
-          }
-        });
-        this.channelsSubject.next(updatedChannels);
         const activeChannel = this.activeChannelSubject.getValue();
         if (activeChannel) {
           this.activeChannelSubject.next(
@@ -1445,49 +1223,6 @@ export class ChannelService<
         break;
       }
     }
-  }
-
-  private handleRemovedFromChannelNotification(clientEvent: ClientEvent<T>) {
-    const channelIdToBeRemoved = clientEvent.event.channel!.cid;
-    this.removeChannel(channelIdToBeRemoved, true);
-  }
-
-  private handleNewMessageNotification(clientEvent: ClientEvent<T>) {
-    if (clientEvent.event.channel) {
-      void this.addChannelFromNotification(clientEvent.event.channel);
-    }
-  }
-
-  private handleAddedToChannelNotification(clientEvent: ClientEvent<T>) {
-    if (clientEvent.event.channel) {
-      void this.addChannelFromNotification(clientEvent.event.channel);
-    }
-  }
-
-  private async addChannelFromNotification(
-    channelResponse: ChannelResponse<T>,
-  ) {
-    const newChannel = this.chatClientService.chatClient.channel(
-      channelResponse.type,
-      channelResponse.id,
-    );
-    let currentChannels = this.channelsSubject.getValue() || [];
-    if (currentChannels.find((c) => c.cid === newChannel.cid)) {
-      return;
-    }
-    await newChannel.watch().catch((err) => {
-      this.chatClientService.chatClient.logger(
-        'error',
-        'Failed to add channel to channel list because watch request failed',
-        err as Record<string, unknown>,
-      );
-    });
-    currentChannels = this.channelsSubject.getValue() || [];
-    if (currentChannels.find((c) => c.cid === newChannel.cid)) {
-      return;
-    }
-    this.watchForChannelEvents(newChannel);
-    this.channelsSubject.next([newChannel, ...currentChannels]);
   }
 
   private watchForActiveChannelEvents(channel: Channel<T>) {
@@ -1576,6 +1311,23 @@ export class ChannelService<
       channel.on('typing.stop', (e) =>
         this.ngZone.run(() => this.handleTypingStopEvent(e)),
       ),
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('capabilities.changed', (_) => {
+        this.activeChannelSubject.next(this.activeChannelSubject.getValue());
+      }),
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('channel.updated', (_) => {
+        this.activeChannelSubject.next(this.activeChannelSubject.getValue());
+      }),
+    );
+    this.activeChannelSubscriptions.push(
+      channel.on('channel.truncated', (_) => {
+        this.activeChannelSubject.next(this.activeChannelSubject.getValue());
+        this.activeChannelMessagesSubject.next([]);
+        void this.setAsActiveParentMessage(undefined);
+      }),
     );
   }
 
@@ -1794,234 +1546,102 @@ export class ChannelService<
     this.activeChannelSubscriptions = [];
   }
 
-  private async queryChannels(
-    shouldSetActiveChannel: boolean,
-    queryType: ChannelQueryType,
-  ) {
-    if (!this.channelQuery) {
+  private async queryChannels(queryType: ChannelQueryType) {
+    if (!this.channelManager) {
       throw new Error(
-        'Query channels called before initializing ChannelQuery instance',
+        'Query channels called before initializing ChannelService',
       );
     }
     try {
       this.channelQueryStateSubject.next({ state: 'in-progress' });
 
-      const { channels, hasMorePage } = await ('query' in this.channelQuery
-        ? this.channelQuery.query(queryType)
-        : this.channelQuery(queryType));
-      const filteredChannels = channels.filter(
-        (channel, index) =>
-          !channels.slice(0, index).find((c) => c.cid === channel.cid),
-      );
-      filteredChannels.forEach((c) => {
-        if (!this.channelSubscriptions[c.cid]) {
-          this.watchForChannelEvents(c);
+      if (this.customChannelQuery) {
+        const result = await this.customChannelQuery(queryType);
+        const currentChannels = this.channels;
+        const filteredChannels = result.channels.filter(
+          (channel, index) =>
+            !currentChannels.slice(0, index).find((c) => c.cid === channel.cid),
+        );
+        this.channelManager.setChannels(filteredChannels);
+        this.hasMoreChannelsSubject.next(result.hasMorePage);
+      } else {
+        if (queryType === 'first-page' || queryType === 'recover-state') {
+          if (!this.channelQueryConfig) {
+            throw new Error('Channel query config not initialized');
+          }
+          await this.channelManager.queryChannels(
+            { ...this.channelQueryConfig.filters },
+            this.channelQueryConfig.sort,
+            this.channelQueryConfig.options,
+          );
+        } else {
+          await this.channelManager.loadNext();
         }
-      });
+      }
 
-      this.channelsSubject.next(filteredChannels);
-      const currentActiveChannel = this.activeChannelSubject.getValue();
+      if (this.channelManagerSubscriptions.length === 0) {
+        this.channelManagerSubscriptions.push(
+          this.channelManager.state.subscribeWithSelector(
+            (s) => ({ channels: s.channels }),
+            ({ channels }) => {
+              const activeChannel = this.activeChannel;
+              if (
+                !this.isStateRecoveryInProgress$.getValue() &&
+                activeChannel &&
+                !channels.find((c) => c.cid === activeChannel.cid)
+              ) {
+                this.deselectActiveChannel();
+              }
+              this.channelsSubject.next(channels);
+            },
+          ),
+        );
+        if (!this.customChannelQuery) {
+          this.channelManagerSubscriptions.push(
+            this.channelManager.state.subscribeWithSelector(
+              (s) => ({ hasNext: s.pagination?.hasNext ?? true }),
+              ({ hasNext }) => this.hasMoreChannelsSubject.next(hasNext),
+            ),
+          );
+        }
+      }
+
+      if (queryType === 'recover-state') {
+        await this.maybeRestoreActiveChannelAfterRecovery();
+      }
+
+      const activeChannel = this.activeChannelSubject.getValue();
+      const shouldSetActiveChannel =
+        queryType === 'next-page' ? false : this.shouldSetActiveChannel;
       if (
-        currentActiveChannel &&
-        !filteredChannels.find((c) => c.cid === currentActiveChannel?.cid)
-      ) {
-        this.deselectActiveChannel();
-      } else if (
-        filteredChannels.length > 0 &&
-        !currentActiveChannel &&
+        this.channels.length > 0 &&
+        !activeChannel &&
         shouldSetActiveChannel
       ) {
-        this.setAsActiveChannel(filteredChannels[0]);
+        this.setAsActiveChannel(this.channels[0]);
       }
-      this.hasMoreChannelsSubject.next(hasMorePage);
+
       this.channelQueryStateSubject.next({ state: 'success' });
       this.dismissErrorNotification?.();
-      return channels;
+      return this.channels;
     } catch (error) {
       this.channelQueryStateSubject.next({
         state: 'error',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         error,
       });
+      if (queryType === 'recover-state') {
+        this.deselectActiveChannel();
+        this.channelManager.setChannels([]);
+      }
+      if (queryType !== 'next-page') {
+        this.dismissErrorNotification =
+          this.notificationService.addPermanentNotification(
+            'streamChat.Error loading channels',
+            'error',
+          );
+      }
       throw error;
-    }
-  }
-
-  private watchForChannelEvents(channel: Channel<T>) {
-    if (this.channelSubscriptions[channel.cid]) {
-      this.channelSubscriptions[channel.cid]();
-    }
-    const unsubscribe = channel.on((event: Event<T>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const type = event.type as EventTypes | 'capabilities.changed';
-      switch (type) {
-        case 'message.new': {
-          if (this.customNewMessageHandler) {
-            this.customNewMessageHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleNewMessage(event, channel);
-          }
-          break;
-        }
-        case 'channel.hidden': {
-          if (this.customChannelHiddenHandler) {
-            this.customChannelHiddenHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleChannelHidden(event);
-          }
-          break;
-        }
-        case 'channel.deleted': {
-          if (this.customChannelDeletedHandler) {
-            this.customChannelDeletedHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleChannelDeleted(event);
-          }
-          break;
-        }
-        case 'channel.visible': {
-          if (this.customChannelVisibleHandler) {
-            this.customChannelVisibleHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleChannelVisible(event, channel);
-          }
-          break;
-        }
-        case 'channel.updated': {
-          if (this.customChannelUpdatedHandler) {
-            this.customChannelUpdatedHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleChannelUpdate(event);
-          }
-          break;
-        }
-        case 'channel.truncated': {
-          if (this.customChannelTruncatedHandler) {
-            this.customChannelTruncatedHandler(
-              event,
-              channel,
-              this.channelListSetter,
-              this.messageListSetter,
-              this.threadListSetter,
-              this.parentMessageSetter,
-            );
-          } else {
-            this.handleChannelTruncate(event);
-          }
-          break;
-        }
-        case 'capabilities.changed': {
-          const cid = event.cid;
-          if (cid) {
-            const currentChannels = this.channelsSubject.getValue();
-            const index = currentChannels?.findIndex((c) => c.cid === cid);
-            if (index !== -1 && index !== undefined) {
-              this.channelsSubject.next([...currentChannels!]);
-              if (cid === this.activeChannelSubject.getValue()?.cid) {
-                this.activeChannelSubject.next(
-                  this.activeChannelSubject.getValue(),
-                );
-              }
-            }
-          }
-          break;
-        }
-      }
-    });
-    this.channelSubscriptions[channel.cid] = unsubscribe.unsubscribe;
-  }
-
-  private handleNewMessage(_: Event, channel: Channel<T>) {
-    const channelIndex = this.channels.findIndex((c) => c.cid === channel.cid);
-    this.channels.splice(channelIndex, 1);
-    this.channelsSubject.next([channel, ...this.channels]);
-  }
-
-  private handleChannelHidden(event: Event) {
-    this.removeChannel(event.channel!.cid, false);
-  }
-
-  private handleChannelDeleted(event: Event) {
-    this.removeChannel(event.channel!.cid, false);
-  }
-
-  private handleChannelVisible(event: Event, channel: Channel<T>) {
-    if (!this.channels.find((c) => c.cid === event.cid)) {
-      this.channelsSubject.next([...this.channels, channel]);
-    }
-  }
-
-  private handleChannelUpdate(event: Event<T>) {
-    const channelIndex = this.channels.findIndex(
-      (c) => c.cid === event.channel!.cid,
-    );
-    if (channelIndex !== -1) {
-      const channel = this.channels[channelIndex];
-      const notIncludedProperies = {
-        hidden: channel.data?.hidden || false,
-        own_capabilities: channel.data?.own_capabilities || [],
-      };
-      channel.data = {
-        ...event.channel!,
-        ...notIncludedProperies,
-      };
-      this.channelsSubject.next([...this.channels]);
-      if (event.channel?.cid === this.activeChannelSubject.getValue()?.cid) {
-        this.activeChannelSubject.next(channel);
-      }
-    }
-  }
-
-  private handleChannelTruncate(event: Event) {
-    const channelIndex = this.channels.findIndex(
-      (c) => c.cid === event.channel!.cid,
-    );
-    if (channelIndex !== -1) {
-      this.channels[channelIndex].state.messages = [];
-      this.channelsSubject.next([...this.channels]);
-      if (event.channel?.cid === this.activeChannelSubject.getValue()?.cid) {
-        const channel = this.activeChannelSubject.getValue()!;
-        channel.state.messages = [];
-        this.activeChannelSubject.next(channel);
-        this.activeChannelMessagesSubject.next([]);
-        this.activeParentMessageIdSubject.next(undefined);
-        this.activeThreadMessagesSubject.next([]);
-      }
     }
   }
 
@@ -2229,28 +1849,100 @@ export class ChannelService<
     this.markReadTimeout = undefined;
   }
 
-  private async _init(settings: {
-    shouldSetActiveChannel: boolean;
-    messagePageSize: number;
-  }) {
-    this.shouldSetActiveChannel = settings.shouldSetActiveChannel;
-    this.messagePageSize = settings.messagePageSize;
+  private _init(
+    options: ChannelServiceOptions<T> & { messagePageSize: number },
+  ) {
+    this.messagePageSize = options.messagePageSize;
+
+    this.shouldSetActiveChannel =
+      options?.shouldSetActiveChannel ?? this.shouldSetActiveChannel;
+    const eventHandlerOverrides = options?.eventHandlerOverrides;
+    const managerOptions = { ...options };
+    delete managerOptions?.eventHandlerOverrides;
+    delete managerOptions?.shouldSetActiveChannel;
+
+    this.createChannelManager({
+      eventHandlerOverrides,
+      options: managerOptions,
+    });
+
     this.clientEventsSubscription = this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification),
     );
+    return this.queryChannels('first-page');
+  }
+
+  private createChannelManager({
+    eventHandlerOverrides,
+    options,
+  }: {
+    eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
+    options?: ChannelManagerOptions;
+  }) {
+    this.channelManager = new ChannelManager({
+      client: this.chatClientService.chatClient,
+      options: {
+        ...options,
+        allowNotLoadedChannelPromotionForEvent: {
+          'message.new': false,
+          'channel.visible': true,
+          'notification.added_to_channel': true,
+          'notification.message_new': true,
+          ...options?.allowNotLoadedChannelPromotionForEvent,
+        },
+      },
+      eventHandlerOverrides,
+    });
+    this.channelManager.registerSubscriptions();
+  }
+
+  private destroyChannelManager() {
+    this.channelManager?.unregisterSubscriptions();
+    this.channelManager = undefined;
+    this.channelManagerSubscriptions.forEach((unsubscribe) => unsubscribe());
+    this.channelManagerSubscriptions = [];
+    this.channelsSubject.next(undefined);
+    this.hasMoreChannelsSubject.next(true);
+  }
+
+  private async maybeRestoreActiveChannelAfterRecovery() {
+    const previousActiveChannel = this.activeChannelSubject.getValue();
+    if (!previousActiveChannel) {
+      return;
+    }
     try {
-      const result = await this.queryChannels(
-        this.shouldSetActiveChannel,
-        'first-page',
-      );
-      return result;
-    } catch (error) {
-      this.dismissErrorNotification =
-        this.notificationService.addPermanentNotification(
-          'streamChat.Error loading channels',
-          'error',
+      if (!this.channels.find((c) => c.cid === previousActiveChannel?.cid)) {
+        await previousActiveChannel.watch();
+        // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
+        void this.setAsActiveParentMessage(undefined);
+        // Update and reselect message to quote
+        const messageToQuote = this.messageToQuoteSubject.getValue();
+        this.setChannelState(previousActiveChannel);
+        let messages!: StreamMessage<T>[];
+        this.activeChannelMessages$
+          .pipe(take(1))
+          .subscribe((m) => (messages = m));
+        const updatedMessageToQuote = messages.find(
+          (m) => m.id === messageToQuote?.id,
         );
-      throw error;
+        if (updatedMessageToQuote) {
+          this.selectMessageToQuote(updatedMessageToQuote);
+        }
+        this.channelManager?.setChannels(
+          promoteChannel({
+            channels: this.channels,
+            channelToMove: previousActiveChannel,
+            sort: this.channelQueryConfig?.sort ?? [],
+          }),
+        );
+      }
+    } catch (error) {
+      this.chatClientService.chatClient.logger(
+        'warn',
+        'Unable to refetch active channel after state recover',
+        error as Record<string, unknown>,
+      );
+      this.deselectActiveChannel();
     }
   }
 }

@@ -84,10 +84,7 @@ describe('ChannelListComponent', () => {
   it('should display error indicator, if error happened', () => {
     expect(queryChatdownContainer()).toBeNull();
 
-    channelServiceMock.channelQueryState$.next({
-      state: 'error',
-      error: new Error('error'),
-    });
+    channelServiceMock.shouldRecoverState$.next(true);
     fixture.detectChanges();
 
     expect(queryChatdownContainer()).not.toBeNull();

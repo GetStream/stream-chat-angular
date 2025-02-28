@@ -62,6 +62,7 @@ export const generateMockChannels = (length = 25) => {
     const channel = {
       cid: 'cid' + index.toString(),
       id: index.toString(),
+      type: 'messaging',
       data: {
         id: index.toString(),
         name: `Channel${index}`,
@@ -117,6 +118,7 @@ export const generateMockChannels = (length = 25) => {
         pinnedMessages: [],
         threads: {},
         read: {},
+        membership: {},
         members: {
           jack: { user: { id: 'jack', name: 'Jack' } },
           sara: { user: { id: 'sara', name: 'Sara' } },
@@ -234,6 +236,7 @@ export type MockChannelService = {
   usersTypingInThread$: BehaviorSubject<UserResponse[]>;
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
   channelQueryState$: BehaviorSubject<ChannelQueryState | undefined>;
+  shouldRecoverState$: BehaviorSubject<boolean>;
   activeChannelLastReadMessageId?: string;
   activeChannelUnreadCount?: number;
   activeChannel?: Channel<DefaultStreamChatGenerics>;
@@ -317,6 +320,7 @@ export const mockChannelService = (): MockChannelService => {
   const channelQueryState$ = new BehaviorSubject<ChannelQueryState | undefined>(
     undefined,
   );
+  const shouldRecoverState$ = new BehaviorSubject(false);
 
   return {
     activeChannelMessages$,
@@ -341,6 +345,7 @@ export const mockChannelService = (): MockChannelService => {
     clearMessageJump,
     channelQueryState$,
     activeChannel,
+    shouldRecoverState$,
   };
 };
 

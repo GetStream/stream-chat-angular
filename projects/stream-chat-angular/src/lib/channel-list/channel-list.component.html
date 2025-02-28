@@ -46,8 +46,13 @@
     </div>
   } @else {
     @if (isError$ | async) {
-      <div data-testid="chatdown-container" class="str-chat__down">
-        <ng-container *ngTemplateOutlet="loadingChannels" />
+      <div
+        data-testid="chatdown-container"
+        class="str-chat__dow str-chat__channel-list-empty"
+      >
+        <button (click)="recoverState()" class="str-chat__cta-button">
+          {{ "streamChat.Reload channels" | translate }}
+        </button>
       </div>
     }
     @if (isInitializing$ | async) {

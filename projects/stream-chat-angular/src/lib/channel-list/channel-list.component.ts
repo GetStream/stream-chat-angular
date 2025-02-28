@@ -33,9 +33,7 @@ export class ChannelListComponent implements OnDestroy {
     this.theme$ = this.themeService.theme$;
     this.channels$ = this.channelService.channels$;
     this.hasMoreChannels$ = this.channelService.hasMoreChannels$;
-    this.isError$ = this.channelService.channelQueryState$.pipe(
-      map((s) => !this.isLoadingMoreChannels && s?.state === 'error'),
-    );
+    this.isError$ = this.channelService.shouldRecoverState$;
     this.isInitializing$ = this.channelService.channelQueryState$.pipe(
       map((s) => !this.isLoadingMoreChannels && s?.state === 'in-progress'),
     );
@@ -54,6 +52,10 @@ export class ChannelListComponent implements OnDestroy {
     this.isLoadingMoreChannels = true;
     await this.channelService.loadMoreChannels();
     this.isLoadingMoreChannels = false;
+  }
+
+  recoverState() {
+    void this.channelService.recoverState();
   }
 
   trackByChannelId(_: number, item: Channel<DefaultStreamChatGenerics>) {

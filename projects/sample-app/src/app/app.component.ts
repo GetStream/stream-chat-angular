@@ -59,14 +59,13 @@ export class AppComponent implements AfterViewInit {
         : environment.userToken,
       { timeout: 10000 },
     );
-    void this.channelService.init(
-      environment.channelsFilter || {
+    void this.channelService.init({
+      filters: environment.channelsFilter || {
         type: 'messaging',
         members: { $in: [environment.userId] },
       },
-      undefined,
-      { limit: 10 },
-    );
+      options: { limit: 10 },
+    });
     this.streamI18nService.setTranslation();
     this.channelService.activeParentMessage$
       .pipe(map((m) => !!m))
