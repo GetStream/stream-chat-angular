@@ -41,22 +41,12 @@
     "branches": [
       "master",
       {
-        "name": "test-update",
-        "prerelease": true,
-        "channel": "beta"
-      },
-      {
-        "name": "fix-voice-recording",
-        "prerelease": true,
-        "channel": "beta"
-      },
-      {
-        "name": "5.x.x-beta",
-        "prerelease": true,
-        "channel": "beta"
+        "name": "6.x.x-rc",
+        "prerelease": "rc",
+        "channel": "rc"
       }
     ],
-    "dryRun": false,
+    "dryRun": true,
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
@@ -80,7 +70,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": true
+          "npmPublish": false
         }
       ],
       [
