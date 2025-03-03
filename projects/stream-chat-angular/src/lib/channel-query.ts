@@ -8,7 +8,6 @@ import { ChannelService } from './channel.service';
 import {
   ChannelQueryResult,
   ChannelQueryType,
-  DefaultStreamChatGenerics,
   NextPageConfiguration,
 } from './types';
 import { ChatClientService } from './chat-client.service';
@@ -16,9 +15,7 @@ import { ChatClientService } from './chat-client.service';
 /**
  * This class allows you to make paginated channel query requests.
  */
-export class ChannelQuery<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class ChannelQuery {
   /**
    * By default the SDK uses an offset based pagination, you can change/extend this by providing your own custom paginator method.
    *
@@ -26,14 +23,14 @@ export class ChannelQuery<
    *
    * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
-  customPaginator?: (channelQueryResult: Channel<T>[]) => NextPageConfiguration;
+  customPaginator?: (channelQueryResult: Channel[]) => NextPageConfiguration;
   private nextPageConfiguration?: NextPageConfiguration;
 
   constructor(
-    private chatService: ChatClientService<T>,
-    private channelService: ChannelService<T>,
-    private filters: ChannelFilters<T>,
-    private sort: ChannelSort<T> = { last_message_at: -1 },
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private filters: ChannelFilters,
+    private sort: ChannelSort = { last_message_at: -1 },
     private options: ChannelOptions = {
       limit: 25,
       state: true,
@@ -42,13 +39,13 @@ export class ChannelQuery<
     }
   ) {}
 
-  async query(queryType: ChannelQueryType): Promise<ChannelQueryResult<T>> {
+  async query(queryType: ChannelQueryType): Promise<ChannelQueryResult> {
     if (queryType === 'first-page' || queryType === 'recover-state') {
       this.nextPageConfiguration = undefined;
     }
     const prevChannels =
       queryType === 'recover-state' ? [] : this.channelService.channels;
-    let filters: ChannelFilters<T>;
+    let filters: ChannelFilters;
     let options: ChannelOptions;
     if (this.nextPageConfiguration) {
       if (this.nextPageConfiguration.type === 'filter') {
@@ -99,7 +96,7 @@ export class ChannelQuery<
     };
   }
 
-  setNextPageConfiguration(channelQueryResult: Channel<T>[]) {
+  setNextPageConfiguration(channelQueryResult: Channel[]) {
     if (this.customPaginator) {
       this.nextPageConfiguration = this.customPaginator(channelQueryResult);
     } else {

@@ -19,7 +19,6 @@ import {
   AttachmentListContext,
   MessageActionsBoxContext,
   MessageReactionsContext,
-  DefaultStreamChatGenerics,
   StreamMessage,
   DeliveredStatusContext,
   SendingStatusContext,
@@ -85,7 +84,7 @@ export class MessageComponent
   shouldDisplayThreadLink = false;
   isSentByCurrentUser = false;
   readByText = '';
-  lastReadUser: UserResponse<DefaultStreamChatGenerics> | undefined = undefined;
+  lastReadUser: UserResponse | undefined = undefined;
   isOnlyReadByMe = false;
   isReadByMultipleUsers = false;
   isMessageDeliveredAndRead = false;

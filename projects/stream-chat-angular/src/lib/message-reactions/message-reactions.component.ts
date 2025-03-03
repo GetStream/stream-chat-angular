@@ -15,7 +15,7 @@ import {
   ReactionResponse,
   UserResponse,
 } from 'stream-chat';
-import { MessageReactionType, DefaultStreamChatGenerics } from '../types';
+import { MessageReactionType } from '../types';
 import { MessageReactionsService } from '../message-reactions.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
@@ -50,11 +50,11 @@ export class MessageReactionsComponent
    * List of reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
    * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
-  @Input() latestReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
+  @Input() latestReactions: ReactionResponse[] = [];
   /**
    * List of the user's own reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
    */
-  @Input() ownReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
+  @Input() ownReactions: ReactionResponse[] = [];
   @ViewChild('selectorContainer') private selectorContainer:
     | ElementRef<HTMLElement>
     | undefined;

@@ -14,7 +14,6 @@ import { mockChannelService, MockChannelService } from '../../mocks';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea.component';
 import { Subject } from 'rxjs';
 import { EmojiInputService } from '../emoji-input.service';
-import { DefaultStreamChatGenerics } from '../../types';
 
 describe('AutocompleteTextareaComponent', () => {
   let component: AutocompleteTextareaComponent;
@@ -219,7 +218,7 @@ describe('AutocompleteTextareaComponent', () => {
       getConfig: () => ({
         commands: [],
       }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
 

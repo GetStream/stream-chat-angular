@@ -4,13 +4,13 @@ import { AppSettings, Attachment } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload, DefaultStreamChatGenerics } from './types';
+import { AttachmentUpload } from './types';
 import { Subject } from 'rxjs';
 import { ChatClientService } from './chat-client.service';
 import { MessageService } from './message.service';
 
 describe('AttachmentService', () => {
-  let service: AttachmentService<DefaultStreamChatGenerics>;
+  let service: AttachmentService;
   let uploadAttachmentsSpy: jasmine.Spy;
   let deleteAttachmentSpy: jasmine.Spy;
   let readAsDataURLSpy: jasmine.Spy;
@@ -534,6 +534,7 @@ describe('AttachmentService', () => {
 
     const customPaymentAttachment: Attachment = {
       type: 'custom',
+      // @ts-expect-error testing custom proerpty
       subtype: 'payment',
       value: '30$',
       link: 'pay/me/or/else',

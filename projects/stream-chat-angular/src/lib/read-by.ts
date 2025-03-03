@@ -1,12 +1,6 @@
 import { Channel, FormatMessageResponse, UserResponse } from 'stream-chat';
-import { DefaultStreamChatGenerics } from './types';
 
-export const getReadBy = <
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
->(
-  message: FormatMessageResponse<T>,
-  channel: Channel<T>
-) => {
+export const getReadBy = (message: FormatMessageResponse, channel: Channel) => {
   const readBy: UserResponse[] = [];
   Object.keys(channel.state.read).forEach((key) => {
     if (

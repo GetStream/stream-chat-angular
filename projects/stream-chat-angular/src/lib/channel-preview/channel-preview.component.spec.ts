@@ -14,7 +14,6 @@ import {
 } from '../mocks';
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
-import { DefaultStreamChatGenerics } from '../types';
 import { DateParserService } from '../date-parser.service';
 import { IconModule } from '../icon/icon.module';
 import { IconPlaceholderComponent } from '../icon/icon-placeholder/icon-placeholder.component';
@@ -187,7 +186,7 @@ describe('ChannelPreviewComponent', () => {
       eventType: 'notification.mark_unread',
       event: {
         channel_id: channel.id,
-      } as Event<DefaultStreamChatGenerics>,
+      } as Event,
     });
 
     expect(component.isUnread).toBe(true);

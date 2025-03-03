@@ -12,11 +12,7 @@ import { AppSettings, Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
-import {
-  AttachmentUpload,
-  AudioRecording,
-  DefaultStreamChatGenerics,
-} from './types';
+import { AttachmentUpload, AudioRecording } from './types';
 import { ChatClientService } from './chat-client.service';
 import { MessageService } from './message.service';
 
@@ -28,9 +24,7 @@ import { MessageService } from './message.service';
 @Injectable({
   providedIn: 'root',
 })
-export class AttachmentService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class AttachmentService {
   /**
    * Emits the number of uploads in progress.
    *
@@ -48,7 +42,7 @@ export class AttachmentService<
    *
    * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](/chat/docs/sdk/angular/services/CustomTemplatesService/).
    */
-  customAttachments$ = new BehaviorSubject<Attachment<T>[]>([]);
+  customAttachments$ = new BehaviorSubject<Attachment[]>([]);
   /**
    * The current number of attachments
    */
@@ -212,8 +206,10 @@ export class AttachmentService<
    *
    * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](/chat/docs/sdk/angular/services/ChannelService/)
    * @param attachment
+   *
+   * Will set `isCustomAttachment` to `true` on the attachment. This is a non-standard field, other SDKs will ignore this property.
    */
-  addAttachment(attachment: Attachment<T>) {
+  addAttachment(attachment: Attachment) {
     attachment.isCustomAttachment = true;
     this.createFromAttachments([attachment]);
   }
@@ -303,10 +299,10 @@ export class AttachmentService<
    * Maps attachments received from the Stream API to uploads. This is useful when editing a message.
    * @param attachments Attachemnts received with the message
    */
-  createFromAttachments(attachments: Attachment<T>[]) {
+  createFromAttachments(attachments: Attachment[]) {
     const attachmentUploads: AttachmentUpload[] = [];
-    const builtInAttachments: Attachment<T>[] = [];
-    const customAttachments: Attachment<T>[] = [];
+    const builtInAttachments: Attachment[] = [];
+    const customAttachments: Attachment[] = [];
     attachments.forEach((attachment) => {
       if (this.messageService.isCustomAttachment(attachment)) {
         customAttachments.push(attachment);

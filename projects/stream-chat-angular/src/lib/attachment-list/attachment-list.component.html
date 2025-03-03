@@ -21,7 +21,9 @@
         isVoiceMessage(attachment)
       "
       [class.str-chat__message-attachment-with-actions]="
-        attachment.actions && attachment.actions.length > 0
+        !isGalleryType(attachment) &&
+        attachment.actions &&
+        attachment.actions.length > 0
       "
       [class.str-chat__message-attachment--svg-image]="isSvg(attachment)"
     >
@@ -406,7 +408,13 @@
           </div>
         </ng-template>
       </ng-container>
-      <ng-container *ngIf="attachment.actions && attachment.actions.length > 0">
+      <ng-container
+        *ngIf="
+          !isGalleryType(attachment) &&
+          attachment.actions &&
+          attachment.actions.length > 0
+        "
+      >
         <ng-container
           *ngTemplateOutlet="
             (customTemplatesService.attachmentActionsTemplate$ | async) ||

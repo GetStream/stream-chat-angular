@@ -300,7 +300,9 @@ export class AutocompleteTextareaComponent
     triggerChar = ''
   ) {
     if (triggerChar === this.mentionTriggerChar) {
-      this.mentionedUsers.push((item.user ? item.user : item) as UserResponse);
+      this.mentionedUsers.push(
+        ('user' in item ? item.user : item) as UserResponse
+      );
       this.userMentions.next([...this.mentionedUsers]);
     }
     this.searchTerm$.next('');
@@ -369,7 +371,7 @@ export class AutocompleteTextareaComponent
     const items = this.filter(
       searchTerm || '',
       result.map((i) => {
-        const user = (i.user ? i.user : i) as UserResponse;
+        const user = ('user' in i ? i.user : i) as UserResponse;
         return {
           ...i,
           autocompleteLabel: user.name || user.id,

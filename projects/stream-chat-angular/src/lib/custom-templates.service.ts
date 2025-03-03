@@ -15,9 +15,9 @@ import {
   CustomAttachmentUploadContext,
   CustomMetadataContext,
   DateSeparatorContext,
-  DefaultStreamChatGenerics,
   DeliveredStatusContext,
   EmojiPickerContext,
+  GalleryAttachmentContext,
   IconContext,
   MentionAutcompleteListItemContext,
   MentionTemplateContext,
@@ -49,9 +49,7 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class CustomTemplatesService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class CustomTemplatesService {
   /**
    * The autocomplete list item template for mentioning users (used in the [`AutocompleteTextareaComponent`](/chat/docs/sdk/angular/components/AutocompleteTextareaComponent/))
    */
@@ -222,7 +220,7 @@ export class CustomTemplatesService<
    *
    */
   customMessageMetadataTemplate$ = new BehaviorSubject<
-    TemplateRef<CustomMetadataContext<T>> | undefined
+    TemplateRef<CustomMetadataContext> | undefined
   >(undefined);
   /**
    * The template used to display additional information about a channel under the channel name inside the [channel header component](/chat/docs/sdk/angular/components/ChannelHeaderComponent/)
@@ -260,7 +258,7 @@ export class CustomTemplatesService<
    * The template that can be used to override how image gallery is displayed inside the [attachment list](/chat/docs/sdk/angular/components/AttachmentListComponent/)
    */
   galleryAttachmentTemplate$ = new BehaviorSubject<
-    TemplateRef<AttachmentContext> | undefined
+    TemplateRef<GalleryAttachmentContext> | undefined
   >(undefined);
   /**
    * The template that can be used to override how a file attachment is displayed inside the [attachment list](/chat/docs/sdk/angular/components/AttachmentListComponent/)

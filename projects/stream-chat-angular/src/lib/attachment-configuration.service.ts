@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Attachment } from 'stream-chat';
 import {
   AttachmentConfigration,
-  DefaultStreamChatGenerics,
   ImageAttachmentConfiguration,
   VideoAttachmentConfiguration,
 } from './types';
@@ -13,14 +12,12 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class AttachmentConfigurationService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class AttachmentConfigurationService {
   /**
    * A custom handler can be provided to override the default image attachment (images uploaded from files) configuration. By default the SDK uses fixed image height (a size that's known before image is loaded), if you override that with dynamic image height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customImageAttachmentConfigurationHandler?: (
-    a: Attachment<T>,
+    a: Attachment,
     type: 'gallery' | 'single' | 'carousel',
     containerElement: HTMLElement
   ) => ImageAttachmentConfiguration;
@@ -28,20 +25,20 @@ export class AttachmentConfigurationService<
    * A custom handler can be provided to override the default video attachment (videos uploaded from files) configuration. By default the SDK uses fixed height (a size that's known before video is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customVideoAttachmentConfigurationHandler?: (
-    a: Attachment<T>,
+    a: Attachment,
     containerElement: HTMLElement
   ) => VideoAttachmentConfiguration;
   /**
    * A custom handler can be provided to override the default giphy attachment (GIFs sent with the /giphy command) configuration. By default the SDK uses fixed height (a size that's known before the GIF is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customGiphyAttachmentConfigurationHandler?: (
-    a: Attachment<T>
+    a: Attachment
   ) => AttachmentConfigration;
   /**
    * A custom handler can be provided to override the default scraped image attachment (images found in links inside messages) configuration. By default the SDK uses fixed height (a size that's known before image is loaded), if you override that with dynamic height (for example: height: 100%) the scrolling logic inside the message list can break.
    */
   customScrapedImageAttachmentConfigurationHandler?: (
-    a: Attachment<T>
+    a: Attachment
   ) => AttachmentConfigration;
   /**
    * You can turn on/off thumbnail generation for video attachments
@@ -55,7 +52,7 @@ export class AttachmentConfigurationService<
    * @param element The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN.
    */
   getImageAttachmentConfiguration(
-    attachment: Attachment<T>,
+    attachment: Attachment,
     location: 'gallery' | 'single' | 'carousel',
     element: HTMLElement
   ): ImageAttachmentConfiguration {
@@ -68,10 +65,8 @@ export class AttachmentConfigurationService<
     }
 
     const defaultOriginalDimension = 1000000;
-    const urlString = (attachment.img_url ||
-      attachment.thumb_url ||
-      attachment.image_url ||
-      '') as string;
+    const urlString =
+      attachment.img_url || attachment.thumb_url || attachment.image_url || '';
     let url: URL;
     try {
       url = new URL(urlString);
@@ -121,7 +116,7 @@ export class AttachmentConfigurationService<
    * @param element The default resizing logics reads the height/max-height and max-width propperties of this element and reduces file size based on the given values. File size reduction is done by Stream's CDN.
    */
   getVideoAttachmentConfiguration(
-    attachment: Attachment<T>,
+    attachment: Attachment,
     element: HTMLElement
   ): VideoAttachmentConfiguration {
     if (this.customVideoAttachmentConfigurationHandler) {
@@ -178,7 +173,7 @@ export class AttachmentConfigurationService<
    * @param attachment The attachment to configure
    */
   getGiphyAttachmentConfiguration(
-    attachment: Attachment<T>
+    attachment: Attachment
   ): AttachmentConfigration {
     if (this.customGiphyAttachmentConfigurationHandler) {
       return this.customGiphyAttachmentConfigurationHandler(attachment);
@@ -198,7 +193,7 @@ export class AttachmentConfigurationService<
    * @param attachment The attachment to configure
    */
   getScrapedImageAttachmentConfiguration(
-    attachment: Attachment<T>
+    attachment: Attachment
   ): AttachmentConfigration {
     if (this.customScrapedImageAttachmentConfigurationHandler) {
       return this.customScrapedImageAttachmentConfigurationHandler(attachment);
