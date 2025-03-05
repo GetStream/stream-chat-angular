@@ -11,10 +11,7 @@ import { ChannelService } from '../channel.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
-import {
-  CustomAttachmentListContext,
-  DefaultStreamChatGenerics,
-} from '../types';
+import { CustomAttachmentListContext, GalleryAttachment } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import {
   AfterViewInit,
@@ -195,6 +192,7 @@ describe('AttachmentListComponent', () => {
   it('should filter custom attachments', () => {
     const messageService = TestBed.inject(MessageService);
     messageService.filterCustomAttachment = (attachment: Attachment) =>
+      // @ts-expect-error custom property
       !attachment.customLink;
     const imageAttachment = {
       type: 'image',
@@ -276,8 +274,12 @@ describe('AttachmentListComponent', () => {
 
     expect(orderedAttachments.length).toBe(2);
     expect(orderedAttachments[0].type).toBe('gallery');
-    expect(orderedAttachments[0].images![0].img_url).toBe('http://url1');
-    expect(orderedAttachments[0].images![1].img_url).toBe('http://url2');
+    expect((orderedAttachments[0] as GalleryAttachment).images[0].img_url).toBe(
+      'http://url1'
+    );
+    expect((orderedAttachments[0] as GalleryAttachment).images[1].img_url).toBe(
+      'http://url2'
+    );
   });
 
   it('should display gallery', () => {
@@ -380,7 +382,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    } as any as Attachment<DefaultStreamChatGenerics>;
+    } as any as Attachment;
     component.attachments = [attachment];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -435,7 +437,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    } as any as Attachment<DefaultStreamChatGenerics>;
+    } as any as Attachment;
     component.messageId = 'message-id';
     component.attachments = [attachment];
     component.parentMessageId = 'parent-id';

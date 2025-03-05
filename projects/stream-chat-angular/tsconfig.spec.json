@@ -5,6 +5,6 @@
     "outDir": "../../out-tsc/spec",
     "types": ["jasmine"]
   },
-  "files": ["src/test.ts"],
+  "files": ["src/test.ts", "src/public-api.ts"],
   "include": ["**/*.spec.ts", "**/*.d.ts"]
 }

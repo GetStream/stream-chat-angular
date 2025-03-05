@@ -10,7 +10,6 @@ import {
   MockChannelService,
   mockMessage,
 } from '../mocks';
-import { DefaultStreamChatGenerics } from '../types';
 
 import { ThreadComponent } from './thread.component';
 
@@ -18,7 +17,7 @@ describe('ThreadComponent', () => {
   let fixture: ComponentFixture<ThreadComponent>;
   let queryCloseButton: () => HTMLElement | null;
   let channelServiceMock: MockChannelService;
-  let channel: Channel<DefaultStreamChatGenerics>;
+  let channel: Channel;
 
   beforeEach(async () => {
     channelServiceMock = mockChannelService();
@@ -41,7 +40,7 @@ describe('ThreadComponent', () => {
     const nativeElement = fixture.nativeElement as HTMLElement;
     queryCloseButton = () =>
       nativeElement.querySelector('[data-testid="close-button"]');
-    channel = generateMockChannels()[0] as Channel<DefaultStreamChatGenerics>;
+    channel = generateMockChannels()[0] as Channel;
     channelServiceMock.activeChannel$.next(channel);
     fixture.detectChanges();
   });

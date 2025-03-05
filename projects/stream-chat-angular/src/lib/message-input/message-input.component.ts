@@ -32,7 +32,6 @@ import {
   AttachmentUpload,
   AudioRecording,
   CustomAttachmentUploadContext,
-  DefaultStreamChatGenerics,
   EmojiPickerContext,
   MessageTextContext,
   StreamMessage,
@@ -148,7 +147,7 @@ export class MessageInputComponent
   private subscriptions: Subscription[] = [];
   private hideNotification: (() => void) | undefined;
   private isViewInited = false;
-  private channel: Channel<DefaultStreamChatGenerics> | undefined;
+  private channel: Channel | undefined;
   private sendMessageSubcription: Subscription | undefined;
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
@@ -246,7 +245,7 @@ export class MessageInputComponent
           map(
             ([latestMessages, channel]): [
               Date | undefined,
-              Channel<DefaultStreamChatGenerics> | undefined
+              Channel | undefined
             ] => [latestMessages[channel?.cid || ''], channel!]
           )
         )

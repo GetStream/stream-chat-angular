@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Attachment } from 'stream-chat';
-import { DefaultStreamChatGenerics } from './types';
 
 /**
  * The message service contains configuration options related to displaying the message content
@@ -8,9 +7,7 @@ import { DefaultStreamChatGenerics } from './types';
 @Injectable({
   providedIn: 'root',
 })
-export class MessageService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class MessageService {
   /**
    * Decides if the message content should be formatted as text or HTML
    *
@@ -33,7 +30,7 @@ export class MessageService<
    *
    * Provide a method which retruns `true` if an attachment should be considered as custom.
    */
-  filterCustomAttachment?: (attachment: Attachment<T>) => boolean;
+  filterCustomAttachment?: (attachment: Attachment) => boolean;
 
   constructor() {}
 
@@ -42,7 +39,7 @@ export class MessageService<
    * @param attachment
    * @returns `true` if the attachment is custom
    */
-  isCustomAttachment(attachment: Attachment<T>) {
+  isCustomAttachment(attachment: Attachment) {
     if (this.filterCustomAttachment) {
       return this.filterCustomAttachment(attachment);
     } else {

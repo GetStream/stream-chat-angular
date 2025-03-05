@@ -1,12 +1,7 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { Channel, User } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
-import {
-  AvatarContext,
-  AvatarLocation,
-  AvatarType,
-  DefaultStreamChatGenerics,
-} from '../types';
+import { AvatarContext, AvatarLocation, AvatarType } from '../types';
 
 /**
  * The `AvatarPlaceholder` component displays the [default avatar](/chat/docs/sdk/angular/components/AvatarComponent/) unless a [custom template](/chat/docs/sdk/angular/services/CustomTemplatesService/) is provided. This component is used by the SDK internally, you likely won't need to use it.
@@ -32,11 +27,11 @@ export class AvatarPlaceholderComponent implements OnChanges {
   /**
    * The channel the avatar belongs to (if avatar of a channel is displayed)
    */
-  @Input() channel?: Channel<DefaultStreamChatGenerics>;
+  @Input() channel?: Channel;
   /**
    * The user the avatar belongs to (if avatar of a user is displayed)
    */
-  @Input() user?: User<DefaultStreamChatGenerics>;
+  @Input() user?: User;
   /**
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */

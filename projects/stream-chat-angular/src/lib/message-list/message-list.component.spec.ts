@@ -24,7 +24,6 @@ import {
   mockMessage,
 } from '../mocks';
 import { StreamI18nService } from '../stream-i18n.service';
-import { DefaultStreamChatGenerics } from '../types';
 import { MessageListComponent } from './message-list.component';
 import { take } from 'rxjs/operators';
 import { NgxFloatUiModule } from 'ngx-float-ui';
@@ -354,7 +353,7 @@ describe('MessageListComponent', () => {
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
       on: () => {},
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     channelServiceMock.activeChannel!.state.latestMessages = [];
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
@@ -511,7 +510,7 @@ describe('MessageListComponent', () => {
   }));
 
   it('should get unread message information from "message.new" event if an older message list is displayed', () => {
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     channelServiceMock.activeChannel$
       .pipe(take(1))
       .subscribe((c) => (channel = c!));
