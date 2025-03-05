@@ -576,7 +576,7 @@ describe('MessageInputComponent', () => {
     attachmentService.mapToAttachments.and.returnValue([
       {
         type: 'image',
-        img_url: 'url',
+        image_url: 'url',
       },
     ]);
     const textarea = queryTextarea();
