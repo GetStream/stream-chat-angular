@@ -1,27 +1,8 @@
-declare module 'stream-chat' {
-  interface CustomUserData {
-    image?: string;
-  }
-  interface CustomAttachmentData {
-    /**
-     * @deprecated Please use `image_url` instead
-     */
-    img_url?: string;
-    /**
-     * Will be `true` if an attachment was added using `attachmentService.addAttachment`
-     *
-     * This is a non-standard property, other SDKs will ignore this property
-     */
-    isCustomAttachment?: boolean;
-  }
-
-  interface CustomChannelData {
-    image?: string;
-  }
-}
 /*
  * Public API Surface of stream-chat-angular
  */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="stream-chat.ts" />
 export * from './lib/chat-client.service';
 export * from './lib/channel.service';
 export * from './lib/theme.service';
