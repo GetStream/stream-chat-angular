@@ -57,6 +57,7 @@ export * from './lib/custom-templates.service';
 export * from './lib/message-reactions.service';
 export * from './lib/date-parser.service';
 export * from './lib/types';
+export * from './lib/types-custom';
 export * from './lib/message.service';
 export * from './lib/message-actions.service';
 export * from './lib/voice-recording/voice-recording.component';
