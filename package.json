@@ -55,7 +55,7 @@
         "channel": "rc"
       }
     ],
-    "dryRun": true,
+    "dryRun": false,
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
@@ -79,7 +79,7 @@
         "@semantic-release/npm",
         {
           "pkgRoot": "./dist/stream-chat-angular",
-          "npmPublish": false
+          "npmPublish": true
         }
       ],
       [
