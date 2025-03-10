@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MessageTextComponent } from './message-text.component';
 import { StreamMessage } from '../types';
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import { MessageService } from '../message.service';
 import { generateMockMessages } from '../mocks';
 
@@ -14,7 +14,11 @@ describe('MessageTextComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [MessageTextComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(MessageTextComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(MessageTextComponent);
     component = fixture.componentInstance;

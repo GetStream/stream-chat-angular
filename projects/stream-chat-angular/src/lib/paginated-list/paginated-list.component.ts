@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ContentChild,
@@ -20,6 +21,7 @@ import {
   selector: 'stream-paginated-list',
   templateUrl: './paginated-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginatedListComponent<T> implements AfterViewInit {
   /**

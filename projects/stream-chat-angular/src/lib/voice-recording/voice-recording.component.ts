@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -20,6 +21,7 @@ import { formatDuration } from '../format-duration';
   selector: 'stream-voice-recording',
   templateUrl: './voice-recording.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
   /**

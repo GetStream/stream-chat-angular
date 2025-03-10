@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   Input,
@@ -19,6 +20,7 @@ import { Subscription } from 'rxjs';
   selector: 'stream-message-reactions-selector',
   templateUrl: './message-reactions-selector.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageReactionsSelectorComponent
   implements OnInit, OnDestroy, AfterViewInit
@@ -45,7 +47,7 @@ export class MessageReactionsSelectorComponent
       this.messageReactionsService.reactions$.subscribe((reactions) => {
         this.reactionOptions = Object.keys(reactions);
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
       }),
     );

@@ -238,7 +238,7 @@ export class MessageComponent
           this.setIsSentByCurrentUser();
           this.setLastReadUser();
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
       }),
@@ -254,7 +254,7 @@ export class MessageComponent
           if (numberOfEnabledActions !== this.visibleMessageActionsCount) {
             this.visibleMessageActionsCount = numberOfEnabledActions;
             if (this.isViewInited) {
-              this.cdRef.detectChanges();
+              this.cdRef.markForCheck();
             }
           }
         }
@@ -562,7 +562,7 @@ export class MessageComponent
           );
         }
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
         this.showMessageMenuTimeout = undefined;
       });

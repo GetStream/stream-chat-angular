@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import {
   ComponentFixture,
   fakeAsync,
@@ -82,7 +82,11 @@ describe('MessageActionsBoxComponent', () => {
           useValue: TextareaComponent,
         },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(MessageActionsBoxComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { VoiceRecordingComponent } from './voice-recording.component';
 import { mockVoiceRecording } from '../mocks';
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 describe('VoiceRecordingComponent', () => {
@@ -15,7 +15,11 @@ describe('VoiceRecordingComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [VoiceRecordingComponent],
       imports: [TranslateModule.forRoot()],
-    }).compileComponents();
+    })
+      .overrideComponent(VoiceRecordingComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

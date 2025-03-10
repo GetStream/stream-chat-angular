@@ -15,6 +15,7 @@ import { CustomAttachmentListContext, GalleryAttachment } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   SimpleChange,
   TemplateRef,
@@ -63,7 +64,11 @@ describe('AttachmentListComponent', () => {
         MessageService,
       ],
       imports: [TranslateModule.forRoot()],
-    }).compileComponents();
+    })
+      .overrideComponent(AttachmentListComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
     TestBed.inject(StreamI18nService).setTranslation();
   });
 

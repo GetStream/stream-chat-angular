@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { ThreadHeaderComponent } from './thread-header.component';
 
@@ -9,7 +10,11 @@ describe('ThreadHeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ThreadHeaderComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(ThreadHeaderComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

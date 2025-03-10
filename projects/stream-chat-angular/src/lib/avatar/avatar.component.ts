@@ -1,9 +1,9 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -22,6 +22,7 @@ import { AvatarLocation, AvatarType } from '../types';
   selector: 'stream-avatar',
   templateUrl: './avatar.component.html',
   styleUrl: './avatar.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarComponent
   implements OnChanges, OnInit, AfterViewInit, OnDestroy
@@ -71,7 +72,6 @@ export class AvatarComponent
 
   constructor(
     private chatClientService: ChatClientService,
-    private ngZone: NgZone,
     private cdRef: ChangeDetectorRef,
   ) {}
 
@@ -79,6 +79,11 @@ export class AvatarComponent
     if (changes['channel']) {
       this.updateIsOnlineSubscription();
     }
+
+    if (changes['imageUrl'] || changes['channel']) {
+      this.isError = false;
+    }
+
     if (changes.type || changes.name || changes.channel) {
       this.setInitials();
     }
@@ -99,7 +104,7 @@ export class AvatarComponent
             this.updateIsOnlineSubscription();
           }
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
       }),
@@ -163,7 +168,13 @@ export class AvatarComponent
           .pipe(filter((e) => e.eventType === 'user.presence.changed'))
           .subscribe((event) => {
             if (event.event.user?.id === otherMember.id) {
-              this.isOnline = event.event.user?.online || false;
+              const isOnline = event.event.user?.online || false;
+              if (isOnline !== this.isOnline) {
+                this.isOnline = isOnline;
+                if (this.isViewInited) {
+                  this.cdRef.markForCheck();
+                }
+              }
             }
           });
       } else {

@@ -1,4 +1,9 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+} from '@angular/core';
 import { Channel, User } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AvatarContext, AvatarLocation, AvatarType } from '../types';
@@ -10,6 +15,7 @@ import { AvatarContext, AvatarLocation, AvatarType } from '../types';
   selector: 'stream-avatar-placeholder',
   templateUrl: './avatar-placeholder.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarPlaceholderComponent implements OnChanges {
   /**

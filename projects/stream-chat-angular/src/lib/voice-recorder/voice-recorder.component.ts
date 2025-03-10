@@ -1,4 +1,7 @@
 import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnChanges,
@@ -20,8 +23,11 @@ import { VoiceRecorderService } from '../message-input/voice-recorder.service';
   templateUrl: './voice-recorder.component.html',
   styles: [],
   providers: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
+export class VoiceRecorderComponent
+  implements OnInit, AfterViewInit, OnDestroy, OnChanges
+{
   @Input() voiceRecorderService?: VoiceRecorderService;
   recordState: MediaRecordingState = MediaRecordingState.STOPPED;
   isLoading = false;
@@ -29,8 +35,12 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
   readonly MediaRecordingState = MediaRecordingState;
   private subscriptions: Subscription[] = [];
   private isVisibleSubscription?: Subscription;
+  private isViewInitialized = false;
 
-  constructor(public readonly recorder: AudioRecorderService) {}
+  constructor(
+    public readonly recorder: AudioRecorderService,
+    private cdRef: ChangeDetectorRef,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.voiceRecorderService && this.voiceRecorderService) {
@@ -39,6 +49,9 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
           if (!isVisible) {
             this.recording = undefined;
             this.isLoading = false;
+          }
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
           }
         });
     } else {
@@ -53,8 +66,15 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
         if (this.recordState === MediaRecordingState.ERROR) {
           this.voiceRecorderService?.isRecorderVisible$.next(false);
         }
+        if (this.isViewInitialized) {
+          this.cdRef.markForCheck();
+        }
       }),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
   }
 
   ngOnDestroy(): void {

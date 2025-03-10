@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { NotificationService } from '../notification.service';
@@ -12,6 +12,7 @@ import { NotificationPayload } from '../types';
   selector: 'stream-notification-list',
   templateUrl: './notification-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationListComponent {
   notifications$: Observable<NotificationPayload[]>;

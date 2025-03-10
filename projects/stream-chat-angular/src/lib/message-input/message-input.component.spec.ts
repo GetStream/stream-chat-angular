@@ -1,4 +1,8 @@
-import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  SimpleChange,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {
   ComponentFixture,
   discardPeriodicTasks,
@@ -155,6 +159,9 @@ describe('MessageInputComponent', () => {
         },
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    });
+    TestBed.overrideComponent(MessageInputComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default },
     });
     fixture = TestBed.createComponent(MessageInputComponent);
     component = fixture.componentInstance;

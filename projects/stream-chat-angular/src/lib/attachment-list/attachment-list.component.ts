@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   HostBinding,
@@ -36,6 +38,7 @@ import { MessageService } from '../message.service';
   selector: 'stream-attachment-list',
   templateUrl: './attachment-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   /**
@@ -77,6 +80,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     private channelService: ChannelService,
     private attachmentConfigurationService: AttachmentConfigurationService,
     private messageService: MessageService,
+    private cdRef: ChangeDetectorRef,
   ) {}
 
   trackByUrl = (attachment: Attachment | GalleryAttachment) => {
@@ -119,7 +123,10 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscriptions.push(
       this.customTemplatesService.customAttachmentListTemplate$.subscribe(
-        (t) => (this.customAttachmentsTemplate = t),
+        (t) => {
+          this.customAttachmentsTemplate = t;
+          this.cdRef.markForCheck();
+        },
       ),
     );
   }

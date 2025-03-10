@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 export type Icon =
   | 'action'
@@ -31,6 +31,7 @@ export type Icon =
   selector: 'stream-icon',
   templateUrl: './icon.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconComponent {
   /**

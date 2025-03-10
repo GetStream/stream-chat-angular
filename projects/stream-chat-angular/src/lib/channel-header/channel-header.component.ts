@@ -1,4 +1,6 @@
 import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   OnDestroy,
@@ -20,37 +22,48 @@ import { ChannelActionsContext, ChannelHeaderInfoContext } from '../types';
   selector: 'stream-channel-header',
   templateUrl: './channel-header.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChannelHeaderComponent implements OnInit, OnDestroy {
+export class ChannelHeaderComponent
+  implements OnInit, OnDestroy, AfterViewInit
+{
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
   activeChannel: Channel | undefined;
   canReceiveConnectEvents: boolean | undefined;
   private subscriptions: Subscription[] = [];
+  private isViewInitialized = false;
 
   constructor(
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
     private chatClientService: ChatClientService,
-  ) {
-    this.channelService.activeChannel$.subscribe((c) => {
-      this.activeChannel = c;
-      const capabilities = this.activeChannel?.data
-        ?.own_capabilities as string[];
-      if (!capabilities) {
-        return;
-      }
-      this.canReceiveConnectEvents =
-        capabilities.indexOf('connect-events') !== -1;
-    });
-  }
+  ) {}
+
   ngOnInit(): void {
+    this.subscriptions.push(
+      this.channelService.activeChannel$.subscribe((c) => {
+        this.activeChannel = c;
+        const capabilities = this.activeChannel?.data
+          ?.own_capabilities as string[];
+        if (!capabilities) {
+          return;
+        }
+        this.canReceiveConnectEvents =
+          capabilities.indexOf('connect-events') !== -1;
+        if (this.isViewInitialized) {
+          this.cdRef.markForCheck();
+        }
+      }),
+    );
     this.subscriptions.push(
       this.customTemplatesService.channelActionsTemplate$.subscribe(
         (template) => {
           this.channelActionsTemplate = template;
-          this.cdRef.detectChanges();
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
         },
       ),
     );
@@ -58,10 +71,16 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
       this.customTemplatesService.channelHeaderInfoTemplate$.subscribe(
         (template) => {
           this.channelHeaderInfoTemplate = template;
-          this.cdRef.detectChanges();
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
         },
       ),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
   }
 
   ngOnDestroy(): void {

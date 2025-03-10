@@ -1,4 +1,9 @@
-import { Component, Input, TemplateRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  TemplateRef,
+} from '@angular/core';
 import { NotificationType } from '../types';
 
 /**
@@ -8,6 +13,7 @@ import { NotificationType } from '../types';
   selector: 'stream-notification',
   templateUrl: './notification.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationComponent {
   /**

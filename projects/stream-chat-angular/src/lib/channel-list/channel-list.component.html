@@ -34,7 +34,8 @@
             <div>
               <ng-container
                 *ngTemplateOutlet="
-                  customChannelPreviewTemplate || defaultTemplate;
+                  (customTemplatesService.channelPreviewTemplate$ | async) ||
+                    defaultTemplate;
                   context: { channel: channel }
                 "
               />

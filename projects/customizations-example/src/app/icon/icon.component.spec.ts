@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { IconComponent } from './icon.component';
 
@@ -9,7 +10,11 @@ describe('IconComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [IconComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(IconComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

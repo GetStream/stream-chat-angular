@@ -17,7 +17,7 @@
       ],
       "rules": {
         "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
-        "@angular-eslint/prefer-on-push-component-change-detection": "off",
+        "@angular-eslint/prefer-on-push-component-change-detection": 2,
         "unused-imports/no-unused-imports": "error",
         "no-console": [
           "error",

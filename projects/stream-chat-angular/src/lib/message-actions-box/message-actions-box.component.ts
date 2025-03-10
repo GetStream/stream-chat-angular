@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   Input,
@@ -27,6 +28,7 @@ import { MessageActionsService } from '../message-actions.service';
   selector: 'stream-message-actions-box',
   templateUrl: './message-actions-box.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageActionsBoxComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
@@ -83,7 +85,7 @@ export class MessageActionsBoxComponent
         this.customActions = actions;
         this.setVisibleActions();
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
       }),
     );
@@ -96,7 +98,7 @@ export class MessageActionsBoxComponent
         if (isEditModalOpen !== this.isEditModalOpen) {
           this.isEditModalOpen = isEditModalOpen;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
       }),

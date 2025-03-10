@@ -17,6 +17,7 @@ import { Observable, Subject, of } from 'rxjs';
 import { DateParserService } from '../date-parser.service';
 import { IconModule } from '../icon/icon.module';
 import { IconPlaceholderComponent } from '../icon/icon-placeholder/icon-placeholder.component';
+import { ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -52,6 +53,10 @@ describe('ChannelPreviewComponent', () => {
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: ChatClientService, useValue: chatClientServiceMock },
       ],
+    }).overrideComponent(ChannelPreviewComponent, {
+      set: {
+        changeDetection: ChangeDetectionStrategy.OnPush,
+      },
     });
     fixture = TestBed.createComponent(ChannelPreviewComponent);
     component = fixture.componentInstance;
@@ -218,6 +223,46 @@ describe('ChannelPreviewComponent', () => {
     expect(avatar.location).toBe('channel-preview');
   });
 
+  it('should update title, avatarImage, and avatarName when channel is updated', () => {
+    // Setup initial channel
+    const channel = generateMockChannels()[0];
+    component.channel = channel;
+    fixture.detectChanges();
+
+    // Verify initial values
+    expect(component.title).toBe(channel.data?.name);
+    expect(component.avatarImage).toBe(channel.data?.image);
+    expect(component.avatarName).toBe(channel.data?.name);
+
+    // Update channel data
+    const updatedName = 'Updated Channel Name';
+    const updatedImage = 'https://example.com/updated-image.jpg';
+
+    // Simulate channel update event
+    channel.data = {
+      ...channel.data,
+      name: updatedName,
+      image: updatedImage,
+    };
+
+    channel.handleEvent('channel.updated', {
+      channel: channel,
+    });
+
+    fixture.detectChanges();
+
+    // Verify updated values
+    expect(component.title).toBe(updatedName);
+    expect(component.avatarImage).toBe(updatedImage);
+    expect(component.avatarName).toBe(updatedName);
+
+    // Verify UI is updated
+    expect(queryTitle()?.textContent).toContain(updatedName);
+    const avatar = queryAvatar();
+    expect(avatar.imageUrl).toBe(updatedImage);
+    expect(avatar.name).toBe(updatedName);
+  });
+
   it('should display channel display text', () => {
     const channel = generateMockChannels()[0];
     channel.data!.name = undefined;
@@ -371,6 +416,7 @@ describe('ChannelPreviewComponent', () => {
     );
 
     component.displayAs = 'html';
+    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges();
     fixture.detectChanges();
 
     expect(

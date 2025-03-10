@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { VoiceRecorderWavebarComponent } from './voice-recorder-wavebar.component';
 import { AudioRecorderService } from '../audio-recorder.service';
@@ -17,7 +18,11 @@ describe('VoiceRecorderWavebarComponent', () => {
         AmplitudeRecorderService,
         TranscoderService,
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(VoiceRecorderWavebarComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(VoiceRecorderWavebarComponent);
     component = fixture.componentInstance;

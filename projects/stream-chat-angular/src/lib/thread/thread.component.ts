@@ -1,11 +1,19 @@
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostBinding,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Channel } from 'stream-chat';
 import { ChatClientService } from '../chat-client.service';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { StreamMessage, ThreadHeaderContext } from '../types';
+import { Channel } from 'stream-chat';
 
 /**
  * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/v6-rc/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/) components.
@@ -14,28 +22,45 @@ import { StreamMessage, ThreadHeaderContext } from '../types';
   selector: 'stream-thread',
   templateUrl: './thread.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ThreadComponent implements OnDestroy {
+export class ThreadComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostBinding('class') private class = 'str-chat__thread';
   parentMessage: StreamMessage | undefined;
-  channel: Channel | undefined;
+  channelName = '';
   private subscriptions: Subscription[] = [];
+  private isViewInitialized = false;
 
   constructor(
     public customTemplatesService: CustomTemplatesService,
     private channelService: ChannelService,
     private chatClientService: ChatClientService,
-  ) {
+    private cdRef: ChangeDetectorRef,
+  ) {}
+
+  ngOnInit(): void {
     this.subscriptions.push(
-      this.channelService.activeParentMessage$.subscribe(
-        (parentMessage) => (this.parentMessage = parentMessage),
-      ),
+      this.channelService.activeParentMessage$.subscribe((parentMessage) => {
+        this.parentMessage = parentMessage;
+        if (this.isViewInitialized) {
+          this.cdRef.markForCheck();
+        }
+      }),
     );
     this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe(
-        (channel) => (this.channel = channel),
-      ),
+      this.channelService.activeChannel$.subscribe((channel) => {
+        const channelName = this.getChannelName(channel);
+        if (channelName !== this.channelName) {
+          this.channelName = channelName;
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
+        }
+      }),
     );
+  }
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
   }
 
   ngOnDestroy(): void {
@@ -53,13 +78,13 @@ export class ThreadComponent implements OnDestroy {
     void this.channelService.setAsActiveParentMessage(undefined);
   }
 
-  get channelName() {
-    if (!this.channel || !this.chatClientService.chatClient.user) {
+  getChannelName(channel: Channel | undefined) {
+    if (!channel || !this.chatClientService.chatClient.user) {
       return '';
     }
-    return getChannelDisplayText(
-      this.channel,
-      this.chatClientService.chatClient.user,
+    return (
+      getChannelDisplayText(channel, this.chatClientService.chatClient.user) ??
+      ''
     );
   }
 }

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { PaginatedListComponent } from './paginated-list.component';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 describe('PaginatedListComponentt', () => {
   let hostComponent: TestHostComponent;
@@ -38,7 +38,11 @@ describe('PaginatedListComponentt', () => {
     await TestBed.configureTestingModule({
       declarations: [PaginatedListComponent, TestHostComponent],
       imports: [TranslateModule.forRoot()],
-    }).compileComponents();
+    })
+      .overrideComponent(PaginatedListComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
 
     hostFixture = TestBed.createComponent(TestHostComponent);
     hostComponent = hostFixture.componentInstance;

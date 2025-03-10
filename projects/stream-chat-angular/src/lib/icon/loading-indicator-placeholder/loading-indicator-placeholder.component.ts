@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CustomTemplatesService } from '../../custom-templates.service';
 
 /**
@@ -8,6 +8,7 @@ import { CustomTemplatesService } from '../../custom-templates.service';
   selector: 'stream-loading-indicator-placeholder',
   templateUrl: './loading-indicator-placeholder.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoadingIndicatorPlaceholderComponent {
   constructor(public customTemplatesService: CustomTemplatesService) {}

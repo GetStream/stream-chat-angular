@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -7,6 +9,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild,
@@ -23,9 +26,10 @@ import { UserResponse } from 'stream-chat';
   selector: 'stream-textarea',
   templateUrl: './textarea.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TextareaComponent
-  implements TextareaInterface, OnChanges, OnDestroy, AfterViewInit
+  implements TextareaInterface, OnChanges, OnInit, OnDestroy, AfterViewInit
 {
   @HostBinding() class =
     'str-chat__textarea str-chat__message-textarea-angular-host';
@@ -64,20 +68,10 @@ export class TextareaComponent
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
 
-  constructor(private emojiInputService: EmojiInputService) {
-    this.subscriptions.push(
-      this.emojiInputService.emojiInput$.subscribe((emoji) => {
-        this.messageInput.nativeElement.focus();
-        const { selectionStart } = this.messageInput.nativeElement;
-        this.messageInput.nativeElement.setRangeText(emoji);
-        this.messageInput.nativeElement.selectionStart =
-          selectionStart! + emoji.length;
-        this.messageInput.nativeElement.selectionEnd =
-          selectionStart! + emoji.length;
-        this.inputChanged();
-      }),
-    );
-  }
+  constructor(
+    private emojiInputService: EmojiInputService,
+    private cdRef: ChangeDetectorRef,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.value && !this.value && this.messageInput) {
@@ -94,6 +88,25 @@ export class TextareaComponent
         }
       }, 0);
     }
+    this.cdRef.markForCheck();
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.emojiInputService.emojiInput$.subscribe((emoji) => {
+        this.messageInput.nativeElement.focus();
+        const { selectionStart } = this.messageInput.nativeElement;
+        this.messageInput.nativeElement.setRangeText(emoji);
+        this.messageInput.nativeElement.selectionStart =
+          selectionStart! + emoji.length;
+        this.messageInput.nativeElement.selectionEnd =
+          selectionStart! + emoji.length;
+        this.inputChanged();
+        if (this.isViewInited) {
+          this.cdRef.markForCheck();
+        }
+      }),
+    );
   }
 
   ngAfterViewInit(): void {
