@@ -82,7 +82,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customImageAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
-      img_url: 'http://url/to/img',
+      image_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
     const htmlElement = {
@@ -100,7 +100,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for gallery image attachments', () => {
     const attachment: Attachment = {
-      img_url: 'http://url/to/img',
+      image_url: 'http://url/to/img',
     };
     const htmlElement = {
       'max-width': '300px',
@@ -124,7 +124,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for image attachments inside the carousel', () => {
     const attachment: Attachment = {
-      img_url: 'http://url/to/img',
+      image_url: 'http://url/to/img',
     };
     const htmlElement = {
       'max-width': 'none',
@@ -203,7 +203,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customVideoAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
-      img_url: 'http://url/to/video',
+      image_url: 'http://url/to/video',
       thumb_url: 'different/url',
     };
     const htmlElement = {
@@ -360,7 +360,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide integer values for image resize and make sure that each dimension is at least the size restriction', () => {
     const attachment = {
-      img_url: 'http://url/to/img?ow=3534&oh=4417',
+      image_url: 'http://url/to/img?ow=3534&oh=4417',
     };
     const htmlElement = {
       'max-width': '300px',

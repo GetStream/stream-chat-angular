@@ -3,16 +3,14 @@ import {
   FormatMessageResponse,
   MessageResponse,
   TranslationLanguages,
-  User,
+  UserResponse,
 } from 'stream-chat';
-import { DefaultStreamChatGenerics, StreamMessage } from './types';
+import { StreamMessage } from './types';
 
-export const getMessageTranslation = <
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
->(
+export const getMessageTranslation = (
   message?: StreamMessage | MessageResponse | FormatMessageResponse,
-  channel?: Channel<T>,
-  user?: User,
+  channel?: Channel,
+  user?: UserResponse,
 ) => {
   const language =
     user?.language ||

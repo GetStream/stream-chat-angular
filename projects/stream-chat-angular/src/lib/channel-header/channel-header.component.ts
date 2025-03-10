@@ -11,11 +11,7 @@ import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import {
-  ChannelActionsContext,
-  ChannelHeaderInfoContext,
-  DefaultStreamChatGenerics,
-} from '../types';
+import { ChannelActionsContext, ChannelHeaderInfoContext } from '../types';
 
 /**
  * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](/chat/docs/javascript/watch_channel/#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](/chat/docs/javascript/channel_capabilities/)
@@ -28,7 +24,7 @@ import {
 export class ChannelHeaderComponent implements OnInit, OnDestroy {
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
-  activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
+  activeChannel: Channel | undefined;
   canReceiveConnectEvents: boolean | undefined;
   private subscriptions: Subscription[] = [];
 

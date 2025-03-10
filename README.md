@@ -10,7 +10,7 @@
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
 - [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/)
-- [Docs](https://getstream.io/chat/docs/sdk/angular/)
+- [Docs](https://getstream.io/chat/docs/sdk/angular/v6-rc/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
 - [Demo application](https://angular-chat-demo-getstreamio.vercel.app/)
 - [Codesandbox](https://codesandbox.io/p/devbox/stream-chat-angular-sample-app-rc3hyw)
@@ -33,7 +33,7 @@ For complete pricing and details visit our [Chat Pricing Page](https://getstream
 
 ## Docs
 
-The [docs](https://getstream.io/chat/docs/sdk/angular/) provide a brief description about the components and services in the library.
+The [docs](https://getstream.io/chat/docs/sdk/angular/v6-rc/) provide a brief description about the components and services in the library.
 
 The Angular library is created using the [stream-chat-js](https://github.com/getstream/stream-chat-js) library. For the most common use cases our services should give a nice abstraction over this library, however you might need it for more advanced customization, the [documentation](https://getstream.io/chat/docs/js/) is on our website.
 

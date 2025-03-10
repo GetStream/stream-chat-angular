@@ -1,7 +1,6 @@
 import { Channel } from 'stream-chat';
 import { getChannelDisplayText } from './get-channel-display-text';
 import { listUsers } from './list-users';
-import { DefaultStreamChatGenerics } from './types';
 
 describe('getChannelDisplayText', () => {
   it('should display channel name if it is defined', () => {
@@ -12,7 +11,7 @@ describe('getChannelDisplayText', () => {
         name: 'Hobby Chefs🧁🥩🥗🥑🥘',
         members: [{ id: 'hobby-chef1' }, { id: 'hobby-chef2' }],
       },
-    } as any as Channel<DefaultStreamChatGenerics>;
+    } as any as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe(
       'Hobby Chefs🧁🥩🥗🥑🥘',
@@ -37,7 +36,7 @@ describe('getChannelDisplayText', () => {
           [currentUser.id]: { user: currentUser },
         },
       },
-    } as Channel<DefaultStreamChatGenerics>;
+    } as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe(
       listUsers(members),
@@ -62,7 +61,7 @@ describe('getChannelDisplayText', () => {
           [currentUser.id]: { user: currentUser },
         },
       },
-    } as Channel<DefaultStreamChatGenerics>;
+    } as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).not.toContain(
       currentUser.id,
@@ -80,7 +79,7 @@ describe('getChannelDisplayText', () => {
       state: {
         members: {},
       },
-    } as Channel<DefaultStreamChatGenerics>;
+    } as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe('hobby-chefs');
 

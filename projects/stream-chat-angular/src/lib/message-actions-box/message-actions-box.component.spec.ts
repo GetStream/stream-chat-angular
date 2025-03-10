@@ -19,7 +19,7 @@ import {
   MockStreamChatClient,
 } from '../mocks';
 import { NotificationService } from '../notification.service';
-import { DefaultStreamChatGenerics, StreamMessage } from '../types';
+import { StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
 import { MessageActionsService } from '../message-actions.service';
@@ -45,7 +45,7 @@ describe('MessageActionsBoxComponent', () => {
   let mockChatClient: MockStreamChatClient;
   let channelService: {
     updateMessage: jasmine.Spy;
-    activeChannel$: Observable<Channel<DefaultStreamChatGenerics>>;
+    activeChannel$: Observable<Channel>;
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
     messageToQuote$: Observable<StreamMessage | undefined>;
@@ -189,8 +189,7 @@ describe('MessageActionsBoxComponent', () => {
   it(`shouldn't disable quote action, if message already has a quoted message`, () => {
     component.message = {
       ...component.message!,
-      quoted_message:
-        mockMessage() as any as MessageResponseBase<DefaultStreamChatGenerics>,
+      quoted_message: mockMessage() as any as MessageResponseBase,
     };
     component.enabledActions = ['quote-message'];
     component.ngOnChanges({

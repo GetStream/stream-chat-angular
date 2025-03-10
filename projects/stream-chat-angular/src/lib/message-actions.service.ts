@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import {
   CustomMessageActionItem,
-  DefaultStreamChatGenerics,
   MessageActionHandlerExtraParams,
   MessageActionItem,
   MessageActionsClickDetails,
@@ -14,21 +13,16 @@ import { NotificationService } from './notification.service';
 import { ChannelService } from './channel.service';
 
 /**
- * The message actions service provides customization options for the [message actions](/chat/docs/sdk/angular/components/MessageActionsBoxComponent)
+ * The message actions service provides customization options for the [message actions](/chat/docs/sdk/angular/v6-rc/components/MessageActionsBoxComponent)
  */
 @Injectable({
   providedIn: 'root',
 })
-export class MessageActionsService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> {
+export class MessageActionsService {
   /**
    * Default actions - these are the actions that are handled by the built-in component
    */
-  readonly defaultActions: (
-    | MessageActionItem<T>
-    | MessageReactionActionItem<T>
-  )[] = [
+  readonly defaultActions: (MessageActionItem | MessageReactionActionItem)[] = [
     {
       actionName: 'react',
       isVisible: (enabledActions: string[]) => {
@@ -38,19 +32,19 @@ export class MessageActionsService<
     {
       actionName: 'mark-unread',
       actionLabelOrTranslationKey: 'streamChat.Mark as unread',
-      actionHandler: (message: StreamMessage<T>) => {
+      actionHandler: (message: StreamMessage) => {
         void this.channelService.markMessageUnread(message.id);
       },
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage<T>,
+        message: StreamMessage,
       ) => enabledActions.indexOf('read-events') !== -1 && !message.parent_id,
     },
     {
       actionName: 'quote',
       actionLabelOrTranslationKey: 'streamChat.Reply',
-      actionHandler: (message: StreamMessage<T>) => {
+      actionHandler: (message: StreamMessage) => {
         this.channelService.selectMessageToQuote(message);
       },
       isVisible: (enabledActions: string[]) =>
@@ -59,20 +53,20 @@ export class MessageActionsService<
     {
       actionName: 'thread-reply',
       actionLabelOrTranslationKey: 'streamChat.Thread',
-      actionHandler: (message: StreamMessage<T>) => {
+      actionHandler: (message: StreamMessage) => {
         void this.channelService.setAsActiveParentMessage(message);
       },
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage<T>,
+        message: StreamMessage,
       ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
     {
       actionName: 'pin',
-      actionLabelOrTranslationKey: (message: StreamMessage<T>) =>
+      actionLabelOrTranslationKey: (message: StreamMessage) =>
         message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-      actionHandler: (message: StreamMessage<T>) => {
+      actionHandler: (message: StreamMessage) => {
         message.pinned
           ? void this.channelService.unpinMessage(message)
           : void this.channelService.pinMessage(message);
@@ -84,7 +78,7 @@ export class MessageActionsService<
       actionName: 'flag',
       actionLabelOrTranslationKey: 'streamChat.Flag',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      actionHandler: async (message: StreamMessage<T>) => {
+      actionHandler: async (message: StreamMessage) => {
         try {
           await this.chatClientService.flagMessage(message.id);
           this.notificationService.addTemporaryNotification(
@@ -103,7 +97,7 @@ export class MessageActionsService<
     {
       actionName: 'edit',
       actionLabelOrTranslationKey: 'streamChat.Edit Message',
-      actionHandler: (message: StreamMessage<T>) => {
+      actionHandler: (message: StreamMessage) => {
         this.messageToEdit$.next(message);
       },
       isVisible: (enabledActions: string[], isMine: boolean) =>
@@ -114,7 +108,7 @@ export class MessageActionsService<
       actionName: 'delete',
       actionLabelOrTranslationKey: 'streamChat.Delete',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      actionHandler: async (message: StreamMessage<T>) => {
+      actionHandler: async (message: StreamMessage) => {
         try {
           await this.channelService.deleteMessage(message);
         } catch (error) {
@@ -133,7 +127,7 @@ export class MessageActionsService<
     {
       actionName: 'copy-message-text',
       actionLabelOrTranslationKey: 'streamChat.Copy text',
-      isVisible: (_: string[], __: boolean, message: StreamMessage<T>) => {
+      isVisible: (_: string[], __: boolean, message: StreamMessage) => {
         const isClipboardSupported = navigator?.clipboard?.write !== undefined;
         if (!isClipboardSupported && !this.hasDisplayedClipboardWarning) {
           console.warn(
@@ -148,7 +142,7 @@ export class MessageActionsService<
         );
       },
       actionHandler: (
-        message: StreamMessage<T>,
+        message: StreamMessage,
         extraParams: MessageActionHandlerExtraParams,
       ) => {
         const fallbackContent = message.text || '';
@@ -177,15 +171,15 @@ export class MessageActionsService<
   /**
    * The built-in components will handle changes to this observable.
    */
-  messageToEdit$ = new BehaviorSubject<StreamMessage<T> | undefined>(undefined);
+  messageToEdit$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
   /**
    * You can pass your own custom actions that will be displayed inside the built-in message actions component
    */
   customActions$ = new BehaviorSubject<CustomMessageActionItem[]>([]);
   /**
-   * By default the [`MessageComponent`](/chat/docs/sdk/angular/components/MessageComponent/) will display the [`MessageActionsBoxComponent`](/chat/docs/sdk/angular/components/MessageActionsBoxComponent/). You can override that behavior by providing your own event handler.
+   * By default the [`MessageComponent`](/chat/docs/sdk/angular/v6-rc/components/MessageComponent/) will display the [`MessageActionsBoxComponent`](/chat/docs/sdk/angular/v6-rc/components/MessageActionsBoxComponent/). You can override that behavior by providing your own event handler.
    */
-  customActionClickHandler?: (details: MessageActionsClickDetails<T>) => void;
+  customActionClickHandler?: (details: MessageActionsClickDetails) => void;
   /**
    * @internal
    */
@@ -229,7 +223,7 @@ export class MessageActionsService<
    * @returns the count
    */
   getAuthorizedMessageActionsCount(
-    message: StreamMessage<T>,
+    message: StreamMessage,
     enabledActions: string[],
   ) {
     const customActions = this.customActions$.getValue() || [];

@@ -5,7 +5,7 @@ import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { ThemeService } from '../theme.service';
-import { ChannelPreviewContext, DefaultStreamChatGenerics } from '../types';
+import { ChannelPreviewContext } from '../types';
 
 /**
  * The `ChannelList` component renders the list of channels.
@@ -16,7 +16,7 @@ import { ChannelPreviewContext, DefaultStreamChatGenerics } from '../types';
   styles: [],
 })
 export class ChannelListComponent implements OnDestroy {
-  channels$: Observable<Channel<DefaultStreamChatGenerics>[] | undefined>;
+  channels$: Observable<Channel[] | undefined>;
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
   isLoadingMoreChannels = false;
@@ -58,7 +58,7 @@ export class ChannelListComponent implements OnDestroy {
     void this.channelService.recoverState();
   }
 
-  trackByChannelId(_: number, item: Channel<DefaultStreamChatGenerics>) {
+  trackByChannelId(_: number, item: Channel) {
     return item.cid;
   }
 }

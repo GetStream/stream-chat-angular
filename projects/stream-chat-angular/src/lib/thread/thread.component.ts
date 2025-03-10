@@ -5,14 +5,10 @@ import { ChatClientService } from '../chat-client.service';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import {
-  DefaultStreamChatGenerics,
-  StreamMessage,
-  ThreadHeaderContext,
-} from '../types';
+import { StreamMessage, ThreadHeaderContext } from '../types';
 
 /**
- * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components.
+ * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/v6-rc/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/) components.
  */
 @Component({
   selector: 'stream-thread',
@@ -22,7 +18,7 @@ import {
 export class ThreadComponent implements OnDestroy {
   @HostBinding('class') private class = 'str-chat__thread';
   parentMessage: StreamMessage | undefined;
-  channel: Channel<DefaultStreamChatGenerics> | undefined;
+  channel: Channel | undefined;
   private subscriptions: Subscription[] = [];
 
   constructor(

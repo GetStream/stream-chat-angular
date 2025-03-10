@@ -1,6 +1,9 @@
 {
   "name": "stream-chat-angular",
   "version": "0.0.0",
+  "watch": {
+    "remove-stream-chat-augmentation": "dist/stream-chat-angular/stream-chat.d.ts.map"
+  },
   "scripts": {
     "prepare": "husky install",
     "postinstall": "npm run config:dev & npm run copy-css",
@@ -14,8 +17,14 @@
     "prestart:dev:customizations-example": "npm run config:dev",
     "start:dev:customizations-example": "rm -rf dist & npm run watch & (wait-on dist && ng serve customizations-example --host 0.0.0.0)",
     "build": "ng build stream-chat-angular",
+    "postbuild": "npm run remove-stream-chat-augmentation",
+    "delete-stream-chat-declaration": "rm -f dist/stream-chat-angular/stream-chat.d.ts",
+    "delete-stream-chat-declaration-map": "rm -f dist/stream-chat-angular/stream-chat.d.ts.map",
+    "remove-stream-chat-reference": "replace '/// <reference path=\"stream-chat.d.ts\" />' '' dist/stream-chat-angular/public-api.d.ts",
+    "remove-stream-chat-augmentation": "npm run delete-stream-chat-declaration && npm run delete-stream-chat-declaration-map && npm run remove-stream-chat-reference",
     "build:prod": "npm run copy-css && ng build stream-chat-angular --configuration production",
-    "watch": "ng build stream-chat-angular --watch --configuration development",
+    "postbuild:prod": "npm run remove-stream-chat-augmentation",
+    "watch": "ng build stream-chat-angular --watch --configuration development & npm-watch",
     "test": "rm -rf dist & npm run watch & (wait-on dist && ng run stream-chat-angular:test)",
     "test:ci": "ng run stream-chat-angular:test --browsers ChromeHeadlessCustom --watch false",
     "lint": "ng lint",
@@ -41,9 +50,9 @@
     "branches": [
       "master",
       {
-        "name": "6.x.x-beta",
-        "prerelease": "beta",
-        "channel": "beta"
+        "name": "6.x.x-rc",
+        "prerelease": "rc",
+        "channel": "rc"
       }
     ],
     "dryRun": false,
@@ -115,10 +124,12 @@
     "emoji-regex": "^10.4.0",
     "fix-webm-duration": "^1.0.6",
     "ngx-float-ui": "^17.0.0",
+    "npm-watch": "^0.13.0",
     "pretty-bytes": "^6.1.1",
+    "replace": "^1.2.2",
     "rxjs": "~7.4.0",
     "starwars-names": "^1.6.0",
-    "stream-chat": "^8.57.2",
+    "stream-chat": "9.0.0-rc.6",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "uuid": "^11.1.0",

@@ -27,7 +27,6 @@ import {
 } from 'rxjs/operators';
 import {
   MessageContext,
-  DefaultStreamChatGenerics,
   StreamMessage,
   TypingIndicatorContext,
   DateSeparatorContext,
@@ -135,12 +134,8 @@ export class MessageListComponent
   private isNewMessageSentByUser: boolean = false;
   private subscriptions: Subscription[] = [];
   private newMessageSubscription: { unsubscribe: () => void } | undefined;
-  private usersTypingInChannel$!: Observable<
-    UserResponse<DefaultStreamChatGenerics>[]
-  >;
-  private usersTypingInThread$!: Observable<
-    UserResponse<DefaultStreamChatGenerics>[]
-  >;
+  private usersTypingInChannel$!: Observable<UserResponse[]>;
+  private usersTypingInThread$!: Observable<UserResponse[]>;
   private isLatestMessageInList = true;
   private channelId?: string;
   private parsedDates = new Map<Date, string>();

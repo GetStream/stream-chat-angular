@@ -3,13 +3,7 @@
   (customAttachments.length > 0 && customAttachmentsTemplate)
 ) {
   <div class="str-chat__attachment-list">
-    @for (
-      attachment of orderedAttachments;
-      track attachment.image_url ||
-        attachment.img_url ||
-        attachment.asset_url ||
-        attachment.thumb_url
-    ) {
+    @for (attachment of orderedAttachments; track trackByUrl(attachment)) {
       <div
         data-testclass="attachment-container"
         class="str-chat__message-attachment str-chat__message-attachment--{{
@@ -23,7 +17,9 @@
           isVoiceMessage(attachment)
         "
         [class.str-chat__message-attachment-with-actions]="
-          attachment.actions && attachment.actions.length > 0
+          !isGalleryType(attachment) &&
+          attachment.actions &&
+          attachment.actions.length > 0
         "
         [class.str-chat__message-attachment--svg-image]="isSvg(attachment)"
       >
@@ -425,7 +421,11 @@
             </div>
           </ng-template>
         }
-        @if (attachment.actions && attachment.actions.length > 0) {
+        @if (
+          !isGalleryType(attachment) &&
+          attachment.actions &&
+          attachment.actions.length > 0
+        ) {
           <ng-container
             *ngTemplateOutlet="
               (customTemplatesService.attachmentActionsTemplate$ | async) ||

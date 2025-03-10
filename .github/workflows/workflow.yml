@@ -3,11 +3,11 @@ on:
   push:
     branches:
       - master
-      - 6.x.x-beta
+      - 6.x.x-rc
   pull_request:
     branches:
       - master
-      - 6.x.x-beta
+      - 6.x.x-rc
 jobs:
   workflow:
     runs-on: ubuntu-latest
@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache node modules
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}

@@ -36,7 +36,10 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
         `\n` +
         `title: ${file.replace('.md', '')}` +
         `\n` +
-        `slug: /chat/docs/sdk/angular/v6-rc/services/${file.replace('.md', '')}/` +
+        `slug: /chat/docs/sdk/angular/v6-rc/services/${file.replace(
+          '.md',
+          '',
+        )}/` +
         `\n` +
         `---` +
         '\n\n' +
@@ -45,7 +48,7 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
           .replace(`# Class: \`abstract\` ${file.replace('.md', '')}`, '')
           .replace(
             /\b(?!README)(\w+)\.md\b/g,
-            '/chat/docs/sdk/angular/services/$1',
+            '/chat/docs/sdk/angular/v6-rc/services/$1',
           )
           .replace(/•\s/g, '')
           .replace(/▸\s/g, '')

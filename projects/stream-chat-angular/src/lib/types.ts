@@ -9,12 +9,9 @@ import type {
   ChannelOptions,
   ChannelSort,
   CommandResponse,
-  Event,
-  ExtendableGenerics,
+  CustomMessageData,
   FormatMessageResponse,
-  LiteralStringForUnion,
   MessageResponseBase,
-  Mute,
   ReactionGroupResponse,
   ReactionResponse,
   User,
@@ -32,65 +29,19 @@ export type CustomTrigger = {
   };
 };
 
-export type DefaultStreamChatGenerics = ExtendableGenerics & {
-  attachmentType: DefaultAttachmentType;
-  channelType: DefaultChannelType;
-  commandType: LiteralStringForUnion;
-  eventType: UnknownType;
-  messageType: DefaultMessageType;
-  reactionType: UnknownType;
-  userType: DefaultUserType;
-};
-
-export type DefaultAttachmentType = UnknownType & {
-  asset_url?: string;
-  id?: string;
-  images?: Array<Attachment<DefaultStreamChatGenerics>>;
-  mime_type?: string;
-  isCustomAttachment?: boolean;
-};
-
-export type DefaultChannelType = UnknownType & {
-  image?: string;
-  member_count?: number;
-  subtitle?: string;
-};
-
-export type DefaultCommandType = LiteralStringForUnion;
-
-export type DefaultMessageType = UnknownType & {
-  customType?: 'channel.intro' | 'message.date';
-  date?: string | Date;
-  errorStatusCode?: number;
-  event?: Event<DefaultStreamChatGenerics>;
-  unread?: boolean;
-  readBy: UserResponse<DefaultStreamChatGenerics>[];
+export type StreamMessage = FormatMessageResponse & {
+  readBy: UserResponse[];
   translation?: string;
-  quoted_message?: MessageResponseBase<DefaultStreamChatGenerics>;
+  errorStatusCode?: number;
+  quoted_message?: MessageResponseBase & { translation?: string };
 };
-
-export type DefaultUserTypeInternal = {
-  image?: string;
-  status?: string;
-};
-
-export type DefaultUserType = UnknownType &
-  DefaultUserTypeInternal & {
-    mutes?: Array<Mute<DefaultStreamChatGenerics>>;
-  };
-
-export type StreamMessage<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = FormatMessageResponse<T>;
 
 export type AttachmentUploadErrorReason =
   | 'file-size'
   | 'file-extension'
   | 'unknown';
 
-export type AttachmentUpload<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type AttachmentUpload = {
   file: File;
   state: 'error' | 'success' | 'uploading';
   errorReason?: AttachmentUploadErrorReason;
@@ -99,8 +50,8 @@ export type AttachmentUpload<
   type: 'image' | 'file' | 'video' | 'voiceRecording';
   previewUri?: string | ArrayBuffer;
   thumb_url?: string;
-  extraData?: Partial<Attachment<T>>;
-  fromAttachment?: Attachment<T>;
+  extraData?: Partial<Attachment>;
+  fromAttachment?: Attachment;
 };
 
 export type MentionAutcompleteListItemContext = {
@@ -134,16 +85,12 @@ export type NotificationPayload<T = object> = {
   dismissFn: () => void;
 };
 
-export type ChannelPreviewContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  channel: Channel<T>;
+export type ChannelPreviewContext = {
+  channel: Channel;
 };
 
-export type ChannelPreviewInfoContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = ChannelPreviewContext & {
-  latestMessage?: StreamMessage<T>;
+export type ChannelPreviewInfoContext = ChannelPreviewContext & {
+  latestMessage?: StreamMessage;
   /**
    * The text of the latest message, or some meta information (for example: "Nothing yet")
    */
@@ -173,7 +120,7 @@ export type EmojiPickerContext = {
 };
 
 export type TypingIndicatorContext = {
-  usersTyping$: Observable<UserResponse<DefaultStreamChatGenerics>[]>;
+  usersTyping$: Observable<UserResponse[]>;
 };
 
 export type MessageContext = {
@@ -186,15 +133,11 @@ export type MessageContext = {
   scroll$?: Observable<void>;
 };
 
-export type ChannelActionsContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = { channel: Channel<T> };
+export type ChannelActionsContext = { channel: Channel };
 
-export type CustomAttachmentListContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type CustomAttachmentListContext = {
   messageId: string;
-  attachments: Attachment<T>[];
+  attachments: Attachment[];
   parentMessageId?: string;
 };
 
@@ -222,8 +165,8 @@ export type AvatarContext = {
   imageUrl: string | undefined;
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
-  channel?: Channel<DefaultStreamChatGenerics>;
-  user?: User<DefaultStreamChatGenerics>;
+  channel?: Channel;
+  user?: User;
   initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
   showOnlineIndicator?: boolean;
 };
@@ -239,11 +182,9 @@ export type IconContext = {
   icon: Icon | undefined;
 };
 
-export type MessageActionsBoxContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type MessageActionsBoxContext = {
   isMine: boolean;
-  message: StreamMessage<T> | undefined;
+  message: StreamMessage | undefined;
   enabledActions: string[];
   messageTextHtmlElement: HTMLElement | undefined;
 };
@@ -253,49 +194,39 @@ export type MessageActionHandlerExtraParams = {
   messageTextHtmlElement?: HTMLElement;
 };
 
-export type MessageActionHandler<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = (
-  message: StreamMessage<T>,
+export type MessageActionHandler = (
+  message: StreamMessage,
   params: MessageActionHandlerExtraParams,
 ) => void;
 
-export type MessageActionBoxItemContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type MessageActionBoxItemContext = {
   actionName: string;
-  actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
-  message: StreamMessage<T>;
+  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
+  message: StreamMessage;
   actionHandlerExtraParams: MessageActionHandlerExtraParams;
-  actionHandler: MessageActionHandler<T>;
+  actionHandler: MessageActionHandler;
 };
 
-export type MessageReactionActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type MessageReactionActionItem = {
   actionName: 'react';
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage<T>,
+    message: StreamMessage,
   ) => boolean;
 };
 
-type MessageActionItemBase<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  actionLabelOrTranslationKey: ((message: StreamMessage<T>) => string) | string;
+type MessageActionItemBase = {
+  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage<T>,
+    message: StreamMessage,
   ) => boolean;
   actionHandler: MessageActionHandler;
 };
 
-export type MessageActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = MessageActionItemBase<T> & {
+export type MessageActionItem = MessageActionItemBase & {
   actionName:
     | 'quote'
     | 'pin'
@@ -307,15 +238,13 @@ export type MessageActionItem<
     | 'copy-message-text';
 };
 
-export type CustomMessageActionItem<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = MessageActionItemBase<T> & {
+export type CustomMessageActionItem = MessageActionItemBase & {
   actionName: string;
 };
 
 export type MessageReactionsSelectorContext = {
   messageId: string | undefined;
-  ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+  ownReactions: ReactionResponse[];
 };
 
 export type MessageReactionsContext = {
@@ -323,8 +252,8 @@ export type MessageReactionsContext = {
   /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
   /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send_reaction/&q=queryReactions#query-reactions) */
-  latestReactions: ReactionResponse<DefaultStreamChatGenerics>[];
-  ownReactions: ReactionResponse<DefaultStreamChatGenerics>[];
+  latestReactions: ReactionResponse[];
+  ownReactions: ReactionResponse[];
   messageReactionGroups: {
     [key in MessageReactionType]: ReactionGroupResponse;
   };
@@ -371,10 +300,8 @@ export type SendingStatusContext = {
   message: StreamMessage;
 };
 
-export type CustomMetadataContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  message: StreamMessage<T>;
+export type CustomMetadataContext = {
+  message: StreamMessage;
 };
 
 export type ReadStatusContext = {
@@ -382,9 +309,7 @@ export type ReadStatusContext = {
   readByText: string;
 };
 
-export type ChannelHeaderInfoContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = { channel: Channel<T> };
+export type ChannelHeaderInfoContext = { channel: Channel };
 
 export type CustomAttachmentUploadContext = {
   isMultipleFileUploadEnabled: boolean | undefined;
@@ -392,7 +317,11 @@ export type CustomAttachmentUploadContext = {
 };
 
 export type AttachmentContext = {
-  attachment: Attachment<DefaultStreamChatGenerics>;
+  attachment: Attachment;
+};
+
+export type GalleryAttachmentContext = {
+  attachment: GalleryAttachment;
 };
 
 export type SystemMessageContext = MessageContext & {
@@ -420,15 +349,13 @@ export type ChannelQueryState = {
   error?: unknown;
 };
 
-export type MessageInput<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type MessageInput = {
   text: string;
-  attachments: Attachment<T>[];
-  mentionedUsers: UserResponse<T>[];
+  attachments: Attachment[];
+  mentionedUsers: UserResponse[];
   parentId: string | undefined;
   quotedMessageId: string | undefined;
-  customData: undefined | Partial<T['messageType']>;
+  customData: undefined | CustomMessageData;
 };
 
 export type OffsetNextPageConfiguration = {
@@ -436,11 +363,9 @@ export type OffsetNextPageConfiguration = {
   offset: number;
 };
 
-export type FiltertNextPageConfiguration<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
+export type FiltertNextPageConfiguration = {
   type: 'filter';
-  paginationFilter: ChannelFilters<T>;
+  paginationFilter: ChannelFilters;
 };
 
 export type NextPageConfiguration =
@@ -453,9 +378,9 @@ export type MessageReactionClickDetails = {
   reactionType: string;
 };
 
-export type MessageActionsClickDetails<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = MessageActionsBoxContext<T> & { customActions: CustomMessageActionItem[] };
+export type MessageActionsClickDetails = MessageActionsBoxContext & {
+  customActions: CustomMessageActionItem[];
+};
 
 export type GroupStyleOptions = {
   noGroupByUser?: boolean;
@@ -465,10 +390,8 @@ export type GroupStyleOptions = {
 
 export type ChannelQueryType = 'first-page' | 'next-page' | 'recover-state';
 
-export type ChannelQueryResult<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  channels: Channel<T>[];
+export type ChannelQueryResult = {
+  channels: Channel[];
   hasMorePage: boolean;
 };
 
@@ -492,16 +415,12 @@ export type MediaRecording = {
   asset_url: string | ArrayBuffer | undefined;
 };
 
-export type CustomAttachmentPreviewListContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  service: AttachmentService<T>;
+export type CustomAttachmentPreviewListContext = {
+  service: AttachmentService;
 };
 
-export type ThreadReplyButtonContext<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  message: StreamMessage<T>;
+export type ThreadReplyButtonContext = {
+  message: StreamMessage;
 };
 
 export type CustomAutocompleteItemContext = {
@@ -550,26 +469,25 @@ export type MessageTextContext = {
   shouldTranslate: boolean;
 };
 
-// TODO: add ChannelManagerOptions once it's stable
-export type ChannelServiceOptions<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  shouldSetActiveChannel?: boolean;
-  eventHandlerOverrides?: ChannelManagerEventHandlerOverrides<T>;
+export type GalleryAttachment = {
+  type: 'gallery';
+  images: Attachment[];
 };
 
-export type ChannelQueryConfig<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  filters: ChannelFilters<T>;
-  sort: ChannelSort<T>;
+// TODO: add ChannelManagerOptions once it's stable
+export type ChannelServiceOptions = {
+  shouldSetActiveChannel?: boolean;
+  eventHandlerOverrides?: ChannelManagerEventHandlerOverrides;
+};
+
+export type ChannelQueryConfig = {
+  filters: ChannelFilters;
+  sort: ChannelSort;
   options: ChannelOptions;
 };
 
-export type ChannelQueryConfigInput<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> = {
-  filters: ChannelFilters<T>;
-  sort?: ChannelSort<T>;
+export type ChannelQueryConfigInput = {
+  filters: ChannelFilters;
+  sort?: ChannelSort;
   options?: ChannelOptions;
 };

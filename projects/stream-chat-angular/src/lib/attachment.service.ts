@@ -12,11 +12,7 @@ import { AppSettings, Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
-import {
-  AttachmentUpload,
-  AudioRecording,
-  DefaultStreamChatGenerics,
-} from './types';
+import { AttachmentUpload, AudioRecording } from './types';
 import { ChatClientService } from './chat-client.service';
 import { MessageService } from './message.service';
 
@@ -28,9 +24,7 @@ import { MessageService } from './message.service';
 @Injectable({
   providedIn: 'root',
 })
-export class AttachmentService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics,
-> {
+export class AttachmentService {
   /**
    * Emits the number of uploads in progress.
    *
@@ -40,15 +34,15 @@ export class AttachmentService<
    */
   attachmentUploadInProgressCounter$ = new BehaviorSubject<number>(0);
   /**
-   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](/chat/docs/sdk/angular/components/AttachmentPreviewListComponent/) to display the attachment previews.
+   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](/chat/docs/sdk/angular/v6-rc/components/AttachmentPreviewListComponent/) to display the attachment previews.
    */
   attachmentUploads$: Observable<AttachmentUpload[]>;
   /**
    * You can get and set the list if uploaded custom attachments
    *
-   * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](/chat/docs/sdk/angular/services/CustomTemplatesService/).
+   * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](/chat/docs/sdk/angular/v6-rc/services/CustomTemplatesService/).
    */
-  customAttachments$ = new BehaviorSubject<Attachment<T>[]>([]);
+  customAttachments$ = new BehaviorSubject<Attachment[]>([]);
   /**
    * The current number of attachments
    */
@@ -210,10 +204,12 @@ export class AttachmentService<
   /**
    * You can add custom `image`, `video` and `file` attachments using this method.
    *
-   * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](/chat/docs/sdk/angular/services/ChannelService/)
+   * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](/chat/docs/sdk/angular/v6-rc/services/ChannelService/)
    * @param attachment
+   *
+   * Will set `isCustomAttachment` to `true` on the attachment. This is a non-standard field, other SDKs will ignore this property.
    */
-  addAttachment(attachment: Attachment<T>) {
+  addAttachment(attachment: Attachment) {
     attachment.isCustomAttachment = true;
     this.createFromAttachments([attachment]);
   }
@@ -303,10 +299,10 @@ export class AttachmentService<
    * Maps attachments received from the Stream API to uploads. This is useful when editing a message.
    * @param attachments Attachemnts received with the message
    */
-  createFromAttachments(attachments: Attachment<T>[]) {
+  createFromAttachments(attachments: Attachment[]) {
     const attachmentUploads: AttachmentUpload[] = [];
-    const builtInAttachments: Attachment<T>[] = [];
-    const customAttachments: Attachment<T>[] = [];
+    const builtInAttachments: Attachment[] = [];
+    const customAttachments: Attachment[] = [];
     attachments.forEach((attachment) => {
       if (this.messageService.isCustomAttachment(attachment)) {
         customAttachments.push(attachment);

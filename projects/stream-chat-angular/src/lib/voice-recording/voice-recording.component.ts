@@ -10,7 +10,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Attachment } from 'stream-chat';
-import { DefaultStreamChatGenerics } from '../types';
 import prettybytes from 'pretty-bytes';
 import { formatDuration } from '../format-duration';
 
@@ -26,7 +25,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
   /**
    * The voice recording attachment
    */
-  @Input() attachment?: Attachment<DefaultStreamChatGenerics>;
+  @Input() attachment?: Attachment;
   fileSize: string = '';
   secondsElapsedFormatted: string;
   durationFormatted: string = '';
