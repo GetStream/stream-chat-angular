@@ -105,22 +105,10 @@ export class ChatClientService {
     this.trackPendingChannelInvites =
       clientOptions?.trackPendingChannelInvites === true;
     this.chatClient = StreamChat.getInstance(apiKey, clientOptions);
-    if ('sdkIdentifier' in this.chatClient) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (this.chatClient as any).sdkIdentifier = {
-        name: 'angular',
-        version,
-      };
-    } else {
-      const userAgent = this.chatClient.getUserAgent();
-      if (!userAgent.includes('stream-chat-angular')) {
-        const parts = userAgent.split('-');
-        const jsVersion = parts[parts.length - 1] ?? '0.0.0';
-        this.chatClient.setUserAgent(
-          `stream-chat-angular-v${version}-llc-v${jsVersion}`
-        );
-      }
-    }
+    this.chatClient.sdkIdentifier = {
+      name: 'angular',
+      version,
+    };
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
