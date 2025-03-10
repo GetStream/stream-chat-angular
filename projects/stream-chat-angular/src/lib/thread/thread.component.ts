@@ -8,7 +8,7 @@ import { getChannelDisplayText } from '../get-channel-display-text';
 import { StreamMessage, ThreadHeaderContext } from '../types';
 
 /**
- * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components.
+ * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/v6-rc/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/) components.
  */
 @Component({
   selector: 'stream-thread',

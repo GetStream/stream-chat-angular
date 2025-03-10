@@ -31,7 +31,7 @@ import { CustomTemplatesService } from '../../custom-templates.service';
 import { MessageInputConfigService } from '../message-input-config.service';
 
 /**
- * The `AutocompleteTextarea` component is used by the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) component to display the input HTML element where users can type their message.
+ * The `AutocompleteTextarea` component is used by the [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/) component to display the input HTML element where users can type their message.
  */
 @Component({
   selector: 'stream-autocomplete-textarea',
@@ -52,15 +52,15 @@ export class AutocompleteTextareaComponent
    */
   @Input() placeholder = '';
   /**
-   * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/#inputs-and-outputs/) component.
+   * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/#inputs-and-outputs/) component.
    */
   @Input() areMentionsEnabled: boolean | undefined = true;
   /**
-   * See [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService) for more information
+   * See [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService) for more information
    */
   @Input() inputMode!: 'desktop' | 'mobile';
   /**
-   * The scope for user mentions, either members of the current channel of members of the application. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/#inputs-and-outputs) component.
+   * The scope for user mentions, either members of the current channel of members of the application. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/#inputs-and-outputs) component.
    */
   @Input() mentionScope: 'channel' | 'application' = 'channel';
   /**

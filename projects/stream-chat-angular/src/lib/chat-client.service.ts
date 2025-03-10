@@ -34,7 +34,7 @@ export class ChatClientService {
   /**
    * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event_object/).
    * :::important
-   * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
+   * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/v6-rc/concepts/change-detection/) explains this in detail.
    * :::
    */
   events$: Observable<ClientEvent>;
@@ -47,7 +47,7 @@ export class ChatClientService {
    */
   connectionState$: Observable<'offline' | 'online'>;
   /**
-   * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](/chat/docs/sdk/angular/code-examples/channel-invites/) guide.
+   * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](/chat/docs/sdk/angular/v6-rc/code-examples/channel-invites/) guide.
    */
   pendingInvites$: Observable<Channel[]>;
   /**
@@ -188,7 +188,7 @@ export class ChatClientService {
   }
 
   /**
-   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/services/ChannelService/#reset/).
+   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/v6-rc/services/ChannelService/#reset/).
    */
   async disconnectUser() {
     this.pendingInvitesSubject.next([]);
