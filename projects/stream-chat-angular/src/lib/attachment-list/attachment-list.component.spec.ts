@@ -11,10 +11,7 @@ import { ChannelService } from '../channel.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { AttachmentListComponent } from './attachment-list.component';
 import { Attachment } from 'stream-chat';
-import {
-  CustomAttachmentListContext,
-  DefaultStreamChatGenerics,
-} from '../types';
+import { CustomAttachmentListContext, GalleryAttachment } from '../types';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import {
   AfterViewInit,
@@ -145,7 +142,7 @@ describe('AttachmentListComponent', () => {
     expect(queryAttachments().length).toBe(0);
 
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url1' },
       { type: 'file', asset_url: 'http://url3' },
       {
         type: 'video',
@@ -195,6 +192,7 @@ describe('AttachmentListComponent', () => {
   it('should filter custom attachments', () => {
     const messageService = TestBed.inject(MessageService);
     messageService.filterCustomAttachment = (attachment: Attachment) =>
+      // @ts-expect-error custom property
       !attachment.customLink;
     const imageAttachment = {
       type: 'image',
@@ -266,9 +264,9 @@ describe('AttachmentListComponent', () => {
 
   it('should create gallery', () => {
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url1' },
       { type: 'file', asset_url: 'http://url3' },
-      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', image_url: 'http://url2' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -276,14 +274,18 @@ describe('AttachmentListComponent', () => {
 
     expect(orderedAttachments.length).toBe(2);
     expect(orderedAttachments[0].type).toBe('gallery');
-    expect(orderedAttachments[0].images![0].img_url).toBe('http://url1');
-    expect(orderedAttachments[0].images![1].img_url).toBe('http://url2');
+    expect(
+      (orderedAttachments[0] as GalleryAttachment).images[0].image_url
+    ).toBe('http://url1');
+    expect(
+      (orderedAttachments[0] as GalleryAttachment).images[1].image_url
+    ).toBe('http://url2');
   });
 
   it('should display gallery', () => {
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
-      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', image_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url2' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -298,8 +300,8 @@ describe('AttachmentListComponent', () => {
     ).toBeNull();
 
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
-      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', image_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url2' },
       { type: 'image', thumb_url: 'http://url3' },
       { type: 'image', image_url: 'http://url4' },
     ];
@@ -318,8 +320,8 @@ describe('AttachmentListComponent', () => {
     ).not.toBeNull();
 
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
-      { type: 'image', img_url: 'http://url2' },
+      { type: 'image', image_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url2' },
       { type: 'image', thumb_url: 'http://url3' },
       { type: 'image', image_url: 'http://url4' },
       { type: 'image', image_url: 'http://url5' },
@@ -380,7 +382,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    } as any as Attachment<DefaultStreamChatGenerics>;
+    } as any as Attachment;
     component.attachments = [attachment];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -435,7 +437,7 @@ describe('AttachmentListComponent', () => {
           frames: '6',
         },
       },
-    } as any as Attachment<DefaultStreamChatGenerics>;
+    } as any as Attachment;
     component.messageId = 'message-id';
     component.attachments = [attachment];
     component.parentMessageId = 'parent-id';
@@ -469,7 +471,7 @@ describe('AttachmentListComponent', () => {
     it('should display image by thumb_url', () => {
       const thumbUrl = 'http://thumb/url';
       component.attachments = [
-        { type: 'image', img_url: undefined, thumb_url: thumbUrl },
+        { type: 'image', image_url: undefined, thumb_url: thumbUrl },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -496,7 +498,7 @@ describe('AttachmentListComponent', () => {
     it('should set alt text for image', () => {
       const fallback = 'Fallback is image can not be displayed';
       component.attachments = [
-        { type: 'image', img_url: 'http://url1', fallback },
+        { type: 'image', image_url: 'http://url1', fallback },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -506,7 +508,7 @@ describe('AttachmentListComponent', () => {
 
     it('should display add necessary CSS class for SVG images', () => {
       component.attachments = [
-        { type: 'image', img_url: 'http://image/url', fallback: 'image.svg' },
+        { type: 'image', image_url: 'http://image/url', fallback: 'image.svg' },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -516,7 +518,7 @@ describe('AttachmentListComponent', () => {
       ).not.toBeNull();
 
       component.attachments = [
-        { type: 'image', img_url: 'http://image/url', fallback: 'image.jpg' },
+        { type: 'image', image_url: 'http://image/url', fallback: 'image.jpg' },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -795,7 +797,7 @@ describe('AttachmentListComponent', () => {
         },
         {
           type: 'image',
-          img_url: 'http://url2',
+          image_url: 'http://url2',
         },
       ];
       component.attachments = attachments;
@@ -824,7 +826,7 @@ describe('AttachmentListComponent', () => {
         },
         {
           type: 'image',
-          img_url: 'http://url2',
+          image_url: 'http://url2',
         },
       ];
       component.attachments = attachments;
@@ -853,7 +855,7 @@ describe('AttachmentListComponent', () => {
         },
         {
           type: 'image',
-          img_url: 'http://url2',
+          image_url: 'http://url2',
         },
         {
           type: 'image',
@@ -877,7 +879,7 @@ describe('AttachmentListComponent', () => {
       queryImageModalNextButton()?.click();
       fixture.detectChanges();
 
-      expect(queryImageModalImage()?.src).toContain(attachments[1].img_url!);
+      expect(queryImageModalImage()?.src).toContain(attachments[1].image_url!);
       expect(queryImageModalPrevButton()?.style.visibility).toBe('visible');
       expect(queryImageModalNextButton()?.style.visibility).toBe('visible');
 
@@ -962,7 +964,7 @@ describe('AttachmentListComponent', () => {
 
     // Single image, link image, video, giphy
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url1' },
       {
         title: 'BBC - Homepage',
         title_link: 'https://www.bbc.com/',
@@ -1014,11 +1016,11 @@ describe('AttachmentListComponent', () => {
 
     // Gallery
     component.attachments = [
-      { type: 'image', img_url: 'http://url1' },
-      { type: 'image', img_url: 'http://url2' },
-      { type: 'image', img_url: 'http://url3' },
-      { type: 'image', img_url: 'http://url4' },
-      { type: 'image', img_url: 'http://url5' },
+      { type: 'image', image_url: 'http://url1' },
+      { type: 'image', image_url: 'http://url2' },
+      { type: 'image', image_url: 'http://url3' },
+      { type: 'image', image_url: 'http://url4' },
+      { type: 'image', image_url: 'http://url5' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();

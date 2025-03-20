@@ -1,14 +1,11 @@
 import { mockCurrentUser } from './mocks';
 import { createMessagePreview } from './message-preview';
-import {
-  DefaultAttachmentType,
-  DefaultChannelType,
-  DefaultStreamChatGenerics,
-  DefaultUserType,
-  StreamMessage,
-  UnknownType,
-} from './types';
-import { LiteralStringForUnion } from 'stream-chat';
+declare module 'stream-chat' {
+  interface CustomMessageData {
+    isVote?: boolean;
+    options?: string[];
+  }
+}
 
 describe('createMessagePreview', () => {
   it('should create message preview', () => {
@@ -21,21 +18,7 @@ describe('createMessagePreview', () => {
     const users = [{ id: 'jack', name: 'Jack' }];
     const parentId = 'parentId';
     const quotedMessageId = 'quotedMessageId';
-    type MyMessageType = StreamMessage & {
-      isVote: boolean;
-      results: number[];
-      options: string[];
-    };
-    type MyGenerics = DefaultStreamChatGenerics & {
-      messageType: MyMessageType;
-      attachmentType: DefaultAttachmentType;
-      channelType: DefaultChannelType;
-      commandType: LiteralStringForUnion;
-      eventType: UnknownType;
-      reactionType: UnknownType;
-      userType: DefaultUserType;
-    };
-    const preview = createMessagePreview<MyGenerics>(
+    const preview = createMessagePreview(
       user,
       text,
       attachments,
@@ -50,6 +33,7 @@ describe('createMessagePreview', () => {
 
     expect(preview.created_at).not.toBeUndefined();
     expect(preview.html).toBe(text);
+    // @ts-expect-error internal property
     expect(preview.__html).toBe(text);
     expect(preview.user).toBe(user);
     expect(preview.id).toContain(user.id);

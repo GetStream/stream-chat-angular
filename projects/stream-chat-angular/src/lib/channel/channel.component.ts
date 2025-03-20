@@ -6,7 +6,7 @@ import { ThemeService } from '../theme.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 
 /**
- * The `Channel` component is a container component that displays the [`ChannelHeader`](/chat/docs/sdk/angular/components/ChannelHeaderComponent/), [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent), [`NotificationList`](/chat/docs/sdk/angular/components/NotificationListComponent/) and [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components. You can also provide the [`Thread`](/chat/docs/sdk/angular/components/ThreadComponent/) component to use message [threads](/chat/docs/javascript/threads/).
+ * The `Channel` component is a container component that displays the [`ChannelHeader`](/chat/docs/sdk/angular/v6-rc/components/ChannelHeaderComponent/), [`MessageList`](/chat/docs/sdk/angular/v6-rc/components/MessageListComponent), [`NotificationList`](/chat/docs/sdk/angular/v6-rc/components/NotificationListComponent/) and [`MessageInput`](/chat/docs/sdk/angular/v6-rc/components/MessageInputComponent/) components. You can also provide the [`Thread`](/chat/docs/sdk/angular/v6-rc/components/ThreadComponent/) component to use message [threads](/chat/docs/javascript/threads/).
  */
 @Component({
   selector: 'stream-channel',

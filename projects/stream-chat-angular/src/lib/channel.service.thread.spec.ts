@@ -19,7 +19,7 @@ import {
   mockMessage,
 } from './mocks';
 import { NotificationService } from './notification.service';
-import { DefaultStreamChatGenerics, StreamMessage } from './types';
+import { StreamMessage } from './types';
 
 describe('ChannelService - threads', () => {
   let service: ChannelService;
@@ -33,11 +33,11 @@ describe('ChannelService - threads', () => {
   let events$: Subject<ClientEvent>;
   let connectionState$: Subject<'online' | 'offline'>;
   let init: (
-    c?: Channel<DefaultStreamChatGenerics>[],
-    sort?: ChannelSort<DefaultStreamChatGenerics>,
+    c?: Channel[],
+    sort?: ChannelSort,
     options?: ChannelOptions
   ) => Promise<void>;
-  let user: UserResponse<DefaultStreamChatGenerics>;
+  let user: UserResponse;
   const filters = { type: 'messaging' };
 
   beforeEach(() => {
@@ -68,8 +68,8 @@ describe('ChannelService - threads', () => {
     });
     service = TestBed.inject(ChannelService);
     init = async (
-      channels?: Channel<DefaultStreamChatGenerics>[],
-      sort?: ChannelSort<DefaultStreamChatGenerics>,
+      channels?: Channel[],
+      sort?: ChannelSort,
       options?: ChannelOptions
     ) => {
       mockChatClient.queryChannels.and.returnValue(
@@ -111,14 +111,14 @@ describe('ChannelService - threads', () => {
     messagesSpy.calls.reset();
     activeParentMessageIdSpy.calls.reset();
     activeParentMessageSpy.calls.reset();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     let parentMessage!: StreamMessage;
     service.activeChannelMessages$.subscribe((m) => (parentMessage = m[0]));
     const replies = [mockMessage(), mockMessage(), mockMessage()];
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
 
     expect(messagesSpy).toHaveBeenCalledWith(replies);
@@ -246,12 +246,12 @@ describe('ChannelService - threads', () => {
     service.activeThreadMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     const message = mockMessage();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     const replies = [mockMessage(), mockMessage(), mockMessage()];
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(message);
     let threadMessages!: StreamMessage[];
     service.activeThreadMessages$.subscribe((m) => (threadMessages = m));
@@ -266,12 +266,12 @@ describe('ChannelService - threads', () => {
     service.activeThreadMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     const parentMessage = mockMessage();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     const replies = [mockMessage(), mockMessage(), mockMessage()];
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     replies[0].id = 'firstreply';
     await service.setAsActiveParentMessage(parentMessage);
     let threadMessages!: StreamMessage[];
@@ -296,12 +296,12 @@ describe('ChannelService - threads', () => {
     service.activeThreadMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     const parentMessage = mockMessage();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     const replies = [mockMessage(), mockMessage(), mockMessage()];
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     replies[0].id = 'firstreply';
     await service.setAsActiveParentMessage(parentMessage);
     (channel.getReplies as jasmine.Spy).calls.reset();
@@ -325,7 +325,7 @@ describe('ChannelService - threads', () => {
     service.activeThreadMessages$.subscribe(spy);
     const prevCount = (spy.calls.mostRecent().args[0] as Channel[]).length;
     spy.calls.reset();
-    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const newMessage = mockMessage();
     newMessage.parent_id = parentMessage.id;
@@ -347,7 +347,7 @@ describe('ChannelService - threads', () => {
     await service.setAsActiveParentMessage(parentMessage);
     service.activeThreadMessages$.subscribe(spy);
     spy.calls.reset();
-    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const newMessage = mockMessage();
     newMessage.parent_id = 'not' + parentMessage.id;
@@ -365,13 +365,13 @@ describe('ChannelService - threads', () => {
   it('should watch for message update events', async () => {
     await init();
     const parentMessage = mockMessage();
-    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const messageToUpdate = mockMessage();
     messageToUpdate.parent_id = parentMessage.id;
     spyOn(activeChannel, 'getReplies').and.resolveTo({
       messages: [messageToUpdate],
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     messageToUpdate.text = 'updated';
     activeChannel.state.threads = { [parentMessage.id]: [messageToUpdate] };
@@ -389,13 +389,13 @@ describe('ChannelService - threads', () => {
   it('should watch for message deleted events', async () => {
     await init();
     const parentMessage = mockMessage();
-    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const messageToDelete = mockMessage();
     messageToDelete.parent_id = parentMessage.id;
     spyOn(activeChannel, 'getReplies').and.resolveTo({
       messages: [messageToDelete],
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     messageToDelete.deleted_at = new Date();
     activeChannel.state.threads = { [parentMessage.id]: [messageToDelete] };
@@ -412,7 +412,7 @@ describe('ChannelService - threads', () => {
 
   it('should handle if channel is truncated', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const messagesSpy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(messagesSpy);
@@ -433,7 +433,7 @@ describe('ChannelService - threads', () => {
 
   it('should call #customChannelTruncatedHandler, if channel is truncated and custom handler is provided', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const spy = jasmine
       .createSpy()
@@ -457,7 +457,7 @@ describe('ChannelService - threads', () => {
         cid: channel.cid,
         name: 'New name',
       },
-    } as any as Event<DefaultStreamChatGenerics>;
+    } as any as Event;
     const messagesSpy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(messagesSpy);
     const parentMessageSpy = jasmine.createSpy();
@@ -484,14 +484,14 @@ describe('ChannelService - threads', () => {
     const spy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(spy);
     spy.calls.reset();
-    let activeChannel!: Channel<DefaultStreamChatGenerics>;
+    let activeChannel!: Channel;
     service.activeChannel$.subscribe((c) => (activeChannel = c!));
     const parentMessage = mockMessage();
     const replies = [mockMessage(), mockMessage()];
     replies.forEach((r) => (r.parent_id = parentMessage.id));
     spyOn(activeChannel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     const message = replies[1];
     (activeChannel as MockChannel).handleEvent('reaction.new', { message });
@@ -511,7 +511,7 @@ describe('ChannelService - threads', () => {
 
   it('should send message', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -520,7 +520,7 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     spyOn(channel, 'sendMessage').and.callThrough();
     spyOn(channel.state, 'addMessageSorted').and.callThrough();
@@ -571,7 +571,7 @@ describe('ChannelService - threads', () => {
 
   it('should send action', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -580,7 +580,7 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     const giphy = {
       thumb_url:
@@ -595,7 +595,7 @@ describe('ChannelService - threads', () => {
         attachments: [giphy],
         parent_id: parentMessage.id,
       },
-    } as any as SendMessageAPIResponse<DefaultStreamChatGenerics>);
+    } as any as SendMessageAPIResponse);
     let message!: StreamMessage;
     service.activeThreadMessages$.subscribe((m) => (message = m[m.length - 1]));
     await service.sendAction(replies[replies.length - 1].id, {
@@ -607,7 +607,7 @@ describe('ChannelService - threads', () => {
 
   it('should remove message after action, if no message is returned', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -616,10 +616,10 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     spyOn(channel, 'sendAction').and.resolveTo(
-      {} as any as SendMessageAPIResponse<DefaultStreamChatGenerics>
+      {} as any as SendMessageAPIResponse
     );
     spyOn(channel.state, 'removeMessage');
     await service.sendAction(
@@ -638,7 +638,7 @@ describe('ChannelService - threads', () => {
 
   it('should set message state after message is sent', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -647,7 +647,7 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     const text = 'Hi';
     spyOn(channel, 'sendMessage').and.resolveTo({
@@ -656,7 +656,7 @@ describe('ChannelService - threads', () => {
         parent_id: parentMessage.id,
         text,
       },
-    } as SendMessageAPIResponse<DefaultStreamChatGenerics>);
+    } as SendMessageAPIResponse);
     let latestMessage!: StreamMessage;
     service.activeThreadMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
@@ -668,7 +668,7 @@ describe('ChannelService - threads', () => {
 
   it('should set message state, if an error occured', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -677,7 +677,7 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     const text = 'Hi';
     spyOn(channel, 'sendMessage').and.rejectWith({ status: 500 });
@@ -693,7 +693,7 @@ describe('ChannelService - threads', () => {
 
   it('should add sent message to message list', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.pipe(first()).subscribe((c) => (channel = c!));
     const parentMessage = mockMessage();
     parentMessage.id = 'parentId';
@@ -702,7 +702,7 @@ describe('ChannelService - threads', () => {
     channel.state.threads[parentMessage.id] = replies;
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
-    } as any as GetRepliesAPIResponse<DefaultStreamChatGenerics>);
+    } as any as GetRepliesAPIResponse);
     await service.setAsActiveParentMessage(parentMessage);
     const text = 'Hi';
     spyOn(channel, 'sendMessage').and.resolveTo({
@@ -711,7 +711,7 @@ describe('ChannelService - threads', () => {
         parent_id: parentMessage.id,
         text,
       },
-    } as SendMessageAPIResponse<DefaultStreamChatGenerics>);
+    } as SendMessageAPIResponse);
     let latestMessage!: StreamMessage;
     service.activeThreadMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
@@ -723,7 +723,7 @@ describe('ChannelService - threads', () => {
 
   it('should notify channel if typing started', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     spyOn(channel, 'keystroke');
     await service.typingStarted('parentId');
@@ -733,7 +733,7 @@ describe('ChannelService - threads', () => {
 
   it('should notify channel if typing stopped', async () => {
     await init();
-    let channel!: Channel<DefaultStreamChatGenerics>;
+    let channel!: Channel;
     service.activeChannel$.subscribe((c) => (channel = c!));
     spyOn(channel, 'stopTyping');
     await service.typingStopped('parentId');

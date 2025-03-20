@@ -1,10 +1,9 @@
 import { Channel, UserResponse } from 'stream-chat';
 import { listUsers } from './list-users';
-import { DefaultStreamChatGenerics } from './types';
 
 export const getChannelDisplayText = (
-  channel: Channel<DefaultStreamChatGenerics>,
-  currentUser: UserResponse<DefaultStreamChatGenerics>
+  channel: Channel,
+  currentUser: UserResponse
 ) => {
   if (channel.data?.name) {
     return channel.data.name;

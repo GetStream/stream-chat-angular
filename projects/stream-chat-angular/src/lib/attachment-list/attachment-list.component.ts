@@ -14,12 +14,12 @@ import {
 import { Action, Attachment } from 'stream-chat';
 import {
   ModalContext,
-  DefaultStreamChatGenerics,
   AttachmentConfigration,
   VideoAttachmentConfiguration,
   ImageAttachmentConfiguration,
   AttachmentContext,
   CustomAttachmentListContext,
+  GalleryAttachment,
 } from '../types';
 import prettybytes from 'pretty-bytes';
 import { isImageAttachment } from '../is-image-attachment';
@@ -49,7 +49,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   /**
    * The attachments to display
    */
-  @Input() attachments: Attachment<DefaultStreamChatGenerics>[] = [];
+  @Input() attachments: Attachment[] = [];
   /**
    * Emits the state of the image carousel window
    */
@@ -57,9 +57,9 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     'opened' | 'closed'
   >();
   @HostBinding() class = 'str-chat__attachment-list-angular-host';
-  orderedAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
-  customAttachments: Attachment<DefaultStreamChatGenerics>[] = [];
-  imagesToView: Attachment<DefaultStreamChatGenerics>[] = [];
+  orderedAttachments: (Attachment | GalleryAttachment)[] = [];
+  customAttachments: Attachment[] = [];
+  imagesToView: Attachment[] = [];
   imagesToViewCurrentIndex = 0;
   customAttachmentsTemplate?: TemplateRef<CustomAttachmentListContext>;
   @ViewChild('modalContent', { static: true })
@@ -78,6 +78,12 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     private attachmentConfigurationService: AttachmentConfigurationService,
     private messageService: MessageService
   ) {}
+
+  trackByUrl = (_: number, attachment: Attachment | GalleryAttachment) => {
+    return this.isGalleryType(attachment)
+      ? attachment.images.map(this.getAttachmentUrl).join(',')
+      : this.getAttachmentUrl(attachment);
+  };
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -122,15 +128,6 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  trackByUrl(_: number, attachment: Attachment) {
-    return (
-      attachment.image_url ||
-      attachment.img_url ||
-      attachment.asset_url ||
-      attachment.thumb_url
-    );
-  }
-
   isImage(attachment: Attachment) {
     return isImageAttachment(attachment);
   }
@@ -169,13 +166,13 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return attachment.type === 'voiceRecording';
   }
 
-  hasFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {
+  hasFileSize(attachment: Attachment) {
     return (
       attachment.file_size && Number.isFinite(Number(attachment.file_size))
     );
   }
 
-  getFileSize(attachment: Attachment<DefaultStreamChatGenerics>) {
+  getFileSize(attachment: Attachment) {
     return prettybytes(Number(attachment.file_size!));
   }
 
@@ -226,9 +223,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return item.image_url || item.img_url || item.thumb_url;
   }
 
-  getAttachmentContext(
-    attachment: Attachment<DefaultStreamChatGenerics>
-  ): AttachmentContext {
+  getAttachmentContext(attachment: Attachment): AttachmentContext {
     return { attachment };
   }
 
@@ -298,6 +293,12 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
+  isGalleryType(
+    attachment: Attachment | GalleryAttachment
+  ): attachment is GalleryAttachment {
+    return attachment.type === 'gallery';
+  }
+
   get isImageModalPrevButtonVisible() {
     return this.imagesToViewCurrentIndex !== 0;
   }
@@ -306,7 +307,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return this.imagesToViewCurrentIndex !== this.imagesToView.length - 1;
   }
 
-  private createGallery(images: Attachment[]) {
+  private createGallery(images: Attachment[]): GalleryAttachment[] {
     return [
       {
         type: 'gallery',
@@ -318,5 +319,14 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   private closeImageModal() {
     this.imageModalStateChange.next('closed');
     this.imagesToView = [];
+  }
+
+  private getAttachmentUrl(attachment: Attachment) {
+    return (
+      attachment.image_url ||
+      attachment.img_url ||
+      attachment.asset_url ||
+      attachment.thumb_url
+    );
   }
 }

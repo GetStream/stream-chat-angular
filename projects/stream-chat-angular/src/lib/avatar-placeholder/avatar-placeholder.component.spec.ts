@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Channel } from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
-import { DefaultStreamChatGenerics } from '../types';
 
 import { AvatarPlaceholderComponent } from './avatar-placeholder.component';
 
@@ -47,7 +46,7 @@ describe('AvatarPlaceholderComponent', () => {
     expect(avatar.user).toBe(user);
 
     component.type = 'channel';
-    const channel = { id: 'channel-id' } as Channel<DefaultStreamChatGenerics>;
+    const channel = { id: 'channel-id' } as Channel;
     component.channel = channel;
     component.ngOnChanges();
     fixture.detectChanges();

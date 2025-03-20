@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { UserResponse } from 'stream-chat';
-import { DefaultStreamChatGenerics } from '../types';
 
 /**
  * The `UserListComponent` can display a list of Stream users with pagination
@@ -14,7 +13,7 @@ export class UserListComponent {
   /**
    * The users to display
    */
-  @Input() users: UserResponse<DefaultStreamChatGenerics>[] = [];
+  @Input() users: UserResponse[] = [];
   /**
    * If `true`, the loading indicator will be displayed
    */

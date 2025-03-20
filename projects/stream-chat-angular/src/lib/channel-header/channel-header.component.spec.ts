@@ -7,7 +7,6 @@ import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeho
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { StreamI18nService } from '../stream-i18n.service';
-import { DefaultStreamChatGenerics } from '../types';
 import { ChannelHeaderComponent } from './channel-header.component';
 
 describe('ChannelHeaderComponent', () => {
@@ -111,8 +110,6 @@ describe('ChannelHeaderComponent', () => {
     expect(avatar.imageUrl).toBe('http://url/to/img');
     expect(avatar.type).toBe('channel');
     expect(avatar.location).toBe('channel-header');
-    expect(avatar.channel).toBe(
-      channel as any as Channel<DefaultStreamChatGenerics>
-    );
+    expect(avatar.channel).toBe(channel as any as Channel);
   });
 });
