@@ -1,4 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+} from '@angular/core';
 import { UserResponse } from 'stream-chat';
 
 /**
@@ -8,6 +14,7 @@ import { UserResponse } from 'stream-chat';
   selector: 'stream-user-list',
   templateUrl: './user-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListComponent {
   /**

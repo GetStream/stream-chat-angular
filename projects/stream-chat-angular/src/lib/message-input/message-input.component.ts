@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
@@ -54,6 +55,7 @@ import { AudioRecorderService } from '../voice-recorder/audio-recorder.service';
   templateUrl: './message-input.component.html',
   styles: [],
   providers: [AttachmentService, EmojiInputService, VoiceRecorderService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageInputComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
@@ -175,6 +177,9 @@ export class MessageInputComponent
           if (counter === 0 && this.hideNotification) {
             this.hideNotification();
             this.hideNotification = undefined;
+            if (this.isViewInited) {
+              this.cdRef.markForCheck();
+            }
           }
         },
       ),
@@ -194,6 +199,9 @@ export class MessageInputComponent
           this.channel = channel;
           this.setCanSendMessages();
         }
+        if (this.isViewInited) {
+          this.cdRef.markForCheck();
+        }
       }),
     );
     this.subscriptions.push(
@@ -205,6 +213,9 @@ export class MessageInputComponent
           (this.mode === 'main' && !isThreadReply)
         ) {
           this.quotedMessage = m;
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
         }
       }),
     );
@@ -212,6 +223,9 @@ export class MessageInputComponent
       this.messageActionsService.messageToEdit$.subscribe((message) => {
         this.messageToEdit = message;
         this.checkIfInEditMode();
+        if (this.isViewInited) {
+          this.cdRef.markForCheck();
+        }
       }),
     );
     this.attachmentUploads$ = this.attachmentService.attachmentUploads$;
@@ -232,7 +246,12 @@ export class MessageInputComponent
     );
     this.subscriptions.push(
       this.voiceRecorderService.isRecorderVisible$.subscribe((isVisible) => {
-        this.isVoiceRecording = isVisible;
+        if (isVisible !== this.isVoiceRecording) {
+          this.isVoiceRecording = isVisible;
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
+        }
       }),
     );
 
@@ -263,8 +282,14 @@ export class MessageInputComponent
             (channel?.data?.own_capabilities as string[]).includes('slow-mode')
           ) {
             this.startCooldown(cooldown);
+            if (this.isViewInited) {
+              this.cdRef.markForCheck();
+            }
           } else if (this.isCooldownInProgress) {
             this.stopCooldown();
+            if (this.isViewInited) {
+              this.cdRef.markForCheck();
+            }
           }
         }),
     );
@@ -272,6 +297,9 @@ export class MessageInputComponent
       this.voiceRecorderService.recording$.subscribe((recording) => {
         if (recording) {
           void this.voiceRecordingReady(recording);
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
         }
       }),
     );
@@ -320,14 +348,14 @@ export class MessageInputComponent
     this.subscriptions.push(
       this.customTemplatesService.emojiPickerTemplate$.subscribe((template) => {
         this.emojiPickerTemplate = template;
-        this.cdRef.detectChanges();
+        this.cdRef.markForCheck();
       }),
     );
     this.subscriptions.push(
       this.customTemplatesService.attachmentPreviewListTemplate$.subscribe(
         (template) => {
           this.attachmentPreviewListTemplate = template;
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         },
       ),
     );
@@ -335,7 +363,7 @@ export class MessageInputComponent
       this.customTemplatesService.customAttachmentUploadTemplate$.subscribe(
         (template) => {
           this.customAttachmentUploadTemplate = template;
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         },
       ),
     );
@@ -617,7 +645,7 @@ export class MessageInputComponent
       this.message = undefined;
       this.messageToUpdateChanged();
       if (this.isViewInited) {
-        this.cdRef.detectChanges();
+        this.cdRef.markForCheck();
       }
     }
     if (
@@ -628,7 +656,7 @@ export class MessageInputComponent
       this.message = this.messageToEdit;
       this.messageToUpdateChanged();
       if (this.isViewInited) {
-        this.cdRef.detectChanges();
+        this.cdRef.markForCheck();
       }
     }
   }

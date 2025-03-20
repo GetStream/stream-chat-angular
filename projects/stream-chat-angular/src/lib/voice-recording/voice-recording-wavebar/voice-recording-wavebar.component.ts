@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -19,6 +20,7 @@ import { resampleWaveForm } from '../../wave-form-sampler';
   selector: 'stream-voice-recording-wavebar',
   templateUrl: './voice-recording-wavebar.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VoiceRecordingWavebarComponent
   implements OnChanges, OnInit, AfterViewInit

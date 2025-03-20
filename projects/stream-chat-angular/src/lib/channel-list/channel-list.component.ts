@@ -1,5 +1,5 @@
-import { Component, OnDestroy, TemplateRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, Component, TemplateRef } from '@angular/core';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Channel } from 'stream-chat';
 import { ChannelService } from '../channel.service';
@@ -14,8 +14,9 @@ import { ChannelPreviewContext } from '../types';
   selector: 'stream-channel-list',
   templateUrl: './channel-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChannelListComponent implements OnDestroy {
+export class ChannelListComponent {
   channels$: Observable<Channel[] | undefined>;
   isError$: Observable<boolean>;
   isInitializing$: Observable<boolean>;
@@ -23,11 +24,10 @@ export class ChannelListComponent implements OnDestroy {
   hasMoreChannels$: Observable<boolean>;
   customChannelPreviewTemplate: TemplateRef<ChannelPreviewContext> | undefined;
   theme$: Observable<string>;
-  subscriptions: Subscription[] = [];
 
   constructor(
     private channelService: ChannelService,
-    private customTemplatesService: CustomTemplatesService,
+    public readonly customTemplatesService: CustomTemplatesService,
     private themeService: ThemeService,
   ) {
     this.theme$ = this.themeService.theme$;
@@ -37,15 +37,6 @@ export class ChannelListComponent implements OnDestroy {
     this.isInitializing$ = this.channelService.channelQueryState$.pipe(
       map((s) => !this.isLoadingMoreChannels && s?.state === 'in-progress'),
     );
-    this.subscriptions.push(
-      this.customTemplatesService.channelPreviewTemplate$.subscribe(
-        (template) => (this.customChannelPreviewTemplate = template),
-      ),
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   async loadMoreChannels() {

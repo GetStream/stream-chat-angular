@@ -8,7 +8,7 @@ import { QueryReactionsAPIResponse, ReactionResponse } from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { MessageReactionsComponent } from './message-reactions.component';
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { MessageReactionsService } from '../message-reactions.service';
 import { ModalComponent } from '../modal/modal.component';
@@ -60,7 +60,11 @@ describe('MessageReactionsComponent', () => {
         { provide: MessageReactionsService, useValue: reactionsServiceMock },
       ],
       imports: [TranslateModule.forRoot()],
-    }).compileComponents();
+    })
+      .overrideComponent(MessageReactionsComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
@@ -24,7 +24,11 @@ describe('TextareaComponent', () => {
           useValue: { emojiInput$ },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(TextareaComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

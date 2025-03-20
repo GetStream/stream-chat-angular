@@ -1,4 +1,12 @@
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostBinding,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
@@ -14,18 +22,25 @@ import { StreamMessage } from '../types';
   selector: 'stream-message-bounce-prompt',
   templateUrl: './message-bounce-prompt.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessageBouncePromptComponent implements OnDestroy {
+export class MessageBouncePromptComponent
+  implements OnDestroy, OnInit, AfterViewInit
+{
   @HostBinding() class = 'str-chat__message-bounce-prompt';
   isModalOpen = false;
   message?: StreamMessage;
   private subscriptions: Subscription[] = [];
+  private isViewInitialized = false;
 
   constructor(
     private channelService: ChannelService,
     readonly customTemplatesService: CustomTemplatesService,
     private messageActionsService: MessageActionsService,
-  ) {
+    private cdRef: ChangeDetectorRef,
+  ) {}
+
+  ngOnInit(): void {
     this.subscriptions.push(
       this.channelService.bouncedMessage$.subscribe((m) => {
         if (m !== this.message) {
@@ -33,9 +48,16 @@ export class MessageBouncePromptComponent implements OnDestroy {
           if (this.message) {
             this.isModalOpen = true;
           }
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
         }
       }),
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
   }
 
   messageBounceModalOpenChanged = (isOpen: boolean) => {

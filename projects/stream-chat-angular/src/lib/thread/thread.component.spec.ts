@@ -10,6 +10,7 @@ import {
   MockChannelService,
   mockMessage,
 } from '../mocks';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { ThreadComponent } from './thread.component';
 
@@ -31,7 +32,11 @@ describe('ThreadComponent', () => {
           useValue: { chatClient: { user: { id: 'userid' } } },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(ThreadComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

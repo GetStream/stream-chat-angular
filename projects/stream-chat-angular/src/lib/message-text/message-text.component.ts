@@ -1,4 +1,10 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { MentionTemplateContext, StreamMessage } from '../types';
 import { UserResponse } from 'stream-chat';
 import emojiRegex from 'emoji-regex';
@@ -18,6 +24,7 @@ type MessagePart = {
   selector: 'stream-message-text',
   templateUrl: './message-text.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageTextComponent implements OnChanges {
   /**

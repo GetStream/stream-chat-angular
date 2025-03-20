@@ -1,4 +1,8 @@
-import { ChangeDetectorRef, SimpleChange } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  SimpleChange,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {
   ComponentFixture,
   fakeAsync,
@@ -66,6 +70,8 @@ describe('MessageListComponent', () => {
           },
         },
       ],
+    }).overrideComponent(MessageListComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default },
     });
     fixture = TestBed.createComponent(MessageListComponent);
     component = fixture.componentInstance;
@@ -1097,6 +1103,7 @@ describe('MessageListComponent', () => {
       messages[messages.length - 2].id;
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
     tick();
 
     expect(component.lastReadMessageId).toBe(messages[messages.length - 2].id);

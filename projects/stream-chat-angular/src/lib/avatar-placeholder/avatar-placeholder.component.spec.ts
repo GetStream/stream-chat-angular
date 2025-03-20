@@ -4,6 +4,7 @@ import { Channel } from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { AvatarPlaceholderComponent } from './avatar-placeholder.component';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 describe('AvatarPlaceholderComponent', () => {
   let component: AvatarPlaceholderComponent;
@@ -12,7 +13,11 @@ describe('AvatarPlaceholderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AvatarPlaceholderComponent, AvatarComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(AvatarPlaceholderComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

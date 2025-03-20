@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { IconPlaceholderComponent } from './icon-placeholder.component';
 import { IconComponent } from '../icon.component';
@@ -11,7 +12,11 @@ describe('IconPlaceholderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [IconPlaceholderComponent, IconComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(IconPlaceholderComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

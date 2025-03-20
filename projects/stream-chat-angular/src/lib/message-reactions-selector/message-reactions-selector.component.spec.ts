@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { MessageReactionType } from '../types';
 import { ReactionResponse } from 'stream-chat';
@@ -43,7 +44,11 @@ describe('MessageReactionsSelectorComponent', () => {
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: MessageReactionsService, useValue: reactionsServiceMock },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(MessageReactionsSelectorComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

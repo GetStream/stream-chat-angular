@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { MessageBouncePromptComponent } from './message-bounce-prompt.component';
 import { generateMockMessages } from '../mocks';
@@ -20,7 +21,11 @@ describe('MessageBouncePromptComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       declarations: [MessageBouncePromptComponent, ModalComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(MessageBouncePromptComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

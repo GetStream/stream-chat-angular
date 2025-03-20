@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { UserListComponent } from './user-list.component';
 import { PaginatedListComponent } from '../paginated-list/paginated-list.component';
@@ -16,7 +17,11 @@ describe('UserListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [StreamAvatarModule, TranslateModule.forRoot()],
       declarations: [UserListComponent, PaginatedListComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(UserListComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(UserListComponent);
     component = fixture.componentInstance;

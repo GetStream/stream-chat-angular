@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ChannelService } from '../channel.service';
@@ -12,6 +12,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
   selector: 'stream-channel',
   templateUrl: './channel.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChannelComponent {
   isError$: Observable<boolean>;

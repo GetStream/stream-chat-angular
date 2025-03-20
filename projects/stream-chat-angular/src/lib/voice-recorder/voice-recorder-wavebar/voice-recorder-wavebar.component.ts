@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
 import { AmplitudeRecorderService } from '../amplitude-recorder.service';
 import { Observable } from 'rxjs';
 import { AudioRecorderService } from '../audio-recorder.service';
@@ -11,6 +11,7 @@ import { formatDuration } from '../../format-duration';
   selector: 'stream-voice-recorder-wavebar',
   templateUrl: './voice-recorder-wavebar.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VoiceRecorderWavebarComponent implements OnDestroy {
   amplitudes$: Observable<number[]>;

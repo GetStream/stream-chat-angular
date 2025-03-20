@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { VoiceRecordingWavebarComponent } from './voice-recording-wavebar.component';
 
@@ -9,7 +10,11 @@ describe('VoiceRecordingWavebarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [VoiceRecordingWavebarComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(VoiceRecordingWavebarComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

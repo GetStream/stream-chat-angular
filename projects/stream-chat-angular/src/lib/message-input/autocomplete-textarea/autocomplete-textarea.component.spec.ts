@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import {
   ComponentFixture,
   fakeAsync,
@@ -50,7 +50,11 @@ describe('AutocompleteTextareaComponent', () => {
           useValue: { emojiInput$ },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(AutocompleteTextareaComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
     fixture = TestBed.createComponent(AutocompleteTextareaComponent);
     component = fixture.componentInstance;
     nativeElement = fixture.nativeElement as HTMLElement;

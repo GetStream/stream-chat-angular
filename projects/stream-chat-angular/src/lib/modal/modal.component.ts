@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -17,6 +18,7 @@ import {
   selector: 'stream-modal',
   templateUrl: './modal.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModalComponent implements OnChanges {
   /**

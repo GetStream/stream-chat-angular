@@ -14,6 +14,7 @@ import { ChannelListComponent } from './channel-list.component';
 import { Subject, of } from 'rxjs';
 import { PaginatedListComponent } from '../paginated-list/paginated-list.component';
 import { Channel } from 'stream-chat';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 describe('ChannelListComponent', () => {
   let channelServiceMock: MockChannelService;
@@ -46,6 +47,8 @@ describe('ChannelListComponent', () => {
         },
         ThemeService,
       ],
+    }).overrideComponent(ChannelListComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default },
     });
     fixture = TestBed.createComponent(ChannelListComponent);
     nativeElement = fixture.nativeElement as HTMLElement;

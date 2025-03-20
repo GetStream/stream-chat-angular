@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -7,6 +8,7 @@ import {
   HostBinding,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -24,7 +26,7 @@ import { UserResponse } from 'stream-chat';
 import { ChannelService } from '../../channel.service';
 import { TextareaInterface } from '../textarea.interface';
 import { ChatClientService } from '../../chat-client.service';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, pairwise, startWith } from 'rxjs/operators';
 import { TransliterationService } from '../../transliteration.service';
 import { EmojiInputService } from '../emoji-input.service';
 import { CustomTemplatesService } from '../../custom-templates.service';
@@ -37,9 +39,10 @@ import { MessageInputConfigService } from '../message-input-config.service';
   selector: 'stream-autocomplete-textarea',
   templateUrl: './autocomplete-textarea.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutocompleteTextareaComponent
-  implements TextareaInterface, OnChanges, AfterViewInit
+  implements TextareaInterface, OnChanges, OnInit, AfterViewInit
 {
   @HostBinding() class =
     'str-chat__textarea str-chat__message-textarea-angular-host';
@@ -153,87 +156,11 @@ export class AutocompleteTextareaComponent
           void this.updateCustomAutocompleteOptions(searchTerm);
         }
       });
-    this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe((channel) => {
-        const commands = channel?.getConfig()?.commands || [];
-        this.slashCommandConfig.items = commands.map((c) => ({
-          ...c,
-          [this.autocompleteKey]: c.name,
-          type: 'command',
-        }));
-        this.mentionedUsers = [];
-        this.userMentions.next([...this.mentionedUsers]);
-        void this.updateMentionOptions(this.searchTerm$.getValue());
-        void this.updateCustomAutocompleteOptions(this.searchTerm$.getValue());
-      }),
-    );
-    this.subscriptions.push(
-      this.emojiInputService.emojiInput$.subscribe((emoji) => {
-        this.messageInput.nativeElement.focus();
-        const { selectionStart } = this.messageInput.nativeElement;
-        this.messageInput.nativeElement.setRangeText(emoji);
-        this.messageInput.nativeElement.selectionStart =
-          selectionStart! + emoji.length;
-        this.messageInput.nativeElement.selectionEnd =
-          selectionStart! + emoji.length;
-        this.inputChanged();
-      }),
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.mentionAutocompleteItemTemplate$.subscribe(
-        (template) => (this.mentionAutocompleteItemTemplate = template),
-      ),
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.commandAutocompleteItemTemplate$.subscribe(
-        (template) => (this.commandAutocompleteItemTemplate = template),
-      ),
-    );
+
     this.autocompleteConfig.mentions = [
       this.userMentionConfig,
       this.slashCommandConfig,
     ];
-    this.subscriptions.push(
-      this.messageInputConfigService.customAutocompletes$.subscribe(
-        (customConfigs) => {
-          const builtInItems =
-            this.autocompleteConfig.mentions?.filter(
-              (m) =>
-                m === this.userMentionConfig || m === this.slashCommandConfig,
-            ) ?? [];
-          const transformedCustomConfigs = customConfigs.map((c) => {
-            const copy: Mentions = {
-              items: c.options.map((o) => ({
-                ...o,
-                templateRef: c.templateRef,
-              })),
-              triggerChar: c.triggerCharacter,
-              dropUp: true,
-              labelKey: this.autocompleteKey,
-              returnTrigger: true,
-              allowSpace: c.allowSpace,
-              mentionFilter: (
-                searchString: string,
-                items: { autocompleteLabel: string }[],
-              ) => this.filter(searchString, items),
-              mentionSelect: (item, triggerChar) =>
-                this.itemSelectedFromAutocompleteList(
-                  item as MentionAutcompleteListItem,
-                  triggerChar,
-                ),
-            };
-
-            return copy;
-          });
-
-          this.autocompleteConfig.mentions = [
-            ...builtInItems,
-            ...transformedCustomConfigs,
-          ];
-          this.autocompleteConfig = { ...this.autocompleteConfig };
-        },
-      ),
-    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -274,6 +201,118 @@ export class AutocompleteTextareaComponent
         }
       }, 0);
     }
+    this.cdRef.markForCheck();
+  }
+
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.channelService.activeChannel$
+        .pipe(startWith(undefined), pairwise())
+        .subscribe(([prevChannel, channel]) => {
+          const config = channel?.disconnected
+            ? undefined
+            : channel?.getConfig();
+          const prevConfig = prevChannel?.disconnected
+            ? undefined
+            : prevChannel?.getConfig();
+          if (config !== prevConfig) {
+            const commands = config?.commands || [];
+            this.slashCommandConfig.items = commands.map((c) => ({
+              ...c,
+              [this.autocompleteKey]: c.name,
+              type: 'command',
+            }));
+            this.mentionedUsers = [];
+            this.userMentions.next([...this.mentionedUsers]);
+            void this.updateMentionOptions(this.searchTerm$.getValue());
+            void this.updateCustomAutocompleteOptions(
+              this.searchTerm$.getValue(),
+            );
+            if (this.isViewInited) {
+              this.cdRef.markForCheck();
+            }
+          }
+        }),
+    );
+    this.subscriptions.push(
+      this.emojiInputService.emojiInput$.subscribe((emoji) => {
+        this.messageInput.nativeElement.focus();
+        const { selectionStart } = this.messageInput.nativeElement;
+        this.messageInput.nativeElement.setRangeText(emoji);
+        this.messageInput.nativeElement.selectionStart =
+          selectionStart! + emoji.length;
+        this.messageInput.nativeElement.selectionEnd =
+          selectionStart! + emoji.length;
+        this.inputChanged();
+        if (this.isViewInited) {
+          this.cdRef.markForCheck();
+        }
+      }),
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.mentionAutocompleteItemTemplate$.subscribe(
+        (template) => {
+          this.mentionAutocompleteItemTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
+        },
+      ),
+    );
+    this.subscriptions.push(
+      this.customTemplatesService.commandAutocompleteItemTemplate$.subscribe(
+        (template) => {
+          this.commandAutocompleteItemTemplate = template;
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
+        },
+      ),
+    );
+    this.subscriptions.push(
+      this.messageInputConfigService.customAutocompletes$.subscribe(
+        (customConfigs) => {
+          const builtInItems =
+            this.autocompleteConfig.mentions?.filter(
+              (m) =>
+                m === this.userMentionConfig || m === this.slashCommandConfig,
+            ) ?? [];
+          const transformedCustomConfigs = customConfigs.map((c) => {
+            const copy: Mentions = {
+              items: c.options.map((o) => ({
+                ...o,
+                templateRef: c.templateRef,
+              })),
+              triggerChar: c.triggerCharacter,
+              dropUp: true,
+              labelKey: this.autocompleteKey,
+              returnTrigger: true,
+              allowSpace: c.allowSpace,
+              mentionFilter: (
+                searchString: string,
+                items: { autocompleteLabel: string }[],
+              ) => this.filter(searchString, items),
+              mentionSelect: (item, triggerChar) =>
+                this.itemSelectedFromAutocompleteList(
+                  item as MentionAutcompleteListItem,
+                  triggerChar,
+                ),
+            };
+
+            return copy;
+          });
+
+          this.autocompleteConfig.mentions = [
+            ...builtInItems,
+            ...transformedCustomConfigs,
+          ];
+          this.autocompleteConfig = { ...this.autocompleteConfig };
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
+        },
+      ),
+    );
   }
 
   ngAfterViewInit(): void {
@@ -348,6 +387,7 @@ export class AutocompleteTextareaComponent
     );
     this.messageInput.nativeElement.style.height = '';
     this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+    this.cdRef.markForCheck();
   }
 
   private transliterate(s: string) {
@@ -384,7 +424,7 @@ export class AutocompleteTextareaComponent
       ...(this.autocompleteConfig?.mentions ?? []),
     ];
     this.autocompleteConfig = { ...this.autocompleteConfig };
-    this.cdRef.detectChanges();
+    this.cdRef.markForCheck();
   }
 
   private updateMentionedUsersFromText() {

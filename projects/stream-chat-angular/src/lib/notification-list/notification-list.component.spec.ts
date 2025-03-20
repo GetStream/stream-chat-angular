@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { NotificationService } from '../notification.service';
 import { NotificationComponent } from '../notification/notification.component';
 import { ThemeService } from '../theme.service';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 import { NotificationListComponent } from './notification-list.component';
 
@@ -18,7 +19,11 @@ describe('NotificationListComponent', () => {
       providers: [ThemeService],
       imports: [TranslateModule.forRoot()],
       declarations: [NotificationListComponent, NotificationComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(NotificationListComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

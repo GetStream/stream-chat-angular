@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 import {
   ComponentFixture,
   fakeAsync,
@@ -17,7 +17,11 @@ describe('ModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ModalComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(ModalComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

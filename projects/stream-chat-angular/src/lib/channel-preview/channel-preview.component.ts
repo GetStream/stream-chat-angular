@@ -1,4 +1,12 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Channel, Event, FormatMessageResponse } from 'stream-chat';
@@ -19,8 +27,11 @@ import { DateParserService } from '../date-parser.service';
   selector: 'stream-channel-preview',
   templateUrl: './channel-preview.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChannelPreviewComponent implements OnInit, OnDestroy {
+export class ChannelPreviewComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   /**
    * The channel to be displayed
    */
@@ -35,8 +46,13 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   latestMessage?: FormatMessageResponse;
   displayAs: 'text' | 'html';
   userId?: string;
+  avatarImage: string | undefined;
+  avatarName: string | undefined;
+  title: string | undefined = '';
+
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
   private canSendReadEvents = true;
+  private isViewInitialized = false;
 
   constructor(
     private channelService: ChannelService,
@@ -44,6 +60,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     messageService: MessageService,
     public customTemplatesService: CustomTemplatesService,
     private dateParser: DateParserService,
+    private cdRef: ChangeDetectorRef,
   ) {
     this.displayAs = messageService.displayAs;
   }
@@ -53,14 +70,22 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.chatClientService.user$.subscribe((user) => {
         if (user?.id !== this.userId) {
           this.userId = user?.id;
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
         }
       }),
     );
     this.subscriptions.push(
-      this.channelService.activeChannel$.subscribe(
-        (activeChannel) =>
-          (this.isActive = activeChannel?.id === this.channel?.id),
-      ),
+      this.channelService.activeChannel$.subscribe((activeChannel) => {
+        const isActive = activeChannel?.id === this.channel?.id;
+        if (isActive !== this.isActive) {
+          this.isActive = isActive;
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
+        }
+      }),
     );
     const messages = this.channel?.state?.latestMessages;
     if (messages && messages.length > 0) {
@@ -70,21 +95,42 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     const capabilities =
       (this.channel?.data?.own_capabilities as string[]) || [];
     this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
+
+    this.updateChannelProperties();
+
     this.subscriptions.push(
-      this.channel!.on('message.new', this.handleMessageEvent.bind(this)),
+      this.channel!.on('message.new', (event) => {
+        this.handleMessageEvent(event);
+      }),
     );
     this.subscriptions.push(
-      this.channel!.on('message.updated', this.handleMessageEvent.bind(this)),
+      this.channel!.on('message.updated', (event) => {
+        this.handleMessageEvent(event);
+      }),
     );
     this.subscriptions.push(
-      this.channel!.on('message.deleted', this.handleMessageEvent.bind(this)),
+      this.channel!.on('message.deleted', (event) => {
+        this.handleMessageEvent(event);
+      }),
     );
     this.subscriptions.push(
-      this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this)),
+      this.channel!.on('channel.truncated', (event) => {
+        this.handleMessageEvent(event);
+      }),
+    );
+    this.subscriptions.push(
+      this.channel!.on('channel.updated', (event) => {
+        this.handleChannelUpdatedEvent(event);
+      }),
     );
     this.subscriptions.push(
       this.channel!.on('message.read', () => {
-        this.isUnreadMessageWasCalled = false;
+        if (this.isUnreadMessageWasCalled) {
+          this.isUnreadMessageWasCalled = false;
+          if (this.isViewInitialized) {
+            this.cdRef.markForCheck();
+          }
+        }
         this.updateUnreadState();
       }),
     );
@@ -98,32 +144,23 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           ),
         )
         .subscribe(() => {
-          this.isUnreadMessageWasCalled = true;
+          if (!this.isUnreadMessageWasCalled) {
+            this.isUnreadMessageWasCalled = true;
+            if (this.isViewInitialized) {
+              this.cdRef.markForCheck();
+            }
+          }
           this.updateUnreadState();
         }),
     );
   }
 
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-  }
-
-  get avatarImage() {
-    return this.channel?.data?.image;
-  }
-
-  get avatarName() {
-    return this.channel?.data?.name;
-  }
-
-  get title() {
-    if (!this.channel) {
-      return '';
-    }
-    return getChannelDisplayText(
-      this.channel,
-      this.chatClientService.chatClient.user!,
-    );
   }
 
   setAsActiveChannel(): void {
@@ -136,6 +173,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.latestMessageStatus = undefined;
       this.latestMessageText = 'streamChat.Nothing yet...';
       this.latestMessageTime = undefined;
+      if (this.isViewInitialized) {
+        this.cdRef.markForCheck();
+      }
       return;
     }
     const latestMessage =
@@ -150,32 +190,53 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private setLatestMessage(message?: FormatMessageResponse) {
-    this.latestMessage = message;
+    let shouldUpdate = false;
+    if (this.latestMessage?.id !== message?.id) {
+      this.latestMessage = message;
+      shouldUpdate = true;
+    }
+    let latestMessageText = this.latestMessageText;
     if (message?.deleted_at) {
-      this.latestMessageText = 'streamChat.Message deleted';
+      latestMessageText = 'streamChat.Message deleted';
     } else if (message?.text) {
-      this.latestMessageText =
+      latestMessageText =
         getMessageTranslation(
           message,
           this.channel,
           this.chatClientService.chatClient.user,
         ) || message.text;
     } else if (message?.attachments && message.attachments.length) {
-      this.latestMessageText = 'streamChat.🏙 Attachment...';
+      latestMessageText = 'streamChat.🏙 Attachment...';
     }
+    if (latestMessageText !== this.latestMessageText) {
+      this.latestMessageText = latestMessageText;
+      shouldUpdate = true;
+    }
+    let latestMessageTime = this.latestMessageTime;
     if (this.latestMessage && this.latestMessage.type === 'regular') {
-      this.latestMessageTime = isOnSeparateDate(
+      latestMessageTime = isOnSeparateDate(
         new Date(),
         this.latestMessage.created_at,
       )
         ? this.dateParser.parseDate(this.latestMessage.created_at)
         : this.dateParser.parseTime(this.latestMessage.created_at);
     } else {
-      this.latestMessageTime = undefined;
+      latestMessageTime = undefined;
+    }
+    if (latestMessageTime !== this.latestMessageTime) {
+      this.latestMessageTime = latestMessageTime;
+      shouldUpdate = true;
+    }
+    if (shouldUpdate) {
+      if (this.isViewInitialized) {
+        this.cdRef.markForCheck();
+      }
     }
   }
 
   private updateUnreadState() {
+    let shouldUpdate = false;
+    let latestMessageStatus = this.latestMessageStatus;
     if (
       this.channel &&
       this.latestMessage &&
@@ -183,22 +244,84 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.latestMessage.status === 'received' &&
       this.latestMessage.type === 'regular'
     ) {
-      this.latestMessageStatus =
+      latestMessageStatus =
         getReadBy(this.latestMessage, this.channel).length > 0
           ? 'read'
           : 'delivered';
     } else {
-      this.latestMessageStatus = undefined;
+      latestMessageStatus = undefined;
     }
+    if (latestMessageStatus !== this.latestMessageStatus) {
+      this.latestMessageStatus = latestMessageStatus;
+      shouldUpdate = true;
+    }
+    let unreadCount = this.unreadCount;
+    let isUnread = this.isUnread;
     if (
       (this.isActive && !this.isUnreadMessageWasCalled) ||
       !this.canSendReadEvents
     ) {
-      this.unreadCount = 0;
-      this.isUnread = false;
+      unreadCount = 0;
+      isUnread = false;
+    } else {
+      unreadCount = this.channel!.countUnread();
+      isUnread = !!unreadCount;
+    }
+
+    if (unreadCount !== this.unreadCount) {
+      this.unreadCount = unreadCount;
+      shouldUpdate = true;
+    }
+    if (isUnread !== this.isUnread) {
+      this.isUnread = isUnread;
+      shouldUpdate = true;
+    }
+    if (shouldUpdate) {
+      if (this.isViewInitialized) {
+        this.cdRef.markForCheck();
+      }
+    }
+  }
+
+  private handleChannelUpdatedEvent(event: Event) {
+    if (!this.channel || !event.channel) {
       return;
     }
-    this.unreadCount = this.channel!.countUnread();
-    this.isUnread = !!this.unreadCount;
+
+    this.updateChannelProperties();
+  }
+
+  private updateChannelProperties() {
+    let shouldUpdate = false;
+    const avatarImage = this.channel?.data?.image;
+    const avatarName = this.channel?.data?.name;
+
+    if (avatarImage !== this.avatarImage) {
+      this.avatarImage = avatarImage;
+      shouldUpdate = true;
+    }
+    if (avatarName !== this.avatarName) {
+      this.avatarName = avatarName;
+      shouldUpdate = true;
+    }
+
+    let title = this.title;
+    if (!this.channel) {
+      title = '';
+    } else {
+      title = getChannelDisplayText(
+        this.channel,
+        this.chatClientService.chatClient.user!,
+      );
+    }
+    if (title !== this.title) {
+      this.title = title;
+      shouldUpdate = true;
+    }
+    if (shouldUpdate) {
+      if (this.isViewInitialized) {
+        this.cdRef.markForCheck();
+      }
+    }
   }
 }

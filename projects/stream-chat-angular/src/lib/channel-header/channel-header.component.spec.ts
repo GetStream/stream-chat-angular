@@ -8,6 +8,7 @@ import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import { StreamI18nService } from '../stream-i18n.service';
 import { ChannelHeaderComponent } from './channel-header.component';
+import { ChangeDetectionStrategy } from '@angular/core';
 
 describe('ChannelHeaderComponent', () => {
   let fixture: ComponentFixture<ChannelHeaderComponent>;
@@ -36,6 +37,8 @@ describe('ChannelHeaderComponent', () => {
         { provide: ChannelService, useValue: channelServiceMock },
         { provide: ChatClientService, useValue: chatClientServiceMock },
       ],
+    }).overrideComponent(ChannelHeaderComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default },
     });
     TestBed.inject(StreamI18nService).setTranslation();
     fixture = TestBed.createComponent(ChannelHeaderComponent);

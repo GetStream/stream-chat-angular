@@ -1,4 +1,9 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+} from '@angular/core';
 import { Icon } from '../icon.component';
 import { IconContext } from '../../types';
 import { CustomTemplatesService } from '../../custom-templates.service';
@@ -10,6 +15,7 @@ import { CustomTemplatesService } from '../../custom-templates.service';
   selector: 'stream-icon-placeholder',
   templateUrl: './icon-placeholder.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconPlaceholderComponent implements OnChanges {
   /**

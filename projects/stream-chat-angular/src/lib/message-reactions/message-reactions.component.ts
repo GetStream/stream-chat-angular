@@ -1,14 +1,13 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ElementRef,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild,
 } from '@angular/core';
 import {
   ReactionGroupResponse,
@@ -26,6 +25,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'stream-message-reactions',
   templateUrl: './message-reactions.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageReactionsComponent
   implements OnChanges, OnInit, AfterViewInit, OnDestroy
@@ -55,9 +55,6 @@ export class MessageReactionsComponent
    * List of the user's own reactions of a [message](/chat/docs/sdk/angular/v6-rc/types/stream-message/), used to display the users of a reaction type.
    */
   @Input() ownReactions: ReactionResponse[] = [];
-  @ViewChild('selectorContainer') private selectorContainer:
-    | ElementRef<HTMLElement>
-    | undefined;
   selectedReactionType: string | undefined;
   isLoading = true;
   reactions: ReactionResponse[] = [];
@@ -99,7 +96,7 @@ export class MessageReactionsComponent
         this.reactionOptions = Object.keys(reactions);
         this.setExistingReactions();
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
       }),
     );
@@ -162,7 +159,7 @@ export class MessageReactionsComponent
       this.isLoading = false;
     }
     if (this.isViewInited) {
-      this.cdRef.detectChanges();
+      this.cdRef.markForCheck();
     }
   }
 

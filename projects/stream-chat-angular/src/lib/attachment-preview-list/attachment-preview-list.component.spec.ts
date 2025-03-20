@@ -5,6 +5,7 @@ import { AttachmentUpload, CustomAttachmentPreviewListContext } from '../types';
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   TemplateRef,
   ViewChild,
@@ -25,7 +26,11 @@ describe('AttachmentPreviewListComponent', () => {
     attachmentUploads$ = new BehaviorSubject<AttachmentUpload[]>([]);
     await TestBed.configureTestingModule({
       declarations: [AttachmentPreviewListComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(AttachmentPreviewListComponent, {
+        set: { changeDetection: ChangeDetectionStrategy.Default },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {

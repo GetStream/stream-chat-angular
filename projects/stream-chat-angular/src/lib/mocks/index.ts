@@ -225,7 +225,7 @@ export type MockChannelService = {
   hasMoreChannels$: Subject<boolean>;
   channels$: Subject<Channel[] | undefined>;
   activeChannelMessages$: BehaviorSubject<StreamMessage[]>;
-  activeChannel$: Subject<Channel>;
+  activeChannel$: Subject<Channel | undefined>;
   activeThreadMessages$: BehaviorSubject<StreamMessage[]>;
   activeParentMessageId$: BehaviorSubject<string | undefined>;
   activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
@@ -267,7 +267,9 @@ export const mockChannelService = (): MockChannelService => {
   activeChannel.state.messages = messages;
   activeChannel.state.latestMessages = messages;
   const activeChannelMessages = messages;
-  const activeChannel$ = new BehaviorSubject<Channel>(activeChannel);
+  const activeChannel$ = new BehaviorSubject<Channel | undefined>(
+    activeChannel,
+  );
   const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
   const hasMoreChannels$ = new ReplaySubject<boolean>(1);
   const jumpToMessage$ = new BehaviorSubject<{

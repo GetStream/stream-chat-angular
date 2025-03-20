@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -20,6 +22,7 @@ import { Attachment } from 'stream-chat';
   selector: 'stream-attachment-preview-list',
   templateUrl: './attachment-preview-list.component.html',
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AttachmentPreviewListComponent implements OnInit, OnDestroy {
   /**
@@ -41,18 +44,23 @@ export class AttachmentPreviewListComponent implements OnInit, OnDestroy {
   constructor(
     private customTemplateService: CustomTemplatesService,
     public readonly attachmentService: AttachmentService,
+    private cdRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.subscriptions.push(
       this.customTemplateService.customAttachmentPreviewListTemplate$.subscribe(
-        (t) => (this.customAttachmentsPreview = t),
+        (t) => {
+          this.customAttachmentsPreview = t;
+          this.cdRef.markForCheck();
+        },
       ),
     );
     this.subscriptions.push(
-      this.attachmentService.customAttachments$.subscribe(
-        (a) => (this.customAttachments = a),
-      ),
+      this.attachmentService.customAttachments$.subscribe((a) => {
+        this.customAttachments = a;
+        this.cdRef.markForCheck();
+      }),
     );
   }
 
@@ -66,9 +74,5 @@ export class AttachmentPreviewListComponent implements OnInit, OnDestroy {
 
   attachmentDeleted(upload: AttachmentUpload) {
     this.deleteAttachment.emit(upload);
-  }
-
-  trackByFile(_: number, item: AttachmentUpload) {
-    return item.file;
   }
 }

@@ -221,7 +221,7 @@ export class MessageListComponent
           this.setMessages$();
           this.channelId = channel?.id;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
         if (this.mode === 'main') {
@@ -261,21 +261,21 @@ export class MessageListComponent
                   ) {
                     this.isUnreadNotificationVisible = true;
                     if (this.isViewInited) {
-                      this.cdRef.detectChanges();
+                      this.cdRef.markForCheck();
                     }
                   }
                 }, 100);
               }
             }
             if (this.isViewInited) {
-              this.cdRef.detectChanges();
+              this.cdRef.markForCheck();
             }
           }
         } else if (this.lastReadMessageId) {
           this.lastReadMessageId = undefined;
           this.unreadCount = 0;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
         const capabilites = channel?.data?.own_capabilities as string[];
@@ -286,7 +286,7 @@ export class MessageListComponent
         if (capabilitesString !== enabledActionsString) {
           this.enabledMessageActions = capabilites || [];
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
         this.newMessageSubscription?.unsubscribe();
@@ -320,7 +320,7 @@ export class MessageListComponent
         }
         this.parentMessage = message;
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
       }),
     );
@@ -331,7 +331,7 @@ export class MessageListComponent
         }
         this.messageTemplate = template;
         if (this.isViewInited) {
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }
       }),
     );
@@ -343,7 +343,7 @@ export class MessageListComponent
           }
           this.customDateSeparatorTemplate = template;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -356,7 +356,7 @@ export class MessageListComponent
           }
           this.customnewMessagesIndicatorTemplate = template;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -369,7 +369,7 @@ export class MessageListComponent
           }
           this.customnewMessagesNotificationTemplate = template;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -382,7 +382,7 @@ export class MessageListComponent
           }
           this.typingIndicatorTemplate = template;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -393,7 +393,7 @@ export class MessageListComponent
           const isChanged = this.emptyMainMessageListTemplate !== template;
           this.emptyMainMessageListTemplate = template || null;
           if (isChanged && this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -404,7 +404,7 @@ export class MessageListComponent
           const isChanged = this.emptyThreadMessageListTemplate !== template;
           this.emptyThreadMessageListTemplate = template || null;
           if (isChanged && this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         },
       ),
@@ -682,7 +682,7 @@ export class MessageListComponent
         if (mappedState !== this.loadingState) {
           this.loadingState = mappedState;
           if (this.isViewInited) {
-            this.cdRef.detectChanges();
+            this.cdRef.markForCheck();
           }
         }
       },
@@ -844,7 +844,7 @@ export class MessageListComponent
           this.firstUnreadMessageId = undefined;
           this.isJumpingToLatestUnreadMessage = false;
           this.jumpToMessageTimeouts = [];
-          this.cdRef.detectChanges();
+          this.cdRef.markForCheck();
         }, 1000),
       );
     } else {
@@ -882,7 +882,7 @@ export class MessageListComponent
     }
 
     if (shouldDetectChanges && this.isViewInited) {
-      this.cdRef.detectChanges();
+      this.cdRef.markForCheck();
     }
   }
 

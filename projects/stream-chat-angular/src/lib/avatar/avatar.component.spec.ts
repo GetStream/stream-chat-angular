@@ -1,4 +1,4 @@
-import { SimpleChange } from '@angular/core';
+import { ChangeDetectionStrategy, SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, Subject, of } from 'rxjs';
 import { ChatClientService, ClientEvent } from '../chat-client.service';
@@ -33,6 +33,10 @@ describe('AvatarComponent', () => {
       providers: [
         { provide: ChatClientService, useValue: chatClientServiceMock },
       ],
+    }).overrideComponent(AvatarComponent, {
+      set: {
+        changeDetection: ChangeDetectionStrategy.Default,
+      },
     });
     fixture = TestBed.createComponent(AvatarComponent);
     component = fixture.componentInstance;
@@ -230,6 +234,9 @@ describe('AvatarComponent', () => {
     expect(queryImg()?.src).toContain('url/to/img');
 
     component.imageUrl = 'channel/img';
+    component.ngOnChanges({
+      imageUrl: {} as SimpleChange,
+    });
     fixture.detectChanges();
 
     expect(queryImg()?.src).toContain('channel/img');
