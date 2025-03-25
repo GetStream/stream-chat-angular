@@ -511,6 +511,9 @@ export class MessageComponent
     this.readByText = this.message?.readBy
       ? listUsers(this.message.readBy, !hasMoreThan100Members, others)
       : '';
+    if (this.isViewInited) {
+      this.cdRef.markForCheck();
+    }
   }
 
   private setIsSentByCurrentUser() {

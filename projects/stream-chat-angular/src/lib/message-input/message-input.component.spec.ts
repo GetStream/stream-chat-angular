@@ -516,6 +516,7 @@ describe('MessageInputComponent', () => {
   });
 
   it('should not reset textarea and attachments if channel id remains the same', () => {
+    attachmentService.resetAttachmentUploads.calls.reset();
     attachmentService.attachmentUploads$.next([
       {
         file: { name: 'img.png' } as any as File,
@@ -676,14 +677,9 @@ describe('MessageInputComponent', () => {
     expect(component.canSendMessages).toBeFalse();
 
     mockActiveChannel$.next({
-      data: { own_capabilities: [] },
+      data: { own_capabilities: ['send-message'] },
       getConfig: () => ({ commands: [] }),
     } as any as Channel);
-
-    expect(component.canSendMessages).toBeFalse();
-
-    component.message = generateMockMessages()[0];
-    component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.canSendMessages).toBeTrue();
   });

@@ -220,6 +220,16 @@ export class MessageListComponent
           this.resetScrollState();
           this.setMessages$();
           this.channelId = channel?.id;
+          this.newMessageSubscription?.unsubscribe();
+          if (channel) {
+            this.newMessageSubscription = channel.on('message.new', (event) => {
+              if (!event.message) {
+                return;
+              } else {
+                this.newMessageReceived(event.message);
+              }
+            });
+          }
           if (this.isViewInited) {
             this.cdRef.markForCheck();
           }
@@ -288,16 +298,6 @@ export class MessageListComponent
           if (this.isViewInited) {
             this.cdRef.markForCheck();
           }
-        }
-        this.newMessageSubscription?.unsubscribe();
-        if (channel) {
-          this.newMessageSubscription = channel.on('message.new', (event) => {
-            if (!event.message) {
-              return;
-            } else {
-              this.newMessageReceived(event.message);
-            }
-          });
         }
       }),
     );

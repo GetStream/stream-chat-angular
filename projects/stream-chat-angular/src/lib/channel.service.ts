@@ -1318,12 +1318,7 @@ export class ChannelService {
       ),
     );
     this.activeChannelSubscriptions.push(
-      channel.on('capabilities.changed', (_) => {
-        this.activeChannelSubject.next(this.activeChannelSubject.getValue());
-      }),
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('channel.updated', (_) => {
+      channel.on(() => {
         this.activeChannelSubject.next(this.activeChannelSubject.getValue());
       }),
     );
