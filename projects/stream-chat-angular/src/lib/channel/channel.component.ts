@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { ChannelService } from '../channel.service';
 import { ThemeService } from '../theme.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -49,6 +49,7 @@ export class ChannelComponent {
     this.theme$ = this.themeService.theme$;
     this.isActiveChannel$ = this.channelService.activeChannel$.pipe(
       map((c) => !!c),
+      distinctUntilChanged(),
     );
   }
 }

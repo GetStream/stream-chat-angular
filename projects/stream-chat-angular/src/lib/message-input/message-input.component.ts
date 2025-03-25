@@ -149,7 +149,8 @@ export class MessageInputComponent
   private subscriptions: Subscription[] = [];
   private hideNotification: (() => void) | undefined;
   private isViewInited = false;
-  private channel: Channel | undefined;
+  private channelId: string | undefined;
+  private channelCapabilities: string[] = [];
   private sendMessageSubcription: Subscription | undefined;
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
@@ -186,21 +187,34 @@ export class MessageInputComponent
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
-        if (channel && this.channel && channel.id !== this.channel.id) {
+        const newChannelId = channel?.id;
+        const newCapabilities =
+          (channel?.data?.own_capabilities as string[]) || [];
+
+        const channelIdChanged = this.channelId !== newChannelId;
+
+        const capabilitiesChanged =
+          newCapabilities.join(',') !== this.channelCapabilities.join(',');
+
+        if (channelIdChanged) {
+          this.channelId = newChannelId;
           this.textareaValue = '';
           this.attachmentService.resetAttachmentUploads();
           this.voiceRecorderService.isRecorderVisible$.next(false);
         }
-        const capabilities = channel?.data?.own_capabilities as string[];
-        if (capabilities) {
+
+        if (capabilitiesChanged) {
+          this.channelCapabilities = newCapabilities;
           this.isFileUploadAuthorized =
-            capabilities.indexOf('upload-file') !== -1;
-          this.canSendLinks = capabilities.indexOf('send-links') !== -1;
-          this.channel = channel;
+            newCapabilities.indexOf('upload-file') !== -1;
+          this.canSendLinks = newCapabilities.indexOf('send-links') !== -1;
           this.setCanSendMessages();
         }
-        if (this.isViewInited) {
-          this.cdRef.markForCheck();
+
+        if (channelIdChanged || capabilitiesChanged) {
+          if (this.isViewInited) {
+            this.cdRef.markForCheck();
+          }
         }
       }),
     );
@@ -591,12 +605,11 @@ export class MessageInputComponent
   }
 
   private setCanSendMessages() {
-    const capabilities = this.channel?.data?.own_capabilities as string[];
-    if (!capabilities) {
+    if (!this.channelCapabilities || this.channelCapabilities.length === 0) {
       this.canSendMessages = false;
     } else {
       this.canSendMessages =
-        capabilities.indexOf(
+        this.channelCapabilities.indexOf(
           this.mode === 'main' ? 'send-message' : 'send-reply',
         ) !== -1 || this.isUpdate;
     }
