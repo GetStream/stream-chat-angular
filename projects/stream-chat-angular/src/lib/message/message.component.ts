@@ -291,11 +291,7 @@ export class MessageComponent
     }
     this.subscriptions.push(
       this.messageActionsService.messageMenuOpenedFor$.subscribe((id) => {
-        if (this.message && this.message.id === id) {
-          if (!this.areMessageOptionsOpen) {
-            this.messageMenuTrigger?.show();
-          }
-        } else if (
+        if (
           (id === undefined || this.message?.id !== id) &&
           this.areMessageOptionsOpen
         ) {
