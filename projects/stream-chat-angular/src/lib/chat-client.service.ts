@@ -44,7 +44,7 @@ export class ChatClientService {
    */
   connectionState$: Observable<'offline' | 'online'>;
   /**
-   * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](/chat/docs/sdk/angular/v6-rc/code-examples/channel-invites/) guide.
+   * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](/chat/docs/sdk/angular/v7-rc/code-examples/channel-invites/) guide.
    */
   pendingInvites$: Observable<Channel[]>;
   /**
@@ -174,7 +174,7 @@ export class ChatClientService {
   }
 
   /**
-   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/v6-rc/services/ChannelService/#reset/).
+   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/v7-rc/services/ChannelService/#reset/).
    */
   async disconnectUser() {
     this.pendingInvitesSubject.next([]);

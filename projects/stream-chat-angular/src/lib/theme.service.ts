@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 /**
- * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [theming guide](/chat/docs/sdk/angular/v6-rc/theming/themingv2/) gives a complete overview about the topic.
+ * The `ThemeService` can be used to change the theme of the chat UI and to customize the theme. Our [theming guide](/chat/docs/sdk/angular/v7-rc/theming/themingv2/) gives a complete overview about the topic.
  */
 @Injectable({
   providedIn: 'root',

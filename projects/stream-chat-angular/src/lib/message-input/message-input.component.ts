@@ -61,15 +61,15 @@ export class MessageInputComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
-   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService/).
+   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v7-rc/services/MessageInputConfigService/).
    */
   @Input() isFileUploadEnabled: boolean | undefined;
   /**
-   * If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](/chat/docs/sdk/angular/v6-rc/concepts/opt-in-architecture/) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService/).
+   * If true, users can mention other users in messages. You also [need to use the `AutocompleteTextarea`](/chat/docs/sdk/angular/v7-rc/concepts/opt-in-architecture/) for this feature to work. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v7-rc/services/MessageInputConfigService/).
    */
   @Input() areMentionsEnabled: boolean | undefined;
   /**
-   * The scope for user mentions, either members of the current channel of members of the application. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService/).
+   * The scope for user mentions, either members of the current channel of members of the application. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v7-rc/services/MessageInputConfigService/).
    */
   @Input() mentionScope: 'channel' | 'application' | undefined;
   /**
@@ -77,7 +77,7 @@ export class MessageInputComponent
    */
   @Input() mode: 'thread' | 'main' = 'main';
   /**
-   * If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService/).
+   * If true, users can select multiple files to upload. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v7-rc/services/MessageInputConfigService/).
    */
   @Input() isMultipleFileUploadEnabled: boolean | undefined;
   /**
@@ -89,7 +89,7 @@ export class MessageInputComponent
    */
   @Input() sendMessage$: Observable<void> | undefined;
   /**
-   * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v6-rc/services/MessageInputConfigService/).
+   * In `desktop` mode the `Enter` key will trigger message sending, in `mobile` mode the `Enter` key will insert a new line to the message input. If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/v7-rc/services/MessageInputConfigService/).
    */
   @Input() inputMode: 'desktop' | 'mobile';
   /**
@@ -97,7 +97,7 @@ export class MessageInputComponent
    */
   @Input() autoFocus = true;
   /**
-   * By default the input will react to changes in `messageToEdit$` from [`MessageActionsService`](/chat/docs/sdk/angular/v6-rc/services/MessageActionsService/) and display the message to be edited (taking into account the current `mode`).
+   * By default the input will react to changes in `messageToEdit$` from [`MessageActionsService`](/chat/docs/sdk/angular/v7-rc/services/MessageActionsService/) and display the message to be edited (taking into account the current `mode`).
    *
    * If you don't need that behavior, you can turn this of with this flag. In that case you should create your own edit message UI.
    */

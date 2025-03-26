@@ -7,7 +7,7 @@ import {
 import { NotificationType } from '../types';
 
 /**
- * The `Notification` component displays a notification within the [`NotificationList`](/chat/docs/sdk/angular/v6-rc/components/NotificationListComponent/)
+ * The `Notification` component displays a notification within the [`NotificationList`](/chat/docs/sdk/angular/v7-rc/components/NotificationListComponent/)
  */
 @Component({
   selector: 'stream-notification',
