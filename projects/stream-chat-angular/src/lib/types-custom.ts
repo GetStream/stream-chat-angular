@@ -1,5 +1,6 @@
 export interface DefaultChannelData {
   image?: string;
+  name?: string;
 }
 
 export interface DefaultAttachmentData {
