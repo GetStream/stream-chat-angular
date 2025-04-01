@@ -8,7 +8,7 @@ import {
   ChannelResponse,
   ChannelSort,
   Event,
-  FormatMessageResponse,
+  LocalMessage,
   Message,
   ReactionResponse,
   SendMessageAPIResponse,
@@ -1382,7 +1382,9 @@ describe('ChannelService', () => {
     void service.updateMessage(message);
 
     expect(mockChatClient.updateMessage).not.toHaveBeenCalledWith();
-    expect(channel.sendMessage).not.toHaveBeenCalledWith(message as Message);
+    expect(channel.sendMessage).not.toHaveBeenCalledWith(
+      message as unknown as Message
+    );
   });
 
   it('should update message - #beforeUpdateMessage is provided', async () => {
@@ -2356,7 +2358,7 @@ describe('ChannelService', () => {
     activeChannel.state.latestMessages = [
       {
         id: 'last-read-message-id',
-      } as any as FormatMessageResponse,
+      } as any as LocalMessage,
     ];
 
     service.setAsActiveChannel(activeChannel);

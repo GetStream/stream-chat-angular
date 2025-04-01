@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { FormatMessageResponse } from 'stream-chat';
+import { LocalMessage } from 'stream-chat';
 import { ChatClientService } from 'stream-chat-angular';
 
 @Component({
@@ -8,7 +8,7 @@ import { ChatClientService } from 'stream-chat-angular';
   styleUrls: ['./custom-message.component.scss'],
 })
 export class CustomMessageComponent {
-  @Input() message: FormatMessageResponse | undefined;
+  @Input() message: LocalMessage | undefined;
   userId: string | undefined;
 
   constructor(private chatClientService: ChatClientService) {

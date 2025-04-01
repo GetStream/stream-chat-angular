@@ -7,8 +7,8 @@ import type {
   ChannelMemberResponse,
   CommandResponse,
   CustomMessageData,
-  FormatMessageResponse,
-  MessageResponseBase,
+  LocalMessage,
+  LocalMessageBase,
   ReactionGroupResponse,
   ReactionResponse,
   User,
@@ -26,11 +26,11 @@ export type CustomTrigger = {
   };
 };
 
-export type StreamMessage = FormatMessageResponse & {
+export type StreamMessage = LocalMessage & {
   readBy: UserResponse[];
   translation?: string;
   errorStatusCode?: number;
-  quoted_message?: MessageResponseBase & { translation?: string };
+  quoted_message?: LocalMessage & { translation?: string };
 };
 
 export type AttachmentUploadErrorReason =
@@ -461,7 +461,7 @@ export type CustomAutocomplete = {
 };
 
 export type MessageTextContext = {
-  message: StreamMessage | undefined | MessageResponseBase;
+  message: StreamMessage | undefined | LocalMessageBase;
   isQuoted: boolean;
   shouldTranslate: boolean;
 };

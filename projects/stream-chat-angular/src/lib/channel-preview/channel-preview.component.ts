@@ -1,7 +1,7 @@
 import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Channel, Event, FormatMessageResponse } from 'stream-chat';
+import { Channel, Event, LocalMessage } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChatClientService } from '../chat-client.service';
@@ -32,7 +32,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   latestMessageText: string = 'streamChat.Nothing yet...';
   latestMessageStatus?: 'delivered' | 'read';
   latestMessageTime?: string;
-  latestMessage?: FormatMessageResponse;
+  latestMessage?: LocalMessage;
   displayAs: 'text' | 'html';
   userId?: string;
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
@@ -156,7 +156,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setLatestMessage(message?: FormatMessageResponse) {
+  private setLatestMessage(message?: LocalMessage) {
     this.latestMessage = message;
     if (message?.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';
