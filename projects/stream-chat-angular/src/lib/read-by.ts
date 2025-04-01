@@ -1,6 +1,6 @@
-import { Channel, FormatMessageResponse, UserResponse } from 'stream-chat';
+import { Channel, LocalMessage, UserResponse } from 'stream-chat';
 
-export const getReadBy = (message: FormatMessageResponse, channel: Channel) => {
+export const getReadBy = (message: LocalMessage, channel: Channel) => {
   const readBy: UserResponse[] = [];
   Object.keys(channel.state.read).forEach((key) => {
     if (

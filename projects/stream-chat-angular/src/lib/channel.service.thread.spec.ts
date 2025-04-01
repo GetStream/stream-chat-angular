@@ -119,6 +119,7 @@ describe('ChannelService - threads', () => {
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
     } as any as GetRepliesAPIResponse);
+    channel.state.threads[parentMessage.id] = replies;
     await service.setAsActiveParentMessage(parentMessage);
 
     expect(messagesSpy).toHaveBeenCalledWith(replies);
@@ -252,6 +253,7 @@ describe('ChannelService - threads', () => {
     spyOn(channel, 'getReplies').and.resolveTo({
       messages: replies,
     } as any as GetRepliesAPIResponse);
+    channel.state.threads[message.id] = replies;
     await service.setAsActiveParentMessage(message);
     let threadMessages!: StreamMessage[];
     service.activeThreadMessages$.subscribe((m) => (threadMessages = m));
@@ -273,6 +275,7 @@ describe('ChannelService - threads', () => {
       messages: replies,
     } as any as GetRepliesAPIResponse);
     replies[0].id = 'firstreply';
+    channel.state.threads[parentMessage.id] = replies;
     await service.setAsActiveParentMessage(parentMessage);
     let threadMessages!: StreamMessage[];
     (channel.getReplies as jasmine.Spy).calls.reset();
@@ -492,6 +495,7 @@ describe('ChannelService - threads', () => {
     spyOn(activeChannel, 'getReplies').and.resolveTo({
       messages: replies,
     } as any as GetRepliesAPIResponse);
+    activeChannel.state.threads[parentMessage.id] = replies;
     await service.setAsActiveParentMessage(parentMessage);
     const message = replies[1];
     (activeChannel as MockChannel).handleEvent('reaction.new', { message });

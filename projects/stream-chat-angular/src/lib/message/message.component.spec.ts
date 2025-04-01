@@ -5,7 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { MessageResponseBase, UserResponse } from 'stream-chat';
+import { LocalMessage, UserResponse } from 'stream-chat';
 import { StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -869,7 +869,7 @@ describe('MessageComponent', () => {
   describe('quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
-    let quotedMessage: StreamMessage;
+    let quotedMessage: LocalMessage;
 
     beforeEach(() => {
       quotedMessage = mockMessage();
@@ -879,11 +879,12 @@ describe('MessageComponent', () => {
         name: 'Sara',
         image: 'http://url/to/img',
       };
+      quotedMessage.error = undefined;
       quotedMessage.attachments = [{ image_url: '1' }, { image_url: '2' }];
       quotedMessage.text = 'This message was quoted';
       component.message = {
         ...component.message!,
-        quoted_message: quotedMessage as any as MessageResponseBase,
+        quoted_message: quotedMessage,
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();

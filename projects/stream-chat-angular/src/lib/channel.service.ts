@@ -18,12 +18,11 @@ import {
   CustomReactionData,
   Event,
   EventTypes,
-  FormatMessageResponse,
+  LocalMessage,
   MemberFilters,
   Message,
   MessageResponse,
   ReactionResponse,
-  UpdatedMessage,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
@@ -323,7 +322,7 @@ export class ChannelService {
     undefined
   );
   private activeChannelMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage | LocalMessage)[]
   >([]);
   private activeChannelPinnedMessagesSubject = new BehaviorSubject<
     StreamMessage[]
@@ -335,7 +334,7 @@ export class ChannelService {
     string | undefined
   >(undefined);
   private activeThreadMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage | LocalMessage)[]
   >([]);
   private jumpToMessageSubject = new BehaviorSubject<{
     id?: string;
@@ -637,10 +636,12 @@ export class ChannelService {
       this.activeParentMessageIdSubject.next(message.id);
       const activeChannel = this.activeChannelSubject.getValue();
       if (loadMessagesForm === 'request') {
-        const result = await activeChannel?.getReplies(message.id, {
+        await activeChannel?.getReplies(message.id, {
           limit: this.messagePageSize,
         });
-        this.activeThreadMessagesSubject.next(result?.messages || []);
+        this.activeThreadMessagesSubject.next(
+          activeChannel?.state.threads[message.id] || []
+        );
       } else {
         this.activeThreadMessagesSubject.next(
           activeChannel?.state.threads[message.id] || []
@@ -915,7 +916,7 @@ export class ChannelService {
       return this.resendMessage(message);
     }
     const response = await this.chatClientService.chatClient.updateMessage(
-      messageToUpdate as unknown as UpdatedMessage
+      messageToUpdate
     );
 
     const channel = this.channelsSubject
@@ -1750,7 +1751,7 @@ export class ChannelService {
         return;
       }
       // Get messages from state as message order could change, and message could've been deleted
-      const messages: FormatMessageResponse[] = isThreadReply
+      const messages: LocalMessage[] = isThreadReply
         ? channel.state.threads[event?.message?.parent_id || '']
         : channel.state.messages;
       if (!messages) {
@@ -1799,7 +1800,7 @@ export class ChannelService {
   }
 
   private formatMessage(message: MessageResponse) {
-    const m = message as unknown as FormatMessageResponse;
+    const m = message as unknown as LocalMessage;
     m.pinned_at = message.pinned_at ? new Date(message.pinned_at) : null;
     m.created_at = message.created_at
       ? new Date(message.created_at)
@@ -1813,14 +1814,14 @@ export class ChannelService {
   }
 
   private isStreamMessage(
-    message: StreamMessage | FormatMessageResponse | MessageResponse
+    message: StreamMessage | LocalMessage | MessageResponse
   ): message is StreamMessage {
     return 'readBy' in message;
   }
 
-  private isFormatMessageResponse(
-    message: StreamMessage | FormatMessageResponse | MessageResponse
-  ): message is FormatMessageResponse {
+  private isLocalMessage(
+    message: StreamMessage | LocalMessage | MessageResponse
+  ): message is LocalMessage {
     return message.created_at instanceof Date;
   }
 
@@ -2089,14 +2090,11 @@ export class ChannelService {
   }
 
   private transformToStreamMessage(
-    message: StreamMessage | MessageResponse | FormatMessageResponse,
+    message: StreamMessage | LocalMessage | MessageResponse,
     channel?: Channel
   ) {
     const isThreadMessage = !!message.parent_id;
-    if (
-      this.isStreamMessage(message) &&
-      this.isFormatMessageResponse(message)
-    ) {
+    if (this.isStreamMessage(message) && this.isLocalMessage(message)) {
       if (message.quoted_message) {
         message.quoted_message.translation = getMessageTranslation(
           message.quoted_message,
@@ -2119,7 +2117,7 @@ export class ChannelService {
             this.chatClientService.chatClient.user
           );
       }
-      if (this.isFormatMessageResponse(message)) {
+      if (this.isLocalMessage(message)) {
         (message as StreamMessage).readBy = isThreadMessage
           ? []
           : channel

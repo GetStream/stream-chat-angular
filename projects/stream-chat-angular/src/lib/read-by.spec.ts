@@ -1,4 +1,4 @@
-import { Channel, FormatMessageResponse } from 'stream-chat';
+import { Channel, LocalMessage } from 'stream-chat';
 import { getReadBy } from './read-by';
 
 describe('getReadBy', () => {
@@ -8,7 +8,7 @@ describe('getReadBy', () => {
     const message = {
       created_at: new Date('2021-09-14T13:08:30.004112Z'),
       user: sender,
-    } as FormatMessageResponse;
+    } as LocalMessage;
     const channel = {
       state: { read: {} },
     } as Channel;
