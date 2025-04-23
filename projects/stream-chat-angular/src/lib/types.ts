@@ -546,3 +546,8 @@ export type MessageTextContext = {
   isQuoted: boolean;
   shouldTranslate: boolean;
 };
+
+export type MessageBlockedContext = {
+  message: StreamMessage;
+  isMyMessage: boolean;
+};

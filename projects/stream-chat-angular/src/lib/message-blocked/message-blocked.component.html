@@ -1,0 +1,11 @@
+<div
+  class="str-chat__message str-chat__message-simple str-chat__message--blocked"
+  [class.str-chat__message--me]="isMyMessage"
+  [class.str-chat__message-simple--me]="isMyMessage"
+  [class.str-chat__message--other]="!isMyMessage"
+  [attr.data-testid]="'message-blocked-component'"
+>
+  <div class="str-chat__message--blocked-inner">
+    {{ "streamChat.Message was blocked by moderation policies" | translate }}
+  </div>
+</div>

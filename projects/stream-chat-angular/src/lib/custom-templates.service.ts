@@ -23,6 +23,7 @@ import {
   MentionTemplateContext,
   MessageActionBoxItemContext,
   MessageActionsBoxContext,
+  MessageBlockedContext,
   MessageContext,
   MessageReactionsContext,
   MessageReactionsSelectorContext,
@@ -149,7 +150,7 @@ export class CustomTemplatesService<
     TemplateRef<MessageActionsBoxContext> | undefined
   >(undefined);
   /**
-   * The template used for displaying an item in the [message actions box](/chat/docs/sdk/angular/components/MessageActionsBoxComponent/)
+   * The template used for displaying an item in the [message actions box](/chat/docs/angular/components/MessageActionsBoxComponent/)
    *
    */
   messageActionsBoxItemTemplate$ = new BehaviorSubject<
@@ -364,6 +365,15 @@ export class CustomTemplatesService<
    */
   messageTextTemplate$ = new BehaviorSubject<
     TemplateRef<MessageTextContext> | undefined
+  >(undefined);
+
+  /**
+   * The template used to display blocked messages that have been removed by moderation policies instead of the default [message blocked component](/chat/docs/sdk/angular/components/MessageBlockedComponent/)
+   *
+   * The template has no effect if you're using a custom `messageTemplate$`
+   */
+  messageBlockedTemplate$ = new BehaviorSubject<
+    TemplateRef<MessageBlockedContext> | undefined
   >(undefined);
 
   constructor() {}
