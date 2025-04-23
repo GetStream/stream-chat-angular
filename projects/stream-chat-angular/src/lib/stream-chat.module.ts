@@ -27,6 +27,7 @@ import { VoiceRecordingModule } from './voice-recording/voice-recording.module';
 import { IconModule } from './icon/icon.module';
 import { VoiceRecorderService } from './message-input/voice-recorder.service';
 import { MessageTextComponent } from './message-text/message-text.component';
+import { MessageBlockedComponent } from './message-blocked/message-blocked.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +52,7 @@ import { MessageTextComponent } from './message-text/message-text.component';
     UserListComponent,
     PaginatedListComponent,
     MessageTextComponent,
+    MessageBlockedComponent,
   ],
   imports: [
     CommonModule,
@@ -84,6 +86,7 @@ import { MessageTextComponent } from './message-text/message-text.component';
     PaginatedListComponent,
     IconModule,
     MessageTextComponent,
+    MessageBlockedComponent,
   ],
   providers: [VoiceRecorderService],
 })

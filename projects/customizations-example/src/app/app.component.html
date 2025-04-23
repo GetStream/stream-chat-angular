@@ -275,3 +275,16 @@
     [isQuoted]="isQuoted"
   ></app-message-text>
 </ng-template>
+
+<ng-template
+  #messageBlocked
+  let-message="message"
+  let-isMyMessage="isMyMessage"
+>
+  <ng-container *ngIf="isMyMessage; else othersMessage">
+    You message was blocked by moderation policies.
+  </ng-container>
+  <ng-template #othersMessage>
+    Message from {{ message.user.name }} was blocked by moderation policies.
+  </ng-template>
+</ng-template>

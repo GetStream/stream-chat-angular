@@ -131,5 +131,7 @@ export const en = {
     'You currently have {{count}} attachments, the maximum is {{max}}':
       'You currently have {{count}} attachments, the maximum is {{max}}',
     'and others': 'and others',
+    'Message was blocked by moderation policies':
+      'Message was blocked by moderation policies',
   },
 };

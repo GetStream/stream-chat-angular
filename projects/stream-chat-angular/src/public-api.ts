@@ -21,6 +21,7 @@ export * from './lib/channel-header/channel-header.component';
 export * from './lib/channel-preview/channel-preview.component';
 export * from './lib/channel-list/channel-list.component';
 export * from './lib/message/message.component';
+export * from './lib/message-blocked/message-blocked.component';
 export * from './lib/parse-date';
 export * from './lib/list-users';
 export * from './lib/message-input/message-input.component';

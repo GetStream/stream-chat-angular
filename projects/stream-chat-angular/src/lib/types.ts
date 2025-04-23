@@ -470,3 +470,8 @@ export type GalleryAttachment = {
   type: 'gallery';
   images: Attachment[];
 };
+
+export type MessageBlockedContext = {
+  message: StreamMessage;
+  isMyMessage: boolean;
+};
