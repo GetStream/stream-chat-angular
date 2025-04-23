@@ -11,6 +11,12 @@ import { StreamMessage } from '../types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageBlockedComponent {
+  /**
+   * The message that has been blocked.
+   */
   @Input() message: StreamMessage | undefined;
+  /**
+   * Whether the message is the current user's own message.
+   */
   @Input() isMyMessage = false;
 }
