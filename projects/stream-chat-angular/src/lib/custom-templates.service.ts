@@ -150,7 +150,7 @@ export class CustomTemplatesService<
     TemplateRef<MessageActionsBoxContext> | undefined
   >(undefined);
   /**
-   * The template used for displaying an item in the [message actions box](/chat/docs/angular/components/MessageActionsBoxComponent/)
+   * The template used for displaying an item in the [message actions box](/chat/docs/sdk/angular/components/MessageActionsBoxComponent/)
    *
    */
   messageActionsBoxItemTemplate$ = new BehaviorSubject<
