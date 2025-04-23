@@ -27,6 +27,7 @@ import {
   SystemMessageContext,
   CustomMetadataContext,
   MessageTextContext,
+  MessageBlockedContext,
 } from '../types';
 import { Observable, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -478,8 +479,13 @@ export class MessageComponent
   }
 
   getMessageMetadataContext(): CustomMetadataContext {
+    return { message: this.message! };
+  }
+
+  getMessageBlockedContext(): MessageBlockedContext {
     return {
       message: this.message!,
+      isMyMessage: this.isSentByCurrentUser,
     };
   }
 

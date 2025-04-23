@@ -25,6 +25,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
 import { NgxFloatUiModule } from 'ngx-float-ui';
 import { MessageTextComponent } from '../message-text/message-text.component';
+import { MessageBlockedComponent } from '../message-blocked/message-blocked.component';
 
 describe('MessageComponent', () => {
   let component: MessageComponent;
@@ -86,6 +87,7 @@ describe('MessageComponent', () => {
         MessageReactionsComponent,
         AvatarPlaceholderComponent,
         MessageTextComponent,
+        MessageBlockedComponent,
       ],
       providers: [
         {
@@ -1033,5 +1035,83 @@ describe('MessageComponent', () => {
     );
 
     expect(timestamp?.innerHTML).toContain(component.pasedEditedDate);
+  });
+
+  describe('should display blocked message', () => {
+    let queryBlockedMessageComponent: () => MessageBlockedComponent | null;
+
+    beforeEach(() => {
+      queryBlockedMessageComponent = () =>
+        fixture.debugElement.query(By.directive(MessageBlockedComponent))
+          ?.componentInstance as MessageBlockedComponent;
+    });
+
+    it('should display blocked message component when moderation_details.action is MESSAGE_RESPONSE_ACTION_REMOVE', () => {
+      component.message = {
+        ...mockMessage(),
+        type: 'error',
+        moderation_details: {
+          action: 'MESSAGE_RESPONSE_ACTION_REMOVE',
+        },
+      } as StreamMessage;
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      const blockedMessageComponent = queryBlockedMessageComponent();
+      expect(blockedMessageComponent).not.toBeNull();
+      expect(queryContainer()).toBeNull();
+    });
+
+    it('should display blocked message component when moderation.action is remove', () => {
+      component.message = {
+        ...mockMessage(),
+        type: 'error',
+        moderation: {
+          action: 'remove',
+        },
+      } as StreamMessage;
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      const blockedMessageComponent = queryBlockedMessageComponent();
+      expect(blockedMessageComponent).not.toBeNull();
+      expect(queryContainer()).toBeNull();
+    });
+
+    it('should pass appropriate inputs to blocked message component', () => {
+      const blockedMessage = {
+        ...mockMessage(),
+        type: 'error',
+        moderation_details: {
+          action: 'MESSAGE_RESPONSE_ACTION_REMOVE',
+        },
+      } as StreamMessage;
+
+      component.message = blockedMessage;
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      const messageBlockedComponent = fixture.debugElement.query(
+        By.css('stream-message-blocked')
+      )?.componentInstance;
+
+      expect(messageBlockedComponent).not.toBeNull();
+      expect(messageBlockedComponent.message).toBe(blockedMessage);
+      expect(messageBlockedComponent.isMyMessage).toBe(
+        component.isSentByCurrentUser
+      );
+    });
+
+    it('should display normal message when error type but no moderation action', () => {
+      component.message = {
+        ...mockMessage(),
+        type: 'error',
+      } as StreamMessage;
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(queryBlockedMessageComponent()).toBeUndefined();
+      expect(queryContainer()).not.toBeNull();
+    });
   });
 });
