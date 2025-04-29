@@ -7,7 +7,7 @@ import {
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Channel, MessageResponseBase, ReactionResponse } from 'stream-chat';
+import { Channel, ReactionResponse } from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -189,7 +189,7 @@ describe('MessageActionsBoxComponent', () => {
   it(`shouldn't disable quote action, if message already has a quoted message`, () => {
     component.message = {
       ...component.message!,
-      quoted_message: mockMessage() as any as MessageResponseBase,
+      quoted_message: mockMessage() as any,
     };
     component.enabledActions = ['quote-message'];
     component.ngOnChanges({

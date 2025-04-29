@@ -5,7 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { MessageResponseBase, UserResponse } from 'stream-chat';
+import { UserResponse } from 'stream-chat';
 import { StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -885,7 +885,7 @@ describe('MessageComponent', () => {
       quotedMessage.text = 'This message was quoted';
       component.message = {
         ...component.message!,
-        quoted_message: quotedMessage as any as MessageResponseBase,
+        quoted_message: quotedMessage as any,
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();

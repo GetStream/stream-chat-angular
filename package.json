@@ -129,7 +129,7 @@
     "replace": "^1.2.2",
     "rxjs": "~7.4.0",
     "starwars-names": "^1.6.0",
-    "stream-chat": "9.0.0-rc.6",
+    "stream-chat": "9.0.0-rc.13",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "uuid": "^9.0.1",

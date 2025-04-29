@@ -19,11 +19,11 @@ import {
   Event,
   EventTypes,
   FormatMessageResponse,
+  LocalMessage,
   MemberFilters,
   Message,
   MessageResponse,
   ReactionResponse,
-  UpdatedMessage,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
@@ -915,7 +915,7 @@ export class ChannelService {
       return this.resendMessage(message);
     }
     const response = await this.chatClientService.chatClient.updateMessage(
-      messageToUpdate as unknown as UpdatedMessage
+      messageToUpdate as unknown as LocalMessage
     );
 
     const channel = this.channelsSubject
