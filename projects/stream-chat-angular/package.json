@@ -22,7 +22,7 @@
     "@breezystack/lamejs": "^1.2.7",
     "@ngx-translate/core": "^14.0.0 || ^15.0.0 || ^16.0.0",
     "rxjs": "^7.4.0",
-    "stream-chat": "9.0.0-rc.6"
+    "stream-chat": "9.0.0-rc.15"
   },
   "peerDependenciesMeta": {
     "@breezystack/lamejs": {
