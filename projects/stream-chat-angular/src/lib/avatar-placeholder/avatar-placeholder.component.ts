@@ -4,7 +4,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { AvatarContext, AvatarLocation, AvatarType } from '../types';
 
 /**
- * The `AvatarPlaceholder` component displays the [default avatar](/chat/docs/sdk/angular/v6-rc/components/AvatarComponent/) unless a [custom template](/chat/docs/sdk/angular/v6-rc/services/CustomTemplatesService/) is provided. This component is used by the SDK internally, you likely won't need to use it.
+ * The `AvatarPlaceholder` component displays the [default avatar](/chat/docs/sdk/angular/components/AvatarComponent/) unless a [custom template](/chat/docs/sdk/angular/services/CustomTemplatesService/) is provided. This component is used by the SDK internally, you likely won't need to use it.
  */
 @Component({
   selector: 'stream-avatar-placeholder',

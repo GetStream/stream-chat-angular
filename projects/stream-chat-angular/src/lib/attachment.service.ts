@@ -34,13 +34,13 @@ export class AttachmentService {
    */
   attachmentUploadInProgressCounter$ = new BehaviorSubject<number>(0);
   /**
-   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](/chat/docs/sdk/angular/v6-rc/components/AttachmentPreviewListComponent/) to display the attachment previews.
+   * Emits the state of the uploads ([`AttachmentUpload[]`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/types.ts)), it adds a state (`success`, `error` or `uploading`) to each file the user selects for upload. It is used by the [`AttachmentPreviewList`](/chat/docs/sdk/angular/components/AttachmentPreviewListComponent/) to display the attachment previews.
    */
   attachmentUploads$: Observable<AttachmentUpload[]>;
   /**
    * You can get and set the list if uploaded custom attachments
    *
-   * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](/chat/docs/sdk/angular/v6-rc/services/CustomTemplatesService/).
+   * By default the SDK components won't display these, but you can provide your own `customAttachmentPreviewListTemplate$` and `customAttachmentListTemplate$` for the [`CustomTemplatesService`](/chat/docs/sdk/angular/services/CustomTemplatesService/).
    */
   customAttachments$ = new BehaviorSubject<Attachment[]>([]);
   /**
@@ -204,7 +204,7 @@ export class AttachmentService {
   /**
    * You can add custom `image`, `video` and `file` attachments using this method.
    *
-   * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](/chat/docs/sdk/angular/v6-rc/services/ChannelService/)
+   * Note: If you just want to use your own CDN for file uploads, you don't necessary need this method, you can just specify you own upload function in the [`ChannelService`](/chat/docs/sdk/angular/services/ChannelService/)
    * @param attachment
    *
    * Will set `isCustomAttachment` to `true` on the attachment. This is a non-standard field, other SDKs will ignore this property.

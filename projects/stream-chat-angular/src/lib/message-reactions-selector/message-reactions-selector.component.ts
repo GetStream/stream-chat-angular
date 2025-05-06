@@ -13,7 +13,7 @@ import { MessageReactionsService } from '../message-reactions.service';
 import { Subscription } from 'rxjs';
 
 /**
- * The `MessageReactionsSelectorComponent` makes it possible for users to react to a message, the reaction options can be set using the [`MessageReactionsService`](/chat/docs/sdk/angular/v6-rc/services/MessageReactionsService/). You can read more about [message reactions](/chat/docs/javascript/send_reaction/) in the platform documentation.
+ * The `MessageReactionsSelectorComponent` makes it possible for users to react to a message, the reaction options can be set using the [`MessageReactionsService`](/chat/docs/sdk/angular/services/MessageReactionsService/). You can read more about [message reactions](/chat/docs/javascript/send_reaction/) in the platform documentation.
  */
 @Component({
   selector: 'stream-message-reactions-selector',
@@ -24,7 +24,7 @@ export class MessageReactionsSelectorComponent
   implements OnInit, OnDestroy, AfterViewInit
 {
   /**
-   * List of the user's own reactions of a [message](/chat/docs/sdk/angular/v6-rc/types/stream-message/), used to display the users of a reaction type.
+   * List of the user's own reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
    */
   @Input() ownReactions: ReactionResponse[] = [];
   /**

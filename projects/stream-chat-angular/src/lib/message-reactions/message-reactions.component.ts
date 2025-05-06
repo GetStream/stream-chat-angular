@@ -47,12 +47,12 @@ export class MessageReactionsComponent
   @Input() messageReactionCounts: { [key in MessageReactionType]?: number } =
     {};
   /**
-   * List of reactions of a [message](/chat/docs/sdk/angular/v6-rc/types/stream-message/), used to display the users of a reaction type.
-   * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/v6-rc/services/MessageReactionsService/#queryreactions)
+   * List of reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
+   * @deprecated you can fetch the reactions using [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions)
    */
   @Input() latestReactions: ReactionResponse[] = [];
   /**
-   * List of the user's own reactions of a [message](/chat/docs/sdk/angular/v6-rc/types/stream-message/), used to display the users of a reaction type.
+   * List of the user's own reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
    */
   @Input() ownReactions: ReactionResponse[] = [];
   @ViewChild('selectorContainer') private selectorContainer:

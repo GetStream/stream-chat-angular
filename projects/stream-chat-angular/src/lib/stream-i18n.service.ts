@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { en } from '../assets/i18n/en';
 
 /**
- * The `StreamI18nService` can be used to customize the labels of the chat UI. Our [translation guide](/chat/docs/sdk/angular/v6-rc/concepts/translation/) covers this topic in detail.
+ * The `StreamI18nService` can be used to customize the labels of the chat UI. Our [translation guide](/chat/docs/sdk/angular/concepts/translation/) covers this topic in detail.
  */
 @Injectable({
   providedIn: 'root',
