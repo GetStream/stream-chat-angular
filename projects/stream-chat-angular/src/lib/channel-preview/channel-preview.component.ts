@@ -4,7 +4,6 @@ import { filter } from 'rxjs/operators';
 import { Channel, Event, FormatMessageResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import { DefaultStreamChatGenerics } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getMessageTranslation } from '../get-message-translation';
 import { MessageService } from '../message.service';
@@ -25,7 +24,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   /**
    * The channel to be displayed
    */
-  @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
+  @Input() channel: Channel | undefined;
   isActive = false;
   isUnreadMessageWasCalled = false;
   isUnread = false;
@@ -33,7 +32,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   latestMessageText: string = 'streamChat.Nothing yet...';
   latestMessageStatus?: 'delivered' | 'read';
   latestMessageTime?: string;
-  latestMessage?: FormatMessageResponse<DefaultStreamChatGenerics>;
+  latestMessage?: FormatMessageResponse;
   displayAs: 'text' | 'html';
   userId?: string;
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
@@ -157,9 +156,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  private setLatestMessage(
-    message?: FormatMessageResponse<DefaultStreamChatGenerics>
-  ) {
+  private setLatestMessage(message?: FormatMessageResponse) {
     this.latestMessage = message;
     if (message?.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';

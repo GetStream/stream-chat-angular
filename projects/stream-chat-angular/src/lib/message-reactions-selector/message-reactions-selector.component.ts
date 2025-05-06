@@ -6,7 +6,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { DefaultStreamChatGenerics, MessageReactionType } from '../types';
+import { MessageReactionType } from '../types';
 import { ReactionResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { MessageReactionsService } from '../message-reactions.service';
@@ -26,7 +26,7 @@ export class MessageReactionsSelectorComponent
   /**
    * List of the user's own reactions of a [message](/chat/docs/sdk/angular/types/stream-message/), used to display the users of a reaction type.
    */
-  @Input() ownReactions: ReactionResponse<DefaultStreamChatGenerics>[] = [];
+  @Input() ownReactions: ReactionResponse[] = [];
   /**
    * The id of the message the reactions belong to
    */

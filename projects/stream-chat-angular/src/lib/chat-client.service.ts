@@ -13,14 +13,11 @@ import {
 import { AppSettings, Event, StreamChat, TokenOrProvider } from 'stream-chat';
 import { version } from '../assets/version';
 import { NotificationService } from './notification.service';
-import { DefaultStreamChatGenerics } from './types';
 import { take } from 'rxjs/operators';
 
-export type ClientEvent<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> = {
+export type ClientEvent = {
   eventType: string;
-  event: Event<T>;
+  event: Event;
 };
 
 /**
@@ -29,20 +26,18 @@ export type ClientEvent<
 @Injectable({
   providedIn: 'root',
 })
-export class ChatClientService<
-  T extends DefaultStreamChatGenerics = DefaultStreamChatGenerics
-> {
+export class ChatClientService {
   /**
    * The [StreamChat client](https://github.com/GetStream/stream-chat-js/blob/master/src/client.ts) instance. In general you shouldn't need to access the client, but it's there if you want to use it.
    */
-  chatClient!: StreamChat<T>;
+  chatClient!: StreamChat;
   /**
    * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event_object/).
    * :::important
    * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
    * :::
    */
-  events$: Observable<ClientEvent<T>>;
+  events$: Observable<ClientEvent>;
   /**
    * Emits the current [application settings](/chat/docs/javascript/app_setting_overview/). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
    */
@@ -54,23 +49,23 @@ export class ChatClientService<
   /**
    * Emits the list of pending invites of the user. It emits every pending invitation during initialization and then extends the list when a new invite is received. More information can be found in the [channel invitations](/chat/docs/sdk/angular/code-examples/channel-invites/) guide.
    */
-  pendingInvites$: Observable<Channel<T>[]>;
+  pendingInvites$: Observable<Channel[]>;
   /**
    * Emits the current chat user
    */
-  user$: Observable<OwnUserResponse<T> | UserResponse<T> | undefined>;
-  private notificationSubject = new ReplaySubject<ClientEvent<T>>(1);
+  user$: Observable<OwnUserResponse | UserResponse | undefined>;
+  private notificationSubject = new ReplaySubject<ClientEvent>(1);
   private connectionStateSubject = new ReplaySubject<'offline' | 'online'>(1);
   private appSettingsSubject = new BehaviorSubject<AppSettings | undefined>(
     undefined
   );
-  private pendingInvitesSubject = new BehaviorSubject<Channel<T>[]>([]);
+  private pendingInvitesSubject = new BehaviorSubject<Channel[]>([]);
   private userSubject = new ReplaySubject<
-    OwnUserResponse<T> | UserResponse<T> | undefined
+    OwnUserResponse | UserResponse | undefined
   >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
   private trackPendingChannelInvites = true;
-  private appSettingsPromise?: Promise<AppSettingsAPIResponse<T>>;
+  private appSettingsPromise?: Promise<AppSettingsAPIResponse>;
 
   constructor(
     private ngZone: NgZone,
@@ -97,35 +92,23 @@ export class ChatClientService<
    */
   async init(
     apiKey: string,
-    userOrId: string | OwnUserResponse<T> | UserResponse<T> | undefined,
+    userOrId: string | OwnUserResponse | UserResponse | undefined,
     userTokenOrProvider: TokenOrProvider,
     clientOptions?: StreamChatOptions & {
       trackPendingChannelInvites?: boolean;
     }
-  ): ConnectAPIResponse<T> {
+  ): ConnectAPIResponse {
     if (this.chatClient && this.chatClient.key !== apiKey) {
       this.appSettingsSubject.next(undefined);
       this.appSettingsPromise = undefined;
     }
     this.trackPendingChannelInvites =
       clientOptions?.trackPendingChannelInvites === true;
-    this.chatClient = StreamChat.getInstance<T>(apiKey, clientOptions);
-    if ('sdkIdentifier' in this.chatClient) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      (this.chatClient as any).sdkIdentifier = {
-        name: 'angular',
-        version,
-      };
-    } else {
-      const userAgent = this.chatClient.getUserAgent();
-      if (!userAgent.includes('stream-chat-angular')) {
-        const parts = userAgent.split('-');
-        const jsVersion = parts[parts.length - 1] ?? '0.0.0';
-        this.chatClient.setUserAgent(
-          `stream-chat-angular-v${version}-llc-v${jsVersion}`
-        );
-      }
-    }
+    this.chatClient = StreamChat.getInstance(apiKey, clientOptions);
+    this.chatClient.sdkIdentifier = {
+      name: 'angular',
+      version,
+    };
     this.chatClient.recoverStateOnReconnect = false;
     this.chatClient.devToken;
     let result;
@@ -156,7 +139,7 @@ export class ChatClientService<
         {
           invite: 'pending',
           members: { $in: [this.chatClient.user?.id] },
-        } as unknown as ChannelFilters<T> // TODO: find out why we need this typecast
+        } as unknown as ChannelFilters // TODO: find out why we need this typecast
       );
       this.pendingInvitesSubject.next(channels);
     }
@@ -242,11 +225,11 @@ export class ChatClientService<
         { id: { $autocomplete: searchTerm } },
         { name: { $autocomplete: searchTerm } },
       ],
-    } as UserFilters<T>); // TODO: find out why we need this typecast
+    } as UserFilters); // TODO: find out why we need this typecast
     return result.users.filter((u) => u.id !== this.chatClient?.user?.id);
   }
 
-  private updatePendingInvites(e: Event<T>) {
+  private updatePendingInvites(e: Event) {
     if (!this.trackPendingChannelInvites) {
       return;
     }
@@ -270,13 +253,17 @@ export class ChatClientService<
     }
   }
 
-  private updateUser(e: Event<T>) {
+  private updateUser(e: Event) {
     if (typeof e.total_unread_count !== 'undefined') {
-      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      let user: OwnUserResponse | UserResponse | undefined;
       this.userSubject.pipe(take(1)).subscribe((u) => {
         user = u;
       });
-      if (user && user.total_unread_count !== e.total_unread_count) {
+      if (
+        user &&
+        'total_unread_count' in user &&
+        user.total_unread_count !== e.total_unread_count
+      ) {
         this.userSubject.next({
           ...user,
           total_unread_count: e.total_unread_count,
@@ -284,11 +271,15 @@ export class ChatClientService<
       }
     }
     if (typeof e.unread_channels !== 'undefined') {
-      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      let user: OwnUserResponse | UserResponse | undefined;
       this.userSubject.pipe(take(1)).subscribe((u) => {
         user = u;
       });
-      if (user && user.unread_channels !== e.unread_channels) {
+      if (
+        user &&
+        'unread_channels' in user &&
+        user.unread_channels !== e.unread_channels
+      ) {
         this.userSubject.next({
           ...user,
           unread_channels: e.unread_channels,
@@ -296,11 +287,15 @@ export class ChatClientService<
       }
     }
     if (typeof e.unread_count !== 'undefined') {
-      let user: OwnUserResponse<T> | UserResponse<T> | undefined;
+      let user: OwnUserResponse | UserResponse | undefined;
       this.userSubject.pipe(take(1)).subscribe((u) => {
         user = u;
       });
-      if (user && user.unread_count !== e.unread_count) {
+      if (
+        user &&
+        'unread_count' in user &&
+        user.unread_count !== e.unread_count
+      ) {
         this.userSubject.next({
           ...user,
           unread_count: e.unread_count,

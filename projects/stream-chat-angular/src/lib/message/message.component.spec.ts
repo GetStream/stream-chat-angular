@@ -5,8 +5,8 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { MessageResponseBase, UserResponse } from 'stream-chat';
-import { DefaultStreamChatGenerics, StreamMessage } from '../types';
+import { UserResponse } from 'stream-chat';
+import { StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -32,7 +32,7 @@ describe('MessageComponent', () => {
   let fixture: ComponentFixture<MessageComponent>;
   let nativeElement: HTMLElement;
   let message: StreamMessage;
-  let currentUser: UserResponse<DefaultStreamChatGenerics>;
+  let currentUser: UserResponse;
   let queryContainer: () => HTMLElement | null;
   let querySender: () => HTMLElement | null;
   let queryDate: () => HTMLElement | null;
@@ -871,7 +871,7 @@ describe('MessageComponent', () => {
   describe('quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
-    let quotedMessage: StreamMessage<DefaultStreamChatGenerics>;
+    let quotedMessage: StreamMessage;
 
     beforeEach(() => {
       quotedMessage = mockMessage();
@@ -881,12 +881,11 @@ describe('MessageComponent', () => {
         name: 'Sara',
         image: 'http://url/to/img',
       };
-      quotedMessage.attachments = [{ id: '1' }, { id: '2' }];
+      quotedMessage.attachments = [{ image_url: '1' }, { image_url: '2' }];
       quotedMessage.text = 'This message was quoted';
       component.message = {
         ...component.message!,
-        quoted_message:
-          quotedMessage as any as MessageResponseBase<DefaultStreamChatGenerics>,
+        quoted_message: quotedMessage as any,
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
@@ -913,7 +912,7 @@ describe('MessageComponent', () => {
       expect(avatar.type).toBe('user');
       expect(avatar.location).toBe('quoted-message-sender');
       expect(avatar.user).toBe(component.message!.quoted_message!.user!);
-      expect(attachments.attachments).toEqual([{ id: '1' }]);
+      expect(attachments.attachments).toEqual([{ image_url: '1' }]);
       expect(
         nativeElement.querySelector('[data-testid="quoted-message-text"]')
           ?.innerHTML

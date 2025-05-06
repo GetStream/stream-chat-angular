@@ -1,6 +1,6 @@
 {
   "name": "stream-chat-angular",
-  "version": "5.14.0",
+  "version": "6.0.0-rc.8",
   "description": "Angular components to create chat conversations or livestream style chat",
   "author": "GetStream",
   "homepage": "https://getstream.io/chat/",
@@ -20,9 +20,9 @@
     "@angular/common": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/core": "^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "@breezystack/lamejs": "^1.2.7",
-    "@ngx-translate/core": "^14.0.0 || ^15.0.0",
+    "@ngx-translate/core": "^14.0.0 || ^15.0.0 || ^16.0.0",
     "rxjs": "^7.4.0",
-    "stream-chat": "^8.60.0"
+    "stream-chat": "^9.0.0"
   },
   "peerDependenciesMeta": {
     "@breezystack/lamejs": {

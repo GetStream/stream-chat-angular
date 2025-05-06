@@ -22,11 +22,7 @@ import {
   mockMessage,
 } from '../mocks';
 import { NotificationService } from '../notification.service';
-import {
-  AttachmentUpload,
-  DefaultStreamChatGenerics,
-  StreamMessage,
-} from '../types';
+import { AttachmentUpload, StreamMessage } from '../types';
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
@@ -51,11 +47,11 @@ describe('MessageInputComponent', () => {
   let queryCooldownTimer: () => HTMLElement | null;
   let queryAttachmentPreviewList: () => AttachmentPreviewListComponent;
   let queryVoiceRecorderButton: () => HTMLButtonElement | null;
-  let mockActiveChannel$: BehaviorSubject<Channel<DefaultStreamChatGenerics>>;
+  let mockActiveChannel$: BehaviorSubject<Channel>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
   let updateMessageSpy: jasmine.Spy;
-  let channel: Channel<DefaultStreamChatGenerics>;
+  let channel: Channel;
   let user: UserResponse;
   let attachmentService: {
     attachmentsCounter$: BehaviorSubject<number>;
@@ -332,7 +328,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       ...channel,
       data: { own_capabilities: [] },
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     fixture.detectChanges();
 
     expect(queryattachmentUploadButton()).toBeNull();
@@ -505,7 +501,7 @@ describe('MessageInputComponent', () => {
     component.textareaValue = 'text';
     mockActiveChannel$.next({
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     fixture.detectChanges();
 
     expect(component.textareaValue).toBe('');
@@ -524,7 +520,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       ...mockActiveChannel$.getValue(),
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     fixture.detectChanges();
 
     expect(component.textareaValue).toBe('text');
@@ -580,7 +576,7 @@ describe('MessageInputComponent', () => {
     attachmentService.mapToAttachments.and.returnValue([
       {
         type: 'image',
-        img_url: 'url',
+        image_url: 'url',
       },
     ]);
     const textarea = queryTextarea();
@@ -603,7 +599,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -668,14 +664,14 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
 
@@ -730,7 +726,7 @@ describe('MessageInputComponent', () => {
     mockActiveChannel$.next({
       data: { own_capabilities: ['send-message'] },
       getConfig: () => ({ commands: [] }),
-    } as any as Channel<DefaultStreamChatGenerics>);
+    } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
   });
@@ -763,7 +759,7 @@ describe('MessageInputComponent', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
     const message = mockMessage();
-    message.attachments = [{ id: '1' }, { id: '2' }];
+    message.attachments = [{ image_url: '1' }, { image_url: '2' }];
     mockMessageToQuote$.next(message);
     fixture.detectChanges();
 
@@ -784,7 +780,7 @@ describe('MessageInputComponent', () => {
     expect(avatar.type).toBe('user');
     expect(avatar.location).toBe('quoted-message-sender');
     expect(avatar.user).toBe(message.user!);
-    expect(attachments.attachments).toEqual([{ id: '1' }]);
+    expect(attachments.attachments).toEqual([{ image_url: '1' }]);
 
     const textComponent = fixture.debugElement
       .query(By.css(quotedMessageContainerSelector))

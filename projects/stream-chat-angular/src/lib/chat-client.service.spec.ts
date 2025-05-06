@@ -7,10 +7,9 @@ import {
   MockStreamChatClient,
 } from './mocks';
 import { NotificationService } from './notification.service';
-import { DefaultStreamChatGenerics } from './types';
 
 describe('ChatClientService', () => {
-  let service: ChatClientService<DefaultStreamChatGenerics>;
+  let service: ChatClientService;
   let mockChatClient: MockStreamChatClient;
   let apiKey: string;
   let userId: string;
@@ -129,7 +128,7 @@ describe('ChatClientService', () => {
     const user = {
       id: userId,
       name: 'Test user',
-    } as OwnUserResponse<DefaultStreamChatGenerics>;
+    } as OwnUserResponse;
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, user, userToken);
 
@@ -140,7 +139,7 @@ describe('ChatClientService', () => {
     const user = {
       id: userId,
       name: 'Test user',
-    } as OwnUserResponse<DefaultStreamChatGenerics>;
+    } as OwnUserResponse;
     const options = { timeout: 5000 };
     await service.init(apiKey, user, userToken, options);
 

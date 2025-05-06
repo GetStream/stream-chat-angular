@@ -1,10 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import {
-  DefaultStreamChatGenerics,
-  MentionTemplateContext,
-  StreamMessage,
-} from '../types';
-import { MessageResponseBase, UserResponse } from 'stream-chat';
+import { MentionTemplateContext, StreamMessage } from '../types';
+import { UserResponse } from 'stream-chat';
 import emojiRegex from 'emoji-regex';
 import { MessageService } from '../message.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -27,10 +23,7 @@ export class MessageTextComponent implements OnChanges {
   /**
    * The message which text should be displayed
    */
-  @Input() message:
-    | StreamMessage<DefaultStreamChatGenerics>
-    | undefined
-    | MessageResponseBase<DefaultStreamChatGenerics>;
+  @Input() message: StreamMessage | undefined | StreamMessage['quoted_message'];
   /**
    * `true` if the component displayes a message quote
    */
