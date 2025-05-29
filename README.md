@@ -52,30 +52,37 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
+Supported Angular versions: **Angular 15-20**
+
+Run this command if you are using **Angular 20**:
+
+```shell
+# Not all dependencies support Anglar 20 yet, so --force is required
+npm install stream-chat-angular stream-chat @ngx-translate/core@16 ngx-float-ui@19 --force
+```
+
 Run this command if you are using **Angular 19**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core@15 ngx-float-ui@19
+npm install stream-chat-angular stream-chat @ngx-translate/core@16 ngx-float-ui@19
 ```
-
-Supported Angular versions: **Angular 15-18**
 
 Run this command if you are using **Angular 18**:
 
 ```shell
-npm install stream-chat-angular stream-chat ngx-float-ui@18
+npm install stream-chat-angular stream-chat @ngx-translate/core@16 ngx-float-ui@18
 ```
 
 Run this command if you are using **Angular 17**:
 
 ```shell
-npm install stream-chat-angular stream-chat ngx-float-ui@17
+npm install stream-chat-angular stream-chat @ngx-translate/core@16 ngx-float-ui@17
 ```
 
 Run this command if you are using **Angular 16**:
 
 ```shell
-npm install stream-chat-angular stream-chat ngx-float-ui@16
+npm install stream-chat-angular stream-chat @ngx-translate/core@16 ngx-float-ui@16
 ```
 
 Run this command if you are using **Angular 15**:
