@@ -3,11 +3,10 @@ on:
   push:
     branches:
       - master
-      - 6.x.x-rc
+      - next
   pull_request:
     branches:
       - master
-      - 6.x.x-rc
 jobs:
   workflow:
     runs-on: ubuntu-latest

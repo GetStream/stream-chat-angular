@@ -50,9 +50,9 @@
     "branches": [
       "master",
       {
-        "name": "6.x.x-rc",
-        "prerelease": "rc",
-        "channel": "rc"
+        "name": "next",
+        "prerelease": "next",
+        "channel": "next"
       }
     ],
     "dryRun": false,
