@@ -9,7 +9,7 @@ import { en } from '../assets/i18n/en';
   providedIn: 'root',
 })
 export class StreamI18nService {
-  constructor(private translteService: TranslateService) {}
+  constructor(private translateService: TranslateService) {}
 
   /**
    * Registers the translation to the [ngx-translate](https://github.com/ngx-translate/core) TranslateService.
@@ -17,10 +17,23 @@ export class StreamI18nService {
    * @param overrides An object which keys are translation keys, and the values are custom translations
    */
   setTranslation(lang = 'en', overrides?: { [key: string]: string }) {
-    if (!this.translteService.defaultLang) {
-      this.translteService.defaultLang = lang;
+    const translateService = this.translateService as TranslateService & {
+      getFallbackLang?: () => string;
+      setDefaultLang?: (lang: string) => void;
+    };
+
+    const defaultLang =
+      'getFallbackLang' in translateService
+        ? translateService.getFallbackLang?.()
+        : translateService.defaultLang;
+    if (!defaultLang) {
+      if (typeof translateService.setDefaultLang !== 'undefined') {
+        translateService.setDefaultLang(lang);
+      } else {
+        translateService.defaultLang = lang;
+      }
     }
-    this.translteService.setTranslation(
+    this.translateService.setTranslation(
       lang,
       { streamChat: { ...en.streamChat, ...overrides } },
       true
