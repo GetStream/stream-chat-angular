@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - next
+      - support-ngx-translate-17
   pull_request:
     branches:
       - master
