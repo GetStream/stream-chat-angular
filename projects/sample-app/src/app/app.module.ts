@@ -11,9 +11,15 @@ import {
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { PollComponent } from './poll/poll.component';
 
 @NgModule({
-  declarations: [AppComponent, CustomMessageComponent, EmojiPickerComponent],
+  declarations: [
+    AppComponent,
+    CustomMessageComponent,
+    EmojiPickerComponent,
+    PollComponent,
+  ],
   imports: [
     BrowserModule,
     TranslateModule.forRoot(),

@@ -1,0 +1,70 @@
+<div class="poll-container" *ngIf="pollState">
+  <!-- Poll Header -->
+  <div class="poll-header">
+    <h3 class="poll-title">{{ pollState.name }}</h3>
+    <div class="poll-meta" *ngIf="pollState.description">
+      <p class="poll-description">{{ pollState.description }}</p>
+    </div>
+    <div class="poll-stats">
+      <span class="total-votes">Total votes: {{ getTotalVotes() }}</span>
+      <span class="max-votes" *ngIf="pollState.max_votes_allowed > 1">
+        (Max {{ pollState.max_votes_allowed }} votes per user)
+      </span>
+    </div>
+  </div>
+
+  <!-- Poll Options -->
+  <div
+    class="poll-options"
+    *ngIf="pollState.options && pollState.options.length > 0"
+  >
+    <div
+      class="poll-option"
+      *ngFor="let option of pollState.options; trackBy: trackByOptionId"
+      [class.user-voted]="hasUserVotedForOption(option.id)"
+    >
+      <div class="option-content">
+        <div class="option-text">{{ option.text }}</div>
+        <div class="option-votes">
+          <span class="vote-count"
+            >{{ pollState.vote_counts_by_option[option.id] ?? 0 }} vote{{
+              pollState.vote_counts_by_option[option.id] !== 1 ? "s" : ""
+            }}</span
+          >
+          <span
+            class="user-vote-indicator"
+            *ngIf="hasUserVotedForOption(option.id)"
+          >
+            ✓ You voted
+          </span>
+        </div>
+      </div>
+      <div class="vote-bar">
+        <div
+          class="vote-fill"
+          [style.width.%]="
+            getVotePercentage(pollState.vote_counts_by_option[option.id] ?? 0)
+          "
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Options Message -->
+  <div
+    class="no-options"
+    *ngIf="!pollState.options || pollState.options.length === 0"
+  >
+    <p>No options available for this poll.</p>
+  </div>
+
+  <!-- Poll Status -->
+  <div class="poll-status" *ngIf="pollState.is_closed">
+    <span class="closed-indicator">🔒 Poll Closed</span>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="poll-loading" *ngIf="!pollState">
+  <p>Loading poll...</p>
+</div>
