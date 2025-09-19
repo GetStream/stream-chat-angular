@@ -54,3 +54,19 @@
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
   <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
 </ng-template>
+
+<ng-template
+  #messageTextWithPole
+  let-message="message"
+  let-shouldTranslate="shouldTranslate"
+  let-isQuoted="isQuoted"
+>
+  <div *ngIf="message?.poll_id">
+    <app-poll [pollId]="message?.poll_id"></app-poll>
+  </div>
+  <stream-message-text
+    [message]="message"
+    [shouldTranslate]="shouldTranslate"
+    [isQuoted]="isQuoted"
+  ></stream-message-text>
+</ng-template>

@@ -191,9 +191,6 @@
               </div>
             </ng-container>
             <div
-              *ngIf="
-                message?.text || (message?.quoted_message && hasAttachment)
-              "
               class="str-chat__message-text"
               tabindex="0"
               [class.str-chat__message-text--pointer-cursor]="

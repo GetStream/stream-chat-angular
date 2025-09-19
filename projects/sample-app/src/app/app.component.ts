@@ -14,6 +14,7 @@ import {
   CustomTemplatesService,
   ThemeService,
   AvatarContext,
+  MessageTextContext,
 } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
 import names from 'starwars-names';
@@ -31,6 +32,8 @@ export class AppComponent implements AfterViewInit {
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
   theme$: Observable<string>;
+  @ViewChild('messageTextWithPole')
+  messageTextWithPole!: TemplateRef<MessageTextContext>;
   counter = 0;
 
   constructor(
@@ -59,6 +62,7 @@ export class AppComponent implements AfterViewInit {
         : environment.userToken,
       { timeout: 10000 }
     );
+    this.chatService.chatClient.polls.registerSubscriptions();
     void this.channelService.init(
       environment.channelsFilter || {
         type: 'messaging',
@@ -77,6 +81,9 @@ export class AppComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
+    );
+    this.customTemplateService.messageTextTemplate$.next(
+      this.messageTextWithPole
     );
   }
 
