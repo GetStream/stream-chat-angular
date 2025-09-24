@@ -1,0 +1,221 @@
+<ng-container>
+  <ng-container
+    *ngTemplateOutlet="
+      (customTemplatesService.modalTemplate$ | async) || defaultModal;
+      context: getModalContext()
+    "
+  ></ng-container>
+</ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    class="str-chat-angular__create-poll-modal str-chat__create-poll-modal"
+    [isOpen]="isOpen"
+    [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #formContent>
+  <div
+    class="str-chat__dialog str-chat__poll-creation-dialog"
+    data-testid="poll-creation-dialog"
+  >
+    <div class="str-chat__modal-header">
+      <div class="str-chat__modal-header__title">
+        {{ "streamChat.Create poll" | translate }}
+      </div>
+    </div>
+    <div class="str-chat__dialog__body">
+      <form [formGroup]="formGroup" autocomplete="off">
+        <div
+          class="str-chat__form__field str-chat__form__input-field str-chat__form__input-field--with-label"
+          [class.str-chat__form__input-field--has-error]="
+            formGroup.get('name')?.errors && formGroup.get('name')?.touched
+          "
+        >
+          <label class="str-chat__form__field-label" htmlFor="name">
+            {{ "streamChat.Question" | translate }}
+          </label>
+          <div class="str-chat__form__input-field__value">
+            <div
+              class="str-chat__form-field-error str-chat__form__input-field__error"
+            >
+              {{
+                (formGroup.get("name")?.errors?.required &&
+                formGroup.get("name")?.touched
+                  ? "streamChat.Question is required"
+                  : ""
+                ) | translate
+              }}
+            </div>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="{{ 'streamChat.Ask a question' | translate }}"
+            />
+          </div>
+        </div>
+        <fieldset class="str-chat__form__field str-chat__form__input-fieldset">
+          <legend class="str-chat__form__field-label">
+            {{ "streamChat.Options" | translate }}
+          </legend>
+          <div
+            class="str-chat__form-field-error str-chat__form__input-field__error"
+          >
+            {{
+              (formGroup.get("options")?.errors?.atLeastOne &&
+              formGroup.get("options")?.touched
+                ? "streamChat.Provide at least one option"
+                : ""
+              ) | translate
+            }}
+          </div>
+          <ng-container formArrayName="options">
+            <div class="str-chat__form__input-fieldset__values">
+              <!-- eslint-disable @angular-eslint/template/use-track-by-function -->
+              <ng-container
+                *ngFor="let option of options.controls; let i = index"
+              >
+                <!-- eslint-enable @angular-eslint/template/use-track-by-function -->
+                <div class="str-chat__drag-and-drop-container__item">
+                  <div class="str-chat__form__input-field">
+                    <input
+                      id="option{{ i }}"
+                      name="option{{ i }}"
+                      type="text"
+                      [formControl]="option"
+                      (input)="optionChanged(i)"
+                      placeholder="{{ 'streamChat.Add an option' | translate }}"
+                    />
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </ng-container>
+        </fieldset>
+        <ng-container
+          *ngTemplateOutlet="
+            switch;
+            context: {
+              name: 'multiple_answers',
+              control: formGroup.get('multiple_answers'),
+              label: 'streamChat.Multiple answers' | translate
+            }
+          "
+        ></ng-container>
+        <div
+          *ngIf="formGroup.get('multiple_answers')?.value"
+          class="str-chat__form__field str-chat__form__input-field str-chat__form__input-field--with-label"
+          [class.str-chat__form__input-field--has-error]="
+            formGroup.get('maximum_number_of_votes')?.errors &&
+            formGroup.get('maximum_number_of_votes')?.touched
+          "
+        >
+          <label class="str-chat__form__field-label" htmlFor="name">
+            {{ "streamChat.Maximum number of votes" | translate }}
+          </label>
+          <div class="str-chat__form__input-field__value">
+            <div
+              class="str-chat__form-field-error str-chat__form__input-field__error"
+            >
+              {{
+                (formGroup.get("maximum_number_of_votes")?.errors &&
+                formGroup.get("maximum_number_of_votes")?.touched
+                  ? "streamChat.Provide a value between {{ min }}
+              and {{ max }}" : "" ) | translate: { min: 2, max: 10 } }}
+            </div>
+            <input
+              id="maximum_number_of_votes"
+              type="text"
+              formControlName="maximum_number_of_votes"
+              placeholder="{{ 'streamChat.Provide a value between ' 
+              + '{{ min }} and {{ max }}' | translate: { min: 2, max: 10 } }}"
+            />
+          </div>
+        </div>
+        <ng-container
+          *ngTemplateOutlet="
+            switch;
+            context: {
+              name: 'is_anonymous',
+              control: formGroup.get('is_anonymous'),
+              label: 'streamChat.Anonymous poll' | translate
+            }
+          "
+        ></ng-container>
+        <ng-container
+          *ngTemplateOutlet="
+            switch;
+            context: {
+              name: 'allow_user_suggested_options',
+              control: formGroup.get('allow_user_suggested_options'),
+              label: 'streamChat.Allow option suggestions' | translate
+            }
+          "
+        ></ng-container>
+        <ng-container
+          *ngTemplateOutlet="
+            switch;
+            context: {
+              name: 'allow_answers',
+              control: formGroup.get('allow_answers'),
+              label: 'streamChat.Allow comments' | translate
+            }
+          "
+        ></ng-container>
+      </form>
+    </div>
+    <stream-notification-list></stream-notification-list>
+    <div class="str-chat__dialog__controls">
+      <button
+        class="str-chat__dialog__controls-button str-chat__dialog__controls-button--cancel"
+        (click)="cancel.emit()"
+        type="button"
+      >
+        {{ "streamChat.Cancel" | translate }}
+      </button>
+      <button
+        class="str-chat__dialog__controls-button str-chat__dialog__controls-button--submit"
+        (click)="createPoll()"
+        [disabled]="formGroup.invalid"
+        type="submit"
+      >
+        {{ "streamChat.Create" | translate }}
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #switch let-control="control" let-label="label" let-name="name">
+  <div class="str-chat__form__field str-chat__form__switch-field">
+    <label>
+      <div class="str-chat__form__field str-chat__form__switch-field-content">
+        <div class="str-chat__form__field str-chat__form__switch-field__text">
+          {{ label | translate }}
+        </div>
+      </div>
+      <input
+        type="checkbox"
+        [checked]="control.value"
+        id="{{ name }}"
+        name="{{ name }}"
+      />
+      <div
+        class="str-chat__form__switch-field__switch"
+        [class.str-chat__form__switch-field__switch--on]="control.value"
+        (click)="control.setValue(!control.value, { emitEvent: true })"
+        (keyup.enter)="control.setValue(!control.value, { emitEvent: true })"
+      >
+        <div class="str-chat__form__switch-field__switch-handle"></div>
+      </div>
+    </label>
+  </div>
+</ng-template>

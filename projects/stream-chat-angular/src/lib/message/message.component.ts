@@ -28,7 +28,7 @@ import {
   MessageTextContext,
   MessageBlockedContext,
 } from '../types';
-import { Observable, Subscription, take } from 'rxjs';
+import { Observable, pairwise, Subscription, take } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
@@ -81,7 +81,7 @@ export class MessageComponent
   isEditedFlagOpened = false;
   shouldDisplayTranslationNotice = false;
   displayedMessageTextContent: 'original' | 'translation' = 'original';
-  imageAttachmentModalState: 'opened' | 'closed' = 'closed';
+  nestedModalState: 'opened' | 'closed' = 'closed';
   shouldDisplayThreadLink = false;
   isSentByCurrentUser = false;
   readByText = '';
@@ -188,6 +188,15 @@ export class MessageComponent
           }
         }
       })
+    );
+    this.subscriptions.push(
+      this.messageActionsService.modalOpenedForMessage.subscribe(
+        (messageId) => {
+          if (messageId === this.message?.id) {
+            this.nestedModalState = 'opened';
+          }
+        }
+      )
     );
   }
 
@@ -300,6 +309,17 @@ export class MessageComponent
         }
       })
     );
+    this.subscriptions.push(
+      this.messageActionsService.modalOpenedForMessage
+        .pipe(pairwise())
+        .subscribe(([oldId, newId]) => {
+          if (newId === this.message?.id) {
+            this.nestedModalState = 'opened';
+          } else if (oldId === this.message?.id && newId === undefined) {
+            this.nestedModalState = 'closed';
+          }
+        })
+    );
   }
 
   ngOnDestroy(): void {
@@ -373,8 +393,7 @@ export class MessageComponent
       messageId: this.message?.id || '',
       attachments: this.message?.attachments || [],
       parentMessageId: this.message?.parent_id,
-      imageModalStateChangeHandler: (state) =>
-        (this.imageAttachmentModalState = state),
+      imageModalStateChangeHandler: (state) => (this.nestedModalState = state),
     };
   }
 

@@ -167,7 +167,7 @@
           <div
             class="str-chat__message-bubble str-chat-angular__message-bubble"
             [class.str-chat-angular__message-bubble--attachment-modal-open]="
-              imageAttachmentModalState === 'opened'
+              nestedModalState === 'opened'
             "
             data-testid="message-bubble"
             [floatUiLoose]="messageMenuFloat"
@@ -189,6 +189,23 @@
                   *ngTemplateOutlet="attachmentsTemplate"
                 ></ng-container>
               </div>
+            </ng-container>
+            <ng-container
+              *ngIf="
+                message?.poll_id &&
+                (customTemplatesService.pollTemplate$ | async)
+              "
+            >
+              <ng-container
+                *ngTemplateOutlet="
+                  (customTemplatesService.pollTemplate$ | async)!;
+                  context: {
+                    pollId: message?.poll_id,
+                    messageId: message?.id,
+                    isQuote: false
+                  }
+                "
+              ></ng-container>
             </ng-container>
             <div
               *ngIf="
@@ -364,6 +381,23 @@
               (customTemplatesService.attachmentListTemplate$ | async) ||
                 defaultAttachments;
               context: getQuotedMessageAttachmentListContext()
+            "
+          ></ng-container>
+        </ng-container>
+        <ng-container
+          *ngIf="
+            message?.quoted_message?.poll_id &&
+            (customTemplatesService.pollTemplate$ | async)
+          "
+        >
+          <ng-container
+            *ngTemplateOutlet="
+              (customTemplatesService.pollTemplate$ | async)!;
+              context: {
+                pollId: message?.quoted_message?.poll_id,
+                messageId: message?.quoted_message?.id,
+                isQuote: true
+              }
             "
           ></ng-container>
         </ng-container>

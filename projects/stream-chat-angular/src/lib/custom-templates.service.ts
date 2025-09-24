@@ -373,6 +373,19 @@ export class CustomTemplatesService {
   messageBlockedTemplate$ = new BehaviorSubject<
     TemplateRef<MessageBlockedContext> | undefined
   >(undefined);
+  /**
+   * Template to display polls inside [message component](/chat/docs/sdk/angular/components/MessageComponent/). There is no default template, but the `PollsModule` contains default components.
+   */
+  pollTemplate$ = new BehaviorSubject<
+    TemplateRef<{ pollId: string; messageId: string }> | undefined
+  >(undefined);
+  /**
+   * Template to display poll composer inside [message input component](/chat/docs/sdk/angular/components/MessageInputComponent/). There is no default template, but the `PollsModule` contains default components.
+   */
+  pollComposerTemplate$ = new BehaviorSubject<
+    | TemplateRef<{ pollCompose: (pollId: string) => void; cancel: () => void }>
+    | undefined
+  >(undefined);
 
   constructor() {}
 }

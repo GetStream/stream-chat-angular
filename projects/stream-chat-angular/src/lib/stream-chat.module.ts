@@ -13,7 +13,6 @@ import { MessageReactionsComponent } from './message-reactions/message-reactions
 import { NotificationComponent } from './notification/notification.component';
 import { NotificationListComponent } from './notification-list/notification-list.component';
 import { AttachmentPreviewListComponent } from './attachment-preview-list/attachment-preview-list.component';
-import { ModalComponent } from './modal/modal.component';
 import { TextareaDirective } from './message-input/textarea.directive';
 import { StreamAvatarModule } from './stream-avatar.module';
 import { ThreadComponent } from './thread/thread.component';
@@ -21,13 +20,15 @@ import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bo
 import { NgxFloatUiModule } from 'ngx-float-ui';
 import { TranslateModule } from '@ngx-translate/core';
 import { MessageReactionsSelectorComponent } from './message-reactions-selector/message-reactions-selector.component';
-import { PaginatedListComponent } from './paginated-list/paginated-list.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { VoiceRecordingModule } from './voice-recording/voice-recording.module';
 import { IconModule } from './icon/icon.module';
 import { VoiceRecorderService } from './message-input/voice-recorder.service';
 import { MessageTextComponent } from './message-text/message-text.component';
 import { MessageBlockedComponent } from './message-blocked/message-blocked.component';
+import { StreamModalModule } from './modal/stream-modal.module';
+import { StreamNotificationModule } from './notification-list/stream-notification.module';
+import { StreamPaginatedListModule } from './paginated-list/stream-paginated-list.module';
 
 @NgModule({
   declarations: [
@@ -41,16 +42,12 @@ import { MessageBlockedComponent } from './message-blocked/message-blocked.compo
     MessageActionsBoxComponent,
     AttachmentListComponent,
     MessageReactionsComponent,
-    NotificationComponent,
-    NotificationListComponent,
     AttachmentPreviewListComponent,
-    ModalComponent,
     TextareaDirective,
     ThreadComponent,
     MessageBouncePromptComponent,
     MessageReactionsSelectorComponent,
     UserListComponent,
-    PaginatedListComponent,
     MessageTextComponent,
     MessageBlockedComponent,
   ],
@@ -61,6 +58,9 @@ import { MessageBlockedComponent } from './message-blocked/message-blocked.compo
     TranslateModule,
     VoiceRecordingModule,
     IconModule,
+    StreamModalModule,
+    StreamNotificationModule,
+    StreamPaginatedListModule,
   ],
   exports: [
     ChannelComponent,
@@ -76,17 +76,18 @@ import { MessageBlockedComponent } from './message-blocked/message-blocked.compo
     NotificationComponent,
     NotificationListComponent,
     AttachmentPreviewListComponent,
-    ModalComponent,
+    StreamModalModule,
     StreamAvatarModule,
     ThreadComponent,
     MessageBouncePromptComponent,
     VoiceRecordingModule,
     MessageReactionsSelectorComponent,
     UserListComponent,
-    PaginatedListComponent,
+    StreamPaginatedListModule,
     IconModule,
     MessageTextComponent,
     MessageBlockedComponent,
+    StreamNotificationModule,
   ],
   providers: [VoiceRecorderService],
 })

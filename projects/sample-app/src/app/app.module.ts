@@ -8,6 +8,7 @@ import {
   StreamAutocompleteTextareaModule,
   StreamChatModule,
   VoiceRecorderModule,
+  StreamPollsModule,
 } from 'stream-chat-angular';
 import { EmojiPickerComponent } from './emoji-picker/emoji-picker.component';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
@@ -20,6 +21,7 @@ import { PickerModule } from '@ctrl/ngx-emoji-mart';
     StreamChatModule,
     PickerModule,
     VoiceRecorderModule,
+    StreamPollsModule,
     StreamAutocompleteTextareaModule,
   ],
   bootstrap: [AppComponent],

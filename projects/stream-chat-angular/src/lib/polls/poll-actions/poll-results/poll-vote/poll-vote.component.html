@@ -1,0 +1,17 @@
+<div class="str-chat__poll-vote">
+  <div class="str-chat__poll-vote__author">
+    <stream-avatar-placeholder
+      location="poll-voter"
+      [user]="vote?.user"
+      [imageUrl]="vote?.user?.image"
+      [name]="vote?.user?.name ?? anonymousTranslation"
+      type="user"
+    ></stream-avatar-placeholder>
+    <div class="str-chat__poll-vote__author__name">
+      {{ vote?.user?.name ?? anonymousTranslation }}
+    </div>
+  </div>
+  <div *ngIf="vote?.created_at" class="str-chat__poll-vote__timestamp">
+    {{ parseDate(vote!.created_at) }}
+  </div>
+</div>

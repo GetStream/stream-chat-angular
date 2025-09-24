@@ -169,6 +169,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         ) || message.text;
     } else if (message?.attachments && message.attachments.length) {
       this.latestMessageText = 'streamChat.🏙 Attachment...';
+    } else if (message?.poll_id) {
+      this.latestMessageText = `📊 ${message.poll?.name}`;
     }
     if (this.latestMessage && this.latestMessage.type === 'regular') {
       this.latestMessageTime = isOnSeparateDate(

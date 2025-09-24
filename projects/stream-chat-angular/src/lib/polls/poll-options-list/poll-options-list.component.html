@@ -1,0 +1,19 @@
+<div
+  class="str-chat__poll-option-list"
+  [class.str-chat__poll-option-list--full]="
+    !maxOptionsDisplayed || maxOptionsDisplayed === options.length
+  "
+>
+  <ng-container
+    *ngFor="
+      let option of options | slice : 0 : maxOptionsDisplayed;
+      trackBy: trackByOptionId
+    "
+  >
+    <stream-poll-option-selector
+      [option]="option"
+      [messageId]="messageId"
+      [pollId]="pollId"
+    ></stream-poll-option-selector>
+  </ng-container>
+</div>

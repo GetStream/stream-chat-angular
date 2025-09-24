@@ -1,0 +1,76 @@
+<div
+  class="str-chat__modal__poll-results"
+  [class.str-chat__modal__poll-results--option-detail]="optionToView"
+>
+  <div class="str-chat__modal-header">
+    <!-- eslint-disable-next-line @angular-eslint/template/accessibility-elements-content -->
+    <button
+      *ngIf="optionToView"
+      class="str-chat__modal-header__go-back-button"
+      (click)="optionToView = undefined"
+    ></button>
+    <div class="str-chat__modal-header__title" translate>
+      streamChat.Poll results
+    </div>
+  </div>
+  <ng-container *ngIf="optionToView; else allOptions">
+    <div class="str-chat__modal__poll-results__body">
+      <stream-poll-vote-results-list
+        [option]="optionToView"
+        [messageId]="messageId"
+        [pollId]="pollId"
+      ></stream-poll-vote-results-list>
+    </div>
+  </ng-container>
+  <ng-template #allOptions>
+    <div class="str-chat__modal__poll-results__body">
+      <div class="str-chat__modal__poll-results__title">{{ name }}</div>
+      <div class="str-chat__modal__poll-results__option-list">
+        <div
+          *ngFor="let option of options; trackBy: trackByOptionId"
+          class="str-chat__poll-option"
+        >
+          <div class="str-chat__poll-option__header">
+            <div class="str-chat__poll-option__option-text">
+              {{ option.text }}
+            </div>
+            <div class="str-chat__poll-result-option-vote-counter">
+              <div
+                *ngIf="isWinner(option.id)"
+                class="str-chat__poll-result-winning-option-icon"
+              ></div>
+              <span class="str-chat__poll-result-option-vote-count">
+                {{ 'streamChat.{{ count }} votes' | translate:{count:
+                voteCountsByOption[option.id] ?? 0} }}
+              </span>
+            </div>
+          </div>
+          <ng-container *ngIf="latestVotesByOption[option?.id ?? '']">
+            <div class="str-chat__poll-vote-listing">
+              <ng-container
+                *ngFor="
+                  let vote of latestVotesByOption[option?.id ?? '']
+                    | slice : 0 : votePreviewCount;
+                  trackBy: trackByVoteId
+                "
+              >
+                <stream-poll-vote [vote]="vote"></stream-poll-vote>
+              </ng-container>
+            </div>
+          </ng-container>
+          <button
+            *ngIf="
+              voteCountsByOption[option?.id ?? ''] > votePreviewCount &&
+              canQueryVotes
+            "
+            class="str-chat__poll-option__show-all-votes-button"
+            translate
+            (click)="optionToView = option"
+          >
+            streamChat.Show all
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>

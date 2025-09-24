@@ -184,6 +184,10 @@ export class MessageActionsService {
    * @internal
    */
   messageMenuOpenedFor$ = new BehaviorSubject<string | undefined>(undefined);
+  /**
+   * @internal
+   */
+  modalOpenedForMessage = new BehaviorSubject<string | undefined>(undefined);
   private hasDisplayedClipboardWarning = false;
 
   constructor(

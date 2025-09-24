@@ -30,6 +30,15 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('emojiPickerTemplate')
   emojiPickerTemplate!: TemplateRef<EmojiPickerContext>;
   @ViewChild('avatar') avatarTemplate!: TemplateRef<AvatarContext>;
+  @ViewChild('pollTemplate') pollTemplate!: TemplateRef<{
+    pollId: string;
+    messageId: string;
+  }>;
+  @ViewChild('pollComposerTemplate')
+  pollComposerTemplate!: TemplateRef<{
+    pollCompose: (pollId: string) => void;
+    cancel: () => void;
+  }>;
   theme$: Observable<string>;
   counter = 0;
 
@@ -59,6 +68,7 @@ export class AppComponent implements AfterViewInit {
         : environment.userToken,
       { timeout: 10000 }
     );
+    this.chatService.chatClient.polls.registerSubscriptions();
     void this.channelService.init(
       environment.channelsFilter || {
         type: 'messaging',
@@ -77,6 +87,10 @@ export class AppComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.customTemplateService.emojiPickerTemplate$.next(
       this.emojiPickerTemplate
+    );
+    this.customTemplateService.pollTemplate$.next(this.pollTemplate);
+    this.customTemplateService.pollComposerTemplate$.next(
+      this.pollComposerTemplate
     );
   }
 

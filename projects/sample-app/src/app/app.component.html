@@ -26,7 +26,10 @@
     </stream-channel-header>
     <stream-message-list></stream-message-list>
     <stream-notification-list></stream-notification-list>
-    <stream-message-input [displayVoiceRecordingButton]="true">
+    <stream-message-input
+      [displayPollCreateButton]="true"
+      [displayVoiceRecordingButton]="true"
+    >
       <ng-template voice-recorder let-service="service">
         <stream-voice-recorder
           [voiceRecorderService]="service"
@@ -53,4 +56,32 @@
 
 <ng-template #emojiPickerTemplate let-emojiInput$="emojiInput$">
   <app-emoji-picker [emojiInput$]="emojiInput$"></app-emoji-picker>
+</ng-template>
+
+<ng-template
+  #pollTemplate
+  let-pollId="pollId"
+  let-messageId="messageId"
+  let-isQuote="isQuote"
+>
+  <ng-container *ngIf="isQuote; else poll">
+    <stream-poll-preview
+      [pollId]="pollId"
+      [messageId]="messageId"
+    ></stream-poll-preview>
+  </ng-container>
+  <ng-template #poll>
+    <stream-poll [pollId]="pollId" [messageId]="messageId"> </stream-poll>
+  </ng-template>
+</ng-template>
+
+<ng-template
+  #pollComposerTemplate
+  let-pollCompose="pollCompose"
+  let-cancel="cancel"
+>
+  <stream-poll-composer
+    (pollCompose)="pollCompose($event)"
+    (cancel)="cancel()"
+  ></stream-poll-composer>
 </ng-template>

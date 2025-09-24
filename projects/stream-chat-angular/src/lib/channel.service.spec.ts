@@ -1246,6 +1246,7 @@ describe('ChannelService', () => {
       quoted_message_id: quotedMessageId,
       isVote: true,
       options: ['A', 'B', 'C'],
+      poll_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
@@ -1284,6 +1285,7 @@ describe('ChannelService', () => {
       quoted_message_id: undefined,
       // @ts-expect-error testing custom proerpty
       custom: 'red',
+      poll_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
@@ -1304,6 +1306,7 @@ describe('ChannelService', () => {
       id: jasmine.any(String),
       parent_id: undefined,
       quoted_message_id: undefined,
+      poll_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(
