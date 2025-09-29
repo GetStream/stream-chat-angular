@@ -1,0 +1,17 @@
+<div class="str-chat__poll" [class.str-chat__poll--closed]="isClosed">
+  <div #header><ng-content select="[poll-header]"></ng-content></div>
+  <ng-container *ngIf="!header.hasChildNodes()">
+    <stream-poll-header [pollId]="pollId" [messageId]="messageId">
+    </stream-poll-header>
+  </ng-container>
+  <div #options><ng-content select="[poll-options-list]"></ng-content></div>
+  <ng-container *ngIf="!options.hasChildNodes()">
+    <stream-poll-options-list [pollId]="pollId" [messageId]="messageId">
+    </stream-poll-options-list>
+  </ng-container>
+  <div #actions><ng-content select="[poll-actions]"></ng-content></div>
+  <ng-container *ngIf="!actions.hasChildNodes()">
+    <stream-poll-actions [pollId]="pollId" [messageId]="messageId">
+    </stream-poll-actions>
+  </ng-container>
+</div>

@@ -1,0 +1,40 @@
+<div
+  class="str-chat__dialog str-chat__dialog--form str-chat__prompt-dialog str-chat__modal__suggest-poll-option"
+>
+  <div class="str-chat__dialog__body">
+    <div class="str-chat__dialog__title">
+      {{ "streamChat.Suggest an option" | translate }}
+    </div>
+    <form [formGroup]="formGroup">
+      <div class="str-chat__dialog__field">
+        <input formControlName="text" id="text" type="text" />
+        <div class="str-chat__form-field-error">
+          {{
+            formGroup.get("text")?.errors?.duplicate
+              ? ("streamChat.Option already exists" | translate)
+              : ""
+          }}
+        </div>
+      </div>
+      <div class="str-chat__dialog__controls">
+        <button
+          class="str-chat__dialog__controls-button str-chat__dialog__controls-button--cancel"
+          type="button"
+          (click)="closeModal()"
+          (keyup.enter)="closeModal()"
+        >
+          {{ "streamChat.Cancel" | translate }}
+        </button>
+        <button
+          class="str-chat__dialog__controls-button str-chat__dialog__controls-button--submit"
+          type="submit"
+          (click)="addOption()"
+          (keyup.enter)="addOption()"
+          [disabled]="formGroup.invalid"
+        >
+          {{ "streamChat.Send" | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

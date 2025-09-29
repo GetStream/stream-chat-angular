@@ -109,6 +109,10 @@ export class MessageInputComponent
    */
   @Input() displayVoiceRecordingButton = false;
   /**
+   * You can enable/disable polls with this input
+   */
+  @Input() displayPollCreateButton = false;
+  /**
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{
@@ -122,6 +126,7 @@ export class MessageInputComponent
   isFileUploadAuthorized: boolean | undefined;
   canSendLinks: boolean | undefined;
   canSendMessages: boolean | undefined;
+  canSendPolls: boolean | undefined;
   attachmentUploads$: Observable<AttachmentUpload[]>;
   customAttachments$: Observable<Attachment[]>;
   attachmentUploadInProgressCounter$: Observable<number>;
@@ -141,6 +146,7 @@ export class MessageInputComponent
     | undefined;
   textareaPlaceholder: string;
   fileInputId = uuidv4();
+  isComposerOpen = false;
   @ViewChild('fileInput') private fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild(TextareaDirective, { static: false })
   private textareaAnchor!: TextareaDirective;
@@ -152,6 +158,7 @@ export class MessageInputComponent
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
   private messageToEdit?: StreamMessage;
+  private pollId: string | undefined;
 
   constructor(
     private channelService: ChannelService,
@@ -184,6 +191,7 @@ export class MessageInputComponent
         if (channel && this.channel && channel.id !== this.channel.id) {
           this.textareaValue = '';
           this.attachmentService.resetAttachmentUploads();
+          this.pollId = undefined;
           this.voiceRecorderService.isRecorderVisible$.next(false);
         }
         const capabilities = channel?.data?.own_capabilities as string[];
@@ -191,6 +199,7 @@ export class MessageInputComponent
           this.isFileUploadAuthorized =
             capabilities.indexOf('upload-file') !== -1;
           this.canSendLinks = capabilities.indexOf('send-links') !== -1;
+          this.canSendPolls = capabilities.indexOf('send-poll') !== -1;
           this.channel = channel;
           this.setCanSendMessages();
         }
@@ -377,7 +386,8 @@ export class MessageInputComponent
     const textContainsOnlySpaceChars = !text.replace(/ /g, ''); //spcae
     if (
       (!text || textContainsOnlySpaceChars) &&
-      (!attachments || attachments.length === 0)
+      (!attachments || attachments.length === 0) &&
+      !this.pollId
     ) {
       return;
     }
@@ -390,8 +400,10 @@ export class MessageInputComponent
       );
       return;
     }
+    const pollId = this.pollId;
     if (!this.isUpdate) {
       this.textareaValue = '';
+      this.pollId = undefined;
     }
     try {
       const message = await (this.isUpdate
@@ -405,7 +417,9 @@ export class MessageInputComponent
             attachments,
             this.mentionedUsers,
             this.parentMessageId,
-            this.quotedMessage?.id
+            this.quotedMessage?.id,
+            undefined,
+            pollId
           ));
       this.messageUpdate.emit({ message });
       if (this.isUpdate) {
@@ -508,6 +522,20 @@ export class MessageInputComponent
       this.voiceRecorderService.isRecorderVisible$.next(true);
     }
   }
+
+  openPollComposer() {
+    this.isComposerOpen = true;
+  }
+
+  closePollComposer = () => {
+    this.isComposerOpen = false;
+  };
+
+  addPoll = (pollId: string) => {
+    this.isComposerOpen = false;
+    this.pollId = pollId;
+    void this.messageSent();
+  };
 
   async voiceRecordingReady(recording: AudioRecording) {
     try {
@@ -641,8 +669,10 @@ export class MessageInputComponent
         this.message!.attachments || []
       );
       this.textareaValue = this.message!.text || '';
+      this.pollId = this.message!.poll_id;
     } else {
       this.textareaValue = '';
+      this.pollId = undefined;
     }
   }
 }

@@ -1,0 +1,40 @@
+<div class="str-chat__modal__poll-answer-list">
+  <div class="str-chat__modal-header">
+    <div class="str-chat__modal-header__title" translate>
+      streamChat.Poll comments
+    </div>
+  </div>
+  <div class="str-chat__modal__poll-answer-list__body">
+    <div class="str-chat__poll-answer-list">
+      <stream-paginated-list
+        class="str-chat__poll-answer-list"
+        [items]="answers"
+        [hasMore]="next !== undefined"
+        [isLoading]="isLoading"
+        [trackBy]="trackByAnswerId"
+        (loadMore)="queryAnswers()"
+      >
+        <ng-template let-answer="item">
+          <div class="str-chat__poll-answer">
+            <p *ngIf="answer.answer_text" class="str-chat__poll-answer__text">
+              {{ answer.answer_text }}
+            </p>
+            <stream-poll-vote [vote]="answer"></stream-poll-vote>
+          </div>
+        </ng-template>
+      </stream-paginated-list>
+      <button
+        *ngIf="!isClosed"
+        class="str-chat__poll-action"
+        (click)="upsertOwnAnswer.emit()"
+      >
+        {{
+          (ownAnswer
+            ? "streamChat.Update your comment"
+            : "streamChat.Add a comment"
+          ) | translate
+        }}
+      </button>
+    </div>
+  </div>
+</div>

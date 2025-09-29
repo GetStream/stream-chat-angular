@@ -152,6 +152,7 @@ export type AvatarLocation =
   | 'quoted-message-sender'
   | 'autocomplete-item'
   | 'typing-indicator'
+  | 'poll-voter'
   /**
    * @deprecated this will be renamed to user-list in the next major release
    */
@@ -353,6 +354,7 @@ export type MessageInput = {
   parentId: string | undefined;
   quotedMessageId: string | undefined;
   customData: undefined | CustomMessageData;
+  pollId: string | undefined;
 };
 
 export type OffsetNextPageConfiguration = {

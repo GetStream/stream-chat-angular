@@ -13,7 +13,8 @@ export const createMessagePreview = (
   mentionedUsers: UserResponse[] = [],
   parentId: undefined | string = undefined,
   quotedMessageId: undefined | string = undefined,
-  customData: undefined | CustomMessageData
+  customData: undefined | CustomMessageData,
+  pollId: undefined | string = undefined
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
@@ -31,6 +32,7 @@ export const createMessagePreview = (
     mentioned_users: mentionedUsers,
     parent_id: parentId,
     quoted_message_id: quotedMessageId,
+    poll_id: pollId,
     ...customData,
   } as unknown as MessageResponse;
 };

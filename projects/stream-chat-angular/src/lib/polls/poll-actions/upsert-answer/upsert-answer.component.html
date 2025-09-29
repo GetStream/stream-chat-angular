@@ -1,0 +1,34 @@
+<div
+  class="str-chat__dialog str-chat__dialog--form str-chat__prompt-dialog str-chat__modal__poll-add-comment"
+>
+  <div class="str-chat__dialog__body">
+    <div class="str-chat__dialog__title">
+      {{
+        (answer ? "streamChat.Update your comment" : "streamChat.Add a comment")
+          | translate
+      }}
+    </div>
+    <form [formGroup]="formGroup" (ngSubmit)="addComment()">
+      <div class="str-chat__dialog__field">
+        <input formControlName="comment" id="comment" type="text" />
+      </div>
+      <div class="str-chat__dialog__controls">
+        <button
+          class="str-chat__dialog__controls-button str-chat__dialog__controls-button--cancel"
+          onClick="{close}"
+          type="button"
+          (click)="closeModal()"
+        >
+          {{ "streamChat.Cancel" | translate }}
+        </button>
+        <button
+          class="str-chat__dialog__controls-button str-chat__dialog__controls-button--submit"
+          type="submit"
+          [disabled]="formGroup.invalid"
+        >
+          {{ "streamChat.Send" | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

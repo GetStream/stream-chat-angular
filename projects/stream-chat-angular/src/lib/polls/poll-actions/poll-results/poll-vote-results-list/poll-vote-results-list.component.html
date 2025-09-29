@@ -1,0 +1,26 @@
+<div class="str-chat__poll-option str-chat__poll-option--full-vote-list">
+  <div class="str-chat__poll-option__header">
+    <div class="str-chat__poll-option__option-text">{{ option?.text }}</div>
+    <div class="str-chat__poll-result-option-vote-counter">
+      <div
+        *ngIf="isWinner"
+        class="str-chat__poll-result-winning-option-icon"
+      ></div>
+      <span class="str-chat__poll-result-option-vote-count">
+        {{ 'streamChat.{{ count }} votes' | translate:{count: voteCount ?? 0} }}
+      </span>
+    </div>
+  </div>
+  <stream-paginated-list
+    class="str-chat__poll-vote-listing"
+    [items]="votes"
+    [hasMore]="next !== undefined"
+    [isLoading]="isLoading"
+    [trackBy]="trackByVoteId"
+    (loadMore)="loadVotes()"
+  >
+    <ng-template let-vote="item">
+      <stream-poll-vote [vote]="vote"></stream-poll-vote>
+    </ng-template>
+  </stream-paginated-list>
+</div>

@@ -66,6 +66,16 @@
           </div>
         </ng-template>
       </ng-container>
+      <ng-container
+        *ngIf="canSendPolls && displayPollCreateButton && mode !== 'thread'"
+      >
+        <button
+          class="str-chat-angular__create-poll"
+          (click)="openPollComposer()"
+        >
+          <stream-icon-placeholder icon="poll"></stream-icon-placeholder>
+        </button>
+      </ng-container>
       <div class="str-chat__message-textarea-container">
         <div
           *ngIf="quotedMessage"
@@ -91,6 +101,23 @@
               [attachments]="quotedMessageAttachments"
               [messageId]="quotedMessage.id"
             ></stream-attachment-list>
+            <ng-container
+              *ngIf="
+                quotedMessage?.poll_id &&
+                (customTemplatesService.pollTemplate$ | async)
+              "
+            >
+              <ng-container
+                *ngTemplateOutlet="
+                  (customTemplatesService.pollTemplate$ | async)!;
+                  context: {
+                    pollId: quotedMessage?.poll_id,
+                    messageId: quotedMessage?.id,
+                    isQuote: true
+                  }
+                "
+              ></ng-container>
+            </ng-container>
             <div class="str-chat__quoted-message-text">
               <ng-container
                 *ngTemplateOutlet="
@@ -214,4 +241,14 @@
   *ngIf="voiceRecorderRef"
   [ngTemplateOutlet]="voiceRecorderRef"
   [ngTemplateOutletContext]="{ service: voiceRecorderService }"
+></ng-template>
+<ng-template
+  *ngIf="
+    isComposerOpen && (customTemplatesService.pollComposerTemplate$ | async)
+  "
+  [ngTemplateOutlet]="(customTemplatesService.pollComposerTemplate$ | async)!"
+  [ngTemplateOutletContext]="{
+    pollCompose: addPoll,
+    cancel: closePollComposer
+  }"
 ></ng-template>

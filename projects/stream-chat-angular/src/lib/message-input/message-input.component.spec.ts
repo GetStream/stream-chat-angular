@@ -307,6 +307,8 @@ describe('MessageInputComponent', () => {
       [],
       mentionedUsers,
       undefined,
+      undefined,
+      undefined,
       undefined
     );
 
@@ -486,6 +488,8 @@ describe('MessageInputComponent', () => {
       attachments,
       [],
       undefined,
+      undefined,
+      undefined,
       undefined
     );
   });
@@ -589,6 +593,8 @@ describe('MessageInputComponent', () => {
       jasmine.any(Array),
       jasmine.any(Object),
       undefined,
+      undefined,
+      undefined,
       undefined
     );
   });
@@ -626,6 +632,8 @@ describe('MessageInputComponent', () => {
       message,
       undefined,
       [],
+      undefined,
+      undefined,
       undefined,
       undefined
     );
@@ -709,7 +717,9 @@ describe('MessageInputComponent', () => {
       [],
       [],
       'parent message',
-      'message-to-quote'
+      'message-to-quote',
+      undefined,
+      undefined
     );
 
     expect(typingStoppedSpy).toHaveBeenCalledWith('parent message');

@@ -831,6 +831,7 @@ export class ChannelService {
    * @param parentId Id of the parent message (if sending a thread reply)
    * @param quotedMessageId Id of the message to quote (if sending a quote reply)
    * @param customData
+   * @param pollId Id of the poll (if sending a poll message)
    */
   async sendMessage(
     text: string,
@@ -838,7 +839,8 @@ export class ChannelService {
     mentionedUsers: UserResponse[] = [],
     parentId: string | undefined = undefined,
     quotedMessageId: string | undefined = undefined,
-    customData: undefined | CustomMessageData = undefined
+    customData: undefined | CustomMessageData = undefined,
+    pollId: string | undefined = undefined
   ) {
     let input: MessageInput = {
       text,
@@ -847,6 +849,7 @@ export class ChannelService {
       parentId,
       quotedMessageId,
       customData,
+      pollId,
     };
     if (this.beforeSendMessage) {
       input = await this.beforeSendMessage(input);
@@ -858,7 +861,8 @@ export class ChannelService {
       input.mentionedUsers,
       input.parentId,
       input.quotedMessageId,
-      input.customData
+      input.customData,
+      input.pollId
     );
     const channel = this.activeChannelSubject.getValue()!;
     channel.state.addMessageSorted(preview, true);
@@ -1206,6 +1210,7 @@ export class ChannelService {
         mentioned_users: preview.mentioned_users?.map((u) => u.id),
         parent_id: preview.parent_id,
         quoted_message_id: preview.quoted_message_id,
+        poll_id: preview.poll_id,
         ...customData,
       } as Message); // TODO: find out why we need typecast here
       channel.state.addMessageSorted(

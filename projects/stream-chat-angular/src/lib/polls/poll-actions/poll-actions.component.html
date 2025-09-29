@@ -1,0 +1,155 @@
+<div class="str-chat__poll-actions">
+  <ng-container
+    *ngIf="maxOptionsDisplayed && options.length > maxOptionsDisplayed"
+  >
+    <button class="str-chat__poll-action" (click)="modalOpened('allOptions')">
+      {{ "streamChat.See all options ({{count}})" | translate:{count:
+      options.length} }}
+    </button>
+  </ng-container>
+  <ng-container
+    *ngIf="
+      allowUserSuggestions &&
+      canVote &&
+      !isClosed &&
+      options.length < maxPollOptions
+    "
+  >
+    <button
+      class="str-chat__poll-action"
+      (click)="modalOpened('suggestOption')"
+    >
+      {{ "streamChat.Suggest an option" | translate }}
+    </button>
+  </ng-container>
+  <ng-container *ngIf="allowAnswers && canVote && !isClosed">
+    <button
+      class="str-chat__poll-action"
+      (click)="modalOpened('addAnswer')"
+      (keyup.enter)="modalOpened('addAnswer')"
+    >
+      <ng-container *ngIf="ownAnwer; else newAnswer">
+        {{ "streamChat.Update your comment" | translate }}
+      </ng-container>
+      <ng-template #newAnswer>
+        {{ "streamChat.Add a comment" | translate }}
+      </ng-template>
+    </button>
+  </ng-container>
+  <ng-container *ngIf="answerCount > 0 && canQueryVotes">
+    <button class="str-chat__poll-action" (click)="modalOpened('viewComments')">
+      {{ (answerCount === 1 ? "streamChat.View {{ count }} comment" :
+      "streamChat.View {{ count }} comments") | translate:{count: answerCount}
+      }}
+    </button>
+  </ng-container>
+  <ng-container *ngIf="canQueryVotes">
+    <button class="str-chat__poll-action" (click)="modalOpened('viewResults')">
+      {{ "streamChat.View results" | translate }}
+    </button>
+  </ng-container>
+  <ng-container *ngIf="isOwnPoll && !isClosed">
+    <button class="str-chat__poll-action" (click)="modalOpened('endVote')">
+      {{ "streamChat.End vote" | translate }}
+    </button>
+  </ng-container>
+</div>
+
+<ng-container *ngIf="selectedAction">
+  <ng-container
+    *ngTemplateOutlet="
+      (customTemplatesService.modalTemplate$ | async) || defaultModal;
+      context: getModalContext()
+    "
+  ></ng-container>
+</ng-container>
+
+<ng-template
+  #defaultModal
+  let-isOpen="isOpen"
+  let-isOpenChangeHandler="isOpenChangeHandler"
+  let-content="content"
+>
+  <stream-modal
+    class="str-chat__poll-actions str-chat-angular__poll-actions"
+    [isOpen]="isOpen"
+    [content]="content"
+    (isOpenChange)="isOpenChangeHandler($event)"
+  >
+  </stream-modal>
+</ng-template>
+
+<ng-template #allOptions>
+  <div class="str-chat__modal__poll-option-list str-chat-angular__poll-actions">
+    <div class="str-chat__modal-header">
+      <div class="str-chat__modal-header__title" translate>
+        streamChat.Poll options
+      </div>
+    </div>
+    <div class="str-chat__modal__poll-option-list__body">
+      <div class="str-chat__modal__poll-option-list__title">{{ name }}</div>
+      <stream-poll-options-list
+        [pollId]="pollId"
+        [messageId]="messageId"
+        [maxOptionsDisplayed]="undefined"
+      ></stream-poll-options-list>
+      <stream-notification-list></stream-notification-list>
+    </div>
+  </div>
+</ng-template>
+<ng-template #suggestOption>
+  <stream-add-option
+    [pollId]="pollId"
+    [messageId]="messageId"
+    [closeModal]="modalClosed"
+  ></stream-add-option>
+  <stream-notification-list></stream-notification-list>
+</ng-template>
+<ng-template #addAnswer>
+  <stream-upsert-answer
+    [pollId]="pollId"
+    [messageId]="messageId"
+    [answer]="ownAnwer"
+    [closeModal]="modalClosed"
+  ></stream-upsert-answer>
+  <stream-notification-list></stream-notification-list>
+</ng-template>
+<ng-template #viewComments>
+  <stream-poll-answers-list
+    (upsertOwnAnswer)="modalOpened('addAnswer')"
+    [pollId]="pollId"
+    [messageId]="messageId"
+  ></stream-poll-answers-list>
+  <stream-notification-list></stream-notification-list>
+</ng-template>
+<ng-template #viewResults>
+  <stream-poll-results-list
+    [messageId]="messageId"
+    [pollId]="pollId"
+  ></stream-poll-results-list>
+  <stream-notification-list></stream-notification-list>
+</ng-template>
+<ng-template #endVote>
+  <div
+    class="str-chat__dialog str-chat__dialog--prompt str-chat__modal__end-vote"
+  >
+    <div class="str-chat__dialog__body">
+      <div class="str-chat__dialog__title" translate>streamChat.End vote</div>
+      <div class="str-chat__dialog__prompt" translate>
+        streamChat.After a poll is closed, no more votes can be cast
+      </div>
+      <stream-notification-list></stream-notification-list>
+      <div class="str-chat__dialog__controls">
+        <button
+          class="str-chat__dialog__controls-button"
+          (click)="modalClosed()"
+        >
+          {{ "streamChat.Cancel" | translate }}
+        </button>
+        <button class="str-chat__dialog__controls-button" (click)="closePoll()">
+          {{ "streamChat.End vote" | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

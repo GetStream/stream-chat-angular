@@ -558,6 +558,7 @@ describe('ChannelService - threads', () => {
       parent_id: 'parentId',
       quoted_message_id: undefined,
       ...customData,
+      poll_id: undefined,
     });
 
     expect(channel.state.addMessageSorted).toHaveBeenCalledWith(

@@ -13,7 +13,8 @@
         "@schematics/angular:component": {
           "style": "scss",
           "inlineStyle": true,
-          "export": true
+          "export": true,
+          "changeDetection": "OnPush"
         }
       },
       "root": "projects/stream-chat-angular",

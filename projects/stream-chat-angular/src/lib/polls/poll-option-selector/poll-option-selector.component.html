@@ -1,0 +1,61 @@
+<div
+  class="str-chat__poll-option"
+  [class.str-chat__poll-option--votable]="
+    !isClosed &&
+    canVote &&
+    maxVoteAllowedCount &&
+    ownVoteCount < maxVoteAllowedCount &&
+    !ownVote
+  "
+  (click)="toggleVote()"
+  (keyup.enter)="toggleVote()"
+>
+  <ng-container *ngIf="canVote">
+    <ng-container *ngTemplateOutlet="checkmark"></ng-container>
+  </ng-container>
+  <div class="str-chat__poll-option-data">
+    <p class="str-chat__poll-option-text">{{ option?.text }}</p>
+    <ng-container *ngIf="displayAvatarCount && votingVisibility === 'public'">
+      <div
+        *ngFor="let vote of latestVotes; trackBy: trackByVoteId"
+        class="str-chat__poll-option-voters"
+      >
+        <stream-avatar-placeholder
+          location="poll-voter"
+          [user]="vote.user"
+          [imageUrl]="vote.user?.image"
+          [name]="vote.user?.name"
+          type="user"
+        ></stream-avatar-placeholder>
+      </div>
+    </ng-container>
+    <div class="str-chat__poll-option-vote-count">
+      <ng-container *ngIf="voteCountVerbose; else count">
+        {{ 'streamChat.{{ count }} votes' | translate:{count: voteCount} }}
+      </ng-container>
+      <ng-template #count>
+        {{ voteCount }}
+      </ng-template>
+    </div>
+  </div>
+  <ng-container *ngTemplateOutlet="amountBar"></ng-container>
+</div>
+
+<ng-template #checkmark>
+  <div
+    class="str-chat__checkmark"
+    [class.str-chat__checkmark--checked]="!!ownVote"
+  ></div>
+</ng-template>
+
+<ng-template #amountBar>
+  <div
+    class="str-chat__amount-bar str-chat__poll-option__votes-bar"
+    [class.str-chat__poll-option__votes-bar--winner]="isClosed && isWinner"
+    role="progressbar"
+    [ngStyle]="{
+      '--str-chat__amount-bar-fulfillment':
+        (winningOptionCount && voteCount / winningOptionCount) * 100 + '%'
+    }"
+  ></div>
+</ng-template>
