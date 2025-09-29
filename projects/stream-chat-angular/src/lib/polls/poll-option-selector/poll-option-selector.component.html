@@ -1,6 +1,7 @@
 <div
   class="str-chat__poll-option"
   [class.str-chat__poll-option--votable]="
+    !isClosed &&
     canVote &&
     maxVoteAllowedCount &&
     ownVoteCount < maxVoteAllowedCount &&

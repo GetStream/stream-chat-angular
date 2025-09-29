@@ -48,7 +48,8 @@ export class PollOptionSelectorComponent
   }
 
   async toggleVote() {
-    if (!this.canVote || !this.option?.id || !this.messageId) return;
+    if (!this.canVote || !this.option?.id || !this.messageId || this.isClosed)
+      return;
     const haveVotedForTheOption = !!this.ownVote;
     if (
       !haveVotedForTheOption &&

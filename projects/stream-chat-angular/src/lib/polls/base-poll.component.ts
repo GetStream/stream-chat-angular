@@ -118,7 +118,6 @@ export abstract class BasePollComponent
   protected markForCheck(): void {
     if (this.isViewInited) {
       this.cdRef.detectChanges();
-      this.capabilitySubscription?.unsubscribe();
     }
   }
 }
