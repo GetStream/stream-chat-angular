@@ -179,5 +179,6 @@ export const en = {
     'Allow comments': 'Allow comments',
     'Failed to create poll': 'Failed to create poll',
     'Provide at least one option': 'Provide at least one option',
+    'Poll options': 'Poll options',
   },
 };
