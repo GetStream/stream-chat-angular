@@ -1138,7 +1138,10 @@ export class ChannelService {
    * Selects or deselects the current message to quote reply to
    * @param message The message to select, if called with `undefined`, it deselects the message
    */
-  selectMessageToQuote(message: StreamMessage | undefined) {
+  selectMessageToQuote(message: StreamMessage | undefined | MessageResponse) {
+    if (message && !this.isStreamMessage(message)) {
+      message = this.transformToStreamMessage(message);
+    }
     this.messageToQuoteSubject.next(message);
   }
 

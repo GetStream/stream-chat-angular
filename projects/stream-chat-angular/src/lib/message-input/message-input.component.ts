@@ -26,6 +26,7 @@ import {
   Attachment,
   Channel,
   DraftMessagePayload,
+  DraftResponse,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
@@ -130,7 +131,7 @@ export class MessageInputComponent
    *
    * To save and fetch message drafts, you can use the [Stream message drafts API](https://getstream.io/chat/docs/javascript/drafts/).
    *
-   * Message draft only works for new messages, nothing is emitted when input is in edit mode.
+   * Message draft only works for new messages, nothing is emitted when input is in edit mode (if `message` input is set).
    */
   @Output() readonly messageDraftChange = new EventEmitter<
     DraftMessagePayload | undefined
@@ -178,6 +179,7 @@ export class MessageInputComponent
   private pollId: string | undefined;
   private isChannelChangeResetInProgress = false;
   private isSendingMessage = false;
+  private isLoadingDraft = false;
 
   constructor(
     private channelService: ChannelService,
@@ -598,6 +600,7 @@ export class MessageInputComponent
 
   updateMessageDraft() {
     if (
+      this.isLoadingDraft ||
       this.isSendingMessage ||
       this.isChannelChangeResetInProgress ||
       this.isUpdate
@@ -639,6 +642,35 @@ export class MessageInputComponent
 
   get isUpdate() {
     return !!this.message;
+  }
+
+  /**
+   *
+   * @param draft DraftResponse to load into the message input.
+   * - Draft messages are only supported for new messages, input is ignored in edit mode (if `message` input is set).
+   * - If channel id doesn't match the active channel id, the draft is ignored.
+   * - If a thread message is loaded, and the input isn't it thread mode or parent ids don't match, the draft is ignored.
+   * @returns
+   */
+  loadDraft(draft: DraftResponse) {
+    if (
+      this.channel?.cid !== draft.channel?.cid ||
+      draft?.message?.parent_id !== this.parentMessageId ||
+      this.isUpdate
+    ) {
+      return;
+    }
+    this.isLoadingDraft = true;
+    this.channelService.selectMessageToQuote(draft.quoted_message);
+
+    this.textareaValue = draft.message?.text || '';
+    this.mentionedUsers =
+      draft?.message?.mentioned_users?.map((id) => ({ id })) || [];
+    this.pollId = draft?.message?.poll_id;
+    this.attachmentService.createFromAttachments(
+      draft?.message?.attachments || []
+    );
+    this.isLoadingDraft = false;
   }
 
   private deleteUpload(upload: AttachmentUpload) {

@@ -10,7 +10,14 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of } from 'rxjs';
-import { Attachment, Channel, UserResponse } from 'stream-chat';
+import {
+  Attachment,
+  Channel,
+  ChannelResponse,
+  DraftMessage,
+  MessageResponse,
+  UserResponse,
+} from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -1306,6 +1313,7 @@ fdescribe('MessageInputComponent', () => {
 
     it(`shouldn't emit if in edit mode`, () => {
       component.message = mockMessage();
+      component.ngOnChanges({ message: {} as any as SimpleChange });
       fixture.detectChanges();
       const messageDraftSpy = jasmine.createSpy();
       component.messageDraftChange.subscribe(messageDraftSpy);
@@ -1338,6 +1346,164 @@ fdescribe('MessageInputComponent', () => {
       fixture.detectChanges();
 
       expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('load draft', () => {
+    it(`shouldn't load draft if draft's channel id doesn't match the active channel id`, () => {
+      const channel = mockActiveChannel$.getValue();
+      fixture.detectChanges();
+      component.loadDraft({
+        channel: { cid: `not${channel.cid}` } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).not.toBe('Hello, world!');
+    });
+
+    it(`shouldn't load draft if draft's parent id doesn't match the active parent message id`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const parentMessageId = 'parentMessageId';
+      mockActiveParentMessageId$.next(parentMessageId);
+      fixture.detectChanges();
+      component.loadDraft({
+        channel: { cid: `not${channel.cid}` } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+          parent_id: 'not' + parentMessageId,
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).not.toBe('Hello, world!');
+    });
+
+    it(`shouldn't load draft if in edit mode`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const messageToEdit = mockMessage();
+      messageToEdit.text = 'This message is being edited';
+      component.message = messageToEdit;
+      component.ngOnChanges({ message: {} as any as SimpleChange });
+      fixture.detectChanges();
+      component.loadDraft({
+        channel: { cid: channel.cid } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).toBe(messageToEdit.text);
+    });
+
+    it(`should select message to quote if quoted message is set`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const mockQuotedMessage = mockMessage();
+      mockQuotedMessage.id = 'quotedMessageId';
+      selectMessageToQuoteSpy.calls.reset();
+
+      component.loadDraft({
+        channel: { cid: channel.cid } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+        quoted_message: mockQuotedMessage as any as MessageResponse,
+      });
+      fixture.detectChanges();
+
+      expect(selectMessageToQuoteSpy).toHaveBeenCalledOnceWith(
+        mockQuotedMessage
+      );
+    });
+
+    it(`should deselect message to quote if draft doesn't contain quoted message`, () => {
+      mockMessageToQuote$.next(mockMessage());
+      const channel = mockActiveChannel$.getValue();
+
+      component.loadDraft({
+        channel: { cid: channel.cid } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+        quoted_message: undefined,
+      });
+      fixture.detectChanges();
+
+      expect(selectMessageToQuoteSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it(`should set all fields from draft`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const draft = {
+        channel: { cid: channel.cid } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+          mentioned_users: ['user1', 'user2'],
+          poll_id: 'poll1',
+          attachments: [{ type: 'file', url: 'url' }],
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+      };
+      attachmentService.createFromAttachments.calls.reset();
+
+      component.loadDraft(draft);
+      fixture.detectChanges();
+
+      expect(component.textareaValue).toBe('Hello, world!');
+      expect(component.mentionedUsers).toEqual([
+        { id: 'user1' },
+        { id: 'user2' },
+      ]);
+      expect(component['pollId']).toBe('poll1');
+      expect(attachmentService.createFromAttachments).toHaveBeenCalledOnceWith([
+        { type: 'file', url: 'url' },
+      ]);
+    });
+
+    it(`shouldn't emit message draft when loading a draft (avoid infinite loop)`, async () => {
+      const channel = mockActiveChannel$.getValue();
+      attachmentService.createFromAttachments.and.callFake(() => {
+        attachmentService.attachmentUploads$.next([
+          {
+            type: 'file',
+            state: 'success',
+            url: 'url',
+            file: { name: 'file.pdf', type: 'application/pdf' } as File,
+          } as AttachmentUpload,
+        ]);
+      });
+      const draft = {
+        channel: { cid: channel.cid } as any as ChannelResponse,
+        message: {
+          text: 'Hello, world!',
+          mentioned_users: ['user1', 'user2'],
+          poll_id: 'poll1',
+          attachments: [{ type: 'file', url: 'url' }],
+        } as any as DraftMessage,
+        channel_cid: 'messaging:123',
+        created_at: new Date().toISOString(),
+      };
+      const spy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(spy);
+      spy.calls.reset();
+      component.loadDraft(draft);
+      fixture.detectChanges();
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });
