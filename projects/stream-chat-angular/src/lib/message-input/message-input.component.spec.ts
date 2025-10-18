@@ -43,7 +43,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { MessageInputConfigService } from './message-input-config.service';
 import { MessageTextComponent } from '../message-text/message-text.component';
 
-fdescribe('MessageInputComponent', () => {
+describe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
   let component: MessageInputComponent;
   let fixture: ComponentFixture<MessageInputComponent>;
@@ -58,6 +58,7 @@ fdescribe('MessageInputComponent', () => {
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
   let updateMessageSpy: jasmine.Spy;
+  let channelSwitchState$: BehaviorSubject<'start' | 'end'>;
   let channel: Channel;
   let user: UserResponse;
   let attachmentService: {
@@ -127,6 +128,7 @@ fdescribe('MessageInputComponent', () => {
         ],
       },
     });
+    channelSwitchState$ = new BehaviorSubject<'start' | 'end'>('end');
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot(), StreamAvatarModule],
       declarations: [
@@ -151,6 +153,7 @@ fdescribe('MessageInputComponent', () => {
             typingStarted: typingStartedSpy,
             typingStopped: typingStoppedSpy,
             latestMessageDateByUserByChannels$,
+            channelSwitchState$: channelSwitchState$,
           },
         },
         {
@@ -1152,7 +1155,7 @@ fdescribe('MessageInputComponent', () => {
     expect(queryVoiceRecorderButton()?.disabled).toBe(true);
   });
 
-  describe('message draft output', () => {
+  describe('message draft change', () => {
     it('should emit undefined when all message fields are cleared', () => {
       // Parent id doesn't count here
       component.mode = 'thread';
@@ -1325,14 +1328,21 @@ fdescribe('MessageInputComponent', () => {
     });
 
     it('should not emit if active channel changes', () => {
+      mockMessageToQuote$.next(mockMessage());
+
       const messageDraftSpy = jasmine.createSpy();
       component.messageDraftChange.subscribe(messageDraftSpy);
       queryTextarea()?.valueChange.next('Hello');
+      fixture.detectChanges();
+
       messageDraftSpy.calls.reset();
+      channelSwitchState$.next('start');
+      mockMessageToQuote$.next(undefined);
       mockActiveChannel$.next({
         ...mockActiveChannel$.getValue(),
         id: 'new-channel',
       } as any as Channel);
+      channelSwitchState$.next('end');
       fixture.detectChanges();
 
       expect(messageDraftSpy).not.toHaveBeenCalled();

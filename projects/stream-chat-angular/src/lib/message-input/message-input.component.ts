@@ -228,14 +228,12 @@ export class MessageInputComponent
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         if (channel && this.channel && channel.id !== this.channel.id) {
-          this.isChannelChangeResetInProgress = true;
           this.textareaValue = '';
           this.attachmentService.resetAttachmentUploads();
           this.pollId = undefined;
           this.voiceRecorderService.isRecorderVisible$.next(false);
           // Preemptively deselect quoted message, to avoid unwanted draft emission
           this.channelService.selectMessageToQuote(undefined);
-          this.isChannelChangeResetInProgress = false;
         }
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
@@ -249,13 +247,17 @@ export class MessageInputComponent
       })
     );
     this.subscriptions.push(
+      this.channelService.channelSwitchState$.subscribe((state) => {
+        this.isChannelChangeResetInProgress = state === 'start';
+      })
+    );
+    this.subscriptions.push(
       this.channelService.messageToQuote$.subscribe((m) => {
         const isThreadReply = m && m.parent_id;
         if (
-          ((this.mode === 'thread' && isThreadReply) ||
-            (this.mode === 'thread' && this.quotedMessage && !m) ||
-            (this.mode === 'main' && !isThreadReply)) &&
-          (!!m || !!this.quotedMessage)
+          (this.mode === 'thread' && isThreadReply) ||
+          (this.mode === 'thread' && this.quotedMessage && !m) ||
+          (this.mode === 'main' && !isThreadReply)
         ) {
           this.quotedMessage = m;
           this.updateMessageDraft();

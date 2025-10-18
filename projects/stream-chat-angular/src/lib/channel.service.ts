@@ -308,6 +308,12 @@ export class ChannelService {
     message: StreamMessage
   ) => StreamMessage | Promise<StreamMessage>;
   /**
+   * Since switching channels changes the state of multiple obserables, this observable can be used to check if all observables are updated.
+   * - `end` means all observables are in stable state
+   * - `start` means all observables are in unstable state
+   */
+  channelSwitchState$: Observable<'start' | 'end'>;
+  /**
    * @internal
    */
   static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
@@ -357,6 +363,9 @@ export class ChannelService {
   private channelQueryStateSubject = new BehaviorSubject<
     ChannelQueryState | undefined
   >(undefined);
+  private channelSwitchStateSubject = new BehaviorSubject<'start' | 'end'>(
+    'end'
+  );
   private channelQuery?:
     | ChannelQuery
     | ((queryType: ChannelQueryType) => Promise<ChannelQueryResult>);
@@ -511,6 +520,9 @@ export class ChannelService {
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
+    this.channelSwitchState$ = this.channelSwitchStateSubject
+      .asObservable()
+      .pipe(shareReplay(1));
   }
 
   /**
@@ -557,6 +569,7 @@ export class ChannelService {
    * @param channel
    */
   setAsActiveChannel(channel: Channel) {
+    this.channelSwitchStateSubject.next('start');
     const prevActiveChannel = this.activeChannelSubject.getValue();
     if (prevActiveChannel?.cid === channel.cid) {
       return;
@@ -585,12 +598,14 @@ export class ChannelService {
       );
     }
     this.setChannelState(channel);
+    this.channelSwitchStateSubject.next('end');
   }
 
   /**
    * Deselects the currently active (if any) channel
    */
   deselectActiveChannel() {
+    this.channelSwitchStateSubject.next('start');
     const activeChannel = this.activeChannelSubject.getValue();
     if (!activeChannel) {
       return;
@@ -611,6 +626,7 @@ export class ChannelService {
     this.activeChannelUnreadCount = undefined;
     this.areReadEventsPaused = false;
     this.isMessageLoadingInProgress = false;
+    this.channelSwitchStateSubject.next('end');
   }
 
   /**
