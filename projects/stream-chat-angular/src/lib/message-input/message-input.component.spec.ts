@@ -1484,7 +1484,7 @@ describe('MessageInputComponent', () => {
       ]);
     });
 
-    it(`shouldn't emit message draft when loading a draft (avoid infinite loop)`, async () => {
+    it(`shouldn't emit message draft when loading a draft (avoid infinite loop)`, () => {
       const channel = mockActiveChannel$.getValue();
       attachmentService.createFromAttachments.and.callFake(() => {
         attachmentService.attachmentUploads$.next([

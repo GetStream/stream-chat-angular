@@ -651,8 +651,7 @@ export class MessageInputComponent
    * @param draft DraftResponse to load into the message input.
    * - Draft messages are only supported for new messages, input is ignored in edit mode (if `message` input is set).
    * - If channel id doesn't match the active channel id, the draft is ignored.
-   * - If a thread message is loaded, and the input isn't it thread mode or parent ids don't match, the draft is ignored.
-   * @returns
+   * - If a thread message is loaded, and the input isn't in thread mode or parent ids don't match, the draft is ignored.
    */
   loadDraft(draft: DraftResponse) {
     if (
