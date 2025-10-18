@@ -36,7 +36,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { MessageInputConfigService } from './message-input-config.service';
 import { MessageTextComponent } from '../message-text/message-text.component';
 
-describe('MessageInputComponent', () => {
+fdescribe('MessageInputComponent', () => {
   let nativeElement: HTMLElement;
   let component: MessageInputComponent;
   let fixture: ComponentFixture<MessageInputComponent>;
@@ -1143,5 +1143,201 @@ describe('MessageInputComponent', () => {
 
     expect(queryFileInput()?.disabled).toBe(true);
     expect(queryVoiceRecorderButton()?.disabled).toBe(true);
+  });
+
+  describe('message draft output', () => {
+    it('should emit undefined when all message fields are cleared', () => {
+      // Parent id doesn't count here
+      component.mode = 'thread';
+      mockActiveParentMessageId$.next('parentMessageId');
+      attachmentService.mapToAttachments.and.returnValue([]);
+
+      attachmentService.resetAttachmentUploads();
+      component.quotedMessage = undefined;
+      component.textareaValue = '';
+      component['pollId'] = undefined;
+      component.mentionedUsers = [];
+
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      component.updateMessageDraft();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should emit message draft when textarea value changes', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.valueChange.next('Hello, world!');
+
+      expect(messageDraftSpy).toHaveBeenCalledWith({
+        text: 'Hello, world!',
+        attachments: undefined,
+        mentioned_users: [],
+        parent_id: undefined,
+        quoted_message_id: undefined,
+        poll_id: undefined,
+      });
+    });
+
+    it('should emit message draft when mentioned users change', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.userMentions.next([{ id: 'user1', name: 'User 1' }]);
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          mentioned_users: ['user1'],
+        })
+      );
+    });
+
+    it('should emit message draft when poll is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      component.addPoll('poll1');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          poll_id: 'poll1',
+        })
+      );
+    });
+
+    it('should emit message draft when attachment is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      attachmentService.mapToAttachments.and.returnValue([{ type: 'file' }]);
+      attachmentService.attachmentUploads$.next([
+        {
+          type: 'file',
+          state: 'success',
+          url: 'url',
+          file: { name: 'file.pdf', type: 'application/pdf' } as File,
+        } as AttachmentUpload,
+      ]);
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          attachments: [{ type: 'file' }],
+        })
+      );
+    });
+
+    it('should not emit if attachment upload is in progress', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      attachmentService.mapToAttachments.and.returnValue([]);
+      attachmentService.attachmentUploads$.next([
+        {
+          type: 'file',
+          state: 'uploading',
+          url: 'url',
+          file: { name: 'file.pdf', type: 'application/pdf' } as File,
+        } as AttachmentUpload,
+      ]);
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it('should emit message draft when custom attachment is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      const customAttachment = {
+        type: 'image',
+        image_url: 'url',
+      };
+      attachmentService.mapToAttachments.and.returnValue([customAttachment]);
+      attachmentService.customAttachments$.next([customAttachment]);
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          attachments: [customAttachment],
+        })
+      );
+    });
+
+    it('should emit undefined if message is sent', async () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      messageDraftSpy.calls.reset();
+      await component.messageSent();
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it('should not emit undefined even if message request fails (users can retry from preview added to message list)', async () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      messageDraftSpy.calls.reset();
+      sendMessageSpy.and.throwError('error');
+      await component.messageSent();
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it('should emit if quoted message changes', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      const quotedMessage = mockMessage();
+      mockMessageToQuote$.next(quotedMessage);
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          quoted_message_id: quotedMessage.id,
+        })
+      );
+    });
+
+    it(`shouldn't emit if in edit mode`, () => {
+      component.message = mockMessage();
+      fixture.detectChanges();
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.valueChange.next('Hello');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not emit if active channel changes', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      messageDraftSpy.calls.reset();
+      mockActiveChannel$.next({
+        ...mockActiveChannel$.getValue(),
+        id: 'new-channel',
+      } as any as Channel);
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it(`shouldn't emit if parent message id changes (it's basically same as active channel changes)`, () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      mockActiveParentMessageId$.next('parentMessageId');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
   });
 });

@@ -21,8 +21,13 @@ import {
   ViewChild,
 } from '@angular/core';
 import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
-import { first, map, take, tap } from 'rxjs/operators';
-import { Attachment, Channel, UserResponse } from 'stream-chat';
+import { distinctUntilChanged, first, map, take, tap } from 'rxjs/operators';
+import {
+  Attachment,
+  Channel,
+  DraftMessagePayload,
+  UserResponse,
+} from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { textareaInjectionToken } from '../injection-tokens';
@@ -118,6 +123,18 @@ export class MessageInputComponent
   @Output() readonly messageUpdate = new EventEmitter<{
     message: StreamMessage;
   }>();
+  /**
+   * Emits the messsage draft whenever the composed message changes.
+   * - If the user clears the message input, or sends the message, undefined is emitted.
+   * - If active channel changes, nothing is emitted.
+   *
+   * To save and fetch message drafts, you can use the [Stream message drafts API](https://getstream.io/chat/docs/javascript/drafts/).
+   *
+   * Message draft only works for new messages, nothing is emitted when input is in edit mode.
+   */
+  @Output() readonly messageDraftChange = new EventEmitter<
+    DraftMessagePayload | undefined
+  >();
   @ContentChild(TemplateRef) voiceRecorderRef:
     | TemplateRef<{ service: VoiceRecorderService }>
     | undefined;
@@ -159,6 +176,8 @@ export class MessageInputComponent
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
   private messageToEdit?: StreamMessage;
   private pollId: string | undefined;
+  private isChannelChangeResetInProgress = false;
+  private isSendingMessage = false;
 
   constructor(
     private channelService: ChannelService,
@@ -187,12 +206,34 @@ export class MessageInputComponent
       )
     );
     this.subscriptions.push(
+      this.attachmentService.attachmentUploads$
+        .pipe(
+          distinctUntilChanged(
+            (prev, current) =>
+              prev.filter((v) => v.state === 'success').length ===
+              current.filter((v) => v.state === 'success').length
+          )
+        )
+        .subscribe(() => {
+          this.updateMessageDraft();
+        })
+    );
+    this.subscriptions.push(
+      this.attachmentService.customAttachments$.subscribe(() => {
+        this.updateMessageDraft();
+      })
+    );
+    this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
         if (channel && this.channel && channel.id !== this.channel.id) {
+          this.isChannelChangeResetInProgress = true;
           this.textareaValue = '';
           this.attachmentService.resetAttachmentUploads();
           this.pollId = undefined;
           this.voiceRecorderService.isRecorderVisible$.next(false);
+          // Preemptively deselect quoted message, to avoid unwanted draft emission
+          this.channelService.selectMessageToQuote(undefined);
+          this.isChannelChangeResetInProgress = false;
         }
         const capabilities = channel?.data?.own_capabilities as string[];
         if (capabilities) {
@@ -209,11 +250,13 @@ export class MessageInputComponent
       this.channelService.messageToQuote$.subscribe((m) => {
         const isThreadReply = m && m.parent_id;
         if (
-          (this.mode === 'thread' && isThreadReply) ||
-          (this.mode === 'thread' && this.quotedMessage && !m) ||
-          (this.mode === 'main' && !isThreadReply)
+          ((this.mode === 'thread' && isThreadReply) ||
+            (this.mode === 'thread' && this.quotedMessage && !m) ||
+            (this.mode === 'main' && !isThreadReply)) &&
+          (!!m || !!this.quotedMessage)
         ) {
           this.quotedMessage = m;
+          this.updateMessageDraft();
         }
       })
     );
@@ -366,6 +409,7 @@ export class MessageInputComponent
     if (this.isCooldownInProgress) {
       return;
     }
+    this.isSendingMessage = true;
     let attachmentUploadInProgressCounter!: number;
     this.attachmentService.attachmentUploadInProgressCounter$
       .pipe(first())
@@ -428,11 +472,15 @@ export class MessageInputComponent
         this.attachmentService.resetAttachmentUploads();
       }
     } catch (error) {
+      this.isSendingMessage = false;
       if (this.isUpdate) {
         this.notificationService.addTemporaryNotification(
           'streamChat.Edit message request failed'
         );
       }
+    } finally {
+      this.isSendingMessage = false;
+      this.updateMessageDraft();
     }
     void this.channelService.typingStopped(this.parentMessageId);
     if (this.quotedMessage) {
@@ -534,8 +582,49 @@ export class MessageInputComponent
   addPoll = (pollId: string) => {
     this.isComposerOpen = false;
     this.pollId = pollId;
+    this.updateMessageDraft();
     void this.messageSent();
   };
+
+  userMentionsChanged(userMentions: UserResponse[]) {
+    if (
+      userMentions.map((u) => u.id).join(',') !==
+      this.mentionedUsers.map((u) => u.id).join(',')
+    ) {
+      this.mentionedUsers = userMentions;
+      this.updateMessageDraft();
+    }
+  }
+
+  updateMessageDraft() {
+    if (
+      this.isSendingMessage ||
+      this.isChannelChangeResetInProgress ||
+      this.isUpdate
+    ) {
+      return;
+    }
+    const attachments = this.attachmentService.mapToAttachments();
+
+    if (
+      !this.textareaValue &&
+      !this.mentionedUsers.length &&
+      !attachments?.length &&
+      !this.pollId &&
+      !this.quotedMessage?.id
+    ) {
+      this.messageDraftChange.emit(undefined);
+    } else {
+      this.messageDraftChange.emit({
+        text: this.textareaValue,
+        attachments: this.attachmentService.mapToAttachments(),
+        mentioned_users: this.mentionedUsers.map((user) => user.id),
+        poll_id: this.pollId,
+        parent_id: this.parentMessageId,
+        quoted_message_id: this.quotedMessage?.id,
+      });
+    }
+  }
 
   async voiceRecordingReady(recording: AudioRecording) {
     try {
