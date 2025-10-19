@@ -1364,11 +1364,10 @@ describe('MessageInputComponent', () => {
       const channel = mockActiveChannel$.getValue();
       fixture.detectChanges();
       component.loadDraft({
-        channel: { cid: `not${channel.cid}` } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: `not${channel.cid}`,
         created_at: new Date().toISOString(),
       });
       fixture.detectChanges();
@@ -1382,12 +1381,11 @@ describe('MessageInputComponent', () => {
       mockActiveParentMessageId$.next(parentMessageId);
       fixture.detectChanges();
       component.loadDraft({
-        channel: { cid: `not${channel.cid}` } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
           parent_id: 'not' + parentMessageId,
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: `not${channel.cid}`,
         created_at: new Date().toISOString(),
       });
       fixture.detectChanges();
@@ -1403,11 +1401,10 @@ describe('MessageInputComponent', () => {
       component.ngOnChanges({ message: {} as any as SimpleChange });
       fixture.detectChanges();
       component.loadDraft({
-        channel: { cid: channel.cid } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: channel.cid,
         created_at: new Date().toISOString(),
       });
       fixture.detectChanges();
@@ -1422,11 +1419,10 @@ describe('MessageInputComponent', () => {
       selectMessageToQuoteSpy.calls.reset();
 
       component.loadDraft({
-        channel: { cid: channel.cid } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: channel.cid,
         created_at: new Date().toISOString(),
         quoted_message: mockQuotedMessage as any as MessageResponse,
       });
@@ -1442,11 +1438,10 @@ describe('MessageInputComponent', () => {
       const channel = mockActiveChannel$.getValue();
 
       component.loadDraft({
-        channel: { cid: channel.cid } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: channel.cid,
         created_at: new Date().toISOString(),
         quoted_message: undefined,
       });
@@ -1458,14 +1453,13 @@ describe('MessageInputComponent', () => {
     it(`should set all fields from draft`, () => {
       const channel = mockActiveChannel$.getValue();
       const draft = {
-        channel: { cid: channel.cid } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
           mentioned_users: ['user1', 'user2'],
           poll_id: 'poll1',
           attachments: [{ type: 'file', url: 'url' }],
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: channel.cid,
         created_at: new Date().toISOString(),
       };
       attachmentService.createFromAttachments.calls.reset();
@@ -1497,14 +1491,13 @@ describe('MessageInputComponent', () => {
         ]);
       });
       const draft = {
-        channel: { cid: channel.cid } as any as ChannelResponse,
         message: {
           text: 'Hello, world!',
           mentioned_users: ['user1', 'user2'],
           poll_id: 'poll1',
           attachments: [{ type: 'file', url: 'url' }],
         } as any as DraftMessage,
-        channel_cid: 'messaging:123',
+        channel_cid: channel.cid,
         created_at: new Date().toISOString(),
       };
       const spy = jasmine.createSpy();
