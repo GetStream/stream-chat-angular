@@ -171,9 +171,9 @@
             [autoFocus]="autoFocus"
             [placeholder]="textareaPlaceholder"
             [(value)]="textareaValue"
-            (valueChange)="typingStart$.next()"
+            (valueChange)="typingStart$.next(); updateMessageDraft()"
             (send)="messageSent()"
-            (userMentions)="mentionedUsers = $event"
+            (userMentions)="userMentionsChanged($event)"
             (pasteFromClipboard)="itemsPasted($event)"
           ></ng-container>
           <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">

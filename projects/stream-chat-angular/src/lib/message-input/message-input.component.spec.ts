@@ -10,7 +10,13 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Subject, of } from 'rxjs';
-import { Attachment, Channel, UserResponse } from 'stream-chat';
+import {
+  Attachment,
+  Channel,
+  DraftMessage,
+  MessageResponse,
+  UserResponse,
+} from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -51,6 +57,7 @@ describe('MessageInputComponent', () => {
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
   let updateMessageSpy: jasmine.Spy;
+  let channelSwitchState$: BehaviorSubject<'start' | 'end'>;
   let channel: Channel;
   let user: UserResponse;
   let attachmentService: {
@@ -120,6 +127,7 @@ describe('MessageInputComponent', () => {
         ],
       },
     });
+    channelSwitchState$ = new BehaviorSubject<'start' | 'end'>('end');
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot(), StreamAvatarModule],
       declarations: [
@@ -144,6 +152,7 @@ describe('MessageInputComponent', () => {
             typingStarted: typingStartedSpy,
             typingStopped: typingStoppedSpy,
             latestMessageDateByUserByChannels$,
+            channelSwitchState$: channelSwitchState$,
           },
         },
         {
@@ -1143,5 +1152,360 @@ describe('MessageInputComponent', () => {
 
     expect(queryFileInput()?.disabled).toBe(true);
     expect(queryVoiceRecorderButton()?.disabled).toBe(true);
+  });
+
+  describe('message draft change', () => {
+    it('should emit undefined when all message fields are cleared', () => {
+      // Parent id doesn't count here
+      component.mode = 'thread';
+      mockActiveParentMessageId$.next('parentMessageId');
+      attachmentService.mapToAttachments.and.returnValue([]);
+
+      attachmentService.resetAttachmentUploads();
+      component.quotedMessage = undefined;
+      component.textareaValue = '';
+      component['pollId'] = undefined;
+      component.mentionedUsers = [];
+
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      component.updateMessageDraft();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should emit message draft when textarea value changes', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.valueChange.next('Hello, world!');
+
+      expect(messageDraftSpy).toHaveBeenCalledWith({
+        text: 'Hello, world!',
+        attachments: undefined,
+        mentioned_users: [],
+        parent_id: undefined,
+        quoted_message_id: undefined,
+        poll_id: undefined,
+      });
+    });
+
+    it('should emit message draft when mentioned users change', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.userMentions.next([{ id: 'user1', name: 'User 1' }]);
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          mentioned_users: ['user1'],
+        })
+      );
+    });
+
+    it('should emit message draft when poll is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      component.addPoll('poll1');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          poll_id: 'poll1',
+        })
+      );
+    });
+
+    it('should emit message draft when attachment is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      attachmentService.mapToAttachments.and.returnValue([{ type: 'file' }]);
+      attachmentService.attachmentUploads$.next([
+        {
+          type: 'file',
+          state: 'success',
+          url: 'url',
+          file: { name: 'file.pdf', type: 'application/pdf' } as File,
+        } as AttachmentUpload,
+      ]);
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          attachments: [{ type: 'file' }],
+        })
+      );
+    });
+
+    it('should not emit if attachment upload is in progress', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      attachmentService.mapToAttachments.and.returnValue([]);
+      attachmentService.attachmentUploads$.next([
+        {
+          type: 'file',
+          state: 'uploading',
+          url: 'url',
+          file: { name: 'file.pdf', type: 'application/pdf' } as File,
+        } as AttachmentUpload,
+      ]);
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it('should emit message draft when custom attachment is added', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      const customAttachment = {
+        type: 'image',
+        image_url: 'url',
+      };
+      attachmentService.mapToAttachments.and.returnValue([customAttachment]);
+      attachmentService.customAttachments$.next([customAttachment]);
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          attachments: [customAttachment],
+        })
+      );
+    });
+
+    it('should emit undefined if message is sent', async () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      messageDraftSpy.calls.reset();
+      await component.messageSent();
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it('should not emit undefined even if message request fails (users can retry from preview added to message list)', async () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      messageDraftSpy.calls.reset();
+      sendMessageSpy.and.throwError('error');
+      await component.messageSent();
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it('should emit if quoted message changes', () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      const quotedMessage = mockMessage();
+      mockMessageToQuote$.next(quotedMessage);
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          quoted_message_id: quotedMessage.id,
+        })
+      );
+    });
+
+    it(`shouldn't emit if in edit mode`, () => {
+      component.message = mockMessage();
+      component.ngOnChanges({ message: {} as any as SimpleChange });
+      fixture.detectChanges();
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      queryTextarea()?.valueChange.next('Hello');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not emit if active channel changes', () => {
+      mockMessageToQuote$.next(mockMessage());
+
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      queryTextarea()?.valueChange.next('Hello');
+      fixture.detectChanges();
+
+      messageDraftSpy.calls.reset();
+      channelSwitchState$.next('start');
+      mockMessageToQuote$.next(undefined);
+      mockActiveChannel$.next({
+        ...mockActiveChannel$.getValue(),
+        id: 'new-channel',
+      } as any as Channel);
+      channelSwitchState$.next('end');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+
+    it(`shouldn't emit if parent message id changes (it's basically same as active channel changes)`, () => {
+      const messageDraftSpy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(messageDraftSpy);
+      messageDraftSpy.calls.reset();
+      mockActiveParentMessageId$.next('parentMessageId');
+      fixture.detectChanges();
+
+      expect(messageDraftSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('load draft', () => {
+    it(`shouldn't load draft if draft's channel id doesn't match the active channel id`, () => {
+      const channel = mockActiveChannel$.getValue();
+      fixture.detectChanges();
+      component.loadDraft({
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: `not${channel.cid}`,
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).not.toBe('Hello, world!');
+    });
+
+    it(`shouldn't load draft if draft's parent id doesn't match the active parent message id`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const parentMessageId = 'parentMessageId';
+      mockActiveParentMessageId$.next(parentMessageId);
+      fixture.detectChanges();
+      component.loadDraft({
+        message: {
+          text: 'Hello, world!',
+          parent_id: 'not' + parentMessageId,
+        } as any as DraftMessage,
+        channel_cid: `not${channel.cid}`,
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).not.toBe('Hello, world!');
+    });
+
+    it(`shouldn't load draft if in edit mode`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const messageToEdit = mockMessage();
+      messageToEdit.text = 'This message is being edited';
+      component.message = messageToEdit;
+      component.ngOnChanges({ message: {} as any as SimpleChange });
+      fixture.detectChanges();
+      component.loadDraft({
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: channel.cid,
+        created_at: new Date().toISOString(),
+      });
+      fixture.detectChanges();
+
+      expect(component.textareaValue).toBe(messageToEdit.text);
+    });
+
+    it(`should select message to quote if quoted message is set`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const mockQuotedMessage = mockMessage();
+      mockQuotedMessage.id = 'quotedMessageId';
+      selectMessageToQuoteSpy.calls.reset();
+
+      component.loadDraft({
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: channel.cid,
+        created_at: new Date().toISOString(),
+        quoted_message: mockQuotedMessage as any as MessageResponse,
+      });
+      fixture.detectChanges();
+
+      expect(selectMessageToQuoteSpy).toHaveBeenCalledOnceWith(
+        mockQuotedMessage
+      );
+    });
+
+    it(`should deselect message to quote if draft doesn't contain quoted message`, () => {
+      mockMessageToQuote$.next(mockMessage());
+      const channel = mockActiveChannel$.getValue();
+
+      component.loadDraft({
+        message: {
+          text: 'Hello, world!',
+        } as any as DraftMessage,
+        channel_cid: channel.cid,
+        created_at: new Date().toISOString(),
+        quoted_message: undefined,
+      });
+      fixture.detectChanges();
+
+      expect(selectMessageToQuoteSpy).toHaveBeenCalledOnceWith(undefined);
+    });
+
+    it(`should set all fields from draft`, () => {
+      const channel = mockActiveChannel$.getValue();
+      const draft = {
+        message: {
+          text: 'Hello, world!',
+          mentioned_users: ['user1', 'user2'],
+          poll_id: 'poll1',
+          attachments: [{ type: 'file', url: 'url' }],
+        } as any as DraftMessage,
+        channel_cid: channel.cid,
+        created_at: new Date().toISOString(),
+      };
+      attachmentService.createFromAttachments.calls.reset();
+
+      component.loadDraft(draft);
+      fixture.detectChanges();
+
+      expect(component.textareaValue).toBe('Hello, world!');
+      expect(component.mentionedUsers).toEqual([
+        { id: 'user1' },
+        { id: 'user2' },
+      ]);
+      expect(component['pollId']).toBe('poll1');
+      expect(attachmentService.createFromAttachments).toHaveBeenCalledOnceWith([
+        { type: 'file', url: 'url' },
+      ]);
+    });
+
+    it(`shouldn't emit message draft when loading a draft (avoid infinite loop)`, () => {
+      const channel = mockActiveChannel$.getValue();
+      attachmentService.createFromAttachments.and.callFake(() => {
+        attachmentService.attachmentUploads$.next([
+          {
+            type: 'file',
+            state: 'success',
+            url: 'url',
+            file: { name: 'file.pdf', type: 'application/pdf' } as File,
+          } as AttachmentUpload,
+        ]);
+      });
+      const draft = {
+        message: {
+          text: 'Hello, world!',
+          mentioned_users: ['user1', 'user2'],
+          poll_id: 'poll1',
+          attachments: [{ type: 'file', url: 'url' }],
+        } as any as DraftMessage,
+        channel_cid: channel.cid,
+        created_at: new Date().toISOString(),
+      };
+      const spy = jasmine.createSpy();
+      component.messageDraftChange.subscribe(spy);
+      spy.calls.reset();
+      component.loadDraft(draft);
+      fixture.detectChanges();
+
+      expect(spy).not.toHaveBeenCalled();
+    });
   });
 });

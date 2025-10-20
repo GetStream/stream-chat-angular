@@ -359,6 +359,9 @@ describe('ChannelService', () => {
     pinnedMessagesSpy.calls.reset();
     typingUsersSpy.calls.reset();
     typingUsersInThreadSpy.calls.reset();
+    const channelSwitchStateSpy = jasmine.createSpy();
+    service.channelSwitchState$.subscribe(channelSwitchStateSpy);
+    channelSwitchStateSpy.calls.reset();
     service.deselectActiveChannel();
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
@@ -381,6 +384,10 @@ describe('ChannelService', () => {
 
     expect(messagesSpy).not.toHaveBeenCalled();
     expect(service.isMessageLoadingInProgress).toBeFalse();
+
+    expect(channelSwitchStateSpy.calls.count()).toBe(2);
+    expect(channelSwitchStateSpy.calls.first().args[0]).toBe('start');
+    expect(channelSwitchStateSpy.calls.mostRecent().args[0]).toBe('end');
   });
 
   it('should tell if user #hasMoreChannels$', async () => {
@@ -457,6 +464,9 @@ describe('ChannelService', () => {
     spyOn(newActiveChannel, 'markRead');
     const pinnedMessages = generateMockMessages();
     newActiveChannel.state.pinnedMessages = pinnedMessages;
+    const channelSwitchStateSpy = jasmine.createSpy();
+    service.channelSwitchState$.subscribe(channelSwitchStateSpy);
+    channelSwitchStateSpy.calls.reset();
     service.setAsActiveChannel(newActiveChannel);
     result = spy.calls.mostRecent().args[0] as Channel;
 
@@ -467,6 +477,9 @@ describe('ChannelService', () => {
     expect(pinnedMessagesSpy).toHaveBeenCalledWith(pinnedMessages);
     expect(typingUsersSpy).toHaveBeenCalledWith([]);
     expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
+    expect(channelSwitchStateSpy.calls.count()).toBe(2);
+    expect(channelSwitchStateSpy.calls.first().args[0]).toBe('start');
+    expect(channelSwitchStateSpy.calls.mostRecent().args[0]).toBe('end');
   });
 
   it('should emit #activeChannelMessages$', async () => {
