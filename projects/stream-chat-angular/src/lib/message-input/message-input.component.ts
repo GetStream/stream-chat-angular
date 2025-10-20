@@ -248,7 +248,6 @@ export class MessageInputComponent
     );
     this.subscriptions.push(
       this.channelService.channelSwitchState$.subscribe((state) => {
-        console.log('channelSwitchState', state);
         this.isChannelChangeResetInProgress = state === 'start';
       })
     );
@@ -655,7 +654,6 @@ export class MessageInputComponent
    * - If a thread message is loaded, and the input isn't in thread mode or parent ids don't match, the draft is ignored.
    */
   loadDraft(draft: DraftResponse) {
-    console.log('input load draft', draft);
     if (
       this.channel?.cid !== draft.channel_cid ||
       draft?.message?.parent_id !== this.parentMessageId ||
@@ -673,7 +671,6 @@ export class MessageInputComponent
     this.attachmentService.createFromAttachments(
       draft?.message?.attachments || []
     );
-    console.log('textareaValue', this.textareaValue);
     this.channelService.selectMessageToQuote(draft.quoted_message);
     this.isLoadingDraft = false;
   }

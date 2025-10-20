@@ -13,7 +13,6 @@ import { BehaviorSubject, Subject, of } from 'rxjs';
 import {
   Attachment,
   Channel,
-  ChannelResponse,
   DraftMessage,
   MessageResponse,
   UserResponse,
