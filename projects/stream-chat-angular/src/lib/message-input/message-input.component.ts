@@ -126,12 +126,16 @@ export class MessageInputComponent
   }>();
   /**
    * Emits the messsage draft whenever the composed message changes.
-   * - If the user clears the message input, or sends the message, undefined is emitted.
-   * - If active channel changes, nothing is emitted.
+   *   - If the user clears the message input, or sends the message, undefined is emitted.
+   *   - If active channel changes, nothing is emitted.
    *
    * To save and fetch message drafts, you can use the [Stream message drafts API](https://getstream.io/chat/docs/javascript/drafts/).
    *
    * Message draft only works for new messages, nothing is emitted when input is in edit mode (if `message` input is set).
+   *
+   * To load a message draft into the input, use the `loadDraft` method.
+   *   - If channel id doesn't match the active channel id, the draft is ignored.
+   *   - If a thread message is loaded, and the input isn't in thread mode or parent ids don't match, the draft is ignored.
    */
   @Output() readonly messageDraftChange = new EventEmitter<
     DraftMessagePayload | undefined
