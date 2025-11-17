@@ -20,7 +20,7 @@
             notification.template;
             context: getNotificationContentContext(notification)
           "
-        ></ng-container>
+        />
       </ng-container>
     </ng-template>
     <ng-container
@@ -29,10 +29,10 @@
           defaultNotification;
         context: { type: notification.type, content: notificationContent }
       "
-    ></ng-container>
+    />
   </ng-container>
 </div>
 
 <ng-template #defaultNotification let-type="type" let-content="content">
-  <stream-notification [type]="type" [content]="content"></stream-notification>
+  <stream-notification [type]="type" [content]="content" />
 </ng-template>

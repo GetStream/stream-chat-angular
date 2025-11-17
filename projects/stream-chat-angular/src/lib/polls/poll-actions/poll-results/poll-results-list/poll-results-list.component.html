@@ -3,7 +3,7 @@
   [class.str-chat__modal__poll-results--option-detail]="optionToView"
 >
   <div class="str-chat__modal-header">
-    <!-- eslint-disable-next-line @angular-eslint/template/accessibility-elements-content -->
+    <!-- eslint-disable-next-line @angular-eslint/template/elements-content -->
     <button
       *ngIf="optionToView"
       class="str-chat__modal-header__go-back-button"
@@ -19,7 +19,7 @@
         [option]="optionToView"
         [messageId]="messageId"
         [pollId]="pollId"
-      ></stream-poll-vote-results-list>
+      />
     </div>
   </ng-container>
   <ng-template #allOptions>
@@ -54,7 +54,7 @@
                   trackBy: trackByVoteId
                 "
               >
-                <stream-poll-vote [vote]="vote"></stream-poll-vote>
+                <stream-poll-vote [vote]="vote" />
               </ng-container>
             </div>
           </ng-container>

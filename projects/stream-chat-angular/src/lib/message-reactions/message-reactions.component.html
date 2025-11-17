@@ -41,7 +41,7 @@
         content: modalContent
       }
     "
-  ></ng-container>
+  />
 </ng-container>
 
 <ng-template
@@ -57,8 +57,7 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #modalContent>
@@ -109,7 +108,7 @@
           [isLoading]="isLoading"
           [hasMore]="!!usersByReactions[reactionType]?.next || false"
           (loadMore)="loadNextPageOfReactions()"
-        ></stream-user-list>
+        />
       </ng-container>
     </div>
   </div>

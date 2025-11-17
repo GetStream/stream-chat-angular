@@ -4,7 +4,7 @@
       (customTemplatesService.modalTemplate$ | async) || defaultModal;
       context: getModalContext()
     "
-  ></ng-container>
+  />
 </ng-container>
 
 <ng-template
@@ -18,8 +18,7 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #formContent>
@@ -114,7 +113,7 @@
               label: 'streamChat.Multiple answers' | translate
             }
           "
-        ></ng-container>
+        />
         <div
           *ngIf="formGroup.get('multiple_answers')?.value"
           class="str-chat__form__field str-chat__form__input-field str-chat__form__input-field--with-label"
@@ -154,7 +153,7 @@
               label: 'streamChat.Anonymous poll' | translate
             }
           "
-        ></ng-container>
+        />
         <ng-container
           *ngTemplateOutlet="
             switch;
@@ -164,7 +163,7 @@
               label: 'streamChat.Allow option suggestions' | translate
             }
           "
-        ></ng-container>
+        />
         <ng-container
           *ngTemplateOutlet="
             switch;
@@ -174,10 +173,10 @@
               label: 'streamChat.Allow comments' | translate
             }
           "
-        ></ng-container>
+        />
       </form>
     </div>
-    <stream-notification-list></stream-notification-list>
+    <stream-notification-list />
     <div class="str-chat__dialog__controls">
       <button
         class="str-chat__dialog__controls-button str-chat__dialog__controls-button--cancel"

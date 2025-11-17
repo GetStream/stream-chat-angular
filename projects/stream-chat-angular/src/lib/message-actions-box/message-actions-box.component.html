@@ -15,7 +15,7 @@
                 | async) || defaultReactionSelector;
               context: getReactionSelectorTemplateContext()
             "
-          ></ng-container>
+          />
         </ng-container>
         <ng-container *ngSwitchDefault>
           <ng-container
@@ -24,7 +24,7 @@
                 defaultMessageActionItem;
               context: getMessageActionTemplateContext(item)
             "
-          ></ng-container>
+          />
         </ng-container>
       </ng-container>
     </ng-container>
@@ -57,5 +57,5 @@
   <stream-message-reactions-selector
     [messageId]="message?.id"
     [ownReactions]="message?.own_reactions || []"
-  ></stream-message-reactions-selector>
+  />
 </ng-template>

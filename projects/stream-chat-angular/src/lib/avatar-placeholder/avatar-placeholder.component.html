@@ -18,11 +18,11 @@
     [location]="location"
     [initialsType]="initialsType"
     [showOnlineIndicator]="showOnlineIndicator"
-  ></stream-avatar>
+  />
 </ng-template>
 <ng-container
   *ngTemplateOutlet="
     (customTemplatesService.avatarTemplate$ | async) || defaultAvatar;
     context: context
   "
-></ng-container>
+/>

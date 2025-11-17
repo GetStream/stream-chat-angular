@@ -34,7 +34,7 @@
               defaultImage;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultImage let-attachmentContext="attachment">
           <img
             #imgElement
@@ -82,7 +82,7 @@
               defaultGallery;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultGallery let-attachmentContext="attachment">
           <div
             class="str-chat__gallery"
@@ -213,7 +213,7 @@
               defaultVideo;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultVideo let-attachmentContext="attachment">
           <div
             class="str-chat__player-wrapper"
@@ -261,7 +261,7 @@
               defaultFile;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultFile let-attachmentContext="attachment">
           <div
             class="str-chat__message-attachment-file--item str-chat-angular__message-attachment-file-single"
@@ -269,7 +269,7 @@
             <stream-icon-placeholder
               class="str-chat__attachment-type-icon"
               icon="unspecified-filetype"
-            ></stream-icon-placeholder>
+            />
             <div class="str-chat__message-attachment-file--item-text">
               <a
                 class="str-chat__message-attachment-file--item-first-row"
@@ -286,7 +286,7 @@
                 <stream-icon-placeholder
                   class="str-chat__message-attachment-download-icon"
                   icon="download"
-                ></stream-icon-placeholder>
+                />
               </a>
               <span
                 *ngIf="hasFileSize(attachmentContext)"
@@ -305,12 +305,12 @@
               | async) || defaultRecording;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultRecording>
           <stream-voice-recording
             data-testclass="voice-recording"
             [attachment]="attachment"
-          ></stream-voice-recording>
+          />
         </ng-template>
       </ng-container>
       <ng-container
@@ -325,7 +325,7 @@
               defaultCard;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultCard let-attachmentContext="attachment">
           <div
             class="str-chat__message-attachment-card str-chat__message-attachment-card--{{
@@ -349,7 +349,7 @@
                 <div
                   class="str-chat__message-attachment-card--video-play"
                 ></div>
-                <stream-icon-placeholder icon="play"></stream-icon-placeholder>
+                <stream-icon-placeholder icon="play" />
               </a>
               <ng-template #cardImage>
                 <img
@@ -421,7 +421,7 @@
               defaultActions;
             context: getAttachmentContext(attachment)
           "
-        ></ng-container>
+        />
         <ng-template #defaultActions let-attachmentContext="attachment">
           <div class="str-chat__message-attachment-actions">
             <div class="str-chat__message-attachment-actions-form">
@@ -450,7 +450,7 @@
       *ngTemplateOutlet="
         customAttachmentsTemplate;
         context: {
-          messageId: messageId,
+          messageId: messageId!,
           parentMessageId: parentMessageId,
           attachments: customAttachments
         }
@@ -464,7 +464,7 @@
         (customTemplatesService.modalTemplate$ | async) || defaultModal;
         context: getModalContext()
       "
-    ></ng-container>
+    />
   </ng-container>
 </div>
 
@@ -479,8 +479,7 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #modalContent>
@@ -530,7 +529,7 @@
         (click)="stepImages(-1)"
         (keyup.enter)="stepImages(-1)"
       >
-        <stream-icon-placeholder icon="arrow-left"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="arrow-left" />
       </button>
       <button
         class="stream-chat-angular__image-modal-stepper str-chat__image-carousel-stepper str-chat__image-carousel-stepper-next"
@@ -542,7 +541,7 @@
         (click)="stepImages(1)"
         (keyup.enter)="stepImages(1)"
       >
-        <stream-icon-placeholder icon="arrow-right"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="arrow-right" />
       </button>
     </div>
   </div>
