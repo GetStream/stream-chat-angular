@@ -31,7 +31,9 @@
           { "argsIgnorePattern": "^_" }
         ],
         "@typescript-eslint/restrict-template-expressions": "off",
-        "@angular-eslint/prefer-standalone-component": "off"
+        "@angular-eslint/prefer-standalone": "off",
+        "@angular-eslint/prefer-standalone-component": "off",
+        "@angular-eslint/consistent-component-styles": "off"
       }
     },
     {
@@ -58,6 +60,7 @@
         "@typescript-eslint/unbound-method": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/ban-types": "off",
+        "@angular-eslint/prefer-standalone": "off",
         "@angular-eslint/prefer-standalone-component": "off",
         "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": [
@@ -82,7 +85,9 @@
         "@angular-eslint/template/no-inline-styles": "off",
         "@angular-eslint/template/attributes-order": "off",
         "@angular-eslint/template/interactive-supports-focus": "off",
-        "@angular-eslint/template/prefer-ngsrc": "off"
+        "@angular-eslint/template/prefer-ngsrc": "off",
+        "@angular-eslint/template/prefer-control-flow": "off",
+        "@angular-eslint/template/prefer-self-closing-tags": "off"
       }
     }
   ]
