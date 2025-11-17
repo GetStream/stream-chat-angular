@@ -79,7 +79,7 @@ export class PollComposerComponent {
   optionChanged(index: number) {
     const control = this.options.at(index);
     const penultimateIndex = this.options.length - 2;
-    if (index === this.options.length - 1 && control.value?.length === 1) {
+    if (index === this.options.length - 1) {
       this.addOption();
     } else if (
       index === penultimateIndex &&
