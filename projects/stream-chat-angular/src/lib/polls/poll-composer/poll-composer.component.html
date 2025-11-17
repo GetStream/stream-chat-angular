@@ -87,14 +87,18 @@
                 <!-- eslint-enable @angular-eslint/template/use-track-by-function -->
                 <div class="str-chat__drag-and-drop-container__item">
                   <div class="str-chat__form__input-field">
-                    <input
-                      id="option{{ i }}"
-                      name="option{{ i }}"
-                      type="text"
-                      [formControl]="option"
-                      (input)="optionChanged(i)"
-                      placeholder="{{ 'streamChat.Add an option' | translate }}"
-                    />
+                    <div class="str-chat__form__input-field__value">
+                      <input
+                        id="option{{ i }}"
+                        name="option{{ i }}"
+                        type="text"
+                        [formControl]="option"
+                        (input)="optionChanged(i)"
+                        placeholder="{{
+                          'streamChat.Add an option' | translate
+                        }}"
+                      />
+                    </div>
                   </div>
                 </div>
               </ng-container>
