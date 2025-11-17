@@ -40,7 +40,9 @@ export class PaginatedListComponent<T> implements AfterViewInit {
    * @returns the track by id
    */
   @Input() trackBy: TrackByFunction<T> = (i) => i;
-  @ContentChild(TemplateRef) itemTempalteRef: TemplateRef<T> | undefined;
+  @ContentChild(TemplateRef) itemTempalteRef:
+    | TemplateRef<{ item: T; index: number }>
+    | undefined;
   /**
    * The component will signal via this output when more items should be fetched
    *

@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - polls
+      - v7
   pull_request:
     branches:
       - master

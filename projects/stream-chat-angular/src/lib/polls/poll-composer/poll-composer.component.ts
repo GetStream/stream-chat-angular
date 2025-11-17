@@ -25,11 +25,11 @@ export class PollComposerComponent {
   /**
    * Emitted when a poll is created, the poll id is emitted
    */
-  @Output() pollCompose = new EventEmitter<string>();
+  @Output() readonly pollCompose = new EventEmitter<string>();
   /**
    * Emitted when the poll composing is cancelled
    */
-  @Output() cancel = new EventEmitter<void>();
+  @Output() readonly cancel = new EventEmitter<void>();
   formGroup = new FormGroup({
     name: new FormControl('', [Validators.required]),
     options: new FormArray<FormControl<string | null>>(

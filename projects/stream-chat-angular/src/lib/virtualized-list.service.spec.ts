@@ -94,7 +94,7 @@ describe('VirtualizedListService', () => {
     expect(spy).toHaveBeenCalledWith(items);
 
     const lastItem = items[items.length - 1];
-    items.push({ id: `${lastItem.id + 1}`, value: lastItem.value + 1 });
+    items.push({ id: `${+lastItem.id + 1}`, value: lastItem.value + 1 });
     spy.calls.reset();
     allItems$.next(items);
     const virtualizedItems = spy.calls.mostRecent().args[0];

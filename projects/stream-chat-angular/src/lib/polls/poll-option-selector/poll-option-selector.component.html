@@ -11,7 +11,7 @@
   (keyup.enter)="toggleVote()"
 >
   <ng-container *ngIf="canVote">
-    <ng-container *ngTemplateOutlet="checkmark"></ng-container>
+    <ng-container *ngTemplateOutlet="checkmark" />
   </ng-container>
   <div class="str-chat__poll-option-data">
     <p class="str-chat__poll-option-text">{{ option?.text }}</p>
@@ -26,7 +26,7 @@
           [imageUrl]="vote.user?.image"
           [name]="vote.user?.name"
           type="user"
-        ></stream-avatar-placeholder>
+        />
       </div>
     </ng-container>
     <div class="str-chat__poll-option-vote-count">
@@ -38,7 +38,7 @@
       </ng-template>
     </div>
   </div>
-  <ng-container *ngTemplateOutlet="amountBar"></ng-container>
+  <ng-container *ngTemplateOutlet="amountBar" />
 </div>
 
 <ng-template #checkmark>

@@ -1,9 +1,9 @@
 <ng-template #defaultIcon let-icon="icon">
-  <stream-icon [icon]="icon"></stream-icon>
+  <stream-icon [icon]="icon" />
 </ng-template>
 <ng-container
   *ngTemplateOutlet="
     (customTemplatesService.iconTemplate$ | async) || defaultIcon;
     context: iconContext
   "
-></ng-container>
+/>

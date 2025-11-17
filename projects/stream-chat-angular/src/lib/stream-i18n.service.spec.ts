@@ -38,6 +38,7 @@ describe('I18nService', () => {
 
     expect(translateService['setTranslation']).toHaveBeenCalledWith(
       'en',
+      // @ts-expect-error Jasmine mock matcher
       { streamChat: jasmine.objectContaining(translationOverride) },
       true
     );

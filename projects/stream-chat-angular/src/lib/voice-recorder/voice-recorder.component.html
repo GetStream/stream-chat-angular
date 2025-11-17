@@ -10,7 +10,7 @@
       (click)="cancel()"
       (keyup.enter)="cancel()"
     >
-      <stream-icon-placeholder icon="bin"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="bin" />
     </button>
     <stream-voice-recorder-wavebar
       *ngIf="
@@ -18,12 +18,12 @@
           recordState === MediaRecordingState.PAUSED) &&
         !recording
       "
-    ></stream-voice-recorder-wavebar>
+    />
     <!-- eslint-disable @angular-eslint/template/no-any -->
     <stream-voice-recording
       [attachment]="$any(recording)"
       *ngIf="!!recording"
-    ></stream-voice-recording>
+    />
     <!-- eslint-enable @angular-eslint/template/no-any -->
     <button
       *ngIf="recordState === MediaRecordingState.PAUSED && !recording"
@@ -31,7 +31,7 @@
       (click)="resume()"
       (keyup.enter)="resume()"
     >
-      <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="mic" />
     </button>
     <button
       *ngIf="recordState === MediaRecordingState.RECORDING && !recording"
@@ -40,7 +40,7 @@
       (click)="pause()"
       (keyup.enter)="pause()"
     >
-      <stream-icon-placeholder icon="pause"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="pause" />
     </button>
     <ng-container
       *ngIf="recordState === MediaRecordingState.STOPPED; else stopButton"
@@ -52,11 +52,9 @@
         (click)="uploadRecording()"
         (keyup.enter)="uploadRecording()"
       >
-        <stream-loading-indicator
-          *ngIf="isLoading; else sendIcon"
-        ></stream-loading-indicator>
+        <stream-loading-indicator *ngIf="isLoading; else sendIcon" />
         <ng-template #sendIcon>
-          <stream-icon-placeholder icon="send"></stream-icon-placeholder>
+          <stream-icon-placeholder icon="send" />
         </ng-template>
       </button>
     </ng-container>
@@ -68,7 +66,7 @@
         (click)="stop()"
         (keyup.enter)="stop()"
       >
-        <stream-icon-placeholder icon="delivered"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="delivered" />
       </button>
     </ng-template>
   </div>

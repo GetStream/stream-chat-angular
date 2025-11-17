@@ -17,9 +17,9 @@
         (customTemplatesService.messageBouncePromptTemplate$ | async) ||
         defaultMessageBouncePrompt
       "
-    ></ng-container>
+    />
     <ng-template #defaultMessageBouncePrompt>
-      <stream-message-bounce-prompt></stream-message-bounce-prompt>
+      <stream-message-bounce-prompt />
     </ng-template>
     <div class="str-chat__main-panel">
       <ng-content></ng-content>
@@ -37,12 +37,12 @@
       "
       class="str-chat__empty-channel"
     >
-      <stream-icon icon="chat-bubble"></stream-icon>
+      <stream-icon icon="chat-bubble" />
       <p class="str-chat__empty-channel-text">
         {{ "streamChat.No chats here yet…" | translate }}
       </p>
       <div class="str-chat__empty-channel-notifications">
-        <stream-notification-list></stream-notification-list>
+        <stream-notification-list />
       </div>
     </div>
     <div

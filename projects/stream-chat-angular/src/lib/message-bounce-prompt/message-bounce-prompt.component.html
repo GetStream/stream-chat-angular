@@ -8,7 +8,7 @@
       content: modalContent
     }
   "
-></ng-container>
+/>
 
 <ng-template
   #defaultModal
@@ -21,8 +21,7 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #modalContent>

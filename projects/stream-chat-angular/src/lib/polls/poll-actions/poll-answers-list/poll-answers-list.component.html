@@ -19,7 +19,7 @@
             <p *ngIf="answer.answer_text" class="str-chat__poll-answer__text">
               {{ answer.answer_text }}
             </p>
-            <stream-poll-vote [vote]="answer"></stream-poll-vote>
+            <stream-poll-vote [vote]="answer" />
           </div>
         </ng-template>
       </stream-paginated-list>

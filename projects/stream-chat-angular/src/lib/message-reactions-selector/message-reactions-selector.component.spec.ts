@@ -14,10 +14,8 @@ describe('MessageReactionsSelectorComponent', () => {
   let queryEmojiOptions: () => HTMLElement[];
   let queryEmojiOption: (type: MessageReactionType) => HTMLElement | null;
   const channelServiceMock = {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    addReaction: (id: string, type: MessageReactionType) => {},
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    removeReaction: (id: string, type: MessageReactionType) => {},
+    addReaction: (_: string, __: MessageReactionType) => {},
+    removeReaction: (_: string, __: MessageReactionType) => {},
     getMessageReactions: () => Promise.resolve([] as ReactionResponse[]),
   };
   const reactionsServiceMock = {

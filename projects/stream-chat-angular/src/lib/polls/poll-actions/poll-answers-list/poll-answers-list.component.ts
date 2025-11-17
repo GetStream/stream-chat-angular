@@ -27,7 +27,7 @@ export class PollAnswersListComponent
   /**
    * The even that's emitted when the update/add comment button is clicked
    */
-  @Output() upsertOwnAnswer = new EventEmitter<void>();
+  @Output() readonly upsertOwnAnswer = new EventEmitter<void>();
   isLoading = false;
   next?: string | undefined;
   answers: PollAnswer[] = [];
