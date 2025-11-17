@@ -50,9 +50,9 @@
     "branches": [
       "master",
       {
-        "name": "polls",
-        "prerelease": "beta",
-        "channel": "beta"
+        "name": "v7",
+        "prerelease": "rc",
+        "channel": "rc"
       }
     ],
     "dryRun": false,
