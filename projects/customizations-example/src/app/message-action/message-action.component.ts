@@ -12,13 +12,13 @@ import {
 export class MessageActionComponent {
   @Input() actionName!: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
   @Input() actionLabelOrTranslationKey!:
-    | ((m: StreamMessage) => string)
+    | ((_: StreamMessage) => string)
     | string;
   @Input() message!: StreamMessage;
   @Input() extraParams!: MessageActionHandlerExtraParams;
   @Input() actionHandler!: (
-    message: StreamMessage,
-    extraParams: MessageActionHandlerExtraParams
+    _: StreamMessage,
+    __: MessageActionHandlerExtraParams
   ) => void;
 
   constructor() {}
@@ -35,7 +35,7 @@ export class MessageActionComponent {
   }
 
   getActionLabel(
-    actionLabelOrTranslationKey: ((m: StreamMessage) => string) | string
+    actionLabelOrTranslationKey: ((_: StreamMessage) => string) | string
   ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey

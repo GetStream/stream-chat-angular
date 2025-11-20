@@ -16,7 +16,7 @@
         onJump: messageNotificationJumpClicked
       }
     "
-  ></ng-container>
+  />
 </ng-container>
 <ng-template
   #defaultUnreadMessagesNotification
@@ -53,13 +53,13 @@
       data-testid="unread-messages-notification-dismiss"
       (click)="onDismiss()"
     >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="close" />
     </button>
   </div>
 </ng-template>
 <div #scrollContainer data-testid="scroll-container" class="str-chat__list">
   <ng-container *ngIf="mode === 'main' && isEmpty && emptyListTemplate">
-    <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
+    <ng-container *ngTemplateOutlet="emptyListTemplate" />
   </ng-container>
   <div class="str-chat__reverse-infinite-scroll str-chat__message-list-scroll">
     <ul class="str-chat__ul">
@@ -74,14 +74,14 @@
             messageTemplateContainer;
             context: { message: parentMessage, index: 'parent' }
           "
-        ></ng-container>
+        />
         <div data-testid="reply-count" class="str-chat__thread-start">
           {{parentMessage.reply_count === 1 ? ('streamChat.1 reply' | translate) : ('streamChat.{{ replyCount }}
           replies' | translate:replyCountParam)}}
         </div>
       </li>
       <ng-container *ngIf="mode === 'thread' && isEmpty && emptyListTemplate">
-        <ng-container *ngTemplateOutlet="emptyListTemplate"></ng-container>
+        <ng-container *ngTemplateOutlet="emptyListTemplate" />
       </ng-container>
       <stream-loading-indicator-placeholder
         *ngIf="
@@ -92,7 +92,7 @@
           else loadingIndicatorPlaceholder
         "
         data-testid="top-loading-indicator"
-      ></stream-loading-indicator-placeholder>
+      />
       <ng-container *ngIf="messages$ | async as messages">
         <ng-container
           *ngFor="
@@ -112,7 +112,7 @@
                   parsedDate: parseDate(message.created_at)
                 }
               "
-            ></ng-container>
+            />
           </ng-container>
           <li
             tabindex="0"
@@ -125,7 +125,7 @@
                 messageTemplateContainer;
                 context: { message: message, index: i }
               "
-            ></ng-container>
+            />
           </li>
           <ng-container
             *ngIf="
@@ -147,7 +147,7 @@
                     defaultNewMessagesIndicator;
                   context: { unreadCount: unreadCount }
                 "
-              ></ng-container>
+              />
             </li>
           </ng-container>
           <ng-container *ngIf="isNextMessageOnSeparateDate[i]">
@@ -159,7 +159,7 @@
                   parsedDate: parseDate(messages[i + 1].created_at)
                 }
               "
-            ></ng-container>
+            />
           </ng-container>
         </ng-container>
       </ng-container>
@@ -173,7 +173,7 @@
           else loadingIndicatorPlaceholder
         "
         data-testid="bottom-loading-indicator"
-      ></stream-loading-indicator-placeholder>
+      />
       <ng-template #loadingIndicatorPlaceholder>
         <div class="str-chat__loading-indicator-placeholder"></div>
       </ng-template>
@@ -211,7 +211,7 @@
         typingIndicatorTemplate || defaultTypingIndicator;
         context: getTypingIndicatorContext()
       "
-    ></ng-container>
+    />
   </div>
 </div>
 <div class="str-chat__jump-to-latest-message">
@@ -225,7 +225,7 @@
     <stream-icon
       class="str-chat__jump-to-latest-icon str-chat__circle-fab-icon"
       [icon]="direction === 'bottom-to-top' ? 'arrow-down' : 'arrow-up'"
-    ></stream-icon>
+    />
     <div
       *ngIf="newMessageCountWhileBeingScrolled > 0"
       class="str-chat__message-notification str-chat__message-notification-scroll-to-latest-unread-count str-chat__jump-to-latest-unread-count"
@@ -252,7 +252,7 @@
       [mode]="mode"
       [isHighlighted]="isHighlighted"
       [scroll$]="scroll$"
-    ></stream-message>
+    />
   </ng-template>
   <ng-container
     *ngTemplateOutlet="
@@ -268,7 +268,7 @@
         scroll$: scroll$
       }
     "
-  ></ng-container>
+  />
 </ng-template>
 
 <ng-template #dateSeparator let-date="date" let-parsedDate="parsedDate">
@@ -281,7 +281,7 @@
           parsedDate: parsedDate
         }
       "
-    ></ng-container>
+    />
   </ng-container>
 
   <ng-template

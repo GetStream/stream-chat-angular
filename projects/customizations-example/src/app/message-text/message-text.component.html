@@ -4,7 +4,7 @@
     [message]="message"
     [shouldTranslate]="shouldTranslate"
     [isQuoted]="isQuoted"
-  ></stream-message-text>
+  />
 </ng-container>
 <ng-template #regularMessageText>
   <div class="message-text" [class.message-text-expanded]="isExpanded" #text>
@@ -12,7 +12,7 @@
       [message]="message"
       [shouldTranslate]="shouldTranslate"
       [isQuoted]="isQuoted"
-    ></stream-message-text>
+    />
   </div>
   <!-- 5px diff is due to Firefox issue -->
   <button

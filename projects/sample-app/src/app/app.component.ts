@@ -33,6 +33,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('pollTemplate') pollTemplate!: TemplateRef<{
     pollId: string;
     messageId: string;
+    isQuote: boolean;
   }>;
   @ViewChild('pollComposerTemplate')
   pollComposerTemplate!: TemplateRef<{
@@ -43,15 +44,15 @@ export class AppComponent implements AfterViewInit {
   counter = 0;
 
   constructor(
-    private chatService: ChatClientService,
-    private channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
+    chatService: ChatClientService,
+    channelService: ChannelService,
+    streamI18nService: StreamI18nService,
     private customTemplateService: CustomTemplatesService,
     themeService: ThemeService
   ) {
     const isDynamicUser = environment.userId === '<dynamic user>';
     const userId = isDynamicUser ? uuidv4() : environment.userId;
-    void this.chatService.init(
+    void chatService.init(
       environment.apiKey,
       isDynamicUser ? { id: userId, name: names.random() } : userId,
       environment.tokenUrl
@@ -68,8 +69,8 @@ export class AppComponent implements AfterViewInit {
         : environment.userToken,
       { timeout: 10000 }
     );
-    this.chatService.chatClient.polls.registerSubscriptions();
-    void this.channelService.init(
+    chatService.chatClient.polls.registerSubscriptions();
+    void channelService.init(
       environment.channelsFilter || {
         type: 'messaging',
         members: { $in: [environment.userId] },
@@ -77,8 +78,8 @@ export class AppComponent implements AfterViewInit {
       undefined,
       { limit: 10 }
     );
-    this.streamI18nService.setTranslation();
-    this.channelService.activeParentMessage$
+    streamI18nService.setTranslation();
+    channelService.activeParentMessage$
       .pipe(map((m) => !!m))
       .subscribe((isThreadOpen) => (this.isThreadOpen = isThreadOpen));
     this.theme$ = themeService.theme$;

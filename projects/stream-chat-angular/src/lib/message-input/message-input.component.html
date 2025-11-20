@@ -12,7 +12,7 @@
       (click)="deselectMessageToQuote()"
       (keyup.enter)="deselectMessageToQuote()"
     >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="close" />
     </button>
   </div>
   <div *ngIf="isUpdate" class="str-chat__quoted-message-preview-header">
@@ -25,7 +25,7 @@
       (click)="deselectMessageToEdit()"
       (keyup.enter)="deselectMessageToEdit()"
     >
-      <stream-icon-placeholder icon="close"></stream-icon-placeholder>
+      <stream-icon-placeholder icon="close" />
     </button>
   </div>
   <ng-container *ngIf="canSendMessages; else notAllowed">
@@ -41,7 +41,7 @@
             customAttachmentUploadTemplate || defaultAttachmentUpload;
             context: getAttachmentUploadContext()
           "
-        ></ng-container>
+        />
         <ng-template #defaultAttachmentUpload>
           <div
             class="str-chat__file-input-container"
@@ -61,7 +61,7 @@
               (change)="filesSelected(fileInput.files)"
             />
             <label class="str-chat__file-input-label" for="{{ fileInputId }}">
-              <stream-icon-placeholder icon="attach"></stream-icon-placeholder>
+              <stream-icon-placeholder icon="attach" />
             </label>
           </div>
         </ng-template>
@@ -73,7 +73,7 @@
           class="str-chat-angular__create-poll"
           (click)="openPollComposer()"
         >
-          <stream-icon-placeholder icon="poll"></stream-icon-placeholder>
+          <stream-icon-placeholder icon="poll" />
         </button>
       </ng-container>
       <div class="str-chat__message-textarea-container">
@@ -90,7 +90,7 @@
             [imageUrl]="quotedMessage.user?.image"
             [name]="quotedMessage.user?.name || quotedMessage.user?.id"
             [user]="quotedMessage.user || undefined"
-          ></stream-avatar-placeholder>
+          />
           <div
             class="quoted-message-preview-content-inner str-chat__quoted-message-bubble"
           >
@@ -100,7 +100,7 @@
               "
               [attachments]="quotedMessageAttachments"
               [messageId]="quotedMessage.id"
-            ></stream-attachment-list>
+            />
             <ng-container
               *ngIf="
                 quotedMessage?.poll_id &&
@@ -116,7 +116,7 @@
                     isQuote: true
                   }
                 "
-              ></ng-container>
+              />
             </ng-container>
             <div class="str-chat__quoted-message-text">
               <ng-container
@@ -125,7 +125,7 @@
                     defaultText;
                   context: getQuotedMessageTextContext()
                 "
-              ></ng-container>
+              />
               <ng-template
                 #defaultText
                 let-message="message"
@@ -137,7 +137,7 @@
                   [isQuoted]="isQuoted"
                   [shouldTranslate]="shouldTranslate"
                   data-testid="quoted-message-text"
-                ></stream-message-text>
+                />
               </ng-template>
             </div>
           </div>
@@ -153,14 +153,14 @@
             [attachmentUploads$]="attachmentUploads$"
             (retryAttachmentUpload)="retryUploadHandler($event)"
             (deleteAttachment)="deleteUploadHandler($event)"
-          ></stream-attachment-preview-list>
+          />
         </ng-template>
         <ng-container
           *ngTemplateOutlet="
             attachmentPreviewListTemplate || defaultAttachmentsPreview;
             context: getAttachmentPreviewListContext()
           "
-        ></ng-container>
+        />
         <div class="str-chat__message-textarea-with-emoji-picker">
           <ng-container
             streamTextarea
@@ -175,14 +175,14 @@
             (send)="messageSent()"
             (userMentions)="userMentionsChanged($event)"
             (pasteFromClipboard)="itemsPasted($event)"
-          ></ng-container>
+          />
           <ng-container *ngIf="emojiPickerTemplate" data-testid="emoji-picker">
             <ng-container
               *ngTemplateOutlet="
                 emojiPickerTemplate;
                 context: getEmojiPickerContext()
               "
-            ></ng-container>
+            />
           </ng-container>
         </div>
       </div>
@@ -201,7 +201,7 @@
         (click)="messageSent()"
         (keyup.enter)="messageSent()"
       >
-        <stream-icon-placeholder icon="send"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="send" />
       </button>
       <div
         *ngIf="isCooldownInProgress"
@@ -223,7 +223,7 @@
         (click)="startVoiceRecording()"
         (keyup.enter)="startVoiceRecording()"
       >
-        <stream-icon-placeholder icon="mic"></stream-icon-placeholder>
+        <stream-icon-placeholder icon="mic" />
       </button>
       <ng-content select="[message-input-end]"></ng-content>
     </div>

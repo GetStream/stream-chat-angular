@@ -33,7 +33,8 @@
           {
             "patterns": ["dist/*", "public-api"]
           }
-        ]
+        ],
+        "@angular-eslint/prefer-standalone-component": "off"
       }
     },
     {

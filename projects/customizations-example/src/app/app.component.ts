@@ -103,13 +103,13 @@ export class AppComponent implements AfterViewInit {
   messageBlockedTemplate!: TemplateRef<MessageBlockedContext>;
 
   constructor(
-    private chatService: ChatClientService,
-    public channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
+    chatService: ChatClientService,
+    channelService: ChannelService,
+    streamI18nService: StreamI18nService,
     private customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService
+    messageActionsService: MessageActionsService
   ) {
-    this.messageActionsService.customActions$.next([
+    messageActionsService.customActions$.next([
       {
         actionName: 'forward',
         actionLabelOrTranslationKey: 'Forward',
@@ -117,16 +117,16 @@ export class AppComponent implements AfterViewInit {
         actionHandler: this.actionHandler,
       },
     ]);
-    void this.chatService.init(
+    void chatService.init(
       environment.apiKey,
       environment.userId,
       environment.userToken
     );
-    void this.channelService.init({
+    void channelService.init({
       type: 'messaging',
       members: { $in: [environment.userId] },
     });
-    this.streamI18nService.setTranslation();
+    streamI18nService.setTranslation();
   }
 
   ngAfterViewInit(): void {

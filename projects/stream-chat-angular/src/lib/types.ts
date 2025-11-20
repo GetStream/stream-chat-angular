@@ -415,7 +415,7 @@ export type MediaRecording = {
 };
 
 export type CustomAttachmentPreviewListContext = {
-  attachmentService: AttachmentService;
+  service: AttachmentService;
 };
 
 export type ThreadReplyButtonContext = {

@@ -1,7 +1,6 @@
 {
   "root": true,
   "ignorePatterns": ["projects/**/*"],
-  "plugins": ["unused-imports"],
   "overrides": [
     {
       "files": ["*.ts"],
@@ -11,16 +10,30 @@
       },
       "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@angular-eslint/all",
-        "plugin:prettier/recommended" // This should always be the last in the extends array
+        "plugin:prettier/recommended"
       ],
       "rules": {
         "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
         "@angular-eslint/prefer-on-push-component-change-detection": "off",
-        "unused-imports/no-unused-imports": "error",
-        "no-console": ["error", { "allow": ["warn", "error"] }],
-        "@typescript-eslint/unbound-method": "off"
+        "no-console": [
+          "error",
+          {
+            "allow": ["warn", "error"]
+          }
+        ],
+        "@typescript-eslint/unbound-method": "off",
+        "@angular-eslint/sort-lifecycle-methods": "off",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_" }
+        ],
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "@angular-eslint/prefer-standalone": "off",
+        "@angular-eslint/prefer-standalone-component": "off",
+        "@angular-eslint/consistent-component-styles": "off"
       }
     },
     {
@@ -33,23 +46,34 @@
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:@angular-eslint/all",
-        "plugin:prettier/recommended" // This should always be the last in the extends array
+        "plugin:prettier/recommended"
       ],
       "rules": {
         "@angular-eslint/sort-ngmodule-metadata-arrays": "off",
         "@angular-eslint/prefer-on-push-component-change-detection": "off",
-        "unused-imports/no-unused-imports": "error",
-        "no-console": ["error", { "allow": ["warn", "error"] }],
+        "no-console": [
+          "error",
+          {
+            "allow": ["warn", "error"]
+          }
+        ],
         "@typescript-eslint/unbound-method": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/ban-types": "off"
+        "@typescript-eslint/ban-types": "off",
+        "@angular-eslint/prefer-standalone": "off",
+        "@angular-eslint/prefer-standalone-component": "off",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_" }
+        ]
       }
     },
     {
       "files": ["*.html"],
       "extends": [
         "plugin:@angular-eslint/template/all",
-        "plugin:prettier/recommended" // This should always be the last in the extends array
+        "plugin:prettier/recommended"
       ],
       "rules": {
         "@angular-eslint/template/i18n": "off",
@@ -59,8 +83,11 @@
         "@angular-eslint/template/no-interpolation-in-attributes": "off",
         "@angular-eslint/template/button-has-type": "off",
         "@angular-eslint/template/no-inline-styles": "off",
-        "@angular-eslint/template/accessibility-interactive-supports-focus": "off",
-        "@angular-eslint/template/attributes-order": "off"
+        "@angular-eslint/template/attributes-order": "off",
+        "@angular-eslint/template/interactive-supports-focus": "off",
+        "@angular-eslint/template/prefer-ngsrc": "off",
+        "@angular-eslint/template/prefer-control-flow": "off",
+        "@angular-eslint/template/prefer-self-closing-tags": "off"
       }
     }
   ]

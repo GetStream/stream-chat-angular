@@ -18,7 +18,7 @@
         *ngIf="!(channels$ | async)?.length"
         class="str-chat__channel-list-empty"
       >
-        <stream-icon icon="chat-bubble"></stream-icon>
+        <stream-icon icon="chat-bubble" />
         <p data-testid="empty-channel-list-indicator">
           {{ "streamChat.You have no channels currently" | translate }}
         </p>
@@ -42,7 +42,7 @@
             <stream-channel-preview
               data-testclass="channel-preview"
               [channel]="channelInput"
-            ></stream-channel-preview>
+            />
           </ng-template>
           <div>
             <ng-container
@@ -50,7 +50,7 @@
                 customChannelPreviewTemplate || defaultTemplate;
                 context: { channel: channel }
               "
-            ></ng-container>
+            />
           </div>
         </ng-template>
       </stream-paginated-list>
@@ -61,16 +61,16 @@
 
 <ng-template #statusIndicator>
   <ng-container *ngIf="isError$ | async">
-    <ng-container *ngTemplateOutlet="chatDown"></ng-container>
+    <ng-container *ngTemplateOutlet="chatDown" />
   </ng-container>
   <ng-container *ngIf="isInitializing$ | async">
-    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannels" />
   </ng-container>
 </ng-template>
 
 <ng-template #chatDown>
   <div data-testid="chatdown-container" class="str-chat__down">
-    <ng-container *ngTemplateOutlet="loadingChannels"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannels" />
   </div>
 </ng-template>
 
@@ -79,9 +79,9 @@
     data-testid="loading-indicator-full-size"
     class="str-chat__loading-channels"
   >
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
-    <ng-container *ngTemplateOutlet="loadingChannel"></ng-container>
+    <ng-container *ngTemplateOutlet="loadingChannel" />
+    <ng-container *ngTemplateOutlet="loadingChannel" />
+    <ng-container *ngTemplateOutlet="loadingChannel" />
   </div>
 </ng-template>
 

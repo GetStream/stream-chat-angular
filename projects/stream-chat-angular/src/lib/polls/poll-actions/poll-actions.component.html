@@ -61,7 +61,7 @@
       (customTemplatesService.modalTemplate$ | async) || defaultModal;
       context: getModalContext()
     "
-  ></ng-container>
+  />
 </ng-container>
 
 <ng-template
@@ -75,8 +75,7 @@
     [isOpen]="isOpen"
     [content]="content"
     (isOpenChange)="isOpenChangeHandler($event)"
-  >
-  </stream-modal>
+  />
 </ng-template>
 
 <ng-template #allOptions>
@@ -92,8 +91,8 @@
         [pollId]="pollId"
         [messageId]="messageId"
         [maxOptionsDisplayed]="undefined"
-      ></stream-poll-options-list>
-      <stream-notification-list></stream-notification-list>
+      />
+      <stream-notification-list />
     </div>
   </div>
 </ng-template>
@@ -102,8 +101,8 @@
     [pollId]="pollId"
     [messageId]="messageId"
     [closeModal]="modalClosed"
-  ></stream-add-option>
-  <stream-notification-list></stream-notification-list>
+  />
+  <stream-notification-list />
 </ng-template>
 <ng-template #addAnswer>
   <stream-upsert-answer
@@ -111,23 +110,20 @@
     [messageId]="messageId"
     [answer]="ownAnwer"
     [closeModal]="modalClosed"
-  ></stream-upsert-answer>
-  <stream-notification-list></stream-notification-list>
+  />
+  <stream-notification-list />
 </ng-template>
 <ng-template #viewComments>
   <stream-poll-answers-list
     (upsertOwnAnswer)="modalOpened('addAnswer')"
     [pollId]="pollId"
     [messageId]="messageId"
-  ></stream-poll-answers-list>
-  <stream-notification-list></stream-notification-list>
+  />
+  <stream-notification-list />
 </ng-template>
 <ng-template #viewResults>
-  <stream-poll-results-list
-    [messageId]="messageId"
-    [pollId]="pollId"
-  ></stream-poll-results-list>
-  <stream-notification-list></stream-notification-list>
+  <stream-poll-results-list [messageId]="messageId" [pollId]="pollId" />
+  <stream-notification-list />
 </ng-template>
 <ng-template #endVote>
   <div
@@ -138,7 +134,7 @@
       <div class="str-chat__dialog__prompt" translate>
         streamChat.After a poll is closed, no more votes can be cast
       </div>
-      <stream-notification-list></stream-notification-list>
+      <stream-notification-list />
       <div class="str-chat__dialog__controls">
         <button
           class="str-chat__dialog__controls-button"

@@ -18,7 +18,7 @@
   <ng-container *ngIf="item.templateRef; else builtinItem">
     <ng-container
       *ngTemplateOutlet="item.templateRef; context: { item: item }"
-    ></ng-container>
+    />
   </ng-container>
   <ng-template #builtinItem>
     <div
@@ -31,7 +31,7 @@
             mentionAutocompleteItemTemplate || defaultMentionTemplate;
             context: { item: item }
           "
-        ></ng-container>
+        />
       </div>
       <div *ngSwitchCase="'command'" class="rta__entity">
         <ng-container
@@ -39,7 +39,7 @@
             commandAutocompleteItemTemplate || defaultCommandTemplate;
             context: { item: item }
           "
-        ></ng-container>
+        />
       </div>
     </div>
   </ng-template>
@@ -71,7 +71,7 @@
       [imageUrl]="item.image || item.user?.image"
       [name]="item.autocompleteLabel"
       [user]="item.user || item"
-    ></stream-avatar-placeholder>
+    />
     <span data-testclass="username" class="str-chat__user-item--name">{{
       item.autocompleteLabel
     }}</span>

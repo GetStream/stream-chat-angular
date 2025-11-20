@@ -760,7 +760,7 @@ describe('AttachmentListComponent', () => {
 
       expect(queryUrlLinks()[0].href).toContain(scrapeUrl);
       expect(queryUrlLinks()[0].textContent).toContain(
-        component.trimUrl('getstream.io')
+        component.trimUrl('getstream.io')!
       );
     });
 

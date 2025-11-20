@@ -6,7 +6,7 @@
     imageUrl="{{ activeChannel?.data?.image }}"
     name="{{ avatarName }}"
     [channel]="activeChannel"
-  ></stream-avatar-placeholder>
+  />
   <div class="str-chat__header-livestream-left str-chat__channel-header-end">
     <p
       data-testid="name"
@@ -19,7 +19,7 @@
         channelHeaderInfoTemplate || defaultChannelInfo;
         context: getChannelInfoContext()
       "
-    ></ng-container>
+    />
     <ng-template #defaultChannelInfo>
       <p
         data-testid="info"
@@ -37,6 +37,6 @@
         channelActionsTemplate;
         context: getChannelActionsContext()
       "
-    ></ng-container>
+    />
   </ng-container>
 </div>

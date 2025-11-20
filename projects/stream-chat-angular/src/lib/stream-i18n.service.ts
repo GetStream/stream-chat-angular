@@ -22,16 +22,9 @@ export class StreamI18nService {
       setDefaultLang?: (lang: string) => void;
     };
 
-    const defaultLang =
-      'getFallbackLang' in translateService
-        ? translateService.getFallbackLang?.()
-        : translateService.defaultLang;
+    const defaultLang = translateService.getFallbackLang();
     if (!defaultLang) {
-      if (typeof translateService.setDefaultLang !== 'undefined') {
-        translateService.setDefaultLang(lang);
-      } else {
-        translateService.defaultLang = lang;
-      }
+      translateService.setFallbackLang(lang);
     }
     this.translateService.setTranslation(
       lang,
