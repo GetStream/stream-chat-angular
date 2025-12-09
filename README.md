@@ -57,8 +57,7 @@ Supported Angular versions: **Angular 17-21**
 Run this command if you are using **Angular 21**:
 
 ```shell
-# Not all dependencies support Anglar 21 yet, so --force is required
-npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@20 --force
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@21
 ```
 
 Run this command if you are using **Angular 20**:
