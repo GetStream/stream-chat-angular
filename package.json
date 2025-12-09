@@ -50,7 +50,7 @@
     "branches": [
       "master",
       {
-        "name": "v7",
+        "name": "support-for-float-ui-21",
         "prerelease": "rc",
         "channel": "rc"
       }

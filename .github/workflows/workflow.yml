@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - v7
+      - support-for-float-ui-21
   pull_request:
     branches:
       - master
