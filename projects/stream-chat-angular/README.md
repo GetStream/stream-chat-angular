@@ -1,6 +1,6 @@
 # Official Angular SDK for [Stream Chat](https://getstream.io/chat/sdk/react/)
 
-> The official Angular components for Stream Chat, a service for building chat applications.
+> The official Angular components for Stream Chat 💬, a service for building chat applications.
 
 ![tests and release workflow](https://github.com/GetStream/stream-chat-angular/actions/workflows/workflow.yml/badge.svg)
 
