@@ -3,16 +3,18 @@ on:
   push:
     branches:
       - master
-      - support-for-float-ui-21
   pull_request:
     branches:
       - master
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # required for committing the version bump
 jobs:
   workflow:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x]
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -45,7 +47,6 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
       - name: Deploy sample app to Vercel
         env:
