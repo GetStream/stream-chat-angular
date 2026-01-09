@@ -54,7 +54,7 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 Supported Angular versions: **Angular 17-21**
 
-> Zoneless mode isn't yet supported
+_Zoneless mode isn't yet supported_
 
 Run this command if you are using **Angular 21**:
 
