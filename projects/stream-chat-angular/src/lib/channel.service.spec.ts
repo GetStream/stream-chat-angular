@@ -1863,8 +1863,12 @@ describe('ChannelService', () => {
     channel.data = { member_count: 3, own_capabilities: [] };
     service.setAsActiveChannel(channel);
     const result = await service.autocompleteMembers('ja');
+    const expectedResult = [
+      { user: { id: 'jack', name: 'Jack' } },
+      { user: { id: 'john' } },
+    ];
 
-    expect(result.length).toBe(2);
+    expect(result).toEqual(expectedResult);
   });
 
   it('should query members, more than 100 members', async () => {
