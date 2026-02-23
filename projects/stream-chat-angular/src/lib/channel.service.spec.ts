@@ -1860,6 +1860,7 @@ describe('ChannelService', () => {
       john: { user: { id: 'john' } },
       [user.id]: { user },
     } as any as Record<string, ChannelMemberResponse>;
+    channel.data = { member_count: 3, own_capabilities: [] };
     service.setAsActiveChannel(channel);
     const result = await service.autocompleteMembers('ja');
     const expectedResult = [

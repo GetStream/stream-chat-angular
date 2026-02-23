@@ -1084,7 +1084,7 @@ export class ChannelService {
   }
 
   /**
-   * Returns the autocomplete options for current channel members. If the channel has less than 100 members, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query_members/#pagination-and-ordering) with the given search term.
+   * Returns the autocomplete options for current channel members. If member_count is equal to the number of members in the channel, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query_members/#pagination-and-ordering) with the given search term.
    * @param searchTerm Text to search for in the names of members
    * @returns The list of members matching the search filter
    */
@@ -1093,7 +1093,10 @@ export class ChannelService {
     if (!activeChannel) {
       return [];
     }
-    if (Object.keys(activeChannel.state.members).length < 100) {
+    if (
+      Object.keys(activeChannel.state.members).length ===
+      (activeChannel.data?.member_count ?? 0)
+    ) {
       return Object.values(activeChannel.state.members).filter(
         (m) => m.user?.id !== this.chatClientService.chatClient.userID!
       );
