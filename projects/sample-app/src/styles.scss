@@ -1,5 +1,92 @@
-@import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+@layer defaults {
+  @import "../../stream-chat-angular/src/assets/styles/scss/index.scss";
+}
+
 @import "@ctrl/ngx-emoji-mart/picker";
+
+@layer overrides {
+  .str-chat__message {
+    .str-chat__message-sender-avatar {
+      align-self: flex-start;
+    }
+
+    .str-chat__message-inner {
+      grid-template-areas:
+        "message-bubble options"
+        "reactions reactions";
+
+      .str-chat__message-bubble {
+        max-width: 100%;
+        align-self: center;
+        min-height: var(--str-chat__message-options-button-size);
+        display: flex;
+        align-items: center;
+
+        .str-chat__message-attachment--card,
+        .str-chat__quoted-message-preview {
+          padding-inline-start: 0.5rem;
+        }
+      }
+    }
+
+    .str-chat__message-text,
+    .str-chat__quoted-message-bubble {
+      padding: 0;
+    }
+  }
+
+  .str-chat__message.str-chat__message--me {
+    grid-template-areas:
+      "avatar message"
+      ". replies"
+      ". metadata";
+    justify-items: start;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+
+    .str-chat__message-options {
+      flex-direction: row-reverse;
+    }
+
+    .str-chat__message-sender-avatar {
+      display: block;
+    }
+
+    .str-chat__message-reactions-container {
+      justify-content: flex-start;
+    }
+
+    .str-chat__message-reaction-selector {
+      inset-inline-end: unset;
+      inset-inline-start: 0;
+    }
+
+    &.str-chat__message--system {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .str-chat__li:hover {
+    .str-chat__message--me .str-chat__message-inner {
+      margin-inline-end: 0;
+    }
+  }
+
+  .str-chat__message--me .str-chat__message-inner {
+    margin-inline-start: 0;
+    margin-inline-end: calc(var(--str-chat__message-options-button-size) * 3);
+  }
+}
+
+.str-chat {
+  --str-chat__message-bubble-background-color: transparent;
+  --str-chat__own-message-bubble-background-color: transparent;
+  --str-chat__quoted-message-bubble-background-color: transparent;
+  --str-chat__deleted-message-background-color: transparent;
+  --str-chat__card-attachment-border-inline-start: 3px solid #c5d2cc;
+  --str-chat__message-reaction-background-color: #c5d2cc;
+  --str-chat__own-message-reaction-background-color: #a8e6c9;
+}
 
 html {
   height: 100%;
