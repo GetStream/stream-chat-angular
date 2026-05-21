@@ -132,7 +132,7 @@
     "stream-chat": "9.20.0",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "zone.js": "~0.14.0"
   },
   "devDependencies": {
