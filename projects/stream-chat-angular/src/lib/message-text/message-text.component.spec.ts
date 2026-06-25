@@ -302,6 +302,42 @@ describe('MessageTextComponent', () => {
     );
   });
 
+  it('should not double-prefix URLs with uppercase or mixed-case schemes', () => {
+    component.message = {
+      text: 'This is a message with a link HTTPS://example.com',
+    } as any as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="HTTPS://example.com" target="_blank" rel="nofollow">HTTPS://example.com</a>'
+    );
+    expect(component.messageTextParts![0].content).not.toContain(
+      'https://HTTPS://example.com'
+    );
+
+    component.message.text =
+      'This is a message with a link Https://example.com';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="Https://example.com" target="_blank" rel="nofollow">Https://example.com</a>'
+    );
+
+    component.message.text = 'This is a message with a link FTP://example.com';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="FTP://example.com" target="_blank" rel="nofollow">FTP://example.com</a>'
+    );
+
+    component.message.text = 'This is a message with a link example.com';
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts![0].content).toContain(
+      '<a href="https://example.com" target="_blank" rel="nofollow">example.com</a>'
+    );
+  });
+
   it('should replace URL links inside text content - custom link renderer', () => {
     const service = TestBed.inject(MessageService);
     service.customLinkRenderer = (url) =>
