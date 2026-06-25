@@ -157,11 +157,7 @@ export class MessageTextComponent implements OnChanges {
         return this.messageService.customLinkRenderer(match);
       } else {
         let href = match;
-        if (
-          !href.startsWith('http') &&
-          !href.startsWith('ftp') &&
-          !href.startsWith('file')
-        ) {
+        if (!/^(?:https?|ftp|file):\/\//i.test(href)) {
           href = `https://${match}`;
         }
         return `<a href="${href}" target="_blank" rel="nofollow">${match}</a>`;
