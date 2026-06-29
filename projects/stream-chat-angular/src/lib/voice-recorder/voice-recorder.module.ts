@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { VoiceRecorderComponent } from './voice-recorder.component';
 import { VoiceRecordingModule } from '../voice-recording/voice-recording.module';
 import { IconModule } from '../icon/icon.module';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { AudioRecorderService } from './audio-recorder.service';
 import { TranscoderService } from './transcoder.service';
 import { AmplitudeRecorderService } from './amplitude-recorder.service';
@@ -11,7 +11,13 @@ import { VoiceRecorderWavebarComponent } from './voice-recorder-wavebar/voice-re
 
 @NgModule({
   declarations: [VoiceRecorderComponent, VoiceRecorderWavebarComponent],
-  imports: [CommonModule, VoiceRecordingModule, IconModule, TranslateModule],
+  imports: [
+    CommonModule,
+    VoiceRecordingModule,
+    IconModule,
+    TranslateDirective,
+    TranslatePipe,
+  ],
   exports: [VoiceRecorderComponent, VoiceRecorderWavebarComponent],
   providers: [
     AudioRecorderService,
