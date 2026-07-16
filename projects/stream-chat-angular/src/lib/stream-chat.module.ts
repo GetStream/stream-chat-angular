@@ -18,7 +18,7 @@ import { StreamAvatarModule } from './stream-avatar.module';
 import { ThreadComponent } from './thread/thread.component';
 import { MessageBouncePromptComponent } from './message-bounce-prompt/message-bounce-prompt.component';
 import { NgxFloatUiModule } from 'ngx-float-ui';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MessageReactionsSelectorComponent } from './message-reactions-selector/message-reactions-selector.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { VoiceRecordingModule } from './voice-recording/voice-recording.module';
@@ -55,7 +55,7 @@ import { StreamPaginatedListModule } from './paginated-list/stream-paginated-lis
     CommonModule,
     NgxFloatUiModule,
     StreamAvatarModule,
-    TranslateModule,
+    TranslatePipe,
     VoiceRecordingModule,
     IconModule,
     StreamModalModule,

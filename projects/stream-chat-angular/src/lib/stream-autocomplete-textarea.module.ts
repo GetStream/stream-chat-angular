@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AutocompleteTextareaComponent } from './message-input/autocomplete-textarea/autocomplete-textarea.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MentionModule } from 'angular-mentions';
 import { StreamAvatarModule } from './stream-avatar.module';
 import { textareaInjectionToken } from './injection-tokens';
 
 @NgModule({
   declarations: [AutocompleteTextareaComponent],
-  imports: [CommonModule, TranslateModule, MentionModule, StreamAvatarModule],
+  imports: [CommonModule, TranslatePipe, MentionModule, StreamAvatarModule],
   exports: [AutocompleteTextareaComponent],
   providers: [
     {

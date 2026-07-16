@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TextareaComponent } from './message-input/textarea/textarea.component';
 import { textareaInjectionToken } from './injection-tokens';
 
 @NgModule({
   declarations: [TextareaComponent],
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslatePipe],
   exports: [TextareaComponent],
   providers: [
     {
