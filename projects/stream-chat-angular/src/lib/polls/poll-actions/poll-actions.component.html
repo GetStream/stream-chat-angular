@@ -130,9 +130,14 @@
     class="str-chat__dialog str-chat__dialog--prompt str-chat__modal__end-vote"
   >
     <div class="str-chat__dialog__body">
-      <div class="str-chat__dialog__title" translate>streamChat.End vote</div>
-      <div class="str-chat__dialog__prompt" translate>
-        streamChat.After a poll is closed, no more votes can be cast
+      <div class="str-chat__dialog__title">
+        {{ "streamChat.End vote" | translate }}
+      </div>
+      <div class="str-chat__dialog__prompt">
+        {{
+          "streamChat.After a poll is closed, no more votes can be cast"
+            | translate
+        }}
       </div>
       <stream-notification-list />
       <div class="str-chat__dialog__controls">
