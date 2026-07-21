@@ -52,9 +52,19 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
-Supported Angular versions: **Angular 17-21**
+Supported Angular versions: **Angular 17-22**
 
 _Zoneless mode isn't yet supported_
+
+`stream-chat-angular` supports both `@ngx-translate/core` v17 and v18. Use **v18 on Angular 18+** and **v17 on Angular 17** (v18 requires Angular 18 or newer).
+
+Run this command if you are using **Angular 22**:
+
+```shell
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@21 --legacy-peer-deps
+```
+
+> `ngx-float-ui` does not have an Angular 22 build yet, so install its latest (v21) with `--legacy-peer-deps` until an Angular 22 release is available.
 
 Run this command if you are using **Angular 21**:
 
@@ -83,7 +93,7 @@ npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@18
 Run this command if you are using **Angular 17**:
 
 ```shell
-npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@17
+npm install stream-chat-angular stream-chat @ngx-translate/core@17 ngx-float-ui@17
 ```
 
 Supported node verisons: 18+

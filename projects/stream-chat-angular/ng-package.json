@@ -13,7 +13,7 @@
     "pretty-bytes",
     "emoji-regex",
     "@floating-ui/dom",
-    "angular-mentions",
+    "@stream-io/angular-mentions",
     "ngx-float-ui"
   ]
 }

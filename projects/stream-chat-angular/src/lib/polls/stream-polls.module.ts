@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { PollComposerComponent } from './poll-composer/poll-composer.component';
 import { PollComponent } from './poll/poll.component';
 import { PollHeaderComponent } from './poll-header/poll-header.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PollOptionsListComponent } from './poll-options-list/poll-options-list.component';
 import { PollOptionSelectorComponent } from './poll-option-selector/poll-option-selector.component';
 import { StreamAvatarModule } from '../stream-avatar.module';
@@ -38,7 +38,7 @@ import { PollPreviewComponent } from './poll-preview/poll-preview.component';
   ],
   imports: [
     CommonModule,
-    TranslateModule,
+    TranslatePipe,
     StreamAvatarModule,
     StreamModalModule,
     StreamNotificationModule,

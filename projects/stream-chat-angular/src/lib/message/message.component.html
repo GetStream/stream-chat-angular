@@ -291,8 +291,8 @@
 
   <ng-template #deletedMessage>
     <div data-testid="message-deleted-component">
-      <div class="str-chat__message--deleted-inner" translate>
-        streamChat.This message was deleted...
+      <div class="str-chat__message--deleted-inner">
+        {{ "streamChat.This message was deleted..." | translate }}
       </div>
     </div>
   </ng-template>
@@ -432,20 +432,18 @@
         <button
           *ngIf="displayedMessageTextContent === 'translation'"
           data-testid="see-original"
-          translate
           (click)="displayOriginalMessage()"
           (keyup.enter)="displayOriginalMessage()"
         >
-          streamChat.See original (automatically translated)
+          {{ "streamChat.See original (automatically translated)" | translate }}
         </button>
         <button
           *ngIf="displayedMessageTextContent === 'original'"
           data-testid="see-translation"
-          translate
           (click)="displayTranslatedMessage()"
           (keyup.enter)="displayTranslatedMessage()"
         >
-          streamChat.See translation
+          {{ "streamChat.See translation" | translate }}
         </button>
       </div>
       <ng-container
@@ -482,8 +480,7 @@
           <span
             data-testid="edited-flag"
             class="str-chat__mesage-simple-edited"
-            translate
-            >streamChat.Edited</span
+            >{{ "streamChat.Edited" | translate }}</span
           >
           <div
             data-testid="edited-timestamp"
@@ -494,7 +491,7 @@
                 !isEditedFlagOpened
             }"
           >
-            <span translate>streamChat.Edited</span>
+            <span>{{ "streamChat.Edited" | translate }}</span>
             <time
               dateTime="{{ message?.message_text_updated_at }}"
               title="{{ message?.message_text_updated_at }}"

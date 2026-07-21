@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   ComponentRef,
   ContentChild,
   ElementRef,
@@ -192,7 +191,6 @@ export class MessageInputComponent
     private configService: MessageInputConfigService,
     @Inject(textareaInjectionToken)
     private textareaType: Type<TextareaInterface>,
-    private componentFactoryResolver: ComponentFactoryResolver,
     private cdRef: ChangeDetectorRef,
     private emojiInputService: EmojiInputService,
     readonly customTemplatesService: CustomTemplatesService,
@@ -708,12 +706,9 @@ export class MessageInputComponent
       return;
     }
 
-    const componentFactory =
-      this.componentFactoryResolver.resolveComponentFactory(this.textareaType);
-    this.textareaRef =
-      this.textareaAnchor.viewContainerRef.createComponent<TextareaInterface>(
-        componentFactory
-      );
+    this.textareaRef = this.textareaAnchor.viewContainerRef.createComponent(
+      this.textareaType
+    );
     this.cdRef.detectChanges();
   }
 

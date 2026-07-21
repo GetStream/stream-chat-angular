@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - feat/ngx-translate-v18-support
   pull_request:
     branches:
       - master

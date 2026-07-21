@@ -9,8 +9,8 @@
       class="str-chat__modal-header__go-back-button"
       (click)="optionToView = undefined"
     ></button>
-    <div class="str-chat__modal-header__title" translate>
-      streamChat.Poll results
+    <div class="str-chat__modal-header__title">
+      {{ "streamChat.Poll results" | translate }}
     </div>
   </div>
   <ng-container *ngIf="optionToView; else allOptions">
@@ -64,10 +64,9 @@
               canQueryVotes
             "
             class="str-chat__poll-option__show-all-votes-button"
-            translate
             (click)="optionToView = option"
           >
-            streamChat.Show all
+            {{ "streamChat.Show all" | translate }}
           </button>
         </div>
       </div>

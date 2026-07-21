@@ -6,7 +6,7 @@ import {
   tick,
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
-import { MentionModule } from 'angular-mentions';
+import { MentionModule } from '@stream-io/angular-mentions';
 import { Channel } from 'stream-chat';
 import { ChatClientService } from '../../chat-client.service';
 import { ChannelService } from '../../channel.service';

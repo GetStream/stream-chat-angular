@@ -12,7 +12,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { MentionConfig, Mentions } from 'angular-mentions';
+import { MentionConfig, Mentions } from '@stream-io/angular-mentions';
 import {
   MentionAutcompleteListItemContext,
   MentionAutcompleteListItem,
