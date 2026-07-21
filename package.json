@@ -118,7 +118,7 @@
     "@ngx-translate/core": "^17.0.0",
     "@stream-io/stream-chat-css": "5.14.0",
     "@stream-io/transliterate": "^1.5.2",
-    "angular-mentions": "1.5.0",
+    "@stream-io/angular-mentions": "1.5.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
     "emoji-regex": "^10.3.0",
