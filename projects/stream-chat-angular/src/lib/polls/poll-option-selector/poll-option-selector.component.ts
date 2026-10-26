@@ -9,8 +9,8 @@ import { BasePollComponent } from '../base-poll.component';
 import {
   isVoteAnswer,
   Poll,
-  PollOption,
-  PollVote,
+  PollOptionResponseData,
+  PollVoteResponseData,
   VotingVisibility,
 } from 'stream-chat';
 
@@ -27,13 +27,13 @@ export class PollOptionSelectorComponent
   extends BasePollComponent
   implements OnChanges
 {
-  @Input() option: PollOption | undefined;
+  @Input() option: PollOptionResponseData | undefined;
   @Input() displayAvatarCount = 3;
   @Input() voteCountVerbose = false;
   isClosed = false;
-  latestVotes: PollVote[] = [];
+  latestVotes: PollVoteResponseData[] = [];
   isWinner = false;
-  ownVote: PollVote | undefined;
+  ownVote: PollVoteResponseData | undefined;
   voteCount = 0;
   votingVisibility: VotingVisibility | undefined;
   winningOptionCount = 0;
@@ -73,7 +73,7 @@ export class PollOptionSelectorComponent
     }
   }
 
-  trackByVoteId(_: number, vote: PollVote) {
+  trackByVoteId(_: number, vote: PollVoteResponseData) {
     return vote.id;
   }
 

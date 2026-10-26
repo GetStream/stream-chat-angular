@@ -414,6 +414,7 @@ export class MessageListComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
+    document.addEventListener('visibilitychange', this.updateViewingLive);
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer?.nativeElement?.addEventListener('scroll', () =>
         this.scrolled()
@@ -444,6 +445,12 @@ export class MessageListComponent
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.updateViewingLive);
+    if (this.mode === 'main') {
+      this.channelService.activeChannel?.messagePaginator?.setViewingLive(
+        false
+      );
+    }
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.newMessageSubscription?.unsubscribe();
     if (this.scrollEndTimeout) {
@@ -591,6 +598,7 @@ export class MessageListComponent
     if (this.isUserScrolled !== isUserScrolled) {
       this.ngZone.run(() => {
         this.isUserScrolled = isUserScrolled;
+        this.updateViewingLive();
         if (!this.isUserScrolled) {
           this.newMessageCountWhileBeingScrolled = 0;
         }
@@ -627,6 +635,26 @@ export class MessageListComponent
       });
     }
   }
+
+  private getMessagePaginator() {
+    return this.mode === 'main'
+      ? this.channelService.activeChannel?.messagePaginator
+      : this.chatClientService.chatClient?.threads?.get(
+          this.parentMessage?.id || ''
+        )?.messagePaginator;
+  }
+
+  /**
+   * Tells stream-chat if the user sees the latest messages (in that case new messages don't increase the unread count)
+   */
+  private updateViewingLive = () => {
+    if (this.mode !== 'main') {
+      return;
+    }
+    this.channelService.activeChannel?.messagePaginator?.setViewingLive(
+      !document.hidden && !this.isUserScrolled && this.isLatestMessageInList
+    );
+  };
 
   private preserveScrollbarPosition() {
     if (!this.messageIdToAnchorTo) {
@@ -724,20 +752,23 @@ export class MessageListComponent
       tap((messages) => {
         const latestMessageInList = messages[messages.length - 1];
         const channel = this.channelService.activeChannel;
-        const messagesFromState =
-          (this.mode === 'main'
-            ? channel?.state.latestMessages
-            : channel?.state.threads[this.parentMessage?.id || '']) || [];
+        const paginator = this.getMessagePaginator();
+        const allMessages =
+          this.mode === 'main'
+            ? this.channelService.activeChannelMessages
+            : this.channelService.activeChannelThreadReplies;
         this.isLatestMessageInList =
           !latestMessageInList ||
           latestMessageInList.cid !== channel?.cid ||
           (this.mode === 'thread' &&
             latestMessageInList?.parent_id !== this.parentMessage?.id) ||
-          latestMessageInList?.id ===
-            messagesFromState[messagesFromState.length - 1]?.id;
+          (!paginator?.hasMoreHead &&
+            latestMessageInList?.id ===
+              allMessages[allMessages.length - 1]?.id);
         if (!this.isLatestMessageInList) {
           this.isUserScrolled = true;
         }
+        this.updateViewingLive();
       }),
       map((messages) => {
         return this.direction === 'bottom-to-top'
@@ -771,6 +802,8 @@ export class MessageListComponent
               jumpToMessage.position = 'top';
             }
             this.isJumpingToMessage = true;
+            // Render the new message window first, otherwise we might scroll to the message in the previous window
+            this.cdRef.detectChanges();
             this.scrollMessageIntoView({
               messageId: this.firstUnreadMessageId || messageId,
               position: jumpToMessage.position || 'middle',
@@ -836,9 +869,8 @@ export class MessageListComponent
       this.jumpToMessageTimeouts.push(
         setTimeout(() => {
           this.isJumpingToMessage = false;
-          if (!this.isUserScrolled) {
-            this.checkIfUserScrolled();
-          }
+          // Scroll position isn't tracked during jumps, update it, so the virtualized list knows if it needs to load more messages after the jump
+          this.checkIfUserScrolled();
         }, 200)
       );
       this.jumpToMessageTimeouts.push(

@@ -1,7 +1,7 @@
 import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Channel, Event, FormatMessageResponse } from 'stream-chat';
+import { Channel, LocalMessage } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChatClientService } from '../chat-client.service';
@@ -11,6 +11,8 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { getReadBy } from '../read-by';
 import { isOnSeparateDate } from '../is-on-separate-date';
 import { DateParserService } from '../date-parser.service';
+import { convertMessageDatesToDate } from '../message-dates';
+import { MessageWithDates } from '../types';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -32,7 +34,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   latestMessageText: string = 'streamChat.Nothing yet...';
   latestMessageStatus?: 'delivered' | 'read';
   latestMessageTime?: string;
-  latestMessage?: FormatMessageResponse;
+  latestMessage?: MessageWithDates<LocalMessage>;
   displayAs: 'text' | 'html';
   userId?: string;
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
@@ -63,26 +65,20 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           (this.isActive = activeChannel?.id === this.channel?.id)
       )
     );
-    const messages = this.channel?.state?.latestMessages;
-    if (messages && messages.length > 0) {
-      this.setLatestMessage(messages[messages.length - 1]);
-    }
-    this.updateUnreadState();
-    const capabilities =
-      (this.channel?.data?.own_capabilities as string[]) || [];
+    const capabilities = this.channel?.data?.own_capabilities || [];
     this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
-    this.subscriptions.push(
-      this.channel!.on('message.new', this.handleMessageEvent.bind(this))
-    );
-    this.subscriptions.push(
-      this.channel!.on('message.updated', this.handleMessageEvent.bind(this))
-    );
-    this.subscriptions.push(
-      this.channel!.on('message.deleted', this.handleMessageEvent.bind(this))
-    );
-    this.subscriptions.push(
-      this.channel!.on('channel.truncated', this.handleMessageEvent.bind(this))
-    );
+    // The latest message is tracked by stream-chat (new, updated, deleted messages, truncate)
+    const unsubscribeFromLatestMessage =
+      this.channel!.messagePaginator.aggregateState.subscribeWithSelector(
+        (state) => ({ latestMessage: state.latestMessage }),
+        ({ latestMessage }) => {
+          this.ngZone.run(() => {
+            this.setLatestMessage(latestMessage ?? undefined);
+            this.updateUnreadState();
+          });
+        }
+      );
+    this.subscriptions.push({ unsubscribe: unsubscribeFromLatestMessage });
     this.subscriptions.push(
       this.channel!.on('message.read', () =>
         this.ngZone.run(() => {
@@ -96,8 +92,8 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         .pipe(
           filter(
             (e) =>
-              e.eventType === 'notification.mark_unread' &&
-              this.channel!.id === e.event?.channel_id
+              e.event.type === 'notification.mark_unread' &&
+              this.channel!.id === e.event.channel_id
           )
         )
         .subscribe(() => {
@@ -114,11 +110,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   get avatarImage() {
-    return this.channel?.data?.image;
+    return this.channel?.data?.custom?.image;
   }
 
   get avatarName() {
-    return this.channel?.data?.name;
+    return this.channel?.data?.custom?.name;
   }
 
   get title() {
@@ -127,7 +123,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     }
     return getChannelDisplayText(
       this.channel,
-      this.chatClientService.chatClient.user!
+      this.chatClientService.chatClient.user
     );
   }
 
@@ -135,35 +131,19 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     void this.channelService.setAsActiveChannel(this.channel!);
   }
 
-  private handleMessageEvent(event: Event) {
-    this.ngZone.run(() => {
-      if (this.channel?.state.latestMessages.length === 0) {
-        this.latestMessage = undefined;
-        this.latestMessageStatus = undefined;
-        this.latestMessageText = 'streamChat.Nothing yet...';
-        this.latestMessageTime = undefined;
-        return;
-      }
-      const latestMessage =
-        this.channel?.state.latestMessages[
-          this.channel?.state.latestMessages.length - 1
-        ];
-      if (!event.message || latestMessage?.id !== event.message.id) {
-        return;
-      }
-      this.setLatestMessage(latestMessage);
-      this.updateUnreadState();
-    });
-  }
-
-  private setLatestMessage(message?: FormatMessageResponse) {
+  private setLatestMessage(localMessage?: LocalMessage) {
+    const message = localMessage
+      ? convertMessageDatesToDate(localMessage)
+      : undefined;
     this.latestMessage = message;
-    if (message?.deleted_at) {
+    if (!message) {
+      this.latestMessageText = 'streamChat.Nothing yet...';
+    } else if (message?.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';
     } else if (message?.text) {
       this.latestMessageText =
         getMessageTranslation(
-          message,
+          localMessage,
           this.channel,
           this.chatClientService.chatClient.user
         ) || message.text;

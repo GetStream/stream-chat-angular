@@ -24,7 +24,7 @@
     "@breezystack/lamejs": "^1.2.7",
     "@ngx-translate/core": "^17.0.0 || ^18.0.0",
     "rxjs": "^7.4.0",
-    "stream-chat": "^9.20.0"
+    "stream-chat": "^10.0.0"
   },
   "peerDependenciesMeta": {
     "@angular/forms": {

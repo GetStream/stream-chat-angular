@@ -168,12 +168,13 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
 
   hasFileSize(attachment: Attachment) {
     return (
-      attachment.file_size && Number.isFinite(Number(attachment.file_size))
+      attachment.custom?.file_size &&
+      Number.isFinite(Number(attachment.custom.file_size))
     );
   }
 
   getFileSize(attachment: Attachment) {
-    return prettybytes(Number(attachment.file_size!));
+    return prettybytes(Number(attachment.custom?.file_size));
   }
 
   getModalContext(): ModalContext {
@@ -220,7 +221,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   trackByImageUrl(_: number, item: Attachment) {
-    return item.image_url || item.img_url || item.thumb_url;
+    return item.image_url || item.custom?.img_url || item.thumb_url;
   }
 
   getAttachmentContext(attachment: Attachment): AttachmentContext {
@@ -311,6 +312,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return [
       {
         type: 'gallery',
+        custom: {},
         images,
       },
     ];
@@ -324,7 +326,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   private getAttachmentUrl(attachment: Attachment) {
     return (
       attachment.image_url ||
-      attachment.img_url ||
+      attachment.custom?.img_url ||
       attachment.asset_url ||
       attachment.thumb_url
     );

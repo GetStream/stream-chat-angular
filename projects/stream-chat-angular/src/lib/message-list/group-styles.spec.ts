@@ -44,7 +44,7 @@ describe('getGroupStyles', () => {
   });
 
   it('should mark messages with attachements as "single"', () => {
-    messages[0].attachments = [{}, {}];
+    messages[0].attachments = [{ custom: {} }, { custom: {} }];
 
     expect(getGroupStyles(messages[0], undefined, messages[1])).toBe('single');
   });
@@ -92,8 +92,8 @@ describe('getGroupStyles', () => {
   });
 
   it(`shouldn't group together messages with different authors `, () => {
-    messages[0].user!.id = 'not' + messages[0].user!.id;
-    messages[4].user!.id = 'not' + messages[4].user!.id;
+    messages[0].user.id = 'not' + messages[0].user.id;
+    messages[4].user.id = 'not' + messages[4].user.id;
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe('top');
 
@@ -149,7 +149,7 @@ describe('getGroupStyles', () => {
   });
 
   it('should end group if the message id edited', () => {
-    messages[1].message_text_updated_at = new Date().toISOString();
+    messages[1].message_text_updated_at = new Date();
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
       'bottom'

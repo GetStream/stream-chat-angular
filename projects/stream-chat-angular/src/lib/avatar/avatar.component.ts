@@ -128,8 +128,8 @@ export class AvatarComponent
     if (this.type === 'user') {
       result = this.name?.toString() || '';
     } else if (this.type === 'channel') {
-      if (this.channel?.data?.name) {
-        result = this.channel?.data?.name;
+      if (this.channel?.data?.custom?.name) {
+        result = this.channel?.data?.custom?.name;
       } else {
         const otherMember = this.getOtherMemberIfOneToOneChannel();
         if (otherMember) {
@@ -158,9 +158,13 @@ export class AvatarComponent
         this.isOnlineSubscription = this.chatClientService.events$
           .pipe(filter((e) => e.eventType === 'user.presence.changed'))
           .subscribe((event) => {
-            if (event.event.user?.id === otherMember.id) {
+            const user =
+              event.event.type === 'user.presence.changed'
+                ? event.event.user
+                : undefined;
+            if (user?.id === otherMember.id) {
               this.ngZone.run(() => {
-                this.isOnline = event.event.user?.online || false;
+                this.isOnline = user?.online || false;
               });
             }
           });

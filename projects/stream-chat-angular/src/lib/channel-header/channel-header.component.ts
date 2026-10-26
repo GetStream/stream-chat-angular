@@ -90,11 +90,11 @@ export class ChannelHeaderComponent implements OnInit, OnDestroy {
     }
     return getChannelDisplayText(
       this.activeChannel,
-      this.chatClientService.chatClient.user!
+      this.chatClientService.chatClient.user
     );
   }
 
   get avatarName() {
-    return this.activeChannel?.data?.name;
+    return this.activeChannel?.data?.custom?.name;
   }
 }

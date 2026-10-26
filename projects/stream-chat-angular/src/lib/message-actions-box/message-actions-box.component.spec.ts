@@ -43,6 +43,7 @@ describe('MessageActionsBoxComponent', () => {
   let message: StreamMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
+  let flagMessageSpy: jasmine.Spy;
   let channelService: {
     updateMessage: jasmine.Spy;
     activeChannel$: Observable<Channel>;
@@ -57,6 +58,7 @@ describe('MessageActionsBoxComponent', () => {
 
   beforeEach(async () => {
     mockChatClient = mockStreamChatClient();
+    flagMessageSpy = jasmine.createSpy('flagMessage');
     channelService = {
       updateMessage: jasmine.createSpy(),
       activeChannel$: new BehaviorSubject(generateMockChannels(1)[0]),
@@ -75,7 +77,10 @@ describe('MessageActionsBoxComponent', () => {
         MessageReactionsSelectorComponent,
       ],
       providers: [
-        { provide: ChatClientService, useValue: mockChatClient },
+        {
+          provide: ChatClientService,
+          useValue: { ...mockChatClient, flagMessage: flagMessageSpy },
+        },
         { provide: ChannelService, useValue: channelService },
         {
           provide: textareaInjectionToken,
@@ -248,7 +253,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(flagMessageSpy).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message has been successfully flagged',
       'success'
@@ -258,7 +263,7 @@ describe('MessageActionsBoxComponent', () => {
   it(`should display error message, if flag action wasn't successful`, async () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    mockChatClient.flagMessage.and.rejectWith();
+    flagMessageSpy.and.rejectWith();
     component.enabledActions = ['flag-message'];
     component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
@@ -267,7 +272,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(flagMessageSpy).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Error adding flag'
     );

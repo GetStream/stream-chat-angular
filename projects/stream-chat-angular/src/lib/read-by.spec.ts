@@ -1,4 +1,5 @@
-import { Channel, FormatMessageResponse } from 'stream-chat';
+import { Channel, dateToNs } from 'stream-chat';
+import { StreamMessage } from './types';
 import { getReadBy } from './read-by';
 
 describe('getReadBy', () => {
@@ -8,7 +9,7 @@ describe('getReadBy', () => {
     const message = {
       created_at: new Date('2021-09-14T13:08:30.004112Z'),
       user: sender,
-    } as FormatMessageResponse;
+    } as unknown as StreamMessage;
     const channel = {
       state: { read: {} },
     } as Channel;
@@ -17,7 +18,7 @@ describe('getReadBy', () => {
 
     channel.state.read = {
       id1: {
-        last_read: new Date('2021-09-14T13:08:33.004112Z'),
+        last_read: dateToNs(new Date('2021-09-14T13:08:33.004112Z')),
         user: {
           id: 'id1',
           name: 'John',
@@ -25,12 +26,12 @@ describe('getReadBy', () => {
         unread_messages: 2,
       },
       sender: {
-        last_read: new Date('2021-09-14T13:09:01.004112Z'),
+        last_read: dateToNs(new Date('2021-09-14T13:09:01.004112Z')),
         user: sender,
         unread_messages: 2,
       },
       id2: {
-        last_read: new Date('2021-09-14T13:05:30.004112Z'),
+        last_read: dateToNs(new Date('2021-09-14T13:05:30.004112Z')),
         user: {
           id: 'id2',
           name: 'Alice',
@@ -38,14 +39,14 @@ describe('getReadBy', () => {
         unread_messages: 2,
       },
       id3: {
-        last_read: new Date('2021-09-14T13:08:30.004112Z'),
+        last_read: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
         user: {
           id: 'id3',
           name: 'Bob',
         },
         unread_messages: 2,
       },
-    };
+    } as unknown as Channel['state']['read'];
     const result = getReadBy(message, channel);
 
     expect(result.length).toBe(2);
@@ -60,13 +61,13 @@ describe('getReadBy', () => {
     const message = {
       created_at: new Date('2021-09-14T13:08:30.004112Z'),
       user: sender,
-    } as FormatMessageResponse;
+    } as unknown as StreamMessage;
 
     const channel = {
       state: {
         read: {
           id1: {
-            last_read: new Date('2021-09-14T13:08:33.004112Z'),
+            last_read: dateToNs(new Date('2021-09-14T13:08:33.004112Z')),
             user: {
               id: 'id1',
               name: 'John',
@@ -82,7 +83,7 @@ describe('getReadBy', () => {
             unread_messages: 2,
           },
           id3: {
-            last_read: new Date('2021-09-14T13:08:30.004112Z'),
+            last_read: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
             user: {
               id: 'id3',
               name: 'Bob',

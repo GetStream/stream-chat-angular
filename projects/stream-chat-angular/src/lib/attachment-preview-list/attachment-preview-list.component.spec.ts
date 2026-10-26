@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { Attachment } from 'stream-chat';
 import { AttachmentUpload, CustomAttachmentPreviewListContext } from '../types';
 
 import { AttachmentPreviewListComponent } from './attachment-preview-list.component';
@@ -317,11 +318,13 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
           class="custom-attachment-container"
           *ngFor="let attachment of service.customAttachments$ | async"
         >
-          <ng-container [ngSwitch]="attachment.subtype">
+          <ng-container [ngSwitch]="attachment.custom.subtype">
             <div *ngSwitchCase="'payment'" class="payment-link">
               Use the following
-              <a [href]="attachment.link" target="_blank">payment lint</a> to
-              pay me {{ value }}.
+              <a [href]="attachment.custom.link" target="_blank"
+                >payment lint</a
+              >
+              to pay me {{ value }}.
             </div>
           </ng-container>
         </div>
@@ -356,11 +359,13 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
       hostFixture.nativeElement.querySelectorAll('.payment-link').length
     ).toBe(0);
 
-    const customAttachment = {
+    const customAttachment: Attachment = {
       type: 'custom',
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
     const attachmentService = TestBed.inject(AttachmentService);
     attachmentService.customAttachments$.next([customAttachment]);
@@ -375,11 +380,13 @@ describe('AttachmentPreviewListComponent with custom attachments', () => {
     const customTemplatesService = TestBed.inject(CustomTemplatesService);
     customTemplatesService.customAttachmentPreviewListTemplate$.next(undefined);
 
-    const customAttachment = {
+    const customAttachment: Attachment = {
       type: 'custom',
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
     const attachmentService = TestBed.inject(AttachmentService);
     attachmentService.customAttachments$.next([customAttachment]);

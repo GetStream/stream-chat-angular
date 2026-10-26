@@ -104,6 +104,7 @@ export const en = {
     'user is typing': '{{ user }} is typing',
     'users are typing': '{{ users }} are typing',
     'Error loading channels': 'Error loading channels',
+    'Error loading messages': 'Error loading messages',
     'See original (automatically translated)':
       'See original (automatically translated)',
     'See translation': 'See translation',

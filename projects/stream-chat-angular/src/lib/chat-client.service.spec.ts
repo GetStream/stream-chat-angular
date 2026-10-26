@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
 import { ChatClientService } from './chat-client.service';
 import {
@@ -31,7 +31,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, userToken);
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -49,7 +49,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, 'guest');
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -65,7 +65,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, undefined, 'anonymous');
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
 
@@ -140,11 +140,17 @@ describe('ChatClientService', () => {
       id: userId,
       name: 'Test user',
     } as OwnUserResponse;
-    const options = { timeout: 5000 };
-    await service.init(apiKey, user, userToken, options);
+    const options = { client: { axiosRequestConfig: { timeout: 5000 } } };
+    await service.init(apiKey, user, userToken, {
+      ...options,
+      trackPendingChannelInvites: false,
+    });
 
-    // @ts-expect-error don't know what's wrong here
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(
+      apiKey,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      options as any
+    );
   });
 
   it('should init with token provider', async () => {
@@ -265,43 +271,69 @@ describe('ChatClientService', () => {
     });
   });
 
-  it('should notify if the user goes offline', () => {
+  it('should notify if the user goes offline', fakeAsync(() => {
     const spy = jasmine.createSpy();
     service.connectionState$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledWith('online');
+
+    spy.calls.reset();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification');
-    const event = { id: 'mockevent', online: false } as any as Event;
-    mockChatClient.handleEvent('connection.changed', event);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+
+    // offline state is debounced
+    expect(spy).not.toHaveBeenCalled();
+
+    tick(service.connectionFailureNotificationDelay);
 
     expect(spy).toHaveBeenCalledWith('offline');
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
       'streamChat.Connection failure, reconnecting now...'
     );
-  });
+  }));
 
-  it('should notify if the user goes online', () => {
+  it(`shouldn't notify if the connection recovers within the failure notification delay`, fakeAsync(() => {
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
+    spy.calls.reset();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(service.connectionFailureNotificationDelay / 2);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    tick(service.connectionFailureNotificationDelay);
+
+    expect(spy).not.toHaveBeenCalledWith('offline');
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+  }));
+
+  it('should notify if the user goes online', fakeAsync(() => {
     const removeNotificationSpy = jasmine.createSpy();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification').and.returnValue(
       removeNotificationSpy
     );
-    mockChatClient.handleEvent('connection.changed', {
-      id: 'event',
-      online: false,
-    } as any as Event);
+    service.connectionFailureNotificationDelay = 0;
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick();
     const stateSpy = jasmine.createSpy();
     service.connectionState$.subscribe(stateSpy);
-    const event = { id: 'mockevent', online: true } as any as Event;
-    mockChatClient.handleEvent('connection.changed', event);
+
+    expect(stateSpy).toHaveBeenCalledWith('offline');
+
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
 
     expect(removeNotificationSpy).toHaveBeenCalledWith();
     expect(stateSpy).toHaveBeenCalledWith('online');
-  });
+  }));
 
   it('should flag message', async () => {
     await service.flagMessage('messageId');
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith('messageId');
+    expect(mockChatClient.moderation.flagMessage).toHaveBeenCalledWith({
+      message_id: 'messageId',
+    });
   });
 
   it('should query users', async () => {
@@ -315,21 +347,25 @@ describe('ChatClientService', () => {
     });
     const result = await service.autocompleteUsers('zi');
 
-    expect(mockChatClient.queryUsers).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        $or: [
-          { id: { $autocomplete: 'zi' } },
-          { name: { $autocomplete: 'zi' } },
-        ],
-      })
-    );
+    expect(mockChatClient.queryUsers).toHaveBeenCalledWith({
+      payload: jasmine.objectContaining({
+        filter_conditions: {
+          $or: [
+            { id: { $autocomplete: 'zi' } },
+            { name: { $autocomplete: 'zi' } },
+          ],
+        },
+      }),
+    });
 
     expect(result.length).toBe(1);
   });
 
   it('should initialize pending invites', async () => {
     const channelsWithPendingInvites = [{ cid: 'cat-lovers' }];
-    mockChatClient.queryChannels.and.resolveTo(channelsWithPendingInvites);
+    mockChatClient.queryChannelsAndHydrate.and.resolveTo(
+      channelsWithPendingInvites
+    );
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     invitesSpy.calls.reset();
@@ -337,9 +373,11 @@ describe('ChatClientService', () => {
       trackPendingChannelInvites: true,
     });
 
-    expect(mockChatClient.queryChannels).toHaveBeenCalledWith({
-      invite: 'pending',
-      members: { $in: [mockChatClient.user.id] },
+    expect(mockChatClient.queryChannelsAndHydrate).toHaveBeenCalledWith({
+      filter_conditions: {
+        invite: 'pending',
+        members: { $in: [mockChatClient.user.id] },
+      },
     });
 
     expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);

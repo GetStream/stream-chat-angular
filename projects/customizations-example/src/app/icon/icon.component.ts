@@ -36,6 +36,7 @@ export class IconComponent {
       read: 'done_all',
       bin: 'delete',
       mic: 'mic',
+      poll: 'poll',
     };
 
     return map[this.icon!];

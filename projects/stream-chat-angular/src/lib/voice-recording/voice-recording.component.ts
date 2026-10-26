@@ -44,7 +44,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
     if (changes.attachment) {
       this.fileSize = this.getFileSize();
       this.durationFormatted = this.getFormattedDuration(
-        this.attachment?.duration
+        this.attachment?.custom?.duration
       );
     }
   }
@@ -54,7 +54,7 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
     this.ngZone.runOutsideAngular(() => {
       this.audioElement?.nativeElement.addEventListener('timeupdate', () => {
         const secondsElapsed = this.audioElement?.nativeElement?.ended
-          ? this.attachment?.duration || 0
+          ? this.attachment?.custom?.duration || 0
           : Math.round(this.audioElement?.nativeElement?.currentTime || 0);
         if (this.secondsElapsed !== secondsElapsed) {
           this.ngZone.run(() => {
@@ -100,11 +100,11 @@ export class VoiceRecordingComponent implements OnChanges, AfterViewInit {
 
   private getFileSize() {
     if (
-      this.attachment?.file_size === undefined ||
-      this.attachment?.file_size === null
+      this.attachment?.custom?.file_size === undefined ||
+      this.attachment?.custom?.file_size === null
     ) {
       return '';
     }
-    return prettybytes(Number(this.attachment.file_size || 0));
+    return prettybytes(Number(this.attachment.custom?.file_size || 0));
   }
 }

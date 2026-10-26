@@ -18,7 +18,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for image attachments', () => {
     let attachment: Attachment = {
-      img_url: 'http://url/to/img',
+      custom: { img_url: 'http://url/to/img' },
       thumb_url: 'different/url',
     };
     const htmlElement = {
@@ -38,6 +38,7 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       thumb_url: 'http://url/to/img?oh=1200&ow=800',
     };
 
@@ -52,6 +53,7 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       image_url: 'http://url/to/img?oh=1&ow=1',
     };
 
@@ -70,6 +72,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customImageAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
@@ -88,6 +91,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for gallery image attachments', () => {
     const attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/img',
     };
     const htmlElement = {
@@ -112,6 +116,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for image attachments inside the carousel', () => {
     const attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/img',
     };
     const htmlElement = {
@@ -136,6 +141,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for video attachments', () => {
     let attachment: Attachment = {
+      custom: {},
       asset_url: 'http://url/to/video',
       thumb_url: 'http://url/to/poster',
     };
@@ -156,6 +162,7 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       asset_url: 'http://url/to/video',
       thumb_url: 'http://url/to/poster?oh=1080&ow=1920',
     };
@@ -172,6 +179,7 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       asset_url: 'http://url/to/video',
     };
 
@@ -191,6 +199,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customVideoAttachmentConfigurationHandler = spy;
     const attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/video',
       thumb_url: 'different/url',
     };
@@ -205,6 +214,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide the correct configuration for GIFs', () => {
     let attachment: Attachment = {
+      custom: {},
       image_url: 'link/to/GIF',
     };
 
@@ -215,42 +225,57 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       image_url: 'link/to/GIF',
       giphy: {
         fixed_height_downsampled: {
           height: '200',
           width: '400',
           url: 'link/to/smaller/GIF',
+          frames: '',
+          size: '',
         },
         original: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_height: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_height_still: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width_downsampled: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width_still: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
       },
     };
@@ -267,42 +292,57 @@ describe('AttachmentConfigurationService', () => {
     service.customGiphyAttachmentConfigurationHandler = spy;
 
     const attachment: Attachment = {
+      custom: {},
       image_url: 'link/to/GIF',
       giphy: {
         fixed_height_downsampled: {
           height: '200',
           width: '400',
           url: 'link/to/smaller/GIF',
+          frames: '',
+          size: '',
         },
         original: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_height: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_height_still: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width_downsampled: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
         fixed_width_still: {
           height: '',
           url: '',
           width: '',
+          frames: '',
+          size: '',
         },
       },
     };
@@ -314,6 +354,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide correct configuration for scraped images', () => {
     let attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/img',
       thumb_url: 'different/url',
     };
@@ -325,6 +366,7 @@ describe('AttachmentConfigurationService', () => {
     });
 
     attachment = {
+      custom: {},
       thumb_url: 'different/url',
     };
 
@@ -339,6 +381,7 @@ describe('AttachmentConfigurationService', () => {
     const spy = jasmine.createSpy();
     service.customScrapedImageAttachmentConfigurationHandler = spy;
     const attachment = {
+      custom: {},
       image_url: 'link/to/url',
     };
     service.getScrapedImageAttachmentConfiguration(attachment);
@@ -348,6 +391,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should provide integer values for image resize and make sure that each dimension is at least the size restriction', () => {
     const attachment = {
+      custom: {},
       image_url: 'http://url/to/img?ow=3534&oh=4417',
     };
     const htmlElement = {
@@ -372,6 +416,7 @@ describe('AttachmentConfigurationService', () => {
     } as unknown as HTMLElement;
 
     const attachment: Attachment = {
+      custom: {},
       asset_url: 'http://url/to/video',
       thumb_url: 'http://url/to/poster',
     };
@@ -383,6 +428,7 @@ describe('AttachmentConfigurationService', () => {
 
   it('should override existing "h" and "w" URL params', () => {
     const attachment: Attachment = {
+      custom: {},
       image_url: 'http://url/to/img?crop=*&h=*&oh=0&ow=0&resize=*&ro=0&w=*',
     };
     const htmlElement = {
@@ -403,7 +449,7 @@ describe('AttachmentConfigurationService', () => {
   });
 
   it('should handle if image attachments have invalid or missing urls', () => {
-    const attachment: Attachment = {};
+    const attachment: Attachment = { custom: {} };
     const htmlElement = {
       'max-width': '300px',
       'max-height': '300px',

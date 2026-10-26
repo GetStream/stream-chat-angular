@@ -67,7 +67,7 @@ export class AppComponent implements AfterViewInit {
             return body.token;
           }
         : environment.userToken,
-      { timeout: 10000 }
+      { client: { axiosRequestConfig: { timeout: 10000 } } }
     );
     chatService.chatClient.polls.registerSubscriptions();
     void channelService.init(

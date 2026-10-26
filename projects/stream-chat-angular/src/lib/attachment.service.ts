@@ -8,11 +8,11 @@ import {
   shareReplay,
   take,
 } from 'rxjs';
-import { AppSettings, Attachment } from 'stream-chat';
+import { Attachment } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import { isImageAttachment } from './is-image-attachment';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload, AudioRecording } from './types';
+import { AppSettings, AttachmentUpload, AudioRecording } from './types';
 import { ChatClientService } from './chat-client.service';
 import { MessageService } from './message.service';
 
@@ -126,8 +126,10 @@ export class AttachmentService {
       file: audioRecording.recording,
       previewUri: audioRecording.asset_url,
       extraData: {
-        duration: audioRecording.duration,
-        waveform_data: audioRecording.waveform_data,
+        custom: {
+          duration: audioRecording.duration,
+          waveform_data: audioRecording.waveform_data,
+        },
       },
       state: 'uploading' as const,
       type: 'voiceRecording' as const,
@@ -210,7 +212,7 @@ export class AttachmentService {
    * Will set `isCustomAttachment` to `true` on the attachment. This is a non-standard field, other SDKs will ignore this property.
    */
   addAttachment(attachment: Attachment) {
-    attachment.isCustomAttachment = true;
+    attachment.custom = { ...attachment.custom, isCustomAttachment: true };
     this.createFromAttachments([attachment]);
   }
 
@@ -239,7 +241,7 @@ export class AttachmentService {
     let result!: AttachmentUpload[];
     if (
       upload.state === 'success' &&
-      !upload.fromAttachment?.isCustomAttachment
+      !upload.fromAttachment?.custom?.isCustomAttachment
     ) {
       try {
         await this.channelService.deleteAttachment(upload);
@@ -271,22 +273,27 @@ export class AttachmentService {
       .map((r) => {
         let attachment: Attachment = {
           type: r.type,
+          custom: {},
         };
         if (r.fromAttachment) {
           return r.fromAttachment;
         } else {
-          attachment.mime_type = r.file?.type;
+          attachment.custom.mime_type = r.file?.type;
           if (r.type === 'image') {
             attachment.fallback = r.file?.name;
             attachment.image_url = r.url;
           } else {
             attachment.asset_url = r.url;
             attachment.title = r.file?.name;
-            attachment.file_size = r.file?.size;
+            attachment.custom.file_size = r.file?.size;
             attachment.thumb_url = r.thumb_url;
           }
           if (r.extraData) {
-            attachment = { ...attachment, ...r.extraData };
+            attachment = {
+              ...attachment,
+              ...r.extraData,
+              custom: { ...attachment.custom, ...r.extraData.custom },
+            };
           }
         }
 
@@ -313,14 +320,14 @@ export class AttachmentService {
     builtInAttachments.forEach((attachment) => {
       if (isImageAttachment(attachment)) {
         attachmentUploads.push({
-          url: (attachment.img_url ||
+          url: (attachment.custom?.img_url ||
             attachment.thumb_url ||
             attachment.image_url) as string,
           state: 'success',
           type: 'image',
           file: {
             name: attachment.fallback,
-            type: attachment.mime_type,
+            type: attachment.custom?.mime_type,
           } as File,
           fromAttachment: attachment,
         });
@@ -330,8 +337,8 @@ export class AttachmentService {
           state: 'success',
           file: {
             name: attachment.title,
-            size: attachment.file_size,
-            type: attachment.mime_type,
+            size: attachment.custom?.file_size,
+            type: attachment.custom?.mime_type,
           } as File,
           type: attachment.type,
           thumb_url: attachment.thumb_url,
@@ -343,13 +350,15 @@ export class AttachmentService {
           state: 'success',
           file: {
             name: attachment.title,
-            size: attachment.file_size,
-            type: attachment.mime_type,
+            size: attachment.custom?.file_size,
+            type: attachment.custom?.mime_type,
           } as File,
           type: 'voiceRecording',
           extraData: {
-            duration: attachment.duration,
-            waveform_data: attachment.waveform_data,
+            custom: {
+              duration: attachment.custom?.duration,
+              waveform_data: attachment.custom?.waveform_data,
+            },
           },
         });
       }
@@ -378,10 +387,9 @@ export class AttachmentService {
       upload.previewUri = uri;
       this.attachmentUploadsSubject.next([...attachmentUploads]);
     } catch (e: unknown) {
-      this.chatClientService?.chatClient?.logger(
-        'error',
+      this.chatClientService?.logger?.error(
         e instanceof Error ? e.message : `Can't create image preview`,
-        { error: e, tag: ['AttachmentService'] }
+        { error: e }
       );
     }
   }

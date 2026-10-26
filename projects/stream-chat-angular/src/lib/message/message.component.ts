@@ -444,16 +444,20 @@ export class MessageComponent
     };
   }
 
+  get isBounced() {
+    return (
+      this.message?.type === 'error' &&
+      this.message?.moderation?.action === 'bounce'
+    );
+  }
+
   messageClicked() {
     if (
       this.message?.status === 'failed' &&
       this.message?.errorStatusCode !== 403
     ) {
       this.resendMessage();
-    } else if (
-      this.message?.type === 'error' &&
-      this.message?.moderation_details
-    ) {
+    } else if (this.isBounced) {
       this.openMessageBouncePrompt();
     } else {
       this.isEditedFlagOpened = !this.isEditedFlagOpened;

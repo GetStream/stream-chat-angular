@@ -13,6 +13,7 @@ import { BehaviorSubject, Subject, of } from 'rxjs';
 import {
   Attachment,
   Channel,
+  dateToNs,
   DraftMessage,
   MessageResponse,
   UserResponse,
@@ -306,7 +307,7 @@ describe('MessageInputComponent', () => {
     const message = 'This is my message';
     component.textareaValue = message;
     attachmentService.mapToAttachments.and.returnValue([]);
-    const mentionedUsers = [{ id: 'john', name: 'John' }];
+    const mentionedUsers = [{ id: 'john', name: 'John' }] as UserResponse[];
     component.mentionedUsers = mentionedUsers;
     await component.messageSent();
     fixture.detectChanges();
@@ -513,7 +514,7 @@ describe('MessageInputComponent', () => {
     ]);
     component.textareaValue = 'text';
     mockActiveChannel$.next({
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
     fixture.detectChanges();
 
@@ -532,7 +533,7 @@ describe('MessageInputComponent', () => {
     component.textareaValue = 'text';
     mockActiveChannel$.next({
       ...mockActiveChannel$.getValue(),
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
     fixture.detectChanges();
 
@@ -549,13 +550,18 @@ describe('MessageInputComponent', () => {
   });
 
   it('should display attachments of #message', () => {
-    const attachments = [
-      { fallback: 'flower.png', image_url: 'http://url/to/img', type: 'image' },
+    const attachments: Attachment[] = [
+      {
+        fallback: 'flower.png',
+        image_url: 'http://url/to/img',
+        type: 'image',
+        custom: {},
+      },
       {
         title: 'note.txt',
-        file_size: 3272969,
         asset_url: 'http://url/to/data',
         type: 'file',
+        custom: { file_size: 3272969 },
       },
     ];
     component.message = { ...mockMessage(), attachments };
@@ -613,7 +619,7 @@ describe('MessageInputComponent', () => {
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -680,14 +686,14 @@ describe('MessageInputComponent', () => {
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
 
     mockActiveChannel$.next({
       data: { own_capabilities: [] },
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
@@ -744,7 +750,7 @@ describe('MessageInputComponent', () => {
 
     mockActiveChannel$.next({
       data: { own_capabilities: ['send-message'] },
-      getConfig: () => ({ commands: [] }),
+      config: { availableCommands: [] },
     } as any as Channel);
 
     expect(component.canSendMessages).toBeFalse();
@@ -778,7 +784,10 @@ describe('MessageInputComponent', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
     const message = mockMessage();
-    message.attachments = [{ image_url: '1' }, { image_url: '2' }];
+    message.attachments = [
+      { image_url: '1', custom: {} },
+      { image_url: '2', custom: {} },
+    ];
     mockMessageToQuote$.next(message);
     fixture.detectChanges();
 
@@ -794,12 +803,12 @@ describe('MessageInputComponent', () => {
       .query(By.directive(AttachmentListComponent))
       .componentInstance as AttachmentListComponent;
 
-    expect(avatar.name).toBe(message.user!.name);
-    expect(avatar.imageUrl).toBe(message.user!.image);
+    expect(avatar.name).toBe(message.user.name);
+    expect(avatar.imageUrl).toBe(message.user.image);
     expect(avatar.type).toBe('user');
     expect(avatar.location).toBe('quoted-message-sender');
-    expect(avatar.user).toBe(message.user!);
-    expect(attachments.attachments).toEqual([{ image_url: '1' }]);
+    expect(avatar.user).toBe(message.user);
+    expect(attachments.attachments).toEqual([{ image_url: '1', custom: {} }]);
 
     const textComponent = fixture.debugElement
       .query(By.css(quotedMessageContainerSelector))
@@ -1084,7 +1093,7 @@ describe('MessageInputComponent', () => {
 
     expect(component['messageToUpdateChanged']).toHaveBeenCalledWith();
     expect(component.message).toBe(message);
-    expect(component.textareaValue).toBe(message.text!);
+    expect(component.textareaValue).toBe(message.text);
 
     service.messageToEdit$.next(undefined);
 
@@ -1195,7 +1204,9 @@ describe('MessageInputComponent', () => {
       const messageDraftSpy = jasmine.createSpy();
       component.messageDraftChange.subscribe(messageDraftSpy);
       messageDraftSpy.calls.reset();
-      queryTextarea()?.userMentions.next([{ id: 'user1', name: 'User 1' }]);
+      queryTextarea()?.userMentions.next([
+        { id: 'user1', name: 'User 1' } as UserResponse,
+      ]);
       fixture.detectChanges();
 
       expect(messageDraftSpy).toHaveBeenCalledWith(
@@ -1261,9 +1272,10 @@ describe('MessageInputComponent', () => {
       const messageDraftSpy = jasmine.createSpy();
       component.messageDraftChange.subscribe(messageDraftSpy);
       messageDraftSpy.calls.reset();
-      const customAttachment = {
+      const customAttachment: Attachment = {
         type: 'image',
         image_url: 'url',
+        custom: {},
       };
       attachmentService.mapToAttachments.and.returnValue([customAttachment]);
       attachmentService.customAttachments$.next([customAttachment]);
@@ -1367,7 +1379,7 @@ describe('MessageInputComponent', () => {
           text: 'Hello, world!',
         } as any as DraftMessage,
         channel_cid: `not${channel.cid}`,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
       });
       fixture.detectChanges();
 
@@ -1385,7 +1397,7 @@ describe('MessageInputComponent', () => {
           parent_id: 'not' + parentMessageId,
         } as any as DraftMessage,
         channel_cid: `not${channel.cid}`,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
       });
       fixture.detectChanges();
 
@@ -1404,7 +1416,7 @@ describe('MessageInputComponent', () => {
           text: 'Hello, world!',
         } as any as DraftMessage,
         channel_cid: channel.cid,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
       });
       fixture.detectChanges();
 
@@ -1422,7 +1434,7 @@ describe('MessageInputComponent', () => {
           text: 'Hello, world!',
         } as any as DraftMessage,
         channel_cid: channel.cid,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
         quoted_message: mockQuotedMessage as any as MessageResponse,
       });
       fixture.detectChanges();
@@ -1441,7 +1453,7 @@ describe('MessageInputComponent', () => {
           text: 'Hello, world!',
         } as any as DraftMessage,
         channel_cid: channel.cid,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
         quoted_message: undefined,
       });
       fixture.detectChanges();
@@ -1454,12 +1466,12 @@ describe('MessageInputComponent', () => {
       const draft = {
         message: {
           text: 'Hello, world!',
-          mentioned_users: ['user1', 'user2'],
+          mentioned_users: [{ id: 'user1' }, { id: 'user2' }],
           poll_id: 'poll1',
           attachments: [{ type: 'file', url: 'url' }],
         } as any as DraftMessage,
         channel_cid: channel.cid,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
       };
       attachmentService.createFromAttachments.calls.reset();
 
@@ -1470,7 +1482,7 @@ describe('MessageInputComponent', () => {
       expect(component.mentionedUsers).toEqual([
         { id: 'user1' },
         { id: 'user2' },
-      ]);
+      ] as UserResponse[]);
       expect(component['pollId']).toBe('poll1');
       expect(attachmentService.createFromAttachments).toHaveBeenCalledOnceWith([
         { type: 'file', url: 'url' },
@@ -1492,12 +1504,12 @@ describe('MessageInputComponent', () => {
       const draft = {
         message: {
           text: 'Hello, world!',
-          mentioned_users: ['user1', 'user2'],
+          mentioned_users: [{ id: 'user1' }, { id: 'user2' }],
           poll_id: 'poll1',
           attachments: [{ type: 'file', url: 'url' }],
         } as any as DraftMessage,
         channel_cid: channel.cid,
-        created_at: new Date().toISOString(),
+        created_at: dateToNs(new Date()),
       };
       const spy = jasmine.createSpy();
       component.messageDraftChange.subscribe(spy);

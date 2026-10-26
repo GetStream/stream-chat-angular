@@ -11,8 +11,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
+  nsToMs,
   ReactionGroupResponse,
   ReactionResponse,
+  TimestampNS,
   UserResponse,
 } from 'stream-chat';
 import { MessageReactionType } from '../types';
@@ -96,9 +98,10 @@ export class MessageReactionsComponent
           this.messageReactionGroups![k] = {
             count: this.messageReactionCounts?.[k] ?? 0,
             sum_scores: this.messageReactionCounts?.[k] ?? 0,
-            first_reaction_at: undefined,
-            last_reaction_at: undefined,
-          };
+            // Not known when only counts are provided, sorting falls back to the current time
+            first_reaction_at: undefined as unknown as TimestampNS,
+            last_reaction_at: undefined as unknown as TimestampNS,
+          } as ReactionGroupResponse;
         });
       }
       this.setExistingReactions();
@@ -186,14 +189,15 @@ export class MessageReactionsComponent
       .filter((k) => this.reactionOptions.indexOf(k) !== -1)
       .filter((k) => this.messageReactionGroups![k].count > 0)
       .sort((r1, r2) => {
-        const date1 = this.messageReactionGroups![r1].first_reaction_at
-          ? new Date(this.messageReactionGroups![r1].first_reaction_at!)
-          : new Date();
-        const date2 = this.messageReactionGroups![r2].first_reaction_at
-          ? new Date(this.messageReactionGroups![r2].first_reaction_at!)
-          : new Date();
+        const firstReactionAt1 =
+          this.messageReactionGroups![r1].first_reaction_at;
+        const firstReactionAt2 =
+          this.messageReactionGroups![r2].first_reaction_at;
+        const now = Date.now();
+        const time1 = firstReactionAt1 ? nsToMs(firstReactionAt1) : now;
+        const time2 = firstReactionAt2 ? nsToMs(firstReactionAt2) : now;
 
-        return date1.getTime() - date2.getTime();
+        return time1 - time2;
       });
   }
 }

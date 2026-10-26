@@ -65,10 +65,12 @@ export class MessageReactionsService {
     } else {
       try {
         const response = await this.chatClientService.chatClient.queryReactions(
-          messageId,
-          { type },
-          { created_at: -1 },
-          { next }
+          { id: messageId },
+          {
+            filter: { type: { $eq: type } },
+            sort: [{ field: 'created_at', direction: -1 }],
+            next,
+          }
         );
 
         return response;

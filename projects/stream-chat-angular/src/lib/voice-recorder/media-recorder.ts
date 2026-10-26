@@ -262,7 +262,7 @@ export abstract class MultimediaRecorder<T = null> {
   protected abstract enrichWithExtraData(): T;
 
   protected logError(error: Error) {
-    this.chatService.chatClient?.logger('error', error.message, {
+    this.chatService.logger.error(error.message, {
       error: error,
       tag: ['MediaRecorder'],
     });

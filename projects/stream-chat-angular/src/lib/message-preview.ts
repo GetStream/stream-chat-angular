@@ -1,7 +1,8 @@
 import {
   Attachment,
   CustomMessageData,
-  MessageResponse,
+  LocalMessage,
+  nowNs,
   UserResponse,
 } from 'stream-chat';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,12 +19,16 @@ export const createMessagePreview = (
 ) => {
   const clientSideId = `${user.id}-${uuidv4()}`;
 
+  const now = nowNs();
   return {
-    __html: text,
-    created_at: new Date(),
+    created_at: now,
+    updated_at: now,
     html: text,
     id: clientSideId,
-    reactions: [],
+    latest_reactions: [],
+    own_reactions: [],
+    reaction_counts: {},
+    reaction_scores: {},
     status: 'sending',
     text,
     type: 'regular',
@@ -33,6 +38,6 @@ export const createMessagePreview = (
     parent_id: parentId,
     quoted_message_id: quotedMessageId,
     poll_id: pollId,
-    ...customData,
-  } as unknown as MessageResponse;
+    custom: customData ?? {},
+  } as unknown as LocalMessage;
 };

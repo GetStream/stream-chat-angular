@@ -8,7 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, of } from 'rxjs';
-import { Channel } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
@@ -21,12 +21,16 @@ import {
   MockChannelService,
   mockChannelService,
   mockCurrentUser,
+  MockMessagePaginator,
   mockMessage,
 } from '../mocks';
 import { StreamI18nService } from '../stream-i18n.service';
 import { MessageListComponent } from './message-list.component';
 import { take } from 'rxjs/operators';
 import { NgxFloatUiModule } from 'ngx-float-ui';
+
+const getPaginator = (channel: Channel | undefined) =>
+  channel!.messagePaginator as unknown as MockMessagePaginator;
 
 describe('MessageListComponent', () => {
   let component: MessageListComponent;
@@ -48,6 +52,13 @@ describe('MessageListComponent', () => {
 
   beforeEach(() => {
     channelServiceMock = mockChannelService();
+    // In ChannelService these getters return the latest value of the message streams
+    Object.defineProperty(channelServiceMock, 'activeChannelMessages', {
+      get: () => channelServiceMock.activeChannelMessages$.getValue(),
+    });
+    Object.defineProperty(channelServiceMock, 'activeChannelThreadReplies', {
+      get: () => channelServiceMock.activeThreadMessages$.getValue(),
+    });
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot(), NgxFloatUiModule],
       declarations: [
@@ -117,7 +128,7 @@ describe('MessageListComponent', () => {
 
   it('should display messages', () => {
     const messages = channelServiceMock.activeChannelMessages$.getValue();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     component.highlightedMessageId = messages[0].id;
     channelServiceMock.activeChannelMessages$.next([...messages]);
     component.ngOnChanges({
@@ -239,7 +250,6 @@ describe('MessageListComponent', () => {
         message: newMessage,
       }
     );
-    channelServiceMock.activeChannel?.state.messages.push(newMessage);
     channelServiceMock.activeChannelMessages$.next([
       ...channelServiceMock.activeChannelMessages$.getValue(),
       newMessage,
@@ -354,7 +364,6 @@ describe('MessageListComponent', () => {
       id: 'nextchannel',
       on: () => {},
     } as any as Channel);
-    channelServiceMock.activeChannel!.state.latestMessages = [];
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();
 
@@ -414,30 +423,36 @@ describe('MessageListComponent', () => {
     expect(component.highlightedMessageId).toBeUndefined();
   }));
 
-  it('should wait with scrolling until message has been rendered', () => {
+  it('should render the new message window before scrolling to the message', () => {
     const newMessages = generateMockMessages();
     const message = newMessages[Math.round(newMessages.length / 2)];
     message.id = 'new-message-id';
+    const scrollIntoViewSpy = spyOn(
+      HTMLElement.prototype,
+      'scrollIntoView'
+    ).and.callThrough();
     // Simulates the scenario when jumping requires a new message set to be loaded
     channelServiceMock.activeChannelMessages$.next(newMessages);
     channelServiceMock.jumpToMessage$.next({
       id: message.id,
       parentId: undefined,
     });
-    // fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
 
-    expect(nativeElement.querySelector(`#${message.id}`)).toBeNull();
+    const messageElement = nativeElement.querySelector(`#${message.id}`);
 
-    fixture.componentRef.injector.get(ChangeDetectorRef).detectChanges();
-
-    expect(nativeElement.querySelector(`#${message.id}`)).not.toBeNull();
+    expect(messageElement).not.toBeNull();
+    expect(scrollIntoViewSpy.calls.mostRecent()?.object).toBe(messageElement);
   });
 
   it('should set #isUserScrolled to true when not the latest message set is displayed', () => {
     const newMessages = generateMockMessages(25, true);
     // Replace the current messages with a compelitely new set
     newMessages.forEach((m) => {
-      m.cid = channelServiceMock.activeChannel?.cid;
+      m.cid = channelServiceMock.activeChannel!.cid;
+    });
+    // There are newer messages to load
+    getPaginator(channelServiceMock.activeChannel).state.partialNext({
+      hasMoreHead: true,
     });
     channelServiceMock.activeChannelMessages$.next(newMessages);
     fixture.detectChanges();
@@ -515,7 +530,9 @@ describe('MessageListComponent', () => {
       .pipe(take(1))
       .subscribe((c) => (channel = c!));
     // Simulate message set change
-    channel.state.latestMessages = [];
+    getPaginator(channel).state.partialNext({
+      hasMoreHead: true,
+    });
     channelServiceMock.activeChannelMessages$.next(
       generateMockMessages(25, true).map((m) => ({ ...m, cid: channel.cid }))
     );
@@ -528,7 +545,7 @@ describe('MessageListComponent', () => {
     fixture.detectChanges();
 
     const newMessageFromOtherUser = mockMessage();
-    newMessageFromOtherUser.user!.id += 'not';
+    newMessageFromOtherUser.user.id += 'not';
     (channel as MockChannel).handleEvent('message.new', {
       message: newMessageFromOtherUser,
     });
@@ -559,7 +576,7 @@ describe('MessageListComponent', () => {
       fixture.detectChanges();
       const newMessage = mockMessage();
       newMessage.created_at = new Date();
-      newMessage.user!.id = 'not' + mockCurrentUser().id;
+      newMessage.user.id = 'not' + mockCurrentUser().id;
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -587,7 +604,6 @@ describe('MessageListComponent', () => {
         'message.new',
         { message: newMessage }
       );
-      channelServiceMock.activeChannel?.state.messages.push(newMessage);
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -614,7 +630,6 @@ describe('MessageListComponent', () => {
           message: newMessage,
         }
       );
-      channelServiceMock.activeChannel?.state.messages.push(newMessage);
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -668,7 +683,7 @@ describe('MessageListComponent', () => {
       const scrollContainer = queryScrollContainer()!;
       const newMessage = mockMessage();
       newMessage.created_at = new Date();
-      newMessage.user!.id = 'not' + mockCurrentUser().id;
+      newMessage.user.id = 'not' + mockCurrentUser().id;
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -745,7 +760,7 @@ describe('MessageListComponent', () => {
     channelServiceMock.usersTypingInChannel$.next([
       { id: 'jack' },
       { id: 'john', name: 'John', image: 'http://url/to/img' },
-    ]);
+    ] as UserResponse[]);
     fixture.detectChanges();
 
     expect(queryTypingIndicator()).not.toBeNull();
@@ -889,14 +904,16 @@ describe('MessageListComponent', () => {
     });
 
     it('should display typing indicator in thread', () => {
-      channelServiceMock.usersTypingInChannel$.next([{ id: 'sara' }]);
+      channelServiceMock.usersTypingInChannel$.next([
+        { id: 'sara' } as UserResponse,
+      ]);
 
       expect(queryTypingIndicator()).toBeNull();
 
       channelServiceMock.usersTypingInThread$.next([
         { id: 'jack' },
         { id: 'john', name: 'John' },
-      ]);
+      ] as UserResponse[]);
       fixture.detectChanges();
 
       expect(queryTypingIndicator()).not.toBeNull();
@@ -1115,7 +1132,7 @@ describe('MessageListComponent', () => {
     messages[messages.length - 2].created_at.setDate(
       messages[messages.length - 2].created_at.getDate() + 1
     );
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1134,7 +1151,7 @@ describe('MessageListComponent', () => {
     messages[messages.length - 2].created_at.setDate(
       messages[messages.length - 2].created_at.getDate() + 1
     );
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1150,7 +1167,7 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1166,7 +1183,7 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1183,7 +1200,7 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1205,7 +1222,7 @@ describe('MessageListComponent', () => {
     messages[messages.length - 2].created_at.setDate(
       messages[messages.length - 2].created_at.getDate() + 1
     );
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1219,7 +1236,7 @@ describe('MessageListComponent', () => {
   it('should display unread banner with correct text', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1245,7 +1262,7 @@ describe('MessageListComponent', () => {
     component.displayUnreadSeparator = false;
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1291,7 +1308,7 @@ describe('MessageListComponent', () => {
     component.openMessageListAt = 'last-read-message';
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1334,7 +1351,7 @@ describe('MessageListComponent', () => {
   it('should dismiss unread message notification', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 1].user!.id = 'not' + mockCurrentUser().id;
+    messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
       messages[messages.length - 2].id;
@@ -1357,7 +1374,8 @@ describe('MessageListComponent', () => {
   it('should handle if last message is hard deleted', () => {
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    channel.state.latestMessages = messages;
+    messages.forEach((m) => (m.cid = channel.cid));
+    getPaginator(channel).state.partialNext({ hasMoreHead: false });
     channelServiceMock.activeChannel$.next(channel);
     channelServiceMock.activeChannel = channel;
     channelServiceMock.activeChannelMessages$.next(messages);
@@ -1366,10 +1384,70 @@ describe('MessageListComponent', () => {
     expect(component['isLatestMessageInList']).toBeTrue();
 
     messages.pop();
-    channel.state.latestMessages = messages;
     channelServiceMock.activeChannelMessages$.next(messages);
     fixture.detectChanges();
 
     expect(component['isLatestMessageInList']).toBeTrue();
+  });
+
+  it('should tell stream-chat if user sees the latest messages', () => {
+    const paginator = getPaginator(channelServiceMock.activeChannel);
+    const spy = spyOn(paginator, 'setViewingLive').and.callThrough();
+    const messages = generateMockMessages();
+    messages.forEach((m) => (m.cid = channelServiceMock.activeChannel!.cid));
+    channelServiceMock.activeChannelMessages$.next(messages);
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(true);
+
+    spy.calls.reset();
+    const scrollContainer = queryScrollContainer()!;
+    scrollContainer.scrollTo({
+      top: (scrollContainer.scrollHeight - scrollContainer.clientHeight) / 2,
+    });
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(false);
+
+    spy.calls.reset();
+    component.scrollToBottom();
+    scrollContainer.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(true);
+
+    // Not the latest message set is displayed
+    spy.calls.reset();
+    paginator.state.partialNext({ hasMoreHead: true });
+    channelServiceMock.activeChannelMessages$.next([...messages]);
+    fixture.detectChanges();
+
+    expect(spy).toHaveBeenCalledWith(false);
+    expect(spy).not.toHaveBeenCalledWith(true);
+  });
+
+  it(`shouldn't call setViewingLive in thread mode`, () => {
+    const paginator = getPaginator(channelServiceMock.activeChannel);
+    const spy = spyOn(paginator, 'setViewingLive');
+    component.mode = 'thread';
+    component.ngOnChanges({ mode: {} as SimpleChange });
+    spy.calls.reset();
+    const parent = mockMessage();
+    channelServiceMock.activeParentMessage$.next(parent);
+    channelServiceMock.activeThreadMessages$.next(
+      generateMockMessages().map((m) => ({ ...m, parent_id: parent.id }))
+    );
+    fixture.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should stop viewing live on destroy', () => {
+    const paginator = getPaginator(channelServiceMock.activeChannel);
+    const spy = spyOn(paginator, 'setViewingLive');
+    fixture.destroy();
+
+    expect(spy).toHaveBeenCalledWith(false);
   });
 });

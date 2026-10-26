@@ -15,7 +15,7 @@
     <source
       data-testid="audio-source"
       [src]="attachment?.asset_url"
-      [type]="attachment?.mime_type"
+      [type]="attachment?.custom?.mime_type"
     />
   </audio>
   <button
@@ -54,7 +54,7 @@
           class="str-chat__message-attachment__voice-recording-widget__timer"
         >
           <span
-            *ngIf="!!attachment?.duration; else fileSizeTemplate"
+            *ngIf="!!attachment?.custom?.duration; else fileSizeTemplate"
             data-testid="duration"
           >
             {{
@@ -73,9 +73,11 @@
           </ng-template>
         </div>
         <stream-voice-recording-wavebar
-          *ngIf="attachment?.waveform_data && attachment?.duration"
-          [waveFormData]="attachment?.waveform_data || []"
-          [duration]="attachment?.duration"
+          *ngIf="
+            attachment?.custom?.waveform_data && attachment?.custom?.duration
+          "
+          [waveFormData]="attachment?.custom?.waveform_data || []"
+          [duration]="attachment?.custom?.duration"
           [audioElement]="audioElement"
         />
       </div>

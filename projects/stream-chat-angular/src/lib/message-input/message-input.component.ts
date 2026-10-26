@@ -24,8 +24,8 @@ import { distinctUntilChanged, first, map, take, tap } from 'rxjs/operators';
 import {
   Attachment,
   Channel,
-  DraftMessagePayload,
   DraftResponse,
+  MessageRequest,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
@@ -137,7 +137,7 @@ export class MessageInputComponent
    *   - If a thread message is loaded, and the input isn't in thread mode or parent ids don't match, the draft is ignored.
    */
   @Output() readonly messageDraftChange = new EventEmitter<
-    DraftMessagePayload | undefined
+    MessageRequest | undefined
   >();
   @ContentChild(TemplateRef) voiceRecorderRef:
     | TemplateRef<{ service: VoiceRecorderService }>
@@ -666,8 +666,7 @@ export class MessageInputComponent
     this.isLoadingDraft = true;
 
     this.textareaValue = draft.message?.text || '';
-    this.mentionedUsers =
-      draft?.message?.mentioned_users?.map((id) => ({ id })) || [];
+    this.mentionedUsers = draft?.message?.mentioned_users || [];
     this.pollId = draft?.message?.poll_id;
     this.attachmentService.resetAttachmentUploads();
     this.attachmentService.createFromAttachments(
