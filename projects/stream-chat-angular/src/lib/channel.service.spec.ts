@@ -598,10 +598,10 @@ describe('ChannelService', () => {
     const channel = generateMockChannels(1)[0];
     channel.cid = 'not-initialized';
     (channel as unknown as { initialized: boolean }).initialized = false;
-    spyOn(channel, 'ensureWatched').and.callThrough();
+    spyOn(channel, 'watch').and.callThrough();
     service.setAsActiveChannel(channel);
 
-    expect(channel.ensureWatched).toHaveBeenCalledWith();
+    expect(channel.watch).toHaveBeenCalledWith();
   });
 
   it('should emit error, if loading messages of the channel failed', async () => {
@@ -610,7 +610,7 @@ describe('ChannelService', () => {
     channel.cid = 'not-initialized';
     (channel as unknown as { initialized: boolean }).initialized = false;
     const error = new Error('watch failed');
-    spyOn(channel, 'ensureWatched').and.rejectWith(error);
+    spyOn(channel, 'watch').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
     const paginationStateSpy = jasmine.createSpy();
@@ -1381,7 +1381,7 @@ describe('ChannelService', () => {
     newChannel.cid = 'messaging:newchannel';
     newChannel.id = 'newchannel';
     mockChatClient.channel.and.returnValue(newChannel);
-    spyOn(newChannel, 'ensureWatched').and.callThrough();
+    spyOn(newChannel, 'watch').and.callThrough();
     spyOn(newChannel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
@@ -1402,7 +1402,7 @@ describe('ChannelService', () => {
       'newchannel'
     );
     expect(firstChannel.cid).toBe(newChannel.cid);
-    expect(newChannel.ensureWatched).toHaveBeenCalledWith();
+    expect(newChannel.watch).toHaveBeenCalledWith();
     expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
   });
 
@@ -1412,7 +1412,7 @@ describe('ChannelService', () => {
     channel.cid = 'messaging:channel';
     channel.id = 'channel';
     mockChatClient.channel.and.returnValue(channel);
-    spyOn(channel, 'ensureWatched').and.callThrough();
+    spyOn(channel, 'watch').and.callThrough();
     spyOn(channel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
@@ -1429,7 +1429,7 @@ describe('ChannelService', () => {
     const firstChannel = channels[0];
 
     expect(firstChannel.cid).toBe(channel.cid);
-    expect(channel.ensureWatched).toHaveBeenCalledWith();
+    expect(channel.watch).toHaveBeenCalledWith();
     expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
   });
 
@@ -1440,7 +1440,7 @@ describe('ChannelService', () => {
     channel.id = 'channel';
     mockChatClient.channel.and.returnValue(channel);
     const error = new Error('watch failed');
-    spyOn(channel, 'ensureWatched').and.rejectWith(error);
+    spyOn(channel, 'watch').and.rejectWith(error);
     events$.next({
       eventType: 'notification.message_new',
       event: {
@@ -1463,7 +1463,7 @@ describe('ChannelService', () => {
     channel.cid = 'messaging:channel';
     channel.id = 'channel';
     mockChatClient.channel.and.returnValue(channel);
-    spyOn(channel, 'ensureWatched').and.callThrough();
+    spyOn(channel, 'watch').and.callThrough();
     spyOn(channel, 'on').and.callThrough();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);

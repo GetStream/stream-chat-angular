@@ -384,8 +384,7 @@ export const generateMockChannels = (length = 25) => {
         };
       },
       activate: () => () => {},
-      watch: () => Promise.resolve(),
-      ensureWatched: () => Promise.resolve(channel),
+      watch: () => Promise.resolve(channel),
       stopWatching: () => Promise.resolve(),
       sendMessage: (request: { message: MessageResponse }) => {
         return Promise.resolve({ message: request.message });

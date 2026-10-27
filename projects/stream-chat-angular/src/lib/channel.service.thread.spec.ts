@@ -386,7 +386,9 @@ describe('ChannelService - threads', () => {
 
     expect(thread.messagePaginator.hasMoreHead).toBeFalse();
     expect(thread.messagePaginator.hasMoreTail).toBeFalse();
-    expect(thread.messagePaginator.items).toEqual([]);
+    // left unset, so stream-chat places the replies of a reload (e.g. after reconnect) as a first page
+    expect(thread.messagePaginator.items).toBeUndefined();
+    expect(getLatestValue(service.activeThreadMessages$)).toEqual([]);
     expect(
       getLatestValue(service.activeThreadMessagesPaginationState$)
     ).toEqual(

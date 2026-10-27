@@ -764,8 +764,8 @@ export class ChannelService {
         thread.state.getLatestValue().replyCount === 0
       ) {
         // stream-chat doesn't load threads without replies, so the reply list keeps the paginator defaults (has more older and newer replies). Mark it complete, otherwise the first reply makes the message list think it shows an older reply window and jump to the latest replies.
+        // `items` stays `undefined`: stream-chat only places the replies of a reload (for example after a reconnect) as a first page when nothing is loaded, an empty list would make it drop them.
         thread.messagePaginator.state.partialNext({
-          items: [],
           hasMoreHead: false,
           hasMoreTail: false,
         });
@@ -1653,7 +1653,7 @@ export class ChannelService {
       return;
     }
     try {
-      await newChannel.ensureWatched();
+      await newChannel.watch();
     } catch (error) {
       this.chatClientService.logger.error(
         'Failed to add channel to channel list because watch request failed',
@@ -1862,7 +1862,7 @@ export class ChannelService {
       error: undefined,
     });
     try {
-      await channel.ensureWatched();
+      await channel.watch();
     } catch (error) {
       if (this.activeChannelSubject.getValue() === channel) {
         this.activeChannelMessagesPaginationStateSubject.next({
