@@ -19,12 +19,10 @@
         !recording
       "
     />
-    <!-- eslint-disable @angular-eslint/template/no-any -->
     <stream-voice-recording
-      [attachment]="$any(recording)"
-      *ngIf="!!recording"
+      [attachment]="recordingAttachment"
+      *ngIf="!!recordingAttachment"
     />
-    <!-- eslint-enable @angular-eslint/template/no-any -->
     <button
       *ngIf="recordState === MediaRecordingState.PAUSED && !recording"
       class="str-chat__audio_recorder__resume-recording-button"
