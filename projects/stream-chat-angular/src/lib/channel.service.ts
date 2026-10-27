@@ -65,7 +65,7 @@ export class ChannelService {
    */
   hasMoreChannels$: Observable<boolean>;
   /**
-   * Emits the currently loaded and [watched](/chat/docs/javascript/watch_channel/) channel list.
+   * Emits the currently loaded and [watched](/chat/docs/javascript/creating-channels/) channel list.
    *
    * :::important
    * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
@@ -135,7 +135,7 @@ export class ChannelService {
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
-   * If you're using [semantic filters for moderation](/moderation/docs/) you can set up rules for bouncing messages.
+   * If you're using [semantic filters for moderation](/moderation/docs/node/) you can set up rules for bouncing messages.
    *
    * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](/chat/docs/sdk/angular/components/MessageBouncePromptComponent/) will display the bounce option to the user if a bounced message is clicked.
    */
@@ -153,9 +153,9 @@ export class ChannelService {
    */
   activeChannelUnreadCount?: number;
   /**
-   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/)
+   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels)
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customNewMessageNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -165,9 +165,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customAddedToChannelNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -177,9 +177,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customRemovedFromChannelNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -189,9 +189,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelDeletedHandler?: (
     event: Event,
@@ -205,9 +205,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelUpdatedHandler?: (
     event: Event,
@@ -221,9 +221,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelTruncatedHandler?: (
     event: Event,
@@ -237,9 +237,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelHiddenHandler?: (
     event: Event,
@@ -253,9 +253,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelVisibleHandler?: (
     event: Event,
@@ -269,9 +269,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customNewMessageHandler?: (
     event: Event,
@@ -609,7 +609,7 @@ export class ChannelService {
    *
    * The method will be called with the result of the latest channel query.
    *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
+   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/docs/platform/query-syntax-operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
   set customPaginator(
     paginator:
@@ -831,7 +831,7 @@ export class ChannelService {
   }
 
   /**
-   * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
+   * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query-channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
    * @param filters
    * @param sort
    * @param options
@@ -867,7 +867,7 @@ export class ChannelService {
   }
 
   /**
-   * Queries the channels with the given query function. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation.
+   * Queries the channels with the given query function. More info about [channel querying](/chat/docs/javascript/query-channels/) can be found in the platform documentation.
    * @param query
    * @param options
    * @param options.shouldSetActiveChannel The `shouldSetActiveChannel` specifies if the first channel in the result should be selected as the active channel or not. Default is `true`.
@@ -886,7 +886,7 @@ export class ChannelService {
   }
 
   /**
-   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](/chat/docs/sdk/angular/services/ChatClientService/#disconnectuser/).
+   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](/chat/docs/sdk/angular/services/ChatClientService/#disconnectuser).
    */
   reset() {
     this.deselectActiveChannel();
@@ -902,7 +902,7 @@ export class ChannelService {
   }
 
   /**
-   * Loads the next page of channels. The page size can be set in the [query option](/chat/docs/javascript/query_channels/#query-options) object.
+   * Loads the next page of channels. The page size can be set in the [query option](/chat/docs/javascript/query-channels/#query-options) object.
    */
   async loadMoreChannels() {
     await this.queryChannels(false, 'next-page');
@@ -1083,7 +1083,7 @@ export class ChannelService {
   }
 
   /**
-   * Uploads files to the channel. If you want to know more about [file uploads](/chat/docs/javascript/file_uploads/) check out the platform documentation.
+   * Uploads files to the channel. If you want to know more about [file uploads](/chat/docs/javascript/file-uploads/) check out the platform documentation.
    * @param uploads the attachments to upload (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    * @returns the result of file upload requests
    */
@@ -1164,7 +1164,7 @@ export class ChannelService {
   }
 
   /**
-   * Deletes an uploaded file by URL. If you want to know more about [file uploads](/chat/docs/javascript/file_uploads/) check out the platform documentation
+   * Deletes an uploaded file by URL. If you want to know more about [file uploads](/chat/docs/javascript/file-uploads/) check out the platform documentation
    * @param attachmentUpload Attachment to be deleted (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    */
   async deleteAttachment(attachmentUpload: AttachmentUpload) {
@@ -1179,7 +1179,7 @@ export class ChannelService {
   }
 
   /**
-   * Returns the autocomplete options for current channel members. If member_count is equal to the number of members in the channel, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query_members/#pagination-and-ordering) with the given search term.
+   * Returns the autocomplete options for current channel members. If member_count is equal to the number of members in the channel, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query-members/#paginating-channel-members) with the given search term.
    * @param searchTerm Text to search for in the names of members
    * @returns The list of members matching the search filter
    */
@@ -1214,7 +1214,7 @@ export class ChannelService {
   }
 
   /**
-   * [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
+   * [Runs a message action](https://getstream.github.io/protocol/?urls.primaryName=Chat#/product%3Achat/RunMessageAction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
    * @param messageId
    * @param formData
    * @param parentMessageId
@@ -1939,7 +1939,7 @@ export class ChannelService {
   }
 
   /**
-   * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](/chat/docs/javascript/send_reaction/#paginating-reactions).
+   * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](/chat/docs/javascript/send-reaction/#paginating-reactions).
    * @deprecated use [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions) instead
    * @param messageId
    * @returns all reactions of a message

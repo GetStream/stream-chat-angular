@@ -19,7 +19,7 @@ import { MessageService } from './message.service';
 /**
  * The `AttachmentService` manages the uploads of a message input.
  *
- * You can read more about [uploads](/chat/docs/javascript/file_uploads/) in the Stream API documentation. You can use Stream's API or the dashboard to customize the [file](/chat/docs/javascript/app_setting_overview/#file-uploads) and [image upload](/chat/docs/javascript/app_setting_overview/#image-uploads) configuration.
+ * You can read more about [uploads](/chat/docs/javascript/file-uploads/) in the Stream API documentation. You can use Stream's API or the [dashboard](/signin/?product=chat) to customize the [file](/chat/docs/node/app-setting-overview/#file-uploads) and [image upload](/chat/docs/node/app-setting-overview/#image-uploads) configuration.
  */
 @Injectable({
   providedIn: 'root',
@@ -144,7 +144,7 @@ export class AttachmentService {
 
   /**
    * Uploads the selected files, and creates preview for image files. The result is propagated throught the `attachmentUploads$` stream.
-   * @param fileList The files selected by the user, if you have Blobs instead of Files, you can convert them with this method: https://developer.mozilla.org/en-US/docs/Web/API/File/File
+   * @param fileList The files selected by the user, if you have Blobs instead of Files, you can convert them with the [File constructor](https://developer.mozilla.org/en-US/docs/Web/API/File/File)
    * @returns A promise with true or false. If false is returned the upload was canceled because of a client side error. The error is emitted via the `NotificationService`.
    */
   async filesSelected(fileList: FileList | File[] | null) {

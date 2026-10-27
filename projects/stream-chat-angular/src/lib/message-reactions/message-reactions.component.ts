@@ -23,7 +23,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
 
 /**
- * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](/chat/docs/javascript/send_reaction/) in the platform documentation.
+ * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](/chat/docs/javascript/send-reaction/) in the platform documentation.
  */
 @Component({
   selector: 'stream-message-reactions',

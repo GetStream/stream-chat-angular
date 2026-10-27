@@ -268,7 +268,7 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
   | `PollOption`             | `PollOptionResponseData` |
   | `PollVote`, `PollAnswer` | `PollVoteResponseData`   |
 
-  Affected inputs: `PollVoteComponent.vote`, `UpsertAnswerComponent.answer`, `PollVoteResultsListComponent.option`.
+  Affected inputs: `PollVoteComponent.vote`, `UpsertAnswerComponent.answer`, `PollVoteResultsListComponent.option`, `PollOptionSelectorComponent.option`.
 
 - `VotingVisibility` is now a string union type (`'anonymous' | 'public'`), not an enum.
 - Poll, option, vote and answer dates are `TimestampNS` (unix nanoseconds), convert them with `nsToDate`.
@@ -282,7 +282,7 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
 
 ## Moderation (bounced and blocked messages)
 
-v10 messages no longer have `moderation_details`. Bounced messages are detected with `message.type === 'error' && message.moderation?.action === 'bounce'`, and blocked messages with `message.moderation?.action === 'remove'`. If you have a custom message template or `MessageBouncePrompt` customization that checked `moderation_details`, switch to `moderation`.
+v10 messages no longer have `moderation_details`. Bounced messages are detected with `message.type === 'error' && message.moderation?.action === 'bounce'`, and blocked messages with `message.type === 'error' && message.moderation?.action === 'remove'`. If you have a custom message template or `MessageBouncePrompt` customization that checked `moderation_details`, switch to `moderation`.
 
 ## Other type changes
 

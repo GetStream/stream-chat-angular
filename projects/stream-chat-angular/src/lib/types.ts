@@ -13,7 +13,6 @@ import type {
   ReactionGroupResponse,
   SortParamRequest,
   ReactionResponse,
-  User,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
@@ -216,7 +215,7 @@ export type AvatarContext = {
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel;
-  user?: User;
+  user?: UserResponse;
   initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
   showOnlineIndicator?: boolean;
 };
@@ -301,7 +300,7 @@ export type MessageReactionsContext = {
   messageId: string | undefined;
   /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send_reaction/&q=queryReactions#query-reactions) */
+  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send-reaction/#querying-reactions) */
   latestReactions: ReactionResponse[];
   ownReactions: ReactionResponse[];
   messageReactionGroups: {

@@ -14,7 +14,7 @@ import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChannelActionsContext, ChannelHeaderInfoContext } from '../types';
 
 /**
- * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](/chat/docs/javascript/watch_channel/#watchers-vs-members) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](/chat/docs/javascript/channel_capabilities/)
+ * The `ChannelHeader` component displays the avatar and name of the currently active channel along with member and watcher information. You can read about [the difference between members and watchers](/chat/docs/javascript/creating-channels/#watching-channels) in the platform documentation. Please note that number of watchers is only displayed if the user has [`connect-events` capability](/chat/docs/node/chat-permission-policies/)
  */
 @Component({
   selector: 'stream-channel-header',

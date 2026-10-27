@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Channel, User } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { ChatClientService } from '../chat-client.service';
 import { AvatarLocation, AvatarType } from '../types';
 
@@ -45,7 +45,7 @@ export class AvatarComponent
   /**
    * The user the avatar belongs to (if avatar of a user is displayed)
    */
-  @Input() user?: User;
+  @Input() user?: UserResponse;
   /**
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */

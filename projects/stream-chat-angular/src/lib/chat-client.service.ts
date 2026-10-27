@@ -41,14 +41,14 @@ export class ChatClientService {
    */
   chatClient!: StreamChat;
   /**
-   * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event_object/).
+   * Emits [`ClientEvent`](https://github.com/GetStream/stream-chat-angular/blob/master/projects/stream-chat-angular/src/lib/chat-client.service.ts) events. The platform documentation covers [the list of client, user presence and notification events](/chat/docs/javascript/event-object/).
    * :::important
    * For performance reasons this Observable operates outside of the Angular change detection zone. If you subscribe to it, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
    * :::
    */
   events$: Observable<ClientEvent>;
   /**
-   * Emits the current [application settings](/chat/docs/javascript/app_setting_overview/). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
+   * Emits the current [application settings](/chat/docs/node/app-setting-overview/). Since getting the application settings is an expensive API call and we don't always need the result, this is not initialized by default, you need to call `getApplicationSettings` to load them.
    */
   appSettings$: Observable<AppSettings | undefined>;
   /**
@@ -99,14 +99,14 @@ export class ChatClientService {
   }
 
   /**
-   * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](/chat/docs/javascript/init_and_users/) can be found in the platform documentation.
+   * Creates a [`StreamChat`](https://github.com/GetStream/stream-chat-js/blob/668b3e5521339f4e14fc657834531b4c8bf8176b/src/client.ts#L124) instance using the provided `apiKey`, and connects a user with the given meta data and token. More info about [connecting users](/chat/docs/javascript/init-and-users/) can be found in the platform documentation.
    * @param apiKey
-   * @param userOrId you can emit this for anonymous logins
+   * @param userOrId you can omit this for anonymous logins
    * @param userTokenOrProvider You can provide:<ul>
    *  <li> a token, </li>
    *  <li> a token provider, a method that returns `Promise<string>`, which can be called when the previous token expires (recommended setup for production applications)</li>
-   *  <li> the keyword 'guest' to connect as [guest user](/chat/docs/javascript/authless_users/#guest-users) </li>
-   *  <li> the keyword 'anonymous' to connect as [anonymous user](/chat/docs/javascript/authless_users/#anonymous-users) </li>
+   *  <li> the keyword 'guest' to connect as [guest user](/chat/docs/javascript/authless-users/#guest-users) </li>
+   *  <li> the keyword 'anonymous' to connect as [anonymous user](/chat/docs/javascript/authless-users/#anonymous-users) </li>
    *  </ul>
    * @param clientOptions Setting to provide to the Stream client instance
    */
@@ -228,7 +228,7 @@ export class ChatClientService {
   }
 
   /**
-   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/services/ChannelService/#reset/).
+   * Disconnects the current user, and closes the WebSocket connection. Useful when disconnecting a chat user, use in combination with [`reset`](/chat/docs/sdk/angular/services/ChannelService/#reset).
    */
   async disconnectUser() {
     this.pendingInvitesSubject.next([]);
@@ -239,7 +239,7 @@ export class ChatClientService {
   }
 
   /**
-   * Loads the current [application settings](/chat/docs/javascript/app_setting_overview/), if the application settings have already been loaded, it does nothing.
+   * Loads the current [application settings](/chat/docs/node/app-setting-overview/), if the application settings have already been loaded, it does nothing.
    */
   async getAppSettings() {
     if (this.appSettingsPromise) {

@@ -52,7 +52,7 @@ import { VoiceRecorderService } from './voice-recorder.service';
 import { AudioRecorderService } from '../voice-recorder/audio-recorder.service';
 
 /**
- * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/).
+ * The `MessageInput` component displays an input where users can type their messages and upload files, and sends the message to the active channel. The component can be used to compose new messages or update existing ones. To send messages, the chat user needs to have the necessary [channel capability](/chat/docs/node/chat-permission-policies/).
  */
 @Component({
   selector: 'stream-message-input',
@@ -64,7 +64,7 @@ export class MessageInputComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
   /**
-   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/javascript/channel_capabilities/). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService/).
+   * If file upload is enabled, the user can open a file selector from the input. Please note that the user also needs to have the necessary [channel capability](/chat/docs/node/chat-permission-policies/). If no value is provided, it is set from the [`MessageInputConfigService`](/chat/docs/sdk/angular/services/MessageInputConfigService/).
    */
   @Input() isFileUploadEnabled: boolean | undefined;
   /**
@@ -128,7 +128,7 @@ export class MessageInputComponent
    *   - If the user clears the message input, or sends the message, undefined is emitted.
    *   - If active channel changes, nothing is emitted.
    *
-   * To save and fetch message drafts, you can use the [Stream message drafts API](https://getstream.io/chat/docs/javascript/drafts/).
+   * To save and fetch message drafts, you can use the [Stream message drafts API](/chat/docs/javascript/drafts/).
    *
    * Message draft only works for new messages, nothing is emitted when input is in edit mode (if `message` input is set).
    *

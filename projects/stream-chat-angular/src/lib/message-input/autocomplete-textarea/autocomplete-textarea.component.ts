@@ -52,7 +52,7 @@ export class AutocompleteTextareaComponent
    */
   @Input() placeholder = '';
   /**
-   * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/#inputs-and-outputs/) component.
+   * If true, users can mention other users in messages. You can also set this input on the [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/#inputs-and-outputs) component.
    */
   @Input() areMentionsEnabled: boolean | undefined = true;
   /**
