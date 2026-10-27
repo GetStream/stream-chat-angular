@@ -50,12 +50,12 @@
     "branches": [
       "master",
       {
-        "name": "feat/ngx-translate-v18-support",
+        "name": "feat/stream-chat-v10",
         "prerelease": "rc",
         "channel": "rc"
       }
     ],
-    "dryRun": false,
+    "dryRun": true,
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
