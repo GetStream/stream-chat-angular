@@ -1,3 +1,4 @@
+import { dateToNs, nsToDate } from 'stream-chat';
 import { mockMessage } from '../mocks';
 import { StreamMessage } from '../types';
 import { getGroupStyles } from './group-styles';
@@ -50,13 +51,17 @@ describe('getGroupStyles', () => {
   });
 
   it('should mark first message of the day as "top"', () => {
-    messages[0].created_at.setDate(messages[0].created_at.getDate() - 1);
+    const createdAt = nsToDate(messages[0].created_at);
+    createdAt.setDate(createdAt.getDate() - 1);
+    messages[0].created_at = dateToNs(createdAt);
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe('top');
   });
 
   it('should mark last message of the day as "bottom"', () => {
-    messages[2].created_at.setDate(messages[0].created_at.getDate() + 1);
+    const createdAt = nsToDate(messages[2].created_at);
+    createdAt.setDate(nsToDate(messages[0].created_at).getDate() + 1);
+    messages[2].created_at = dateToNs(createdAt);
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
       'bottom'
@@ -78,7 +83,7 @@ describe('getGroupStyles', () => {
   });
 
   it('should handle deleted messages', () => {
-    messages[2].deleted_at = new Date();
+    messages[2].deleted_at = dateToNs(new Date());
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
       'bottom'
@@ -149,7 +154,7 @@ describe('getGroupStyles', () => {
   });
 
   it('should end group if the message id edited', () => {
-    messages[1].message_text_updated_at = new Date();
+    messages[1].message_text_updated_at = dateToNs(new Date());
 
     expect(getGroupStyles(messages[1], messages[0], messages[2])).toBe(
       'bottom'

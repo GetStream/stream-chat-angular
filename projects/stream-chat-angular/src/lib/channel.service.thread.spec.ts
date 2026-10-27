@@ -7,6 +7,7 @@ import {
   dateToNs,
   Event,
   LocalMessage,
+  nowNs,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -23,7 +24,7 @@ import {
 } from './mocks';
 import { NotificationService } from './notification.service';
 import { StreamMessage } from './types';
-import { convertStreamMessageToLocalMessage } from './message-dates';
+import { toLocalMessage } from './local-message';
 
 const getPaginator = (channel: Channel | undefined) =>
   channel!.messagePaginator as unknown as MockMessagePaginator;
@@ -41,7 +42,7 @@ describe('ChannelService - threads', () => {
   const getThread = (parentId: string) => client.threads.get(parentId)!;
 
   const createThread = (parentId: string) => {
-    const parentMessage = convertStreamMessageToLocalMessage(mockMessage());
+    const parentMessage = toLocalMessage(mockMessage());
     parentMessage.id = parentId;
     return client.threads.ensure({
       channel: getActiveChannel(),
@@ -545,7 +546,7 @@ describe('ChannelService - threads', () => {
     spyOn(activeChannel, 'markReadViaReporter');
     // stream-chat adds the message to the thread's paginator
     getThread(parentMessage.id).messagePaginator.ingestItem(
-      convertStreamMessageToLocalMessage(newMessage)
+      toLocalMessage(newMessage)
     );
     activeChannel.handleEvent('message.new', {
       message: newMessage,
@@ -567,9 +568,7 @@ describe('ChannelService - threads', () => {
     const newMessage = mockMessage();
     newMessage.id = 'new-reply';
     newMessage.parent_id = otherThread.id;
-    otherThread.messagePaginator.ingestItem(
-      convertStreamMessageToLocalMessage(newMessage)
-    );
+    otherThread.messagePaginator.ingestItem(toLocalMessage(newMessage));
 
     expect(spy).not.toHaveBeenCalled();
   });
@@ -595,16 +594,17 @@ describe('ChannelService - threads', () => {
     await service.setAsActiveParentMessage(parentMessage);
     const paginator = getThread(parentMessage.id).messagePaginator;
     const messageToDelete = paginator.items![0];
+    const deletedAt = dateToNs(new Date());
     paginator.ingestItem({
       ...messageToDelete,
       type: 'deleted',
-      deleted_at: dateToNs(new Date()),
+      deleted_at: deletedAt,
     });
     const message = getLatestValue<StreamMessage[]>(
       service.activeThreadMessages$
     )[0];
 
-    expect(message.deleted_at).toEqual(jasmine.any(Date));
+    expect(message.deleted_at).toBe(deletedAt);
   });
 
   it('should handle if channel is truncated', async () => {
@@ -799,8 +799,8 @@ describe('ChannelService - threads', () => {
     spyOn(channel, 'sendAction').and.resolveTo({
       message: {
         ...replies[replies.length - 1],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: nowNs(),
+        updated_at: nowNs(),
         id: replyId,
         attachments: [giphy],
         parent_id: parentMessage.id,
@@ -868,8 +868,8 @@ describe('ChannelService - threads', () => {
       Promise.resolve({
         message: {
           ...mockMessage(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: nowNs(),
+          updated_at: nowNs(),
           id: request.message.id,
           parent_id: parentMessage.id,
           text,
@@ -921,8 +921,8 @@ describe('ChannelService - threads', () => {
       Promise.resolve({
         message: {
           ...mockMessage(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: nowNs(),
+          updated_at: nowNs(),
           id: request.message.id,
           parent_id: parentMessage.id,
           text,
@@ -946,7 +946,7 @@ describe('ChannelService - threads', () => {
     expect(threadMessages.length).toBe(prevCount + 1);
     expect(latestMessage.id).toBe(sentMessage.id);
     expect(latestMessage.text).toBe(text);
-    expect(latestMessage.created_at).toEqual(jasmine.any(Date));
+    expect(latestMessage.created_at).toEqual(jasmine.any(Number));
   });
 
   it('should notify channel if typing started', async () => {
@@ -1164,7 +1164,7 @@ describe('ChannelService - threads', () => {
     parentMessage.id = 'parent';
     await service.setAsActiveParentMessage(parentMessage);
     const paginator = getThread('parent').messagePaginator;
-    const message = convertStreamMessageToLocalMessage(mockMessage());
+    const message = toLocalMessage(mockMessage());
     message.id = 'local-message';
     message.parent_id = 'parent';
     paginator.ingestItem(message);

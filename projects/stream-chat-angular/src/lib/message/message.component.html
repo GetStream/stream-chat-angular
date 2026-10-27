@@ -488,10 +488,7 @@
             }"
           >
             <span>{{ "streamChat.Edited" | translate }}</span>
-            <time
-              dateTime="{{ message?.message_text_updated_at }}"
-              title="{{ message?.message_text_updated_at }}"
-            >
+            <time dateTime="{{ editedDateTime }}" title="{{ editedDateTime }}">
               {{ pasedEditedDate }}
             </time>
           </div>

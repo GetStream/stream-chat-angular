@@ -26,6 +26,7 @@ import {
   MessageRequest,
   MessageResponse,
   ReactionResponse,
+  SortParamRequest,
   Thread,
   UserResponse,
 } from 'stream-chat';
@@ -43,15 +44,11 @@ import {
   MessageInput,
   MessageReactionType,
   NextPageConfiguration,
-  ChannelSort,
   MessageListPaginationState,
   StreamMessage,
 } from './types';
 import { ChannelQuery } from './channel-query';
-import {
-  convertMessageDatesToDate,
-  convertStreamMessageToLocalMessage,
-} from './message-dates';
+import { toLocalMessage } from './local-message';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list.
@@ -725,7 +722,7 @@ export class ChannelService {
       const client = this.chatClientService.chatClient;
       const parentMessage =
         activeChannel.messagePaginator.getItem(message.id) ??
-        convertStreamMessageToLocalMessage(message);
+        toLocalMessage(message);
       const thread =
         client.threads.get(message.id) ??
         client.threads.ensure({ channel: activeChannel, parentMessage });
@@ -833,14 +830,14 @@ export class ChannelService {
   /**
    * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query-channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
    * @param filters
-   * @param sort
+   * @param sort The sort in the format expected by stream-chat, for example `[{ field: 'last_message_at', direction: -1 }]`
    * @param options
    * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel or not.
    * @returns the list of channels found by the query
    */
   init(
     filters: ChannelFilters,
-    sort?: ChannelSort,
+    sort?: SortParamRequest[],
     options?: ChannelOptions,
     shouldSetActiveChannel: boolean = true
   ) {
@@ -996,7 +993,7 @@ export class ChannelService {
   async resendMessage(message: StreamMessage) {
     this.errorStatusCodes.delete(message.id);
     // Use the given message, not the stored one: editing a bounced message resends it with the new content
-    const localMessage = convertStreamMessageToLocalMessage(message);
+    const localMessage = toLocalMessage(message);
     this.getMessagePaginator(message.parent_id)?.ingestItem({
       ...localMessage,
       status: 'sending',
@@ -1826,7 +1823,7 @@ export class ChannelService {
   }
 
   private toMessageRequest(message: StreamMessage): MessageRequest {
-    const localMessage = convertStreamMessageToLocalMessage(message);
+    const localMessage = toLocalMessage(message);
     return {
       id: localMessage.id,
       text: localMessage.text,
@@ -2303,7 +2300,7 @@ export class ChannelService {
   ): StreamMessage {
     const isThreadMessage = !!message.parent_id;
     const user = this.chatClientService.chatClient.user;
-    if (message.created_at instanceof Date) {
+    if ('readBy' in message) {
       // Already a StreamMessage (for example set via a custom handler)
       const streamMessage = message as StreamMessage;
       return {
@@ -2329,20 +2326,19 @@ export class ChannelService {
       return cached.message;
     }
     // Messages are stored by stream-chat, they shouldn't be mutated, we create a new object instead
-    const converted = convertMessageDatesToDate(localMessage);
     const streamMessage: StreamMessage = {
-      ...converted,
+      ...localMessage,
       status: (localMessage as LocalMessage).status || 'received',
       readBy: isThreadMessage
         ? []
         : channel
-        ? getReadBy(converted, channel)
+        ? getReadBy(localMessage, channel)
         : [],
       translation: getMessageTranslation(localMessage, channel, user),
       errorStatusCode,
-      quoted_message: converted.quoted_message
+      quoted_message: localMessage.quoted_message
         ? {
-            ...converted.quoted_message,
+            ...localMessage.quoted_message,
             translation: getMessageTranslation(
               localMessage.quoted_message,
               channel,

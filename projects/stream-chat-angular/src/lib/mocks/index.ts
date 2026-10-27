@@ -5,12 +5,15 @@ import {
   ChannelMemberResponse,
   Event,
   EventType,
+  dateToNs,
   LocalMessage,
   MessageResponse,
+  msToNs,
+  nsToDate,
   UserResponse,
 } from 'stream-chat';
 import { AppSettings } from '../types';
-import { convertStreamMessageToLocalMessage } from '../message-dates';
+import { toLocalMessage } from '../local-message';
 
 export const mockCurrentUser = () =>
   ({
@@ -28,8 +31,8 @@ export const mockMessage = (id?: number) =>
     user_id: mockCurrentUser().id,
     type: 'regular',
     status: 'received',
-    created_at: new Date('2021-09-14T13:08:30.004112Z'),
-    updated_at: new Date('2021-09-14T13:08:30.004112Z'),
+    created_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
+    updated_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
     readBy: [{ id: 'alice', name: 'Alice' }],
     custom: {},
   } as any as StreamMessage);
@@ -37,8 +40,8 @@ export const mockMessage = (id?: number) =>
 export const generateMockMessages = (offset = 0, isOlder = false) => {
   const messages = Array.from({ length: 25 }, (_, index) => {
     const message = mockMessage();
-    message.created_at = new Date(
-      message.created_at.getUTCMilliseconds() +
+    message.created_at = msToNs(
+      nsToDate(message.created_at).getUTCMilliseconds() +
         (isOlder ? -1 : 1) * (index + offset)
     );
     message.id = (index + offset).toString();
@@ -52,9 +55,7 @@ export const generateMockMessages = (offset = 0, isOlder = false) => {
  * The same messages as `generateMockMessages`, but in the format stream-chat stores them (`LocalMessage` with `TimestampNS` dates)
  */
 export const generateMockLocalMessages = (offset = 0, isOlder = false) =>
-  generateMockMessages(offset, isOlder).map((m) =>
-    convertStreamMessageToLocalMessage(m)
-  );
+  generateMockMessages(offset, isOlder).map((m) => toLocalMessage(m));
 
 /**
  * Minimal implementation of the `StateStore` API (`@stream-io/state-store`) used by the SDK
@@ -503,7 +504,7 @@ export const mockChannelService = (): MockChannelService => {
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
   const activeChannel = generateMockChannels(1)[0];
   activeChannel.messagePaginator.setItems(
-    messages.map((m) => convertStreamMessageToLocalMessage(m))
+    messages.map((m) => toLocalMessage(m))
   );
   const activeChannelMessages = messages;
   const activeChannel$ = new BehaviorSubject<Channel>(activeChannel);

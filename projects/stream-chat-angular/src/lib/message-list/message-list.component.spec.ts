@@ -8,7 +8,7 @@ import {
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, of } from 'rxjs';
-import { Channel, UserResponse } from 'stream-chat';
+import { Channel, dateToNs, nsToDate, UserResponse } from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
@@ -243,7 +243,7 @@ describe('MessageListComponent', () => {
     );
 
     const newMessage = mockMessage();
-    newMessage.created_at = new Date();
+    newMessage.created_at = dateToNs(new Date());
     (channelServiceMock.activeChannel as MockChannel).handleEvent(
       'message.new',
       {
@@ -273,7 +273,7 @@ describe('MessageListComponent', () => {
     component.ngOnChanges({ direction: {} as SimpleChange });
     fixture.detectChanges();
     const newMessage = mockMessage();
-    newMessage.created_at = new Date();
+    newMessage.created_at = dateToNs(new Date());
     channelServiceMock.activeChannelMessages$.next([
       ...channelServiceMock.activeChannelMessages$.getValue(),
       newMessage,
@@ -554,7 +554,7 @@ describe('MessageListComponent', () => {
 
     spyOn(channelServiceMock, 'jumpToMessage').and.callThrough();
     const newMessageFromCurrentUser = mockMessage();
-    newMessageFromCurrentUser.created_at = new Date();
+    newMessageFromCurrentUser.created_at = dateToNs(new Date());
     (channel as MockChannel).handleEvent('message.new', {
       message: newMessageFromCurrentUser,
     });
@@ -575,7 +575,7 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       newMessage.user.id = 'not' + mockCurrentUser().id;
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
@@ -598,7 +598,7 @@ describe('MessageListComponent', () => {
       scrollContainer.dispatchEvent(new Event('scroll'));
       fixture.detectChanges();
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       newMessage.user_id = 'not' + mockCurrentUser().id;
       (channelServiceMock.activeChannel as MockChannel).handleEvent(
         'message.new',
@@ -623,7 +623,7 @@ describe('MessageListComponent', () => {
       );
 
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       (channelServiceMock.activeChannel as MockChannel).handleEvent(
         'message.new',
         {
@@ -682,7 +682,7 @@ describe('MessageListComponent', () => {
     it(`shouldn't scroll up for new messages`, () => {
       const scrollContainer = queryScrollContainer()!;
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       newMessage.user.id = 'not' + mockCurrentUser().id;
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
@@ -695,7 +695,7 @@ describe('MessageListComponent', () => {
 
     it('should display unread message count if direction is top-to-bottom', () => {
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -723,7 +723,7 @@ describe('MessageListComponent', () => {
     it('should scroll up if user sends new message', () => {
       const scrollContainer = queryScrollContainer()!;
       const newMessage = mockMessage();
-      newMessage.created_at = new Date();
+      newMessage.created_at = dateToNs(new Date());
       channelServiceMock.activeChannelMessages$.next([
         ...channelServiceMock.activeChannelMessages$.getValue(),
         newMessage,
@@ -1022,26 +1022,26 @@ describe('MessageListComponent', () => {
     const messages = generateMockMessages();
     const message = messages[0];
     const nextMessage = messages[1];
-    message.created_at = new Date();
+    message.created_at = dateToNs(new Date());
 
     expect(component['checkIfOnSeparateDates'](message, undefined)).toBe(false);
 
-    message.created_at = new Date(2023, 6, 26);
-    nextMessage.created_at = new Date(2023, 6, 27);
+    message.created_at = dateToNs(new Date(2023, 6, 26));
+    nextMessage.created_at = dateToNs(new Date(2023, 6, 27));
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
       true
     );
 
-    message.created_at = new Date();
-    nextMessage.created_at = new Date();
+    message.created_at = dateToNs(new Date());
+    nextMessage.created_at = dateToNs(new Date());
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
       false
     );
 
-    message.created_at = new Date(2023, 6, 26);
-    nextMessage.created_at = new Date(2023, 7, 26);
+    message.created_at = dateToNs(new Date(2023, 6, 26));
+    nextMessage.created_at = dateToNs(new Date(2023, 7, 26));
 
     expect(component['checkIfOnSeparateDates'](message, nextMessage)).toBe(
       true
@@ -1058,8 +1058,8 @@ describe('MessageListComponent', () => {
 
     expect(queryDateSeparators().length).toBe(1);
 
-    message.created_at = new Date(2013, 6, 26);
-    nextMessage.created_at = new Date(2013, 6, 27);
+    message.created_at = dateToNs(new Date(2013, 6, 26));
+    nextMessage.created_at = dateToNs(new Date(2013, 6, 27));
 
     channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
     fixture.detectChanges();
@@ -1077,8 +1077,8 @@ describe('MessageListComponent', () => {
     const message = messages[0];
     const nextMessage = messages[1];
 
-    message.created_at = new Date(2023, 6, 26);
-    nextMessage.created_at = new Date(2023, 6, 27);
+    message.created_at = dateToNs(new Date(2023, 6, 26));
+    nextMessage.created_at = dateToNs(new Date(2023, 6, 27));
 
     channelServiceMock.activeChannelMessages$.next([message, nextMessage]);
     fixture.detectChanges();
@@ -1129,9 +1129,9 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
-    );
+    const createdAt = nsToDate(messages[messages.length - 2].created_at);
+    createdAt.setDate(createdAt.getDate() + 1);
+    messages[messages.length - 2].created_at = dateToNs(createdAt);
     messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
@@ -1148,9 +1148,9 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
-    );
+    const createdAt = nsToDate(messages[messages.length - 2].created_at);
+    createdAt.setDate(createdAt.getDate() + 1);
+    messages[messages.length - 2].created_at = dateToNs(createdAt);
     messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =
@@ -1219,9 +1219,9 @@ describe('MessageListComponent', () => {
 
     const channel = generateMockChannels()[0];
     const messages = generateMockMessages();
-    messages[messages.length - 2].created_at.setDate(
-      messages[messages.length - 2].created_at.getDate() + 1
-    );
+    const createdAt = nsToDate(messages[messages.length - 2].created_at);
+    createdAt.setDate(createdAt.getDate() + 1);
+    messages[messages.length - 2].created_at = dateToNs(createdAt);
     messages[messages.length - 1].user.id = 'not' + mockCurrentUser().id;
     channel.id = 'test-channel';
     channelServiceMock.activeChannelLastReadMessageId =

@@ -19,7 +19,7 @@ import {
   MockChannel,
   mockMessage,
 } from '../mocks';
-import { convertStreamMessageToLocalMessage } from '../message-dates';
+import { toLocalMessage } from '../local-message';
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
 import { DateParserService } from '../date-parser.service';
@@ -130,9 +130,7 @@ describe('ChannelPreviewComponent', () => {
     countUnreadSpy.and.returnValue(1);
     const newMessage = mockMessage();
     newMessage.id = 'new-message';
-    channel.messagePaginator.ingestItem(
-      convertStreamMessageToLocalMessage(newMessage)
-    );
+    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeTrue();
@@ -302,9 +300,7 @@ describe('ChannelPreviewComponent', () => {
       const newMessage = mockMessage();
       newMessage.id = 'new-message';
       newMessage.text = 'this is the text of  new message';
-      channel.messagePaginator.ingestItem(
-        convertStreamMessageToLocalMessage(newMessage)
-      );
+      channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(newMessage.text);
@@ -427,7 +423,7 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
 
     expect(component.latestMessage?.id).toBe(latestMessage.id);
-    expect(component.latestMessage?.created_at).toEqual(jasmine.any(Date));
+    expect(component.latestMessage?.created_at).toEqual(jasmine.any(Number));
 
     expect(component.latestMessageStatus).toBe('delivered');
 

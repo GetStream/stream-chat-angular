@@ -1,8 +1,7 @@
-import { Channel, nsToDate, UserResponse } from 'stream-chat';
-import { MessageWithDates } from './types';
+import { Channel, MessageResponse, UserResponse } from 'stream-chat';
 
 export const getReadBy = (
-  message: Pick<MessageWithDates, 'created_at' | 'user'>,
+  message: Pick<MessageResponse, 'created_at' | 'user'>,
   channel: Channel
 ) => {
   const readBy: UserResponse[] = [];
@@ -12,7 +11,7 @@ export const getReadBy = (
     if (
       lastRead !== undefined &&
       lastRead !== null &&
-      nsToDate(lastRead).getTime() >= message.created_at.getTime() &&
+      lastRead >= message.created_at &&
       message.user?.id !== key
     ) {
       readBy.push(read[key].user);

@@ -1,8 +1,8 @@
 import { Channel, LocalMessage, MessageResponse } from 'stream-chat';
-import { MessageWithDates, StreamMessage } from './types';
+import { StreamMessage } from './types';
 
 export const getMessageTranslation = (
-  message?: StreamMessage | MessageResponse | LocalMessage | MessageWithDates,
+  message?: StreamMessage | MessageResponse | LocalMessage,
   channel?: Channel,
   user?: { id?: string; language?: string }
 ) => {

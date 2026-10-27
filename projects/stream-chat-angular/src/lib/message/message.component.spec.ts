@@ -5,7 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { UserResponse } from 'stream-chat';
+import { dateToNs, UserResponse } from 'stream-chat';
 import { StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -740,7 +740,7 @@ describe('MessageComponent', () => {
   it('should display deleted message placeholder', () => {
     expect(queryDeletedMessageContainer()).toBeNull();
 
-    component.message = { ...message, deleted_at: new Date() };
+    component.message = { ...message, deleted_at: dateToNs(new Date()) };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -1022,7 +1022,7 @@ describe('MessageComponent', () => {
   });
 
   it(`should display edited flag if message was edited, edited info should be collapsed`, () => {
-    component.message!.message_text_updated_at = new Date();
+    component.message!.message_text_updated_at = dateToNs(new Date());
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -1036,7 +1036,7 @@ describe('MessageComponent', () => {
   });
 
   it(`should display edited flag if message was edited, display timestamp if clicked`, () => {
-    component.message!.message_text_updated_at = new Date();
+    component.message!.message_text_updated_at = dateToNs(new Date());
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     queryMessageInner()?.click();

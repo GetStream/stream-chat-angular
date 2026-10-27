@@ -108,7 +108,7 @@
               *ngTemplateOutlet="
                 dateSeparator;
                 context: {
-                  date: message.created_at,
+                  date: toDate(message.created_at),
                   parsedDate: parseDate(message.created_at)
                 }
               "
@@ -155,7 +155,7 @@
               *ngTemplateOutlet="
                 dateSeparator;
                 context: {
-                  date: messages[i + 1].created_at,
+                  date: toDate(messages[i + 1].created_at),
                   parsedDate: parseDate(messages[i + 1].created_at)
                 }
               "

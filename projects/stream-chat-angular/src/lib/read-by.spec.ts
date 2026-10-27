@@ -7,7 +7,7 @@ describe('getReadBy', () => {
     const sender = { id: 'sender', name: 'Tess' };
 
     const message = {
-      created_at: new Date('2021-09-14T13:08:30.004112Z'),
+      created_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
       user: sender,
     } as unknown as StreamMessage;
     const channel = {
@@ -59,7 +59,7 @@ describe('getReadBy', () => {
     const sender = { id: 'sender', name: 'Tess' };
 
     const message = {
-      created_at: new Date('2021-09-14T13:08:30.004112Z'),
+      created_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
       user: sender,
     } as unknown as StreamMessage;
 

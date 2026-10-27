@@ -11,7 +11,6 @@ import type {
   LocalMessage,
   MessageResponse,
   ReactionGroupResponse,
-  SortParamRequest,
   ReactionResponse,
   UserResponse,
 } from 'stream-chat';
@@ -27,43 +26,14 @@ export type CustomTrigger = {
   };
 };
 
-/**
- * Message date fields that stream-chat stores as `TimestampNS` (unix nanoseconds), the SDK converts these to `Date` objects
- */
-export type MessageDateFields =
-  | 'created_at'
-  | 'updated_at'
-  | 'deleted_at'
-  | 'pinned_at'
-  | 'pin_expires'
-  | 'message_text_updated_at';
-
-export type MessageWithDates<T extends MessageResponse = MessageResponse> =
-  Omit<T, MessageDateFields | 'quoted_message'> & {
-    created_at: Date;
-    updated_at: Date;
-    deleted_at?: Date;
-    pinned_at?: Date;
-    pin_expires?: Date;
-    message_text_updated_at?: Date;
-  };
-
-export type StreamMessage = MessageWithDates<LocalMessage> & {
+export type StreamMessage = LocalMessage & {
   readBy: UserResponse[];
   translation?: string;
   errorStatusCode?: number;
-  quoted_message?: MessageWithDates & { translation?: string };
+  quoted_message?: MessageResponse & { translation?: string };
 };
 
 export type AppSettings = Partial<AppResponseFields>;
-
-/**
- * Channel sort, either in the format expected by stream-chat (`[{ field: 'last_message_at', direction: -1 }]`) or in the legacy object format (`{ last_message_at: -1 }`)
- */
-export type ChannelSort =
-  | SortParamRequest[]
-  | Record<string, 1 | -1>
-  | Record<string, 1 | -1>[];
 
 export type MessageListPaginationState = {
   /**
@@ -138,7 +108,7 @@ export type ChannelPreviewContext = {
 };
 
 export type ChannelPreviewInfoContext = ChannelPreviewContext & {
-  latestMessage?: StreamMessage;
+  latestMessage?: LocalMessage;
   /**
    * The text of the latest message, or some meta information (for example: "Nothing yet")
    */
@@ -518,7 +488,7 @@ export type MessageTextContext = {
     | StreamMessage
     | undefined
     | MessageResponse
-    | (MessageWithDates & { translation?: string });
+    | (MessageResponse & { translation?: string });
   isQuoted: boolean;
   shouldTranslate: boolean;
 };

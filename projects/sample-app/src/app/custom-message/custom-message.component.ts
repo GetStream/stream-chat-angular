@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { nsToDate } from 'stream-chat';
 import { ChatClientService, StreamMessage } from 'stream-chat-angular';
 
 @Component({
@@ -16,5 +17,9 @@ export class CustomMessageComponent {
 
   get isSentByCurrentUser() {
     return this.message?.user?.id === this.userId;
+  }
+
+  get createdAt() {
+    return this.message ? nsToDate(this.message.created_at) : undefined;
   }
 }

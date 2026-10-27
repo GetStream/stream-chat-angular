@@ -1,7 +1,7 @@
 import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Channel, LocalMessage } from 'stream-chat';
+import { Channel, LocalMessage, nsToDate } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChatClientService } from '../chat-client.service';
@@ -11,8 +11,6 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { getReadBy } from '../read-by';
 import { isOnSeparateDate } from '../is-on-separate-date';
 import { DateParserService } from '../date-parser.service';
-import { convertMessageDatesToDate } from '../message-dates';
-import { MessageWithDates } from '../types';
 
 /**
  * The `ChannelPreview` component displays a channel preview in the channel list, it consists of the image, name and latest message of the channel.
@@ -34,7 +32,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   latestMessageText: string = 'streamChat.Nothing yet...';
   latestMessageStatus?: 'delivered' | 'read';
   latestMessageTime?: string;
-  latestMessage?: MessageWithDates<LocalMessage>;
+  latestMessage?: LocalMessage;
   displayAs: 'text' | 'html';
   userId?: string;
   private subscriptions: (Subscription | { unsubscribe: () => void })[] = [];
@@ -132,9 +130,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
   }
 
   private setLatestMessage(localMessage?: LocalMessage) {
-    const message = localMessage
-      ? convertMessageDatesToDate(localMessage)
-      : undefined;
+    const message = localMessage;
     this.latestMessage = message;
     if (!message) {
       this.latestMessageText = 'streamChat.Nothing yet...';
@@ -153,12 +149,10 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.latestMessageText = `📊 ${message.poll?.name}`;
     }
     if (this.latestMessage && this.latestMessage.type === 'regular') {
-      this.latestMessageTime = isOnSeparateDate(
-        new Date(),
-        this.latestMessage.created_at
-      )
-        ? this.dateParser.parseDate(this.latestMessage.created_at)
-        : this.dateParser.parseTime(this.latestMessage.created_at);
+      const createdAt = nsToDate(this.latestMessage.created_at);
+      this.latestMessageTime = isOnSeparateDate(new Date(), createdAt)
+        ? this.dateParser.parseDate(createdAt)
+        : this.dateParser.parseTime(createdAt);
     } else {
       this.latestMessageTime = undefined;
     }

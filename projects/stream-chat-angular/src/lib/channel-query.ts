@@ -7,7 +7,6 @@ import {
 import { ChannelService } from './channel.service';
 import {
   ChannelQueryResult,
-  ChannelSort,
   ChannelQueryType,
   NextPageConfiguration,
 } from './types';
@@ -31,7 +30,9 @@ export class ChannelQuery {
     private chatService: ChatClientService,
     private channelService: ChannelService,
     private filters: ChannelFilters,
-    private sort: ChannelSort = [{ field: 'last_message_at', direction: -1 }],
+    private sort: SortParamRequest[] = [
+      { field: 'last_message_at', direction: -1 },
+    ],
     private options: ChannelOptions = {
       limit: 25,
       state: true,
@@ -69,7 +70,7 @@ export class ChannelQuery {
     const channels = await this.chatService.chatClient.queryChannelsAndHydrate({
       ...options,
       filter_conditions: filters,
-      sort: toSortParams(this.sort),
+      sort: this.sort,
     });
     this.setNextPageConfiguration(channels);
 
@@ -103,23 +104,3 @@ export class ChannelQuery {
     }
   }
 }
-
-/**
- * Converts the sort parameter to the format expected by stream-chat (`[{ field, direction }]`)
- * @param sort
- * @returns the sort in `SortParamRequest[]` format
- */
-export const toSortParams = (sort?: ChannelSort): SortParamRequest[] => {
-  if (!sort) {
-    return [];
-  }
-  const items = Array.isArray(sort) ? sort : [sort];
-  return items.flatMap((item) => {
-    if ('field' in item && typeof item.field === 'string') {
-      return [item as SortParamRequest];
-    }
-    return Object.entries(item as Record<string, 1 | -1>).map(
-      ([field, direction]) => ({ field, direction })
-    );
-  });
-};

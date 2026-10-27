@@ -1,3 +1,4 @@
+import { nsToDate, TimestampNS } from 'stream-chat';
 import { GroupStyleOptions, StreamMessage } from '../types';
 
 export type GroupStyle = '' | 'middle' | 'top' | 'bottom' | 'single';
@@ -62,7 +63,9 @@ export const getGroupStyles = (
   return '';
 };
 
-const isOnSameDay = (date1: Date, date2: Date) => {
+const isOnSameDay = (timestamp1: TimestampNS, timestamp2: TimestampNS) => {
+  const date1 = nsToDate(timestamp1);
+  const date2 = nsToDate(timestamp2);
   return (
     date1.getFullYear() === date2.getFullYear() &&
     date1.getMonth() === date2.getMonth() &&

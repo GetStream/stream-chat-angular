@@ -36,7 +36,12 @@ import {
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
-import { MessageResponse, UserResponse } from 'stream-chat';
+import {
+  MessageResponse,
+  nsToDate,
+  TimestampNS,
+  UserResponse,
+} from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
@@ -138,7 +143,7 @@ export class MessageListComponent
   private usersTypingInThread$!: Observable<UserResponse[]>;
   private isLatestMessageInList = true;
   private channelId?: string;
-  private parsedDates = new Map<Date, string>();
+  private parsedDates = new Map<TimestampNS, string>();
   private isViewInited = false;
   private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
     typeof setTimeout
@@ -569,13 +574,17 @@ export class MessageListComponent
     return message.user?.id === this.chatClientService.chatClient.user?.id;
   }
 
-  parseDate(date: Date) {
-    if (this.parsedDates.has(date)) {
-      return this.parsedDates.get(date);
+  parseDate(timestamp: TimestampNS) {
+    if (this.parsedDates.has(timestamp)) {
+      return this.parsedDates.get(timestamp);
     }
-    const parsedDate = this.dateParser.parseDate(date);
-    this.parsedDates.set(date, parsedDate);
+    const parsedDate = this.dateParser.parseDate(nsToDate(timestamp));
+    this.parsedDates.set(timestamp, parsedDate);
     return parsedDate;
+  }
+
+  toDate(timestamp: TimestampNS) {
+    return nsToDate(timestamp);
   }
 
   get replyCountParam() {
@@ -928,6 +937,9 @@ export class MessageListComponent
     if (!message || !nextMessage) {
       return false;
     }
-    return isOnSeparateDate(message.created_at, nextMessage.created_at);
+    return isOnSeparateDate(
+      nsToDate(message.created_at),
+      nsToDate(nextMessage.created_at)
+    );
   }
 }

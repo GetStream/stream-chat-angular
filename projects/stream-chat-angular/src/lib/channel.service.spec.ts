@@ -12,6 +12,7 @@ import {
   Event,
   LocalMessage,
   ReactionResponse,
+  SortParamRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -29,13 +30,8 @@ import {
   MockThread,
 } from './mocks';
 import { NotificationService } from './notification.service';
-import { convertStreamMessageToLocalMessage } from './message-dates';
-import {
-  AttachmentUpload,
-  ChannelSort,
-  MessageInput,
-  StreamMessage,
-} from './types';
+import { toLocalMessage } from './local-message';
+import { AttachmentUpload, MessageInput, StreamMessage } from './types';
 
 type TestChatClient = Omit<
   MockStreamChatClient,
@@ -53,7 +49,7 @@ describe('ChannelService', () => {
   let logger: { warn: jasmine.Spy; error: jasmine.Spy; info: jasmine.Spy };
   let init: (
     c?: Channel[],
-    sort?: ChannelSort,
+    sort?: SortParamRequest[],
     options?: ChannelOptions,
     mockChannelQuery?: Function,
     shouldSetActiveChannel?: boolean
@@ -72,7 +68,7 @@ describe('ChannelService', () => {
     new Promise((resolve) => {
       setTimeout(resolve, service['markReadThrottleTime']);
     });
-  const toLocal = (m: StreamMessage) => convertStreamMessageToLocalMessage(m);
+  const toLocal = (m: StreamMessage) => toLocalMessage(m);
   const mockPaginator = (c: Channel) =>
     c.messagePaginator as unknown as MockMessagePaginator;
 
@@ -113,7 +109,7 @@ describe('ChannelService', () => {
     service = TestBed.inject(ChannelService);
     init = async (
       channels?: Channel[],
-      sort?: ChannelSort,
+      sort?: SortParamRequest[],
       options?: ChannelOptions,
       mockChannelQuery?: Function,
       shouldSetActiveChannel?: boolean
@@ -130,23 +126,30 @@ describe('ChannelService', () => {
     };
   });
 
-  it('should use provided sort params', async () => {
-    const sort: ChannelSort = { last_message_at: -1 };
+  it('should pass the provided sort params to stream-chat unchanged', async () => {
+    const sort: SortParamRequest[] = [
+      { field: 'last_message_at', direction: -1 },
+    ];
     await init(undefined, sort);
 
-    expect(mockChatClient.queryChannelsAndHydrate).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        sort: [{ field: 'last_message_at', direction: -1 }],
-      })
-    );
+    expect(
+      mockChatClient.queryChannelsAndHydrate.calls.mostRecent().args[0].sort
+    ).toBe(sort);
 
     mockChatClient.queryChannelsAndHydrate.calls.reset();
     service.reset();
-    await init(undefined, [{ field: 'updated_at', direction: 1 }]);
+    const multiFieldSort: SortParamRequest[] = [
+      { field: 'pinned_at', direction: -1 },
+      { field: 'updated_at', direction: 1 },
+    ];
+    await init(undefined, multiFieldSort);
 
     expect(mockChatClient.queryChannelsAndHydrate).toHaveBeenCalledWith(
       jasmine.objectContaining({
-        sort: [{ field: 'updated_at', direction: 1 }],
+        sort: [
+          { field: 'pinned_at', direction: -1 },
+          { field: 'updated_at', direction: 1 },
+        ],
       })
     );
   });
@@ -563,7 +566,7 @@ describe('ChannelService', () => {
     expect(
       (pinnedMessagesSpy.calls.mostRecent().args[0] as StreamMessage[])[0]
         .created_at
-    ).toEqual(jasmine.any(Date));
+    ).toBe(pinnedMessages[0].created_at);
     expect(typingUsersSpy).toHaveBeenCalledWith([]);
     expect(typingUsersInThreadSpy).toHaveBeenCalledWith([]);
     expect(channelSwitchStateSpy.calls.count()).toBe(2);
@@ -640,7 +643,7 @@ describe('ChannelService', () => {
     expect(result.length).toBe(messages.length);
     result.forEach((m, i) => {
       expect(m.id).toEqual(messages[i].id);
-      expect(m.created_at).toEqual(jasmine.any(Date));
+      expect(m.created_at).toBe(messages[i].created_at);
     });
   });
 
@@ -1085,7 +1088,7 @@ describe('ChannelService', () => {
       jasmine.arrayContaining([
         jasmine.objectContaining({
           id: message.id,
-          deleted_at: nsToDate(dateToNs(deletedAt)),
+          deleted_at: dateToNs(deletedAt),
         }),
       ])
     );
@@ -1908,7 +1911,7 @@ describe('ChannelService', () => {
   it('should update message', async () => {
     const message = mockMessage();
     mockChatClient.updateMessage.and.resolveTo({
-      message: convertStreamMessageToLocalMessage(message),
+      message: toLocalMessage(message),
     });
     // @ts-expect-error we exclude this
     delete message.readBy;
@@ -1932,7 +1935,7 @@ describe('ChannelService', () => {
     const message = mockMessage();
     mockChatClient.updateMessage.and.resolveTo({
       message: {
-        ...convertStreamMessageToLocalMessage(message),
+        ...toLocalMessage(message),
         type: 'error',
         moderation: { action: 'bounce' },
       },
@@ -1971,7 +1974,7 @@ describe('ChannelService', () => {
   it('should update message - #beforeUpdateMessage is provided', async () => {
     const message = mockMessage();
     mockChatClient.updateMessage.and.resolveTo({
-      message: convertStreamMessageToLocalMessage(message),
+      message: toLocalMessage(message),
     });
     const spy = jasmine.createSpy();
     service.beforeUpdateMessage = spy;
@@ -1994,7 +1997,7 @@ describe('ChannelService', () => {
   it('should remove translation object and readyBy before updating message', async () => {
     const message = mockMessage();
     mockChatClient.updateMessage.and.resolveTo({
-      message: convertStreamMessageToLocalMessage(message),
+      message: toLocalMessage(message),
     });
     await service.updateMessage({
       ...message,
@@ -2607,14 +2610,14 @@ describe('ChannelService', () => {
       jasmine.objectContaining({ id: message.id, text: message.text })
     );
 
-    // LocalMessage is converted to StreamMessage
+    // LocalMessage is converted to StreamMessage, dates stay TimestampNS
     const localMessage = getActiveChannel().messagePaginator.items![0];
     service.selectMessageToQuote(localMessage);
 
     expect(spy).toHaveBeenCalledWith(
       jasmine.objectContaining({
         id: localMessage.id,
-        created_at: jasmine.any(Date),
+        created_at: localMessage.created_at,
       })
     );
   });

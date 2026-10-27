@@ -91,14 +91,20 @@ channelService.init({ type: "messaging", "custom.color": "green" });
 
 ### Sort
 
-`ChannelService.init`'s `sort` parameter (and `ChannelQuery`'s constructor) now uses the SDK's own `ChannelSort` type, exported by `stream-chat-angular` (it's no longer exported by `stream-chat`). It accepts the v10 format and the previous object format, so existing code keeps working:
+`ChannelService.init`'s `sort` parameter (and `ChannelQuery`'s constructor) now takes the v10 sort format: an array of `{ field, direction }` objects (`SortParamRequest[]` from `stream-chat`). The object format (`{ last_message_at: -1 }`) is no longer accepted, and the `ChannelSort` type no longer exists (it was exported by `stream-chat` v9).
 
 ```ts
-import { ChannelSort } from "stream-chat-angular";
+import { SortParamRequest } from "stream-chat";
 
-const sort: ChannelSort = [{ field: "last_message_at", direction: -1 }]; // v10 format
-const legacySort: ChannelSort = { last_message_at: -1 }; // still accepted
+// Before
+channelService.init(filters, { last_message_at: -1 });
+
+// After
+const sort: SortParamRequest[] = [{ field: "last_message_at", direction: -1 }];
+channelService.init(filters, sort);
 ```
+
+The order of the array defines the sort priority, the same as the key order of the old object format.
 
 ### Custom channel queries (`initWithCustomQuery`)
 
@@ -150,20 +156,30 @@ Custom user fields are under `user.custom`. `ChannelService.addReaction`'s `cust
 
 ## `StreamMessage` and other message types
 
-`StreamMessage` is now based on the v10 `LocalMessage` type instead of `FormatMessageResponse` (removed in v10). Date fields are still `Date` objects in `StreamMessage`: the SDK converts them from the v10 format (`TimestampNS`, unix nanoseconds).
+`StreamMessage` is now based on the v10 `LocalMessage` type instead of `FormatMessageResponse` (removed in v10). The SDK doesn't convert the date fields: they are in the v10 format, `TimestampNS` (unix nanoseconds, a branded `number`), the same as in `stream-chat`. Use the `nsToDate` helper exported by `stream-chat` if you need a `Date` (and `dateToNs` for the other direction).
+
+```ts
+import { nsToDate } from "stream-chat";
+
+// Before
+const sentAt = message.created_at.toLocaleString();
+
+// After
+const sentAt = nsToDate(message.created_at).toLocaleString();
+```
+
+In templates, convert the date in the component (or with your own pipe) before passing it to Angular's `date` pipe: the pipe treats numbers as milliseconds, so it would display a wrong date for a `TimestampNS`.
 
 | Change                                                                                                        | Before                                  | After                                                                                  |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
-| Base type                                                                                                     | `FormatMessageResponse`                 | `MessageWithDates<LocalMessage>` (exported by `stream-chat-angular`)                   |
-| Date fields (`created_at`, `updated_at`, `deleted_at`, `pinned_at`, `pin_expires`, `message_text_updated_at`) | `Date` (or `null`)                      | `Date` or `undefined` (never `null`)                                                   |
-| `quoted_message`                                                                                              | `MessageResponseBase & { translation }` | `MessageWithDates & { translation }` (dates are `Date` objects)                        |
+| Base type                                                                                                     | `FormatMessageResponse`                 | `LocalMessage`                                                                         |
+| Date fields (`created_at`, `updated_at`, `deleted_at`, `pinned_at`, `pin_expires`, `message_text_updated_at`) | `Date` (or `null`)                      | `TimestampNS` (unix nanoseconds), optional fields are `undefined` (never `null`)       |
+| `quoted_message`                                                                                              | `MessageResponseBase & { translation }` | `MessageResponse & { translation }` (dates are `TimestampNS`)                          |
 | Custom fields                                                                                                 | top-level                               | under `custom`                                                                         |
 | `moderation_details`                                                                                          | moderation result (v1)                  | removed, use `moderation` (see [Moderation](#moderation-bounced-and-blocked-messages)) |
 | `__html`                                                                                                      | set on message previews                 | removed                                                                                |
 
-New exported types: `MessageDateFields` (names of the converted date fields) and `MessageWithDates<T>`.
-
-If you need the v10 message format (for example to call `stream-chat` APIs), the raw messages are available on the channel's paginator: `channel.messagePaginator.getItem(message.id)`. If you work with v10 objects directly, use the `nsToDate` and `dateToNs` helpers exported by `stream-chat` to convert dates.
+`DateParserService` (and custom date parsers) still work with `Date` objects; the SDK converts the message dates before calling it. The date separator template context (`DateSeparatorContext.date`) is also a `Date`.
 
 Other message-related types that are no longer exported by `stream-chat`: `FormatMessageResponse` (use `LocalMessage`), `MessageResponseBase` (use `MessageResponse`), `DraftMessagePayload` (use `MessageRequest`), `CommandResponse` (use `Command`). See the [type rename table](https://github.com/GetStream/stream-chat-js/blob/release-v10/ai-docs/v10-breaking-changes.md#type-rename-table).
 
@@ -196,7 +212,7 @@ The method signature is unchanged, but it now uses `stream-chat` v10's message p
 
 ### Channel preview
 
-`ChannelPreviewComponent.latestMessage`'s type changed from `FormatMessageResponse` to `MessageWithDates<LocalMessage>`. The latest message now comes from `channel.messagePaginator`, so custom channel preview templates no longer need `message.new` / `message.updated` / `message.deleted` listeners to stay up to date.
+`ChannelPreviewComponent.latestMessage` (and `ChannelPreviewInfoContext.latestMessage`) changed from `FormatMessageResponse` to `LocalMessage` (dates are `TimestampNS`). The latest message now comes from `channel.messagePaginator`, so custom channel preview templates no longer need `message.new` / `message.updated` / `message.deleted` listeners to stay up to date.
 
 ## Threads
 
@@ -286,15 +302,15 @@ v10 messages no longer have `moderation_details`. Bounced messages are detected 
 
 ## Other type changes
 
-| Type / API                                       | Before                                                          | After                                                                                 |
-| ------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `ChatClientService.appSettings$` / `AppSettings` | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`)               |
-| `ChannelService.activeChannelMessages` getter    | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `(StreamMessage \| MessageResponse \| LocalMessage)[]`                                |
-| `ChannelService.selectMessageToQuote`            | `StreamMessage \| MessageResponse \| undefined`                 | also accepts `LocalMessage`                                                           |
-| `MessageTextContext.message`                     | `StreamMessage \| MessageResponseBase \| undefined`             | `StreamMessage \| MessageResponse \| MessageWithDates & { translation } \| undefined` |
-| `ChannelSort`                                    | from `stream-chat`                                              | from `stream-chat-angular`                                                            |
-| `getChannelDisplayText(channel, user)`           | `user: UserResponse`                                            | `user?: { id?: string }`                                                              |
-| `listUsers(users)`                               | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                              |
+| Type / API                                       | Before                                                          | After                                                                   |
+| ------------------------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `ChatClientService.appSettings$` / `AppSettings` | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`) |
+| `ChannelService.activeChannelMessages` getter    | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `(StreamMessage \| MessageResponse \| LocalMessage)[]`                  |
+| `ChannelService.selectMessageToQuote`            | `StreamMessage \| MessageResponse \| undefined`                 | also accepts `LocalMessage`                                             |
+| `MessageTextContext.message`                     | `StreamMessage \| MessageResponseBase \| undefined`             | `StreamMessage \| MessageResponse \| undefined`                         |
+| `ChannelSort`                                    | from `stream-chat`                                              | removed, use `SortParamRequest[]` from `stream-chat`                    |
+| `getChannelDisplayText(channel, user)`           | `user: UserResponse`                                            | `user?: { id?: string }`                                                |
+| `listUsers(users)`                               | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                |
 
 ## Translations
 
@@ -316,7 +332,7 @@ These changes don't require code changes, but your app may behave differently:
 - `ChannelService.activeChannelMessagesPaginationState$` and `activeThreadMessagesPaginationState$`: pagination state of the message lists (`MessageListPaginationState`: `hasMoreOlder`, `hasMoreNewer`, `isLoading`, `error`).
 - `ChannelService.jumpToFirstUnreadMessage()`: jumps to the first unread message of the active channel (uses `stream-chat`'s unread state).
 - `ChannelService.reloadActiveChannelMessages()`: retries loading the messages of the active channel (for example after an error).
-- `ChannelSort`, `MessageListPaginationState`, `MessageDateFields`, `MessageWithDates`, `AppSettings` types.
+- `MessageListPaginationState` and `AppSettings` types.
 
 ## Direct usage of the stream-chat client
 
