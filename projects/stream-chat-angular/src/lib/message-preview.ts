@@ -20,7 +20,9 @@ export const createMessagePreview = (
   const clientSideId = `${user.id}-${uuidv4()}`;
 
   const now = nowNs();
-  return {
+  const preview: LocalMessage = {
+    // Set by the caller, the preview doesn't know which channel it belongs to
+    cid: '',
     created_at: now,
     updated_at: now,
     html: text,
@@ -39,5 +41,14 @@ export const createMessagePreview = (
     quoted_message_id: quotedMessageId,
     poll_id: pollId,
     custom: customData ?? {},
-  } as unknown as LocalMessage;
+    deleted_reply_count: 0,
+    reply_count: 0,
+    mentioned_channel: false,
+    mentioned_here: false,
+    pinned: false,
+    shadowed: false,
+    silent: false,
+    restricted_visibility: [],
+  };
+  return preview;
 };

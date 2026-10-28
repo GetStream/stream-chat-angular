@@ -13,6 +13,7 @@ import {
   LocalMessage,
   ReactionResponse,
   SortParamRequest,
+  StreamAPIError,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -32,6 +33,17 @@ import {
 import { NotificationService } from './notification.service';
 import { toLocalMessage } from './local-message';
 import { AttachmentUpload, MessageInput, StreamMessage } from './types';
+
+// The error stream-chat v10 throws for API errors (see api-client.ts)
+const apiError = (message: string, code = 4, status = 400) =>
+  new StreamAPIError(message, {
+    code,
+    status,
+    response: {
+      data: { code, message, StatusCode: status },
+      status,
+    } as unknown as StreamAPIError['response'],
+  });
 
 type TestChatClient = Omit<
   MockStreamChatClient,
@@ -223,7 +235,7 @@ describe('ChannelService', () => {
     const notificationSpy = jasmine.createSpy();
     notificationService.notifications$.subscribe(notificationSpy);
     notificationSpy.calls.reset();
-    const error = 'there was an error';
+    const error = apiError('QueryChannels failed with error: "error"');
 
     await expectAsync(
       init(undefined, undefined, undefined, () =>
@@ -249,7 +261,9 @@ describe('ChannelService', () => {
 
     await expectAsync(
       init(undefined, undefined, undefined, () =>
-        mockChatClient.queryChannels.and.rejectWith('there was an error')
+        mockChatClient.queryChannels.and.rejectWith(
+          apiError('QueryChannels failed with error: "error"')
+        )
       )
     ).toBeRejected();
 
@@ -283,12 +297,13 @@ describe('ChannelService', () => {
     expect(calls[2].args[0].state).toBe('success');
 
     spy.calls.reset();
+    const error = apiError('QueryChannels failed with error: "error"');
 
     await expectAsync(
       init(undefined, undefined, undefined, () =>
-        mockChatClient.queryChannels.and.rejectWith('there was an error')
+        mockChatClient.queryChannels.and.rejectWith(error)
       )
-    ).toBeRejected();
+    ).toBeRejectedWith(error);
 
     calls = spy.calls.all();
 
@@ -296,7 +311,7 @@ describe('ChannelService', () => {
 
     expect(calls[1].args[0]).toEqual({
       state: 'error',
-      error: 'there was an error',
+      error,
     });
 
     /* eslint-enable  @typescript-eslint/no-unsafe-member-access */
@@ -612,7 +627,7 @@ describe('ChannelService', () => {
     const channel = generateMockChannels(1)[0];
     channel.cid = 'not-initialized';
     (channel as unknown as { initialized: boolean }).initialized = false;
-    const error = new Error('watch failed');
+    const error = apiError('GetOrCreateChannel failed with error: "error"');
     spyOn(channel, 'watch').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -2121,16 +2136,12 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe((m) => {
       latestMessage = m[m.length - 1];
     });
-    spyOn(channel, 'sendMessage').and.rejectWith({
-      code: 4,
-      status: 400,
-      response: {
-        data: {
-          message:
-            'SendMessage failed with error: "a message with ID zitaszuperagetstreamio-9005f6d8-aeb7-42a1-984c-921f94567759 already exists"',
-        },
-      },
-    });
+    spyOn(channel, 'sendMessage').and.rejectWith(
+      new StreamAPIError(
+        'SendMessage failed with error: "a message with ID zitaszuperagetstreamio-9005f6d8-aeb7-42a1-984c-921f94567759 already exists"',
+        { code: 4, status: 400, response: undefined }
+      )
+    );
     spyOn(channel.messagePaginator, 'ingestItem').and.callThrough();
     await service.resendMessage(latestMessage);
 
@@ -2277,25 +2288,17 @@ describe('ChannelService', () => {
       ({ file }: { file: File }) => {
         switch (file.name) {
           case 'file_error.jpg':
-            return Promise.reject({
-              response: {
-                data: {
-                  code: 4,
-                  message:
-                    'UploadImage failed with error: "File extension .jpg is not supported"',
-                },
-              },
-            });
+            return Promise.reject(
+              apiError(
+                'UploadImage failed with error: "File extension .jpg is not supported"'
+              )
+            );
           case 'file_too_big.jpg':
-            return Promise.reject({
-              response: {
-                data: {
-                  code: 4,
-                  message:
-                    'UploadImage failed with error: "File size is above the size limit (1048576 bytes)"',
-                },
-              },
-            });
+            return Promise.reject(
+              apiError(
+                'UploadImage failed with error: "File size is above the size limit (1048576 bytes)"'
+              )
+            );
           default:
             return Promise.resolve({
               file: 'http://url/to/image',
@@ -2308,15 +2311,13 @@ describe('ChannelService', () => {
       ({ file }: { file: File }) => {
         switch (file.name) {
           case 'file_error.pdf':
-            return Promise.reject({
-              response: {
-                data: {
-                  code: 22,
-                  message:
-                    'UploadFile failed with error: "max upload size of 50MB exceeded"',
-                },
-              },
-            });
+            return Promise.reject(
+              apiError(
+                'UploadFile failed with error: "max upload size of 50MB exceeded"',
+                22,
+                413
+              )
+            );
           default:
             return Promise.resolve({
               file: 'http://url/to/file',
@@ -2997,7 +2998,7 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe(messagesSpy);
     messagesSpy.calls.reset();
     const paginator = mockPaginator(getActiveChannel());
-    const error = new Error();
+    const error = apiError('GetOrCreateChannel failed with error: "error"');
     spyOn(paginator, 'jumpToMessage').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -3006,6 +3007,34 @@ describe('ChannelService', () => {
 
     expect(jumpToMessageIdSpy).not.toHaveBeenCalled();
     expect(messagesSpy).not.toHaveBeenCalled();
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Message not found'
+    );
+    expect(service.isMessageLoadingInProgress).toBeFalse();
+  });
+
+  it(`should display error notification if message couldn't be loaded - paginator doesn't throw API errors`, async () => {
+    await init();
+    const jumpToMessageIdSpy = jasmine.createSpy();
+    service.jumpToMessage$.subscribe(jumpToMessageIdSpy);
+    jumpToMessageIdSpy.calls.reset();
+    const paginator = mockPaginator(getActiveChannel());
+    // By default (throwErrors: false) the stream-chat paginator records the error and resolves to false
+    spyOn(paginator, 'jumpToMessage').and.callFake(() => {
+      paginator.state.partialNext({
+        lastQueryError: apiError(
+          'GetOrCreateChannel failed with error: "error"',
+          -1,
+          500
+        ),
+      });
+      return Promise.resolve(false);
+    });
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+    await expectAsync(service.jumpToMessage('1232121123')).toBeRejected();
+
+    expect(jumpToMessageIdSpy).not.toHaveBeenCalled();
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message not found'
     );
@@ -3124,7 +3153,7 @@ describe('ChannelService', () => {
   it('should jump to first unread message - error', async () => {
     await init();
     const paginator = mockPaginator(getActiveChannel());
-    const error = new Error('error');
+    const error = apiError('GetOrCreateChannel failed with error: "error"');
     spyOn(paginator, 'jumpToTheFirstUnreadMessage').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -3136,6 +3165,47 @@ describe('ChannelService', () => {
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message not found'
     );
+    expect(service.isMessageLoadingInProgress).toBeFalse();
+  });
+
+  it(`should jump to first unread message - error, paginator doesn't throw API errors`, async () => {
+    await init();
+    const paginator = mockPaginator(getActiveChannel());
+    const error = apiError(
+      'GetOrCreateChannel failed with error: "error"',
+      -1,
+      500
+    );
+    spyOn(paginator, 'jumpToTheFirstUnreadMessage').and.callFake(() => {
+      paginator.state.partialNext({ lastQueryError: error });
+      return Promise.resolve(false);
+    });
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+
+    await expectAsync(service.jumpToFirstUnreadMessage()).toBeRejectedWith(
+      error
+    );
+
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Message not found'
+    );
+    expect(service.isMessageLoadingInProgress).toBeFalse();
+  });
+
+  it(`shouldn't display error notification if there is no unread message to jump to`, async () => {
+    await init();
+    const paginator = mockPaginator(getActiveChannel());
+    // An error of an earlier query shouldn't be reported again
+    paginator.state.partialNext({
+      lastQueryError: apiError('earlier error', -1, 500),
+    });
+    spyOn(paginator, 'jumpToTheFirstUnreadMessage').and.resolveTo(false);
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
+
+    expect(await service.jumpToFirstUnreadMessage()).toBeFalse();
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
     expect(service.isMessageLoadingInProgress).toBeFalse();
   });
 
@@ -3252,7 +3322,7 @@ describe('ChannelService', () => {
       parentMessage: channel.messagePaginator.getItem(parentMessage.id)!,
     });
     thread.hasStaleState = true;
-    const error = new Error('reload failed');
+    const error = apiError('GetThread failed with error: "error"');
     spyOn(thread, 'reload').and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
@@ -3304,7 +3374,7 @@ describe('ChannelService', () => {
     const message = mockMessage();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification').and.callThrough();
-    const error = new Error('error');
+    const error = apiError('UpdateMessagePartial failed with error: "error"');
     mockChatClient.pinMessage.and.rejectWith(error);
 
     await expectAsync(service.pinMessage(message)).toBeRejectedWith(error);
@@ -3329,7 +3399,7 @@ describe('ChannelService', () => {
     const message = mockMessage();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification').and.callThrough();
-    const error = new Error('error');
+    const error = apiError('UpdateMessagePartial failed with error: "error"');
     mockChatClient.unpinMessage.and.rejectWith(error);
 
     await expectAsync(service.unpinMessage(message)).toBeRejectedWith(error);
@@ -3573,7 +3643,7 @@ describe('ChannelService', () => {
   it('should load message reactions - error', async () => {
     await init();
     const message = service.activeChannelMessages[0];
-    const error = new Error('Reactions loading failed');
+    const error = apiError('GetReactions failed with error: "error"');
     mockChatClient.getReactions.and.rejectWith(error);
     const notificationService = TestBed.inject(NotificationService);
     const notificationSpy = jasmine.createSpy();
@@ -3607,12 +3677,10 @@ describe('ChannelService', () => {
     const activeChannel = getActiveChannel();
     const message = service.activeChannelMessages[0];
 
-    const error = {
-      response: {
-        data: { code: 4, StatusCode: 400, message: 'You made a mistake' },
-      },
-    };
-    spyOn(activeChannel, 'markUnread').and.rejectWith(error);
+    let error = apiError('You made a mistake');
+    spyOn(activeChannel, 'markUnread').and.callFake(() =>
+      Promise.reject(error)
+    );
     const spy = jasmine.createSpy();
     const notificationService = TestBed.inject(NotificationService);
     notificationService.notifications$.subscribe(spy);
@@ -3627,8 +3695,9 @@ describe('ChannelService', () => {
       }),
     ]);
 
-    error.response.data.message =
-      'MarkUnread failed with error: "Either the message with ID "zitaszuperagetstreamio-c710c117-5a8e-4769-a43d-f6add79d8520" does not exist, or it is older than last 100 channel messages."';
+    error = apiError(
+      'MarkUnread failed with error: "Either the message with ID "zitaszuperagetstreamio-c710c117-5a8e-4769-a43d-f6add79d8520" does not exist, or it is older than last 100 channel messages."'
+    );
     spy.calls.reset();
     await expectAsync(service.markMessageUnread(message.id)).toBeRejectedWith(
       error

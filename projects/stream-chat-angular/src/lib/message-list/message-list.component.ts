@@ -144,6 +144,7 @@ export class MessageListComponent
   private isLatestMessageInList = true;
   private channelId?: string;
   private parsedDates = new Map<TimestampNS, string>();
+  private dates = new Map<TimestampNS, Date>();
   private isViewInited = false;
   private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
     typeof setTimeout
@@ -210,6 +211,7 @@ export class MessageListComponent
           this.highlightedMessageId = undefined;
           this.isUnreadNotificationVisible = false;
           this.parsedDates = new Map();
+          this.dates = new Map();
           this.resetScrollState();
           this.setMessages$();
           this.channelId = channel?.id;
@@ -584,7 +586,13 @@ export class MessageListComponent
   }
 
   toDate(timestamp: TimestampNS) {
-    return nsToDate(timestamp);
+    // Same Date object for the same timestamp, so custom date separator templates don't receive a new value on every change detection
+    let date = this.dates.get(timestamp);
+    if (!date) {
+      date = nsToDate(timestamp);
+      this.dates.set(timestamp, date);
+    }
+    return date;
   }
 
   get replyCountParam() {

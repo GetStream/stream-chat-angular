@@ -160,6 +160,11 @@ export class MessageReactionsComponent
       ];
       this.usersByReactions[this.selectedReactionType].next = response.next;
     } catch (_) {
+      const reactionType = this.selectedReactionType;
+      // If the first page couldn't be loaded, the next click on the reaction should try again
+      if (!this.usersByReactions[reactionType].users.length) {
+        delete this.usersByReactions[reactionType];
+      }
       this.selectedReactionType = undefined;
     } finally {
       this.isLoading = false;

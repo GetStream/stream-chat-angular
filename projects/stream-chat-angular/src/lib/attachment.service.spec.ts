@@ -1,6 +1,6 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { first } from 'rxjs/operators';
-import { Attachment } from 'stream-chat';
+import { Attachment, StreamAPIError } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
@@ -109,17 +109,37 @@ describe('AttachmentService', () => {
       },
     ]);
     await service.filesSelected([file] as any as FileList);
-    deleteAttachmentSpy.and.rejectWith(new Error('error'));
+    const message = 'DeleteFile failed with error: "error"';
+    deleteAttachmentSpy.and.rejectWith(
+      new StreamAPIError(message, {
+        code: 4,
+        status: 400,
+        response: {
+          data: { code: 4, message, StatusCode: 400 },
+          status: 400,
+        } as unknown as StreamAPIError['response'],
+      })
+    );
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
     let attachmentUpload!: AttachmentUpload;
     service.attachmentUploads$
       .pipe(first())
       .subscribe((uploads) => (attachmentUpload = uploads[0]));
-    const uploadedAttachmentsSpy = jasmine.createSpy('uploadedAttachmentsSpy');
-    service.attachmentUploads$.subscribe(uploadAttachmentsSpy);
-    uploadedAttachmentsSpy.calls.reset();
     await service.deleteAttachment(attachmentUpload);
 
-    expect(uploadedAttachmentsSpy).not.toHaveBeenCalled();
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith(attachmentUpload);
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Error deleting attachment'
+    );
+    let uploads!: AttachmentUpload[];
+    service.attachmentUploads$
+      .pipe(first())
+      .subscribe((value) => (uploads = value));
+
+    expect(uploads.length).toBe(1);
+    expect(uploads[0].file).toBe(file);
+    expect(uploads[0].state).toBe('success');
   });
 
   it('should remove deleted attachments after upload', fakeAsync(() => {

@@ -52,7 +52,7 @@ export class AddOptionComponent extends BasePollComponent {
         'streamChat.Failed to add option ({{ message }})',
         'error',
         undefined,
-        { message: error }
+        { message: (error as Error)?.message }
       );
       this.markForCheck();
       throw error;

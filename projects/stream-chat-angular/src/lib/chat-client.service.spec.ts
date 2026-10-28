@@ -1,5 +1,10 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
+import {
+  Event,
+  OwnUserResponse,
+  StreamAPIError,
+  StreamChat,
+} from 'stream-chat';
 import { ChatClientService } from './chat-client.service';
 import {
   mockCurrentUser,
@@ -84,7 +89,18 @@ describe('ChatClientService', () => {
 
     expect(spy).not.toHaveBeenCalled();
 
-    const error = new Error('error');
+    const error = new StreamAPIError('Token signature is invalid', {
+      code: 43,
+      status: 401,
+      response: {
+        data: {
+          code: 43,
+          message: 'Token signature is invalid',
+          StatusCode: 401,
+        },
+        status: 401,
+      } as unknown as StreamAPIError['response'],
+    });
     mockChatClient.connectUser.and.rejectWith(error);
 
     await expectAsync(service.init(apiKey, userId, userToken)).toBeRejectedWith(

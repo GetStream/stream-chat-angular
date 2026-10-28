@@ -27,6 +27,7 @@ import {
   MessageResponse,
   ReactionResponse,
   SortParamRequest,
+  StreamAPIError,
   Thread,
   UserResponse,
 } from 'stream-chat';
@@ -1109,8 +1110,10 @@ export class ChannelService {
           type,
           state: 'success',
           url: uploadResult.value.file!,
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-          thumb_url: (uploadResult.value as any).thumb_url,
+          thumb_url:
+            'thumb_url' in uploadResult.value
+              ? uploadResult.value.thumb_url
+              : undefined,
         });
       } else {
         let reason: AttachmentUploadErrorReason = 'unknown';
@@ -1324,29 +1327,20 @@ export class ChannelService {
         } as LocalMessage)
       );
       return this.getSentMessage(preview);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const stringError = JSON.stringify(error);
-      const parsedError: {
-        status?: number;
-        code?: number;
-        response?: { data?: { message?: string } };
-      } = stringError ? (JSON.parse(stringError) as { status?: number }) : {};
-
-      let isAlreadyExists = false;
-      if (isResend) {
-        if (
-          parsedError.status === 400 &&
-          parsedError.code === 4 &&
-          parsedError?.response?.data?.message?.includes('already exists')
-        ) {
-          isAlreadyExists = true;
-        }
-      }
+    } catch (error) {
+      // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
+      const apiError = error instanceof StreamAPIError ? error : undefined;
+      const isAlreadyExists =
+        isResend &&
+        apiError?.status === 400 &&
+        apiError.code === 4 &&
+        apiError.message.includes('already exists');
 
       this.errorStatusCodes.set(
         preview.id,
-        isAlreadyExists ? undefined : parsedError.status || undefined
+        isAlreadyExists
+          ? undefined
+          : (error as { status?: number } | undefined)?.status || undefined
       );
       paginator?.ingestItem({
         ...(paginator.getItem(preview.id) ?? preview),
@@ -1445,10 +1439,16 @@ export class ChannelService {
     this.isMessageLoadingInProgress = true;
     try {
       const paginator = activeChannel.messagePaginator;
+      const previousQueryError = paginator.lastQueryError;
       const isSuccess = await paginator.jumpToTheFirstUnreadMessage({
         pageSize: this.messagePageSize,
       });
       if (!isSuccess) {
+        // The paginator doesn't throw API errors, it records them as lastQueryError
+        const queryError = paginator.lastQueryError;
+        if (queryError && queryError !== previousQueryError) {
+          throw queryError;
+        }
         return false;
       }
       paginator.flushState();
@@ -1988,26 +1988,16 @@ export class ChannelService {
       });
       this.areReadEventsPaused = true;
       return response;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      const error: {
-        response?: {
-          data?: { code?: number; message?: string; StatusCode?: number };
-        };
-      } = JSON.parse(JSON.stringify(e)) as {
-        response?: {
-          data?: { code?: number; message?: string; StatusCode?: number };
-        };
-      };
-      const data = error?.response?.data;
+    } catch (e) {
+      // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
+      const apiError = e instanceof StreamAPIError ? e : undefined;
       if (
-        data &&
-        data.code === 4 &&
-        data.StatusCode === 400 &&
-        data.message?.includes('it is older than last')
+        apiError?.status === 400 &&
+        apiError.code === 4 &&
+        apiError.message.includes('it is older than last')
       ) {
         const count = /\d+ channel messages/
-          .exec(data.message)?.[0]
+          .exec(apiError.message)?.[0]
           .match(/\d+/)?.[0];
         if (count) {
           this.notificationService.addTemporaryNotification(

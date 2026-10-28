@@ -270,7 +270,7 @@ describe('MessageReactionsComponent', () => {
     });
     fixture.detectChanges();
 
-    spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
       new Error('Failed to get reactions')
     );
 
@@ -279,6 +279,22 @@ describe('MessageReactionsComponent', () => {
     tick();
 
     expect(component.selectedReactionType).toBe(undefined);
+
+    // Clicking the reaction again should retry loading the users
+    spy.and.resolveTo({
+      reactions: [
+        { type: 'wow', user: { id: 'jackid' } },
+      ] as ReactionResponse[],
+      next: undefined,
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    wowEmoji.click();
+    tick();
+
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(component.selectedReactionType).toBe('wow');
+    expect(component.usersByReactions['wow'].users.map((u) => u.id)).toEqual([
+      'jackid',
+    ]);
   }));
 
   it('should mark reaction types of current user - list', () => {

@@ -8,6 +8,7 @@ import {
   Event,
   LocalMessage,
   nowNs,
+  StreamAPIError,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -25,6 +26,17 @@ import {
 import { NotificationService } from './notification.service';
 import { StreamMessage } from './types';
 import { toLocalMessage } from './local-message';
+
+// The error stream-chat v10 throws for API errors (see api-client.ts)
+const apiError = (message: string, code = 4, status = 400) =>
+  new StreamAPIError(message, {
+    code,
+    status,
+    response: {
+      data: { code, message, StatusCode: status },
+      status,
+    } as unknown as StreamAPIError['response'],
+  });
 
 const getPaginator = (channel: Channel | undefined) =>
   channel!.messagePaginator as unknown as MockMessagePaginator;
@@ -225,7 +237,7 @@ describe('ChannelService - threads', () => {
     const parentMessage = getChannelMessages()[0];
     const thread = createThread(parentMessage.id);
     thread.hasStaleState = true;
-    const error = new Error('Network error');
+    const error = apiError('GetThread failed with error: "error"');
     spyOn(thread, 'reload').and.rejectWith(error);
     spyOn(notificationService, 'addTemporaryNotification');
     await service.setAsActiveParentMessage(parentMessage);

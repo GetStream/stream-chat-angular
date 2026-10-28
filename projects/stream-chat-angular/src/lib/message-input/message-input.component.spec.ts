@@ -16,6 +16,7 @@ import {
   dateToNs,
   DraftMessage,
   MessageResponse,
+  StreamAPIError,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
@@ -243,7 +244,20 @@ describe('MessageInputComponent', () => {
     component.message = mockMessage();
     component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
-    updateMessageSpy.and.rejectWith(new Error('Error'));
+    updateMessageSpy.and.rejectWith(
+      new StreamAPIError('UpdateMessage failed with error: "error"', {
+        code: 4,
+        status: 400,
+        response: {
+          data: {
+            code: 4,
+            message: 'UpdateMessage failed with error: "error"',
+            StatusCode: 400,
+          },
+          status: 400,
+        } as unknown as StreamAPIError['response'],
+      })
+    );
     await component.messageSent();
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
