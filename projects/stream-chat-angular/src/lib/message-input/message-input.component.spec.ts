@@ -348,6 +348,16 @@ describe('MessageInputComponent', () => {
     expect(component.textareaValue).toBe('');
   });
 
+  it('reset textarea after message is sent, even if change detection did not run after the user typed', () => {
+    const textarea = nativeElement.querySelector('textarea')!;
+    textarea.value = 'This is my message';
+    textarea.dispatchEvent(new Event('input'));
+    void component.messageSent();
+    fixture.detectChanges();
+
+    expect(textarea.value).toBe('');
+  });
+
   it('should display file upload button, if #isFileUploadEnabled is true and has permission to upload file', () => {
     expect(queryattachmentUploadButton()).not.toBeNull();
 

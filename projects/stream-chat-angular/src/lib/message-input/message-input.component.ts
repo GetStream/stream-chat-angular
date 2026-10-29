@@ -452,6 +452,8 @@ export class MessageInputComponent
     }
     const pollId = this.pollId;
     if (!this.isUpdate) {
+      // If change detection didn't run since the user typed (for example with event coalescing), the textarea binding wouldn't see the reset and the text would stay in the textarea
+      this.cdRef.detectChanges();
       this.textareaValue = '';
       this.pollId = undefined;
     }
