@@ -481,6 +481,7 @@ export type MockChannelService = {
   jumpToFirstUnreadMessage: () => Promise<boolean>;
   jumpToMessage: (id: string, parentId?: string) => void;
   clearMessageJump: () => void;
+  setIsLatestMessageVisible: (isVisible: boolean) => void;
 };
 
 type MockPaginationState = {
@@ -593,6 +594,7 @@ export const mockChannelService = (): MockChannelService => {
         isLoading: false,
       }),
     jumpToFirstUnreadMessage: () => Promise.resolve(true),
+    setIsLatestMessageVisible: () => {},
   };
 };
 

@@ -421,7 +421,6 @@ export class MessageListComponent
 
   ngAfterViewInit(): void {
     this.isViewInited = true;
-    document.addEventListener('visibilitychange', this.updateViewingLive);
     this.ngZone.runOutsideAngular(() => {
       this.scrollContainer?.nativeElement?.addEventListener('scroll', () =>
         this.scrolled()
@@ -452,11 +451,8 @@ export class MessageListComponent
   }
 
   ngOnDestroy(): void {
-    document.removeEventListener('visibilitychange', this.updateViewingLive);
     if (this.mode === 'main') {
-      this.channelService.activeChannel?.messagePaginator?.setViewingLive(
-        false
-      );
+      this.channelService.setIsLatestMessageVisible(false);
     }
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.newMessageSubscription?.unsubscribe();
@@ -662,14 +658,14 @@ export class MessageListComponent
   }
 
   /**
-   * Tells stream-chat if the user sees the latest messages (in that case new messages don't increase the unread count)
+   * Tells the channel service if the user sees the latest messages (if the channel is marked as read, new messages don't increase the unread count)
    */
   private updateViewingLive = () => {
     if (this.mode !== 'main') {
       return;
     }
-    this.channelService.activeChannel?.messagePaginator?.setViewingLive(
-      !document.hidden && !this.isUserScrolled && this.isLatestMessageInList
+    this.channelService.setIsLatestMessageVisible(
+      !this.isUserScrolled && this.isLatestMessageInList
     );
   };
 

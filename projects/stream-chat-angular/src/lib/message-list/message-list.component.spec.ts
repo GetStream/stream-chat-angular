@@ -1392,7 +1392,7 @@ describe('MessageListComponent', () => {
 
   it('should tell stream-chat if user sees the latest messages', () => {
     const paginator = getPaginator(channelServiceMock.activeChannel);
-    const spy = spyOn(paginator, 'setViewingLive').and.callThrough();
+    const spy = spyOn(channelServiceMock, 'setIsLatestMessageVisible');
     const messages = generateMockMessages();
     messages.forEach((m) => (m.cid = channelServiceMock.activeChannel!.cid));
     channelServiceMock.activeChannelMessages$.next(messages);
@@ -1427,9 +1427,8 @@ describe('MessageListComponent', () => {
     expect(spy).not.toHaveBeenCalledWith(true);
   });
 
-  it(`shouldn't call setViewingLive in thread mode`, () => {
-    const paginator = getPaginator(channelServiceMock.activeChannel);
-    const spy = spyOn(paginator, 'setViewingLive');
+  it(`shouldn't report latest message visibility in thread mode`, () => {
+    const spy = spyOn(channelServiceMock, 'setIsLatestMessageVisible');
     component.mode = 'thread';
     component.ngOnChanges({ mode: {} as SimpleChange });
     spy.calls.reset();
@@ -1444,8 +1443,7 @@ describe('MessageListComponent', () => {
   });
 
   it('should stop viewing live on destroy', () => {
-    const paginator = getPaginator(channelServiceMock.activeChannel);
-    const spy = spyOn(paginator, 'setViewingLive');
+    const spy = spyOn(channelServiceMock, 'setIsLatestMessageVisible');
     fixture.destroy();
 
     expect(spy).toHaveBeenCalledWith(false);

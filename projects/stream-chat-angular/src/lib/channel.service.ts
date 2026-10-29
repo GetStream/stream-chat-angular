@@ -472,6 +472,7 @@ export class ChannelService {
   };
   private dismissErrorNotification?: () => void;
   private areReadEventsPaused = false;
+  private isLatestMessageVisible = false;
   private markReadThrottleTime = 1050;
   private markReadTimeout?: ReturnType<typeof setTimeout>;
   private scheduledMarkReadRequest?: () => void;
@@ -600,6 +601,17 @@ export class ChannelService {
       }
     }
     this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
+    this.updateViewingLive();
+  }
+
+  /**
+   * The message list reports if the user sees the latest messages of the active channel
+   * @internal
+   * @param isVisible
+   */
+  setIsLatestMessageVisible(isVisible: boolean) {
+    this.isLatestMessageVisible = isVisible;
+    this.updateViewingLive();
   }
 
   /**
@@ -1987,6 +1999,7 @@ export class ChannelService {
         message_id: messageId,
       });
       this.areReadEventsPaused = true;
+      this.updateViewingLive();
       return response;
     } catch (e) {
       // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
@@ -2026,6 +2039,7 @@ export class ChannelService {
       unsubscribe()
     );
     this.activeChannelPaginatorSubscriptions = [];
+    this.isLatestMessageVisible = false;
     channel.messagePaginator.setViewingLive(false);
     this.latestStreamMessageById.clear();
     this.releaseActiveChannel?.();
@@ -2206,6 +2220,7 @@ export class ChannelService {
                   this.activeChannelSubject.next(
                     this.activeChannelSubject.getValue()
                   );
+                  this.updateViewingLive();
                 }
               }
             }
@@ -2512,6 +2527,20 @@ export class ChannelService {
         void this.sendMarkReadRequest(channel);
       }
     }
+  }
+
+  /**
+   * stream-chat doesn't increase the unread count while viewing live, because it expects the channel to be marked as read, so we only tell it if we mark the channel as read
+   */
+  private updateViewingLive() {
+    this.activeChannelSubject
+      .getValue()
+      ?.messagePaginator.setViewingLive(
+        this.isLatestMessageVisible &&
+          this.canSendReadEvents &&
+          this.shouldMarkActiveChannelAsRead &&
+          !this.areReadEventsPaused
+      );
   }
 
   private markReadThrottled(channel: Channel) {

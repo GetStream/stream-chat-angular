@@ -951,6 +951,48 @@ describe('ChannelService', () => {
     expect(activeChannel.markReadViaReporter).toHaveBeenCalledWith();
   });
 
+  it('should only tell stream-chat that the user views live, if the channel is marked as read', async () => {
+    await init();
+    const activeChannel = getActiveChannel();
+    const paginator = activeChannel.messagePaginator;
+    service.setIsLatestMessageVisible(true);
+
+    expect(paginator.isViewingLive).toBeTrue();
+
+    // stream-chat wouldn't increase the unread count, but we don't mark the channel as read
+    service.shouldMarkActiveChannelAsRead = false;
+
+    expect(paginator.isViewingLive).toBeFalse();
+
+    service.shouldMarkActiveChannelAsRead = true;
+
+    expect(paginator.isViewingLive).toBeTrue();
+
+    service.setIsLatestMessageVisible(false);
+
+    expect(paginator.isViewingLive).toBeFalse();
+
+    service.setIsLatestMessageVisible(true);
+    spyOn(activeChannel, 'markUnread').and.resolveTo();
+    await service.markMessageUnread('message-id');
+
+    expect(paginator.isViewingLive).toBeFalse();
+
+    service.setIsLatestMessageVisible(true);
+
+    expect(paginator.isViewingLive).toBeFalse();
+  });
+
+  it(`shouldn't tell stream-chat that the user views live, if user dosen't have 'read-events' capability`, async () => {
+    await init();
+    const activeChannel = getActiveChannel();
+    const capabilites = activeChannel.data?.own_capabilities as string[];
+    capabilites.splice(capabilites.indexOf('read-events'), 1);
+    service.setIsLatestMessageVisible(true);
+
+    expect(activeChannel.messagePaginator.isViewingLive).toBeFalse();
+  });
+
   it(`shouldn't make "markRead" call, if user dosen't have 'read-events' capability`, async () => {
     await init();
     await waitForMarkReadThrottle();
