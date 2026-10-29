@@ -9,7 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { ChatClientService } from '../chat-client.service';
-import { Poll, User } from 'stream-chat';
+import { ClientUser, Poll } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -122,7 +122,7 @@ export abstract class BasePollComponent
     markForCheck: () => void
   ): () => void;
 
-  protected get currentUser(): User | undefined {
+  protected get currentUser(): ClientUser | undefined {
     return this.chatClientService.chatClient.user;
   }
 
