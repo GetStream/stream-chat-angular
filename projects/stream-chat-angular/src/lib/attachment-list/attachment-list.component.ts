@@ -28,6 +28,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { Subscription } from 'rxjs';
 import { MessageService } from '../message.service';
+import { areAttachmentsEqualIgnoringUrlSignatures } from '../attachment-utils';
 
 /**
  * The `AttachmentList` component displays the attachments of a message
@@ -71,6 +72,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     | ImageAttachmentConfiguration
   > = new Map();
   private subscriptions: Subscription[] = [];
+  private displayedAttachments?: Attachment[];
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
@@ -94,7 +96,18 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.attachments) {
+    if (
+      changes.attachments &&
+      // Keep the displayed attachments if only the URL signatures changed (for example a reaction was added), otherwise images/videos would be reloaded
+      !(
+        this.displayedAttachments &&
+        areAttachmentsEqualIgnoringUrlSignatures(
+          this.displayedAttachments,
+          this.attachments
+        )
+      )
+    ) {
+      this.displayedAttachments = this.attachments;
       const builtInAttachments: Attachment[] = [];
       const customAttachments: Attachment[] = [];
       this.attachments.forEach((a) => {

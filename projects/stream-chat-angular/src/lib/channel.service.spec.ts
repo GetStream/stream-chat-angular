@@ -1055,60 +1055,6 @@ describe('ChannelService', () => {
     ).toEqual(pinnedMessages.map((m) => m.id));
   });
 
-  it('should keep attachments if only the signed URLs changed (e.g. reaction added)', async () => {
-    await init();
-    const channel = getActiveChannel();
-    const paginator = mockPaginator(channel);
-    const message = paginator.items![paginator.items!.length - 1];
-    paginator.ingestItem({
-      ...message,
-      attachments: [
-        {
-          type: 'image',
-          image_url: 'https://cdn.example.com/image.png?Signature=first',
-          custom: {},
-        },
-      ],
-    });
-    const before = getLatestValue(service.activeChannelMessages$).find(
-      (m) => m.id === message.id
-    )!;
-    paginator.ingestItem({
-      ...message,
-      reaction_counts: { like: 1 },
-      attachments: [
-        {
-          type: 'image',
-          image_url: 'https://cdn.example.com/image.png?Signature=second',
-          custom: {},
-        },
-      ],
-    });
-    const after = getLatestValue(service.activeChannelMessages$).find(
-      (m) => m.id === message.id
-    )!;
-
-    expect(after.reaction_counts).toEqual({ like: 1 });
-    expect(after.attachments).toBe(before.attachments);
-
-    paginator.ingestItem({
-      ...message,
-      attachments: [
-        {
-          type: 'image',
-          image_url: 'https://cdn.example.com/other-image.png?Signature=third',
-          custom: {},
-        },
-      ],
-    });
-    const changed = getLatestValue(service.activeChannelMessages$).find(
-      (m) => m.id === message.id
-    )!;
-
-    expect(changed.attachments).not.toBe(before.attachments);
-    expect(changed.attachments[0].image_url).toContain('other-image.png');
-  });
-
   it('should emit reaction updates', async () => {
     await init();
     const spy = jasmine.createSpy();

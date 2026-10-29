@@ -190,6 +190,46 @@ describe('AttachmentListComponent', () => {
     expect(queryVideos().length).toBe(1);
   });
 
+  it(`shouldn't reload images, if only the URL signatures changed (e.g. reaction added)`, () => {
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/image.png?Signature=first',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+    const imageBefore = queryImages()[0];
+
+    expect(imageBefore.src).toContain('Signature=first');
+
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/image.png?Signature=second',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(queryImages()[0]).toBe(imageBefore);
+    expect(queryImages()[0].src).toContain('Signature=first');
+
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/other-image.png?Signature=third',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(queryImages()[0].src).toContain('other-image.png');
+  });
+
   it('should filter custom attachments', () => {
     const messageService = TestBed.inject(MessageService);
     messageService.filterCustomAttachment = (attachment: Attachment) =>

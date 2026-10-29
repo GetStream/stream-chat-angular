@@ -369,7 +369,6 @@ export class ChannelService {
   private releaseActiveThread?: () => void;
   private activeThread?: Thread;
   private errorStatusCodes = new Map<string, number | undefined>();
-  private latestStreamMessageById = new Map<string, StreamMessage>();
   private streamMessageCache = new WeakMap<
     object,
     {
@@ -2070,7 +2069,6 @@ export class ChannelService {
     this.activeChannelPaginatorSubscriptions = [];
     this.isLatestMessageVisible = false;
     channel.messagePaginator.setViewingLive(false);
-    this.latestStreamMessageById.clear();
     this.releaseActiveChannel?.();
     this.releaseActiveChannel = undefined;
   }
@@ -2390,18 +2388,6 @@ export class ChannelService {
           }
         : undefined,
     };
-    // Every API response/WS event contains newly signed attachment URLs (only the query string changes), reusing the previous attachments avoids reloading images/videos (for example when a reaction is added)
-    const previousMessage = this.latestStreamMessageById.get(localMessage.id);
-    if (
-      previousMessage &&
-      this.areAttachmentsEquivalent(
-        previousMessage.attachments,
-        streamMessage.attachments
-      )
-    ) {
-      streamMessage.attachments = previousMessage.attachments;
-    }
-    this.latestStreamMessageById.set(localMessage.id, streamMessage);
     this.streamMessageCache.set(localMessage, {
       errorStatusCode,
       translationLanguage,
@@ -2449,7 +2435,6 @@ export class ChannelService {
       const readBy = getReadBy(cached.message, channel);
       if (!this.isSameUserList(readBy, cached.message.readBy)) {
         cached.message = { ...cached.message, readBy };
-        this.latestStreamMessageById.set(cached.message.id, cached.message);
         isChanged = true;
       }
     });
@@ -2467,30 +2452,6 @@ export class ChannelService {
           u.name === users2[i]?.name &&
           u.image === users2[i]?.image
       )
-    );
-  }
-
-  private areAttachmentsEquivalent(
-    attachments1: Attachment[] | undefined,
-    attachments2: Attachment[] | undefined
-  ) {
-    if (attachments1 === attachments2) {
-      return true;
-    }
-    if (
-      !attachments1 ||
-      !attachments2 ||
-      attachments1.length !== attachments2.length
-    ) {
-      return false;
-    }
-    const ignoreUrlQueryString = (_: string, value: unknown) =>
-      typeof value === 'string' && /^https?:\/\//.test(value)
-        ? value.split('?')[0]
-        : value;
-    return (
-      JSON.stringify(attachments1, ignoreUrlQueryString) ===
-      JSON.stringify(attachments2, ignoreUrlQueryString)
     );
   }
 
