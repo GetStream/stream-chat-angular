@@ -131,10 +131,8 @@ export class MessageReactionsComponent
       });
     } else {
       this.selectedReactionType = reactionType;
-      if (!this.usersByReactions[this.selectedReactionType]) {
-        this.usersByReactions[this.selectedReactionType] = {
-          users: [],
-        };
+      // The users of a reaction type are only stored after a page is loaded, if the first page couldn't be loaded, the next click on the reaction tries again
+      if (!this.usersByReactions[reactionType]) {
         await this.loadNextPageOfReactions();
       }
     }
@@ -145,27 +143,30 @@ export class MessageReactionsComponent
       return;
     }
 
+    // The modal can be closed (that resets usersByReactions) or another reaction type can be selected while the request is in progress
+    const reactionType = this.selectedReactionType;
+    const usersByReactions = this.usersByReactions;
+    const loaded = usersByReactions[reactionType];
     this.isLoading = true;
     try {
       const response = await this.messageReactionsService.queryReactions(
         this.messageId,
-        this.selectedReactionType,
-        this.usersByReactions[this.selectedReactionType].next
+        reactionType,
+        loaded?.next
       );
-      this.usersByReactions[this.selectedReactionType].users = [
-        ...this.usersByReactions[this.selectedReactionType].users,
-        ...(response.reactions
-          .map((r) => r.user)
-          .filter((u) => !!u) as UserResponse[]),
-      ];
-      this.usersByReactions[this.selectedReactionType].next = response.next;
+      usersByReactions[reactionType] = {
+        users: [
+          ...(loaded?.users ?? []),
+          ...(response.reactions
+            .map((r) => r.user)
+            .filter((u) => !!u) as UserResponse[]),
+        ],
+        next: response.next,
+      };
     } catch (_) {
-      const reactionType = this.selectedReactionType;
-      // If the first page couldn't be loaded, the next click on the reaction should try again
-      if (!this.usersByReactions[reactionType].users.length) {
-        delete this.usersByReactions[reactionType];
+      if (this.selectedReactionType === reactionType) {
+        this.selectedReactionType = undefined;
       }
-      this.selectedReactionType = undefined;
     } finally {
       this.isLoading = false;
     }

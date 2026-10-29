@@ -297,6 +297,83 @@ describe('MessageReactionsComponent', () => {
     ]);
   }));
 
+  it('should handle if the modal is closed while reaction details are loading', async () => {
+    component.messageId = 'id';
+    let rejectQuery!: (error: Error) => void;
+    spyOn(reactionsServiceMock, 'queryReactions').and.returnValue(
+      new Promise((_, reject) => (rejectQuery = reject))
+    );
+    const selection = component.reactionSelected('wow');
+    component.isOpenChange(false);
+    rejectQuery(new Error('Failed to get reactions'));
+
+    await expectAsync(selection).toBeResolved();
+    expect(component.usersByReactions).toEqual({});
+    expect(component.selectedReactionType).toBeUndefined();
+  });
+
+  it('should add the loaded users to the requested reaction type, if another type is selected while loading', async () => {
+    component.messageId = 'id';
+    const resolvers: {
+      [key: string]: (
+        response: Awaited<ReturnType<MessageReactionsService['queryReactions']>>
+      ) => void;
+    } = {};
+    spyOn(reactionsServiceMock, 'queryReactions').and.callFake(
+      (_: string, type: string) =>
+        new Promise((resolve) => (resolvers[type] = resolve))
+    );
+    const wowSelection = component.reactionSelected('wow');
+    const sadSelection = component.reactionSelected('sad');
+    resolvers['wow']({
+      reactions: [
+        { type: 'wow', user: { id: 'jackid' } },
+      ] as ReactionResponse[],
+      next: 'wow-next',
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    await wowSelection;
+
+    expect(component.selectedReactionType).toBe('sad');
+    expect(component.usersByReactions['wow'].users.map((u) => u.id)).toEqual([
+      'jackid',
+    ]);
+    expect(component.usersByReactions['wow'].next).toBe('wow-next');
+    expect(component.usersByReactions['sad']).toBeUndefined();
+
+    resolvers['sad']({
+      reactions: [
+        { type: 'sad', user: { id: 'saraid' } },
+      ] as ReactionResponse[],
+      next: undefined,
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    await sadSelection;
+
+    expect(component.usersByReactions['sad'].users.map((u) => u.id)).toEqual([
+      'saraid',
+    ]);
+  });
+
+  it(`should keep the selected reaction type and retry the failed one, if loading fails after another type is selected`, async () => {
+    component.messageId = 'id';
+    const rejecters: { [key: string]: (error: Error) => void } = {};
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.callFake(
+      (_: string, type: string) =>
+        new Promise((_resolve, reject) => (rejecters[type] = reject))
+    );
+    const wowSelection = component.reactionSelected('wow');
+    void component.reactionSelected('sad');
+    rejecters['wow'](new Error('Failed to get reactions'));
+    await wowSelection;
+
+    expect(component.selectedReactionType).toBe('sad');
+    expect(component.usersByReactions['wow']).toBeUndefined();
+
+    spy.calls.reset();
+    void component.reactionSelected('wow');
+
+    expect(spy).toHaveBeenCalledWith('id', 'wow', undefined);
+  });
+
   it('should mark reaction types of current user - list', () => {
     component.messageReactionCounts = {
       wow: 3,
