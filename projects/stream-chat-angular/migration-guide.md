@@ -212,7 +212,7 @@ The method signature is unchanged, but it now uses `stream-chat` v10's message p
 
 ### Channel preview
 
-`ChannelPreviewComponent.latestMessage` (and `ChannelPreviewInfoContext.latestMessage`) changed from `FormatMessageResponse` to `LocalMessage` (dates are `TimestampNS`). The latest message now comes from `channel.messagePaginator`, so custom channel preview templates no longer need `message.new` / `message.updated` / `message.deleted` listeners to stay up to date.
+`ChannelPreviewComponent.latestMessage` changed from `FormatMessageResponse` to `LocalMessage`, and `ChannelPreviewInfoContext.latestMessage` changed from `StreamMessage` to `LocalMessage` (dates are `TimestampNS`, and there are no `readBy` and `translation` fields). The latest message now comes from `channel.messagePaginator`, so custom channel preview templates no longer need `message.new` / `message.updated` / `message.deleted` listeners to stay up to date.
 
 ## Threads
 
@@ -268,6 +268,7 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
 - `DefaultAttachmentData` has two new fields, `duration` and `waveform_data`.
 - If you have custom attachment templates, read the fields from their new location.
 - Custom upload/delete handlers (`customImageUploadRequest`, `customFileUploadRequest`, `customImageDeleteRequest`, `customFileDeleteRequest`) are unchanged. The default upload requests now use `channel.uploadImage` / `uploadFile` (`channel.sendImage` / `sendFile` were removed in v10).
+- `AttachmentListComponent` now compares attachment URLs without their query string. Attachment URLs are signed, and some message updates (for example adding a reaction) renew the signature, so `message.attachments` can change even if the attachments are the same. `AttachmentListComponent` ignores these changes, so images and videos aren't reloaded. If you display attachments with your own component instead of `stream-attachment-list`, you may want to do the same.
 
 ## Message input and drafts
 
@@ -302,15 +303,19 @@ v10 messages no longer have `moderation_details`. Bounced messages are detected 
 
 ## Other type changes
 
-| Type / API                                       | Before                                                          | After                                                                   |
-| ------------------------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `ChatClientService.appSettings$` / `AppSettings` | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`) |
-| `ChannelService.activeChannelMessages` getter    | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `(StreamMessage \| MessageResponse \| LocalMessage)[]`                  |
-| `ChannelService.selectMessageToQuote`            | `StreamMessage \| MessageResponse \| undefined`                 | also accepts `LocalMessage`                                             |
-| `MessageTextContext.message`                     | `StreamMessage \| MessageResponseBase \| undefined`             | `StreamMessage \| MessageResponse \| undefined`                         |
-| `ChannelSort`                                    | from `stream-chat`                                              | removed, use `SortParamRequest[]` from `stream-chat`                    |
-| `getChannelDisplayText(channel, user)`           | `user: UserResponse`                                            | `user?: { id?: string }`                                                |
-| `listUsers(users)`                               | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                |
+| Type / API                                                                      | Before                                                          | After                                                                   |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `ChatClientService.appSettings$` / `AppSettings`                                | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`) |
+| `ChannelService.activeChannelMessages` getter                                   | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `(StreamMessage \| MessageResponse \| LocalMessage)[]`                  |
+| `ChannelService.selectMessageToQuote`                                           | `StreamMessage \| MessageResponse \| undefined`                 | also accepts `LocalMessage`                                             |
+| `MessageTextContext.message`                                                    | `StreamMessage \| MessageResponseBase \| undefined`             | `StreamMessage \| MessageResponse \| undefined`                         |
+| `ChannelSort`                                                                   | from `stream-chat`                                              | removed, use `SortParamRequest[]` from `stream-chat`                    |
+| `getChannelDisplayText(channel, user)`                                          | `user: UserResponse`                                            | `user?: { id?: string }`                                                |
+| `listUsers(users)`                                                              | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                |
+| `AvatarComponent.user`, `AvatarPlaceholderComponent.user`, `AvatarContext.user` | `User`                                                          | `UserResponse`                                                          |
+| `getReadBy(message, channel)`                                                   | `message: FormatMessageResponse`                                | `message: Pick<MessageResponse, 'created_at' \| 'user'>`                |
+| `createMessagePreview(...)`                                                     | returns `MessageResponse`                                       | returns `LocalMessage` (`customData` is set as `custom`)                |
+| `MessageListComponent.parseDate`                                                | `parseDate(date: Date)`                                         | `parseDate(timestamp: TimestampNS)`                                     |
 
 ## Translations
 
@@ -322,7 +327,7 @@ These changes don't require code changes, but your app may behave differently:
 
 - **Reconnect:** after a reconnect, the SDK refreshes the channel list (same as before), and `stream-chat` reloads the active channel and the open thread. The open thread now stays open (previously it was closed because its replies weren't reloaded).
 - **Message list updates:** messages arriving via WebSocket can be displayed up to 500 ms later: `stream-chat` v10 batches message list updates. Messages sent by the current user are displayed immediately.
-- **Message objects:** when a message changes (for example a reaction is added), only that message gets a new object in `activeChannelMessages$`. Attachments are kept if only their (signed) URLs changed, so images and videos aren't reloaded.
+- **Message objects:** when a message changes (for example a reaction is added), only that message gets a new object in `activeChannelMessages$`.
 - **Hard deleted user messages:** in v10, `user.messages.deleted` events with `hard_delete` remove the messages instead of displaying a "This message was deleted" placeholder.
 - **Read events:** the active channel is marked as read with `channel.markReadViaReporter()` (v9's `markRead` behavior). If read events are disabled for the channel, the SDK doesn't send read requests, and mark as unread fails with an error notification.
 - **Typing events** are only sent if typing events are enabled for the channel (`channel.config.typingEvents.enabled`).
@@ -330,7 +335,8 @@ These changes don't require code changes, but your app may behave differently:
 ## New APIs
 
 - `ChannelService.activeChannelMessagesPaginationState$` and `activeThreadMessagesPaginationState$`: pagination state of the message lists (`MessageListPaginationState`: `hasMoreOlder`, `hasMoreNewer`, `isLoading`, `error`).
-- `ChannelService.jumpToFirstUnreadMessage()`: jumps to the first unread message of the active channel (uses `stream-chat`'s unread state).
+- `ChannelService.jumpToFirstUnreadMessage()`: jumps to the first unread message of the active channel (uses `stream-chat`'s unread state). Resolves to `false` if there's nothing to jump to. If the message can't be loaded, the promise rejects and the "Message not found" notification is displayed.
+- `getTranslationLanguage(channel, user)`: the language messages are translated to (the user's `language`, or the channel's `auto_translation_language`). The SDK now updates message translations when either of them changes.
 - `ChannelService.reloadActiveChannelMessages()`: retries loading the messages of the active channel (for example after an error).
 - `MessageListPaginationState` and `AppSettings` types.
 
