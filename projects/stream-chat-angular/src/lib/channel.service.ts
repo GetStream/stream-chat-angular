@@ -741,25 +741,43 @@ export class ChannelService {
         client.threads.ensure({ channel: activeChannel, parentMessage });
       this.activeThread = thread;
       this.activeParentMessageIdSubject.next(message.id);
-      this.activeThreadPaginatorSubscriptions = this.bindMessagePaginator(
-        thread.messagePaginator,
-        this.activeThreadMessagesSubject,
-        this.activeThreadMessagesPaginationStateSubject,
-        () => this.activeThread === thread
-      );
+      const isActiveThread = () => this.activeThread === thread;
+      // Thread reloads (stale thread, reconnect) don't use the paginator's queries, the thread has its own loading state
+      const isThreadLoading = () => thread.state.getLatestValue().isLoading;
+      this.activeThreadPaginatorSubscriptions = [
+        ...this.bindMessagePaginator(
+          thread.messagePaginator,
+          this.activeThreadMessagesSubject,
+          this.activeThreadMessagesPaginationStateSubject,
+          isActiveThread,
+          isThreadLoading
+        ),
+        thread.state.subscribeWithSelector(
+          (state) => ({ isLoading: state.isLoading }),
+          ({ isLoading }, prev) => {
+            if (!prev) {
+              return;
+            }
+            this.ngZone.run(() => {
+              if (!isActiveThread()) {
+                return;
+              }
+              this.activeThreadMessagesPaginationStateSubject.next({
+                ...this.activeThreadMessagesPaginationStateSubject.getValue(),
+                isLoading: thread.messagePaginator.isLoading || isLoading,
+              });
+            });
+          }
+        ),
+      ];
       if (thread.hasStaleState) {
         // Load before activation: activating a stale thread also triggers a reload in stream-chat, but without error handling (that reload is skipped while this one is in progress)
-        this.activeThreadMessagesPaginationStateSubject.next({
-          ...this.activeThreadMessagesPaginationStateSubject.getValue(),
-          isLoading: true,
-        });
         try {
           await thread.reload();
         } catch (error) {
-          if (this.activeThread === thread) {
+          if (isActiveThread()) {
             this.activeThreadMessagesPaginationStateSubject.next({
               ...this.activeThreadMessagesPaginationStateSubject.getValue(),
-              isLoading: false,
               error: error as Error,
             });
             this.notificationService.addTemporaryNotification(
@@ -1768,6 +1786,7 @@ export class ChannelService {
    * @param messagesSubject
    * @param paginationStateSubject
    * @param isActive
+   * @param isLoadingOutsidePaginator loading state that isn't reflected by the paginator (for example a thread reload)
    */
   private bindMessagePaginator(
     paginator: MessageIntervalPaginator,
@@ -1775,7 +1794,8 @@ export class ChannelService {
       (StreamMessage | MessageResponse | LocalMessage)[]
     >,
     paginationStateSubject: BehaviorSubject<MessageListPaginationState>,
-    isActive: () => boolean
+    isActive: () => boolean,
+    isLoadingOutsidePaginator: () => boolean = () => false
   ) {
     return [
       paginator.state.subscribeWithSelector(
@@ -1802,7 +1822,7 @@ export class ChannelService {
             paginationStateSubject.next({
               hasMoreOlder: state.hasMoreTail,
               hasMoreNewer: state.hasMoreHead,
-              isLoading: state.isLoading,
+              isLoading: state.isLoading || isLoadingOutsidePaginator(),
               error: state.lastQueryError,
             });
           });

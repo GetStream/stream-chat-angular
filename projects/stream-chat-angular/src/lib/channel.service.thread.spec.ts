@@ -199,11 +199,14 @@ describe('ChannelService - threads', () => {
       parent_id: parentMessage.id,
     }));
     spyOn(thread, 'reload').and.callFake(() => {
+      // stream-chat sets the thread's own loading state during reload
+      thread.state.partialNext({ isLoading: true });
       isActiveDuringReload = thread.state.getLatestValue().active;
       isLoadingDuringReload = getLatestValue<{ isLoading: boolean }>(
         service.activeThreadMessagesPaginationState$
       ).isLoading;
       thread.messagePaginator.setItems(reloadedReplies);
+      thread.state.partialNext({ isLoading: false });
       return Promise.resolve();
     });
     spyOn(thread, 'activate').and.callThrough();
@@ -219,6 +222,61 @@ describe('ChannelService - threads', () => {
         (m) => m.id
       )
     ).toEqual(reloadedReplies.map((r) => r.id));
+  });
+
+  it(`should reflect the thread's own loading state (thread reloads don't use the paginator)`, async () => {
+    await init();
+    const parentMessage = getChannelMessages()[0];
+    const thread = createThread(parentMessage.id);
+    await service.setAsActiveParentMessage(parentMessage);
+    const getIsLoading = () =>
+      getLatestValue<{ isLoading: boolean }>(
+        service.activeThreadMessagesPaginationState$
+      ).isLoading;
+
+    expect(getIsLoading()).toBeFalse();
+
+    // For example stream-chat reloads the active thread after a reconnect
+    thread.state.partialNext({ isLoading: true });
+
+    expect(getIsLoading()).toBeTrue();
+
+    // For example the thread has no replies yet: the reload doesn't update the paginator
+    thread.state.partialNext({ isLoading: false });
+
+    expect(getIsLoading()).toBeFalse();
+  });
+
+  it(`should keep loading state, if the paginator is loading when the thread's reload finishes`, async () => {
+    await init();
+    const parentMessage = getChannelMessages()[0];
+    const thread = createThread(parentMessage.id);
+    await service.setAsActiveParentMessage(parentMessage);
+    thread.state.partialNext({ isLoading: true });
+    thread.messagePaginator.state.partialNext({ isLoading: true });
+    thread.state.partialNext({ isLoading: false });
+
+    expect(
+      getLatestValue<{ isLoading: boolean }>(
+        service.activeThreadMessagesPaginationState$
+      ).isLoading
+    ).toBeTrue();
+  });
+
+  it(`shouldn't update the loading state of the active thread from a previous thread`, async () => {
+    await init();
+    const [parentMessage1, parentMessage2] = getChannelMessages();
+    const thread1 = createThread(parentMessage1.id);
+    createThread(parentMessage2.id);
+    await service.setAsActiveParentMessage(parentMessage1);
+    await service.setAsActiveParentMessage(parentMessage2);
+    thread1.state.partialNext({ isLoading: true });
+
+    expect(
+      getLatestValue<{ isLoading: boolean }>(
+        service.activeThreadMessagesPaginationState$
+      ).isLoading
+    ).toBeFalse();
   });
 
   it(`shouldn't reload thread if state isn't stale`, async () => {
