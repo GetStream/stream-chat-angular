@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import {
+  Channel,
   dateToNs,
   nsToDate,
   Event,
@@ -18,6 +19,7 @@ import {
   MockChannelService,
   MockChannel,
   mockMessage,
+  MockStateStore,
 } from '../mocks';
 import { toLocalMessage } from '../local-message';
 import { ChannelPreviewComponent } from './channel-preview.component';
@@ -138,6 +140,43 @@ describe('ChannelPreviewComponent', () => {
     expect(queryUnreadBadge()?.innerHTML).toContain('1');
   });
 
+  it('should update unread badge, if unread count is updated after the latest message', () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    channel.id = 'notactive';
+    component.channel = channel;
+    // stream-chat derives the unread count from the read state
+    spyOn(channel, 'countUnread').and.callFake(
+      () =>
+        (
+          channel.state as unknown as MockStateStore<Channel['state']>
+        ).getLatestValue().read['currentUser']?.unread_messages ?? 0
+    );
+    fixture.detectChanges();
+
+    expect(queryUnreadBadge()).toBeNull();
+
+    // On message.new stream-chat updates the latest message first, then the read state
+    const newMessage = mockMessage();
+    newMessage.id = 'new-message';
+    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
+    fixture.detectChanges();
+
+    expect(queryUnreadBadge()).toBeNull();
+
+    (channel.state as unknown as MockStateStore<Channel['state']>).partialNext({
+      read: {
+        currentUser: {
+          unread_messages: 1,
+        },
+      } as unknown as Channel['state']['read'],
+    });
+    fixture.detectChanges();
+
+    expect(component.unreadCount).toBe(1);
+    expect(queryUnreadBadge()?.innerHTML).toContain('1');
+  });
+
   it(`shouldn't apply unread class, if user doesn't have 'read-events' capabilities`, () => {
     const channels = generateMockChannels();
     const channel = channels[0];
@@ -214,6 +253,34 @@ describe('ChannelPreviewComponent', () => {
 
     expect(component.isUnread).toBe(true);
     expect(component.unreadCount).toBe(1);
+  });
+
+  it(`should keep unread state of active channel after 'notification.mark_unread', if other user reads the channel`, () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    spyOn(channel, 'countUnread').and.returnValue(1);
+    component.channel = channel;
+    channelServiceMock.activeChannel$.next(channel);
+    component.ngOnInit();
+    chatClientServiceMock.events$.next({
+      eventType: 'notification.mark_unread',
+      event: {
+        type: 'notification.mark_unread',
+        channel_id: channel.id,
+      } as Event,
+    });
+
+    expect(component.isUnread).toBe(true);
+
+    channel.handleEvent('message.read', { user: { id: 'otherUser' } });
+
+    expect(component.isUnread).toBe(true);
+    expect(component.unreadCount).toBe(1);
+
+    channel.handleEvent('message.read', { user: { id: 'currentUser' } });
+
+    expect(component.isUnread).toBe(false);
+    expect(component.unreadCount).toBe(0);
   });
 
   it('should set channel as active', () => {

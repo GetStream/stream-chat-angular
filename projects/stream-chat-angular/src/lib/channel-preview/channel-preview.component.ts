@@ -77,10 +77,27 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         }
       );
     this.subscriptions.push({ unsubscribe: unsubscribeFromLatestMessage });
+    // stream-chat updates the unread count after the latest message (message.new), so the latest message subscription reads the previous count
+    const ownUserId = this.chatClientService.chatClient.user?.id;
+    const unsubscribeFromUnreadCount =
+      this.channel!.state.subscribeWithSelector(
+        (state) => ({
+          unreadCount: ownUserId
+            ? state.read[ownUserId]?.unread_messages
+            : undefined,
+        }),
+        () => {
+          this.ngZone.run(() => this.updateUnreadState());
+        }
+      );
+    this.subscriptions.push({ unsubscribe: unsubscribeFromUnreadCount });
     this.subscriptions.push(
-      this.channel!.on('message.read', () =>
+      this.channel!.on('message.read', (event) =>
         this.ngZone.run(() => {
-          this.isUnreadMessageWasCalled = false;
+          // Other members reading the channel only change the latest message status, the channel stays unread for the current user
+          if (event.user?.id === this.chatClientService.chatClient.user?.id) {
+            this.isUnreadMessageWasCalled = false;
+          }
           this.updateUnreadState();
         })
       )
