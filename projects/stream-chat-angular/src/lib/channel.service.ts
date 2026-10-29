@@ -32,7 +32,10 @@ import {
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
-import { getMessageTranslation } from './get-message-translation';
+import {
+  getMessageTranslation,
+  getTranslationLanguage,
+} from './get-message-translation';
 import { createMessagePreview } from './message-preview';
 import { NotificationService } from './notification.service';
 import { getReadBy } from './read-by';
@@ -369,7 +372,11 @@ export class ChannelService {
   private latestStreamMessageById = new Map<string, StreamMessage>();
   private streamMessageCache = new WeakMap<
     object,
-    { errorStatusCode?: number; message: StreamMessage }
+    {
+      errorStatusCode?: number;
+      translationLanguage?: string;
+      message: StreamMessage;
+    }
   >();
   private activeChannelPinnedMessagesSubject = new BehaviorSubject<
     StreamMessage[]
@@ -1636,6 +1643,8 @@ export class ChannelService {
             this.activeChannelSubject.next(activeChannel);
             // Refresh the users of the readBy lists (same as before stream-chat v10)
             this.refreshReadBy(activeChannel, 'all');
+            // The language of the user might have changed
+            this.refreshTranslations();
           }
         });
         break;
@@ -2208,6 +2217,10 @@ export class ChannelService {
             } else {
               this.handleChannelUpdate(event);
             }
+            // The auto translation language of the channel might have changed
+            if (channel === this.activeChannelSubject.getValue()) {
+              this.refreshTranslations();
+            }
           });
           break;
         }
@@ -2345,9 +2358,14 @@ export class ChannelService {
     }
     const localMessage = message as LocalMessage | MessageResponse;
     const errorStatusCode = this.errorStatusCodes.get(localMessage.id);
+    const translationLanguage = getTranslationLanguage(channel, user);
     const cached = this.streamMessageCache.get(localMessage);
     // readBy is calculated when the message object is created, after that it's only updated by refreshReadBy (same as before stream-chat v10)
-    if (cached && cached.errorStatusCode === errorStatusCode) {
+    if (
+      cached &&
+      cached.errorStatusCode === errorStatusCode &&
+      cached.translationLanguage === translationLanguage
+    ) {
       return cached.message;
     }
     // Messages are stored by stream-chat, they shouldn't be mutated, we create a new object instead
@@ -2386,9 +2404,31 @@ export class ChannelService {
     this.latestStreamMessageById.set(localMessage.id, streamMessage);
     this.streamMessageCache.set(localMessage, {
       errorStatusCode,
+      translationLanguage,
       message: streamMessage,
     });
     return streamMessage;
+  }
+
+  /**
+   * Emits the message lists of the active channel again, so the translations follow the current translation language (only the messages with a changed translation language get a new object)
+   */
+  private refreshTranslations() {
+    const channel = this.activeChannelSubject.getValue();
+    if (!channel) {
+      return;
+    }
+    this.activeChannelMessagesSubject.next([
+      ...this.activeChannelMessagesSubject.getValue(),
+    ]);
+    this.activeThreadMessagesSubject.next([
+      ...this.activeThreadMessagesSubject.getValue(),
+    ]);
+    this.activeChannelPinnedMessagesSubject.next(
+      (channel.pinnedMessagesPaginator.items ?? []).map((m) =>
+        this.transformToStreamMessage(m, channel)
+      )
+    );
   }
 
   /**

@@ -2555,6 +2555,63 @@ describe('ChannelService', () => {
     expect(after.every((m) => m.readBy[0]?.name === 'Jack Updated')).toBeTrue();
   });
 
+  it('should update translations, if the translation language changes', async () => {
+    await init();
+    const channel = getActiveChannel();
+    mockChatClient.user = { ...mockChatClient.user, language: 'ja' };
+    const translatedMessage = {
+      ...toLocal(mockMessage(1)),
+      user: { id: 'jack' },
+      i18n: { ja_text: 'こんにちは', fr_text: 'Bonjour', language: 'en' },
+    } as unknown as LocalMessage;
+    const otherMessage = {
+      ...toLocal(mockMessage(2)),
+      user: { id: 'jack' },
+    } as LocalMessage;
+    mockPaginator(channel).setItems([translatedMessage, otherMessage]);
+    const before = getLatestValue(service.activeChannelMessages$);
+
+    expect(before[0].translation).toBe('こんにちは');
+
+    // the user's language changed
+    mockChatClient.user = { ...mockChatClient.user, language: 'fr' };
+    events$.next({
+      eventType: 'user.updated',
+      event: { type: 'user.updated', user: mockChatClient.user },
+    } as unknown as ClientEvent);
+    const after = getLatestValue(service.activeChannelMessages$);
+
+    expect(after[0].translation).toBe('Bonjour');
+
+    // the user has no language, the auto translation language of the channel changed
+    mockChatClient.user = {
+      ...mockChatClient.user,
+      language: undefined,
+    } as unknown as UserResponse;
+    channel.data!.auto_translation_language = 'ja';
+    channel.handleEvent('channel.updated', {
+      type: 'channel.updated',
+      cid: channel.cid,
+    });
+
+    expect(getLatestValue(service.activeChannelMessages$)[0].translation).toBe(
+      'こんにちは'
+    );
+  });
+
+  it(`shouldn't create new message objects, if the translation language didn't change`, async () => {
+    await init();
+    const before = getLatestValue(service.activeChannelMessages$);
+    events$.next({
+      eventType: 'user.updated',
+      event: { type: 'user.updated', user: mockChatClient.user },
+    } as unknown as ClientEvent);
+    const after = getLatestValue(service.activeChannelMessages$);
+
+    expect(after.length).toBe(before.length);
+    expect(after.every((m, i) => m === before[i])).toBeTrue();
+  });
+
   it(`should unsubscribe from active channel events, after active channel changed`, async () => {
     await init();
     const spy = jasmine.createSpy('activeMessagesSpy');
