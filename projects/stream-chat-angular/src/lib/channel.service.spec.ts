@@ -612,6 +612,32 @@ describe('ChannelService', () => {
     expect(releaseSpies[1]).toHaveBeenCalledTimes(1);
   });
 
+  it('should release the active channel, if it is removed and the channel list becomes empty', async () => {
+    const channels = generateMockChannels(1);
+    const release = jasmine.createSpy();
+    spyOn(channels[0], 'activate').and.returnValue(release);
+    await init(channels);
+
+    expect(getLatestValue(service.activeChannelMessages$).length).not.toBe(0);
+
+    service.removeChannel(channels[0].cid);
+
+    expect(release).toHaveBeenCalledTimes(1);
+    expect(getLatestValue(service.activeChannel$)).toBeUndefined();
+    expect(getLatestValue(service.activeChannelMessages$)).toEqual([]);
+  });
+
+  it(`shouldn't emit channel switch start, if there is no active channel to deselect`, async () => {
+    await init();
+    service.deselectActiveChannel();
+    const spy = jasmine.createSpy();
+    service.channelSwitchState$.subscribe(spy);
+    spy.calls.reset();
+    service.deselectActiveChannel();
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it('should load messages of the channel, if channel is not yet initialized', async () => {
     await init();
     const channel = generateMockChannels(1)[0];
@@ -2468,6 +2494,34 @@ describe('ChannelService', () => {
     after.slice(0, -1).forEach((m, i) => expect(m).toBe(before[i]));
   });
 
+  it('should recalculate #readBy, if a channel is activated again (read events received while the channel was inactive)', async () => {
+    const channels = generateMockChannels(2);
+    await init(channels);
+    const [channel, otherChannel] = channels;
+    const before = getLatestValue(service.activeChannelMessages$);
+
+    expect(before[before.length - 1].readBy.length).toBe(0);
+
+    service.setAsActiveChannel(otherChannel);
+    // jack reads the messages while the channel is inactive
+    const user = { id: 'jack', name: 'Jack' } as UserResponse;
+    const read = {
+      [user.id]: {
+        last_read: dateToNs(new Date()),
+        user,
+        unread_messages: 0,
+      },
+    } as unknown as Channel['state']['read'];
+    channel.state.read = read;
+    (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
+      { read }
+    );
+    service.setAsActiveChannel(channel);
+    const after = getLatestValue(service.activeChannelMessages$);
+
+    expect(after[after.length - 1].readBy.map((u) => u.id)).toEqual(['jack']);
+  });
+
   it('should update #readBy of every message, if a user is updated', async () => {
     await init();
     const channel = getActiveChannel();
@@ -3831,6 +3885,46 @@ describe('ChannelService', () => {
     service['channelListSetter'](newChannels);
 
     expect(newChannel.on).toHaveBeenCalledWith(jasmine.any(Function));
+  });
+
+  it('channel list setter should stop watching removed channels', async () => {
+    await init();
+    const [keptChannel, removedChannel] = service.channels;
+    mockChatClient.activeChannels[removedChannel.cid] = removedChannel;
+    spyOn(removedChannel, 'stopWatching').and.resolveTo();
+    const unsubscribeSpy = jasmine.createSpy();
+    service['channelSubscriptions'][removedChannel.cid] = unsubscribeSpy;
+
+    service['channelListSetter']([keptChannel]);
+
+    expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+    expect(service['channelSubscriptions'][removedChannel.cid]).toBeUndefined();
+    expect(removedChannel.stopWatching).toHaveBeenCalledTimes(1);
+  });
+
+  it(`channel list setter shouldn't stop watching removed channels, if #shouldStopWatchingRemovedChannels is false`, async () => {
+    await init();
+    const [keptChannel, removedChannel] = service.channels;
+    mockChatClient.activeChannels[removedChannel.cid] = removedChannel;
+    spyOn(removedChannel, 'stopWatching').and.resolveTo();
+    const unsubscribeSpy = jasmine.createSpy();
+    service['channelSubscriptions'][removedChannel.cid] = unsubscribeSpy;
+
+    service['channelListSetter']([keptChannel], false);
+
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    expect(removedChannel.stopWatching).not.toHaveBeenCalled();
+  });
+
+  it('should watch for channel events again, if a removed channel is added back to the list', async () => {
+    await init();
+    const channel = service.channels[1];
+    service.removeChannel(channel.cid);
+    spyOn(channel, 'on').and.callThrough();
+
+    service['channelListSetter']([...service.channels, channel]);
+
+    expect(channel.on).toHaveBeenCalledWith(jasmine.any(Function));
   });
 
   it('init with custom query', async () => {

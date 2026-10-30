@@ -434,22 +434,11 @@ export class ChannelService {
       if (!this.channelSubscriptions[channel.cid]) {
         this.watchForChannelEvents(channel);
       }
-      if (deletedChannels.includes(channel)) {
-        if (shouldStopWatchingRemovedChannels) {
-          if (this.channelSubscriptions[channel.cid]) {
-            this.channelSubscriptions[channel.cid]();
-            delete this.channelSubscriptions.cid;
-          }
-          void this.chatClientService.chatClient.channelManager
-            .get(channel.cid)
-            ?.stopWatching()
-            .catch((error) =>
-              this.chatClientService.logger.warn('Failed to unwatch channel', {
-                error: error as Error,
-              })
-            );
-        }
-      }
+    }
+    if (shouldStopWatchingRemovedChannels) {
+      deletedChannels.forEach((channel) =>
+        this.stopWatchingChannel(channel.cid)
+      );
     }
     const nextChannels = channels;
     this.channelsSubject.next(nextChannels);
@@ -461,7 +450,7 @@ export class ChannelService {
       if (nextChannels.length > 0) {
         this.setAsActiveChannel(nextChannels[0]);
       } else {
-        this.activeChannelSubject.next(undefined);
+        this.deselectActiveChannel();
       }
     }
   };
@@ -668,6 +657,8 @@ export class ChannelService {
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
     this.watchForActiveChannelEvents(channel);
+    // The cached messages keep the readBy lists from the last time the channel was active, read events received since then aren't reflected (same as before stream-chat v10, readBy is recalculated on activation)
+    this.refreshReadBy(channel, 'all');
     // Activated channels are reloaded by stream-chat after a reconnect
     this.releaseActiveChannel = channel.activate();
     this.setChannelState(channel);
@@ -681,11 +672,11 @@ export class ChannelService {
    * Deselects the currently active (if any) channel
    */
   deselectActiveChannel() {
-    this.channelSwitchStateSubject.next('start');
     const activeChannel = this.activeChannelSubject.getValue();
     if (!activeChannel) {
       return;
     }
+    this.channelSwitchStateSubject.next('start');
     this.stopWatchForActiveChannelEvents(activeChannel);
     this.releaseThread();
     this.flushMarkReadQueue();
@@ -1302,18 +1293,7 @@ export class ChannelService {
     const remainingChannels = this.channels.filter((c) => c.cid !== cid);
 
     if (shouldStopWatching) {
-      if (this.channelSubscriptions[cid]) {
-        this.channelSubscriptions[cid]();
-        delete this.channelSubscriptions.cid;
-      }
-      void this.chatClientService.chatClient.channelManager
-        .get(cid)
-        ?.stopWatching()
-        .catch((error) =>
-          this.chatClientService.logger.warn('Failed to unwatch channel', {
-            error: error as Error,
-          })
-        );
+      this.stopWatchingChannel(cid);
     }
 
     if (remainingChannels.length < this.channels.length) {
@@ -1322,10 +1302,26 @@ export class ChannelService {
         if (remainingChannels.length > 0) {
           this.setAsActiveChannel(remainingChannels[0]);
         } else {
-          this.activeChannelSubject.next(undefined);
+          // Release the channel (activation, paginator and event subscriptions), not just clear the active channel
+          this.deselectActiveChannel();
         }
       }
     }
+  }
+
+  private stopWatchingChannel(cid: string) {
+    if (this.channelSubscriptions[cid]) {
+      this.channelSubscriptions[cid]();
+      delete this.channelSubscriptions[cid];
+    }
+    void this.chatClientService.chatClient.channelManager
+      .get(cid)
+      ?.stopWatching()
+      .catch((error) =>
+        this.chatClientService.logger.warn('Failed to unwatch channel', {
+          error: error as Error,
+        })
+      );
   }
 
   private async sendMessageRequest(
