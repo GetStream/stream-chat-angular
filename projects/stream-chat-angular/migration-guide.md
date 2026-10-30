@@ -267,7 +267,7 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
 - `DefaultAttachmentData` has two new fields, `duration` and `waveform_data`.
 - If you have custom attachment templates, read the fields from their new location.
 - Custom upload/delete handlers (`customImageUploadRequest`, `customFileUploadRequest`, `customImageDeleteRequest`, `customFileDeleteRequest`) are unchanged. The default upload requests now use `channel.uploadImage` / `uploadFile` (`channel.sendImage` / `sendFile` were removed in v10).
-- `AttachmentListComponent` now compares attachment URLs without their query string. Attachment URLs are signed, and some message updates (for example adding a reaction) renew the signature, so `message.attachments` can change even if the attachments are the same. `AttachmentListComponent` ignores these changes, so images and videos aren't reloaded. If you display attachments with your own component instead of `stream-attachment-list`, you may want to do the same.
+- `AttachmentListComponent` now compares the CDN links of attachments (`image_url`, `thumb_url` and `asset_url`) without their query string. Attachment URLs are signed, and some message updates (for example adding a reaction) renew the signature, so `message.attachments` can change even if the attachments are the same. `AttachmentListComponent` ignores these changes, so images and videos aren't reloaded. If you display attachments with your own component instead of `stream-attachment-list`, you may want to do the same.
 
 ## Message input and drafts
 
