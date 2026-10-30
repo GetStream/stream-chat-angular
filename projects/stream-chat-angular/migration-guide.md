@@ -72,7 +72,6 @@ The SDK no longer sets `client.recoverStateOnReconnect = false` (the option does
 ## Connection state
 
 - `stream-chat` v10 no longer emits the `connection.changed` event. `ChatClientService.connectionState$` (`'online' | 'offline'`) and the "Connection failure, reconnecting now..." notification still work: they now use the WebSocket's health state.
-- `connectionState$` now switches to `'offline'` only if the connection stays unhealthy for 5 seconds. A shorter outage emits nothing.
 - If you listened to `connection.changed` on `ChatClientService.events$` or `chatClient.on(...)`, use `connectionState$` instead, or `chatClient.wsConnection.state` (see [connection.changed](https://github.com/GetStream/stream-chat-js/blob/release-v10/ai-docs/v10-breaking-changes.md#connection-changed-removed)).
 
 ## Channel list

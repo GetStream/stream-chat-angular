@@ -287,21 +287,21 @@ describe('ChatClientService', () => {
     });
   });
 
-  it('should notify if the user goes offline', fakeAsync(() => {
+  it('should emit the initial connection state on init', () => {
     const spy = jasmine.createSpy();
     service.connectionState$.subscribe(spy);
 
-    expect(spy).toHaveBeenCalledWith('online');
+    expect(spy).toHaveBeenCalledOnceWith('online');
+  });
 
-    spy.calls.reset();
+  it('should emit offline state and notify, if the connection is unhealthy on init', fakeAsync(() => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification');
     mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
-
-    // offline state is debounced
-    expect(spy).not.toHaveBeenCalled();
-
-    tick(service.connectionFailureNotificationDelay);
+    void service.init(apiKey, userId, userToken);
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
 
     expect(spy).toHaveBeenCalledWith('offline');
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
@@ -309,18 +309,41 @@ describe('ChatClientService', () => {
     );
   }));
 
-  it(`shouldn't notify if the connection recovers within the failure notification delay`, fakeAsync(() => {
+  it('should notify if the user goes offline, after the offline notification delay of the client', fakeAsync(() => {
+    mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs = 3000;
     const spy = jasmine.createSpy();
     service.connectionState$.subscribe(spy);
     spy.calls.reset();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification');
     mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
-    tick(service.connectionFailureNotificationDelay / 2);
-    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
-    tick(service.connectionFailureNotificationDelay);
+    tick(2999);
 
-    expect(spy).not.toHaveBeenCalledWith('offline');
+    expect(spy).not.toHaveBeenCalled();
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+
+    tick(1);
+
+    expect(spy).toHaveBeenCalledWith('offline');
+    expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
+      'streamChat.Connection failure, reconnecting now...'
+    );
+  }));
+
+  it(`shouldn't notify if the connection recovers within the offline notification delay`, fakeAsync(() => {
+    const delay =
+      mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs;
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
+    spy.calls.reset();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(delay / 2);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    tick(delay);
+
+    expect(spy).not.toHaveBeenCalled();
     expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
   }));
 
@@ -330,9 +353,8 @@ describe('ChatClientService', () => {
     spyOn(notificationService, 'addPermanentNotification').and.returnValue(
       removeNotificationSpy
     );
-    service.connectionFailureNotificationDelay = 0;
     mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
-    tick();
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
     const stateSpy = jasmine.createSpy();
     service.connectionState$.subscribe(stateSpy);
 
@@ -342,6 +364,30 @@ describe('ChatClientService', () => {
 
     expect(removeNotificationSpy).toHaveBeenCalledWith();
     expect(stateSpy).toHaveBeenCalledWith('online');
+  }));
+
+  it('should cancel the pending offline notification and remove the displayed one, if the client is initialized again', fakeAsync(() => {
+    const removeNotificationSpy = jasmine.createSpy();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification').and.returnValue(
+      removeNotificationSpy
+    );
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+    void service.init(apiKey, userId, userToken);
+    tick();
+
+    expect(removeNotificationSpy).toHaveBeenCalledTimes(1);
+
+    // a drop right before re-init shouldn't be reported by the old subscription
+    (notificationService.addPermanentNotification as jasmine.Spy).calls.reset();
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    void service.init(apiKey, userId, userToken);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
   }));
 
   it('should flag message', async () => {

@@ -80,10 +80,6 @@ export class ChatClientService {
   >(1);
   private subscriptions: { unsubscribe: () => void }[] = [];
   private trackPendingChannelInvites = true;
-  /**
-   * @internal
-   */
-  connectionFailureNotificationDelay = 5000;
   private appSettingsPromise?: Promise<GetApplicationResponse>;
   private connectionStateCleanup?: () => void;
 
@@ -185,41 +181,53 @@ export class ChatClientService {
     let offlineTimeout: ReturnType<typeof setTimeout> | undefined;
     let isOnline: boolean | undefined;
     this.connectionStateCleanup?.();
-    // `connection.changed` was removed in stream-chat v10, the socket health is published via `wsConnection.state` (without debounce)
-    this.connectionStateCleanup =
+    // `connection.changed` was removed in stream-chat v10, the socket health is published via `wsConnection.state` (the store emits the current value on subscribe, so the initial state is emitted too)
+    const unsubscribe =
       this.chatClient.wsConnection.state.subscribeWithSelector(
         ({ isHealthy }) => ({ isHealthy }),
         ({ isHealthy }) => {
           // Cancel the pending offline state if the connection recovered within the delay
           clearTimeout(offlineTimeout);
+          offlineTimeout = undefined;
           if (isHealthy === isOnline) {
             return;
           }
-          if (isHealthy) {
-            isOnline = true;
+          const setState = () => {
+            isOnline = isHealthy;
             this.ngZone.run(() => {
-              removeNotification?.();
-              removeNotification = undefined;
-              this.connectionStateSubject.next('online');
-            });
-          } else if (isOnline !== undefined) {
-            offlineTimeout = setTimeout(() => {
-              isOnline = false;
-              this.ngZone.run(() => {
+              if (isHealthy) {
+                removeNotification?.();
+                removeNotification = undefined;
+              } else {
                 removeNotification =
                   this.notificationService.addPermanentNotification(
                     'streamChat.Connection failure, reconnecting now...'
                   );
-                this.connectionStateSubject.next('offline');
-              });
-            }, this.connectionFailureNotificationDelay);
+              }
+              this.connectionStateSubject.next(
+                isHealthy ? 'online' : 'offline'
+              );
+            });
+          };
+          if (isHealthy) {
+            setState();
+          } else {
+            // stream-chat publishes a drop immediately, most of them resolve within a second, the UI should wait before reporting it
+            offlineTimeout = setTimeout(
+              setState,
+              this.chatClient.wsConnection.config
+                .offlineNotificationDisplayDelayMs
+            );
           }
         }
       );
+    this.connectionStateCleanup = () => {
+      unsubscribe();
+      clearTimeout(offlineTimeout);
+      removeNotification?.();
+    };
     this.subscriptions.push({
       unsubscribe: () => {
-        clearTimeout(offlineTimeout);
-        removeNotification?.();
         this.connectionStateCleanup?.();
         this.connectionStateCleanup = undefined;
       },

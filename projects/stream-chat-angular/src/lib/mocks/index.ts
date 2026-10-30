@@ -617,7 +617,10 @@ export type MockStreamChatClient = {
   };
   channelManager: { get: (cid: string) => Channel | undefined };
   config: { setConfig: jasmine.Spy };
-  wsConnection: { state: MockStateStore<{ isHealthy: boolean }> };
+  wsConnection: {
+    state: MockStateStore<{ isHealthy: boolean }>;
+    config: { offlineNotificationDisplayDelayMs: number };
+  };
   queryChannelsAndHydrate: jasmine.Spy;
   getReactions: jasmine.Spy;
   queryReactions: jasmine.Spy;
@@ -710,6 +713,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     config: { setConfig: jasmine.createSpy() },
     wsConnection: {
       state: new MockStateStore<{ isHealthy: boolean }>({ isHealthy: true }),
+      config: { offlineNotificationDisplayDelayMs: 5000 },
     },
     queryChannelsAndHydrate: queryChannels,
     getReactions: jasmine.createSpy(),
