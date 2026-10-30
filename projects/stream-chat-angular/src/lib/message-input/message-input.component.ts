@@ -459,10 +459,8 @@ export class MessageInputComponent
     }
     try {
       const message = await (this.isUpdate
-        ? this.channelService.updateMessage({
-            ...this.message!,
-            text: text,
-            attachments: attachments,
+        ? this.channelService.updateMessagePartial(this.message!, {
+            set: { text, attachments },
           })
         : this.channelService.sendMessage(
             text,

@@ -58,7 +58,7 @@ describe('MessageInputComponent', () => {
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
-  let updateMessageSpy: jasmine.Spy;
+  let updateMessagePartialSpy: jasmine.Spy;
   let channelSwitchState$: BehaviorSubject<'start' | 'end'>;
   let channel: Channel;
   let user: UserResponse;
@@ -92,7 +92,7 @@ describe('MessageInputComponent', () => {
     );
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
-    updateMessageSpy = jasmine.createSpy();
+    updateMessagePartialSpy = jasmine.createSpy();
     typingStartedSpy = jasmine.createSpy();
     typingStoppedSpy = jasmine.createSpy();
     attachmentService = {
@@ -146,7 +146,7 @@ describe('MessageInputComponent', () => {
           useValue: {
             activeChannel$: mockActiveChannel$,
             sendMessage: sendMessageSpy,
-            updateMessage: updateMessageSpy,
+            updateMessagePartial: updateMessagePartialSpy,
             autocompleteMembers: jasmine.createSpy().and.resolveTo([]),
             activeParentMessageId$: mockActiveParentMessageId$,
             messageToQuote$: mockMessageToQuote$,
@@ -225,14 +225,15 @@ describe('MessageInputComponent', () => {
     const textarea = queryTextarea();
     const message = 'This is my new message';
     component.textareaValue = message;
+    attachmentService.mapToAttachments.and.returnValue([]);
     messageToEditSpy.calls.reset();
     textarea?.send.next();
     tick();
     fixture.detectChanges();
 
-    expect(updateMessageSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ id: messageToEdit.id, text: message })
-    );
+    expect(updateMessagePartialSpy).toHaveBeenCalledWith(messageToEdit, {
+      set: { text: message, attachments: [] },
+    });
     expect(messageToEditSpy).toHaveBeenCalledWith(undefined);
   }));
 
@@ -244,7 +245,7 @@ describe('MessageInputComponent', () => {
     component.message = mockMessage();
     component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
-    updateMessageSpy.and.rejectWith(
+    updateMessagePartialSpy.and.rejectWith(
       new StreamAPIError('UpdateMessage failed with error: "error"', {
         code: 4,
         status: 400,
@@ -298,7 +299,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
-    updateMessageSpy.and.resolveTo({ id: component.message.id });
+    updateMessagePartialSpy.and.resolveTo({ id: component.message.id });
     await component.messageSent();
 
     expect(spy).toHaveBeenCalledWith({

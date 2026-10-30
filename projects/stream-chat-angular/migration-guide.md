@@ -276,6 +276,31 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
 - `MessageInputComponent.loadDraft` takes the v10 `DraftResponse`: `draft.message.mentioned_users` is now a list of users (it was a list of ids), and dates are `TimestampNS`. To save a draft with `stream-chat` v10: `channel.createDraft({ message: draft })`.
 - Slash commands come from `channel.config.availableCommands` (was `channel.getConfig().commands`). `ComandAutocompleteListItem` is now based on `Command` (was `CommandResponse`).
 
+### Editing messages (`updateMessage` → `updateMessagePartial`, `beforeUpdateMessage`)
+
+Messages are now edited with a partial update: only the fields you set or unset change, the rest of the message is kept as is (with `stream-chat` v10, a full update would remove every field that isn't sent).
+
+- `ChannelService.updateMessage(message)` was renamed to `ChannelService.updateMessagePartial(message, { set, unset })`. `message` is the message to edit, `set` has the new field values, and `unset` lists the names of the fields to remove:
+
+  ```ts
+  // Before
+  channelService.updateMessage({ ...message, text: "Edited text" });
+  // After
+  channelService.updateMessagePartial(message, { set: { text: "Edited text" } });
+  ```
+
+- `ChannelService.beforeUpdateMessage` receives and returns the partial update (`UpdateMessagePartialRequest`) instead of the whole message. The message being edited is the second parameter:
+
+  ```ts
+  // Before
+  channelService.beforeUpdateMessage = (message) => ({ ...message, text: message.text?.trim() });
+  // After
+  channelService.beforeUpdateMessage = (update, message) => ({
+    ...update,
+    set: { ...update.set, text: update.set?.text?.trim() },
+  });
+  ```
+
 ## Polls
 
 - Poll types renamed in v10, and the SDK's poll components use the new names (relevant for custom poll templates and if you use the poll components directly):

@@ -14,6 +14,7 @@ import {
   ReactionResponse,
   SortParamRequest,
   StreamAPIError,
+  UpdateMessagePartialRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -1911,32 +1912,38 @@ describe('ChannelService', () => {
     expect(channel.messagePaginator.removeItem).not.toHaveBeenCalled();
   });
 
-  it('should update message', async () => {
+  it('should update message with a partial update', async () => {
     const message = mockMessage();
-    mockChatClient.updateMessage.and.resolveTo({
-      message: toLocalMessage(message),
+    mockChatClient.updateMessagePartial.and.resolveTo({
+      message: { ...toLocalMessage(message), text: 'Edited text' },
     });
-    // @ts-expect-error we exclude this
-    delete message.readBy;
-    const result = await service.updateMessage(message);
+    const result = await service.updateMessagePartial(message, {
+      set: { text: 'Edited text' },
+      unset: ['custom_field'],
+    });
 
-    expect(mockChatClient.updateMessage).toHaveBeenCalledWith(
+    expect(mockChatClient.updateMessagePartial).toHaveBeenCalledWith(
       { id: message.id },
-      {
-        message: jasmine.objectContaining({
-          id: message.id,
-          text: message.text,
-          custom: {},
-        }),
-      }
+      { set: { text: 'Edited text' }, unset: ['custom_field'] }
     );
     expect(result.id).toBe(message.id);
+    expect(result.text).toBe('Edited text');
     expect(result.created_at).toEqual(message.created_at);
+  });
+
+  it('should return the original message if the partial update response has no message', async () => {
+    const message = mockMessage();
+    mockChatClient.updateMessagePartial.and.resolveTo({});
+    const result = await service.updateMessagePartial(message, {
+      set: { text: 'Edited text' },
+    });
+
+    expect(result).toBe(message);
   });
 
   it('should display notification if updated message was rejected by moderation', async () => {
     const message = mockMessage();
-    mockChatClient.updateMessage.and.resolveTo({
+    mockChatClient.updateMessagePartial.and.resolveTo({
       message: {
         ...toLocalMessage(message),
         type: 'error',
@@ -1945,7 +1952,9 @@ describe('ChannelService', () => {
     });
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    const result = await service.updateMessage(message);
+    const result = await service.updateMessagePartial(message, {
+      set: { text: 'Edited text' },
+    });
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.This message did not meet our content guidelines'
@@ -1963,62 +1972,51 @@ describe('ChannelService', () => {
       action: 'bounce',
       original_text: 'Ricciardo should retire',
     } as unknown as StreamMessage['moderation'];
-    await service.updateMessage({ ...message, text: 'Edited text' });
+    (message as unknown as Record<string, unknown>)['custom_field'] = 'value';
+    await service.updateMessagePartial(message, {
+      set: { text: 'Edited text' },
+      unset: ['custom_field'],
+    });
 
-    expect(mockChatClient.updateMessage).not.toHaveBeenCalled();
+    expect(mockChatClient.updateMessagePartial).not.toHaveBeenCalled();
     expect(channel.sendMessage).toHaveBeenCalledWith({
       message: jasmine.objectContaining({
         id: message.id,
         text: 'Edited text',
       }),
     });
+    const sentMessage = (channel.sendMessage as jasmine.Spy).calls.mostRecent()
+      .args[0].message as Record<string, unknown>;
+
+    expect(Object.keys(sentMessage)).not.toContain('custom_field');
   });
 
   it('should update message - #beforeUpdateMessage is provided', async () => {
     const message = mockMessage();
-    mockChatClient.updateMessage.and.resolveTo({
+    mockChatClient.updateMessagePartial.and.resolveTo({
       message: toLocalMessage(message),
     });
     const spy = jasmine.createSpy();
     service.beforeUpdateMessage = spy;
-    spy.and.callFake((m: StreamMessage) => {
-      m.text = 'Testing beforeUpdateMessage hook';
-      return Promise.resolve(m);
+    spy.and.callFake((update: UpdateMessagePartialRequest) =>
+      Promise.resolve({
+        ...update,
+        set: { ...update.set, text: 'Testing beforeUpdateMessage hook' },
+        unset: ['custom_field'],
+      })
+    );
+    await service.updateMessagePartial(message, {
+      set: { text: 'Edited text' },
     });
-    await service.updateMessage(message);
 
-    expect(mockChatClient.updateMessage).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith({ set: { text: 'Edited text' } }, message);
+    expect(mockChatClient.updateMessagePartial).toHaveBeenCalledWith(
       { id: message.id },
       {
-        message: jasmine.objectContaining({
-          text: 'Testing beforeUpdateMessage hook',
-        }),
+        set: { text: 'Testing beforeUpdateMessage hook' },
+        unset: ['custom_field'],
       }
     );
-  });
-
-  it('should remove translation object and readyBy before updating message', async () => {
-    const message = mockMessage();
-    mockChatClient.updateMessage.and.resolveTo({
-      message: toLocalMessage(message),
-    });
-    await service.updateMessage({
-      ...message,
-      i18n: { en_text: 'Translation', language: 'en' },
-      translation: 'Translation',
-      readBy: [],
-    } as StreamMessage);
-
-    const request = (
-      mockChatClient.updateMessage.calls.mostRecent().args[1] as {
-        message: Record<string, unknown>;
-      }
-    ).message;
-
-    expect(request['id']).toBe(message.id);
-    expect(Object.keys(request)).not.toContain('i18n');
-    expect(Object.keys(request)).not.toContain('readBy');
-    expect(Object.keys(request)).not.toContain('translation');
   });
 
   it('should delete message', async () => {

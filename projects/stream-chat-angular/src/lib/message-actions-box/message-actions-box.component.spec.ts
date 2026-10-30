@@ -45,7 +45,7 @@ describe('MessageActionsBoxComponent', () => {
   let mockChatClient: MockStreamChatClient;
   let flagMessageSpy: jasmine.Spy;
   let channelService: {
-    updateMessage: jasmine.Spy;
+    updateMessagePartial: jasmine.Spy;
     activeChannel$: Observable<Channel>;
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
@@ -60,7 +60,7 @@ describe('MessageActionsBoxComponent', () => {
     mockChatClient = mockStreamChatClient();
     flagMessageSpy = jasmine.createSpy('flagMessage');
     channelService = {
-      updateMessage: jasmine.createSpy(),
+      updateMessagePartial: jasmine.createSpy(),
       activeChannel$: new BehaviorSubject(generateMockChannels(1)[0]),
       deleteMessage: jasmine.createSpy(),
       selectMessageToQuote: jasmine.createSpy(),

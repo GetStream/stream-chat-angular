@@ -621,7 +621,7 @@ export type MockStreamChatClient = {
   queryChannelsAndHydrate: jasmine.Spy;
   getReactions: jasmine.Spy;
   queryReactions: jasmine.Spy;
-  updateMessage: jasmine.Spy;
+  updateMessagePartial: jasmine.Spy;
   deleteMessage: jasmine.Spy;
   pinMessage: jasmine.Spy;
   unpinMessage: jasmine.Spy;
@@ -714,7 +714,7 @@ export const mockStreamChatClient = (): MockStreamChatClient => {
     queryChannelsAndHydrate: queryChannels,
     getReactions: jasmine.createSpy(),
     queryReactions: jasmine.createSpy(),
-    updateMessage: jasmine.createSpy(),
+    updateMessagePartial: jasmine.createSpy(),
     deleteMessage: jasmine.createSpy(),
     pinMessage: jasmine.createSpy(),
     unpinMessage: jasmine.createSpy(),

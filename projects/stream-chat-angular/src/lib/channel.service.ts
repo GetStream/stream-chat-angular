@@ -23,12 +23,12 @@ import {
   LocalMessage,
   MemberFilters,
   MessageIntervalPaginator,
-  MessageRequest,
   MessageResponse,
   ReactionResponse,
   SortParamRequest,
   StreamAPIError,
   Thread,
+  UpdateMessagePartialRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
@@ -320,11 +320,12 @@ export class ChannelService {
     input: MessageInput
   ) => MessageInput | Promise<MessageInput>;
   /**
-   * The provided method will be called before a message is sent to Stream's API for update. You can use this hook to tranfrom or enrich the message being updated.
+   * The provided method will be called before a message update is sent to Stream's API. You can use this hook to tranfrom or enrich the fields being set and unset (the update is a partial update, fields that aren't in `set` or `unset` are left as is).
    */
   beforeUpdateMessage?: (
+    update: UpdateMessagePartialRequest,
     message: StreamMessage
-  ) => StreamMessage | Promise<StreamMessage>;
+  ) => UpdateMessagePartialRequest | Promise<UpdateMessagePartialRequest>;
   /**
    * Since switching channels changes the state of multiple obserables, this observable can be used to check if all observables are updated.
    * - `end` means all observables are in stable state
@@ -1039,43 +1040,34 @@ export class ChannelService {
   }
 
   /**
-   * Updates the message in the active channel
+   * Updates the message with a partial update: only the fields in `update.set` are changed, and the fields in `update.unset` are removed, the rest of the message is left as is
    * @param message Mesage to be updated
+   * @param update The fields to set and unset
    */
-  async updateMessage(message: StreamMessage) {
-    let messageToUpdate: StreamMessage = {
-      ...message,
-    };
-    const originalMessage = message;
-    if (messageToUpdate.quoted_message) {
-      messageToUpdate.quoted_message = {
-        ...messageToUpdate.quoted_message,
-      };
-    }
-    delete messageToUpdate.i18n;
+  async updateMessagePartial(
+    message: StreamMessage,
+    update: UpdateMessagePartialRequest
+  ) {
     if (this.beforeUpdateMessage) {
-      messageToUpdate = await this.beforeUpdateMessage(messageToUpdate);
+      update = await this.beforeUpdateMessage(update, message);
     }
-    if (messageToUpdate.readBy) {
-      // @ts-expect-error this is only a run time proparty for the SDK
-      delete messageToUpdate.readBy;
+    if (message.type === 'error' && message.moderation?.action === 'bounce') {
+      const messageToResend: Record<string, unknown> = {
+        ...message,
+        ...update.set,
+      };
+      update.unset?.forEach((field) => delete messageToResend[field]);
+      return this.resendMessage(messageToResend as unknown as StreamMessage);
     }
-    if (messageToUpdate.translation) {
-      delete messageToUpdate.translation;
+    const response =
+      await this.chatClientService.chatClient.updateMessagePartial(
+        { id: message.id },
+        update
+      );
+
+    if (!response.message) {
+      return message;
     }
-    if (messageToUpdate.quoted_message?.translation) {
-      delete messageToUpdate.quoted_message.translation;
-    }
-    if (
-      originalMessage.type === 'error' &&
-      originalMessage.moderation?.action === 'bounce'
-    ) {
-      return this.resendMessage(messageToUpdate);
-    }
-    const response = await this.chatClientService.chatClient.updateMessage(
-      { id: messageToUpdate.id },
-      { message: this.toMessageRequest(messageToUpdate) }
-    );
 
     const channel = this.channelsSubject
       .getValue()
@@ -1860,23 +1852,6 @@ export class ChannelService {
       throw new Error(`Message ${messageId} not found`);
     }
     return formatMessage(result);
-  }
-
-  private toMessageRequest(message: StreamMessage): MessageRequest {
-    const localMessage = toLocalMessage(message);
-    return {
-      id: localMessage.id,
-      text: localMessage.text,
-      attachments: localMessage.attachments,
-      mentioned_users: localMessage.mentioned_users?.map((u) => u.id),
-      parent_id: localMessage.parent_id,
-      show_in_channel: localMessage.show_in_channel,
-      quoted_message_id: localMessage.quoted_message_id,
-      poll_id: localMessage.poll_id,
-      pinned: localMessage.pinned,
-      silent: localMessage.silent,
-      custom: localMessage.custom,
-    };
   }
 
   private releaseThread() {
