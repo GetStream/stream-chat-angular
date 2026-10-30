@@ -325,9 +325,11 @@ export type MockChannel = Channel & {
 export const generateMockChannels = (length = 25) => {
   const channels = Array.from({ length }, (_, index) => {
     const eventHandlers: { [key: string]: Function } = {};
-    const state = new MockStateStore({
+    const stateStore = new MockStateStore({
       read: {} as Channel['state']['read'],
-    }) as unknown as Channel['state'] & MockStateStore<object>;
+    });
+    const state = stateStore as unknown as Channel['state'] &
+      MockStateStore<object>;
     Object.assign(state, {
       read: {},
       typing: {},
@@ -338,6 +340,25 @@ export const generateMockChannels = (length = 25) => {
         eddie: { user: { id: 'eddie' } },
       },
     });
+    // Minimal implementation of stream-chat's MessageReceiptsTracker: the revision is increased on every read state change
+    const receiptsSnapshotStore = new MockStateStore({ revision: 0 });
+    stateStore.subscribeWithSelector(
+      (value) => ({ read: value.read }),
+      (_, prev) => {
+        if (prev) {
+          receiptsSnapshotStore.partialNext({
+            revision: receiptsSnapshotStore.getLatestValue().revision + 1,
+          });
+        }
+      }
+    );
+    const messageReceiptsTracker = {
+      snapshotStore: receiptsSnapshotStore,
+      readersForMessage: ({ timestamp }: { timestamp: number }) =>
+        Object.values(stateStore.getLatestValue().read)
+          .filter((r) => r.last_read != null && r.last_read >= timestamp)
+          .map((r) => r.user),
+    };
     const channel = {
       cid: 'cid' + index.toString(),
       id: index.toString(),
@@ -409,6 +430,7 @@ export const generateMockChannels = (length = 25) => {
       },
       markUnread: () => {},
       state,
+      messageReceiptsTracker,
       sendReaction: () => {},
       deleteReaction: () => {},
       queryMembers: () => ({
@@ -482,6 +504,7 @@ export type MockChannelService = {
   jumpToMessage: (id: string, parentId?: string) => void;
   clearMessageJump: () => void;
   setIsLatestMessageVisible: (isVisible: boolean) => void;
+  getMessagePaginator: (parentId?: string) => MockMessagePaginator | undefined;
 };
 
 type MockPaginationState = {
@@ -581,6 +604,8 @@ export const mockChannelService = (): MockChannelService => {
     clearMessageJump,
     channelQueryState$,
     activeChannel,
+    getMessagePaginator: (parentId?: string) =>
+      parentId ? undefined : activeChannel.messagePaginator,
     activeChannelMessagesPaginationState$:
       new BehaviorSubject<MockPaginationState>({
         hasMoreOlder: true,

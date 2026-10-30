@@ -638,21 +638,31 @@ describe('ChannelService', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should load messages of the channel, if channel is not yet initialized', async () => {
+  it(`shouldn't emit channel switch start, if the channel is already active`, async () => {
     await init();
-    const channel = generateMockChannels(1)[0];
-    channel.cid = 'not-initialized';
-    (channel as unknown as { initialized: boolean }).initialized = false;
-    spyOn(channel, 'watch').and.callThrough();
-    service.setAsActiveChannel(channel);
+    const spy = jasmine.createSpy();
+    service.channelSwitchState$.subscribe(spy);
+    spy.calls.reset();
+    service.setAsActiveChannel(getLatestValue(service.activeChannel$)!);
 
-    expect(channel.watch).toHaveBeenCalledWith();
+    expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should emit error, if loading messages of the channel failed', async () => {
+  it('should load messages of the active channel on reload, if channel is not yet initialized', async () => {
     await init();
-    const channel = generateMockChannels(1)[0];
-    channel.cid = 'not-initialized';
+    const channel = getActiveChannel();
+    (channel as unknown as { initialized: boolean }).initialized = false;
+    spyOn(channel, 'watch').and.callThrough();
+    spyOn(channel.messagePaginator, 'reload');
+    await service.reloadActiveChannelMessages();
+
+    expect(channel.watch).toHaveBeenCalledWith();
+    expect(channel.messagePaginator.reload).not.toHaveBeenCalled();
+  });
+
+  it('should emit error, if loading messages of the active channel failed', async () => {
+    await init();
+    const channel = getActiveChannel();
     (channel as unknown as { initialized: boolean }).initialized = false;
     const error = apiError('GetOrCreateChannel failed with error: "error"');
     spyOn(channel, 'watch').and.rejectWith(error);
@@ -660,8 +670,7 @@ describe('ChannelService', () => {
     spyOn(notificationService, 'addTemporaryNotification');
     const paginationStateSpy = jasmine.createSpy();
     service.activeChannelMessagesPaginationState$.subscribe(paginationStateSpy);
-    service.setAsActiveChannel(channel);
-    await settle();
+    await service.reloadActiveChannelMessages();
 
     expect(paginationStateSpy).toHaveBeenCalledWith(
       jasmine.objectContaining({ isLoading: true })
@@ -672,6 +681,14 @@ describe('ChannelService', () => {
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Error loading messages'
     );
+  });
+
+  it('should return the same messages from #activeChannelMessages as #activeChannelMessages$', async () => {
+    await init();
+    const messages = getLatestValue(service.activeChannelMessages$);
+
+    expect(service.activeChannelMessages).toBe(messages);
+    expect(service.activeChannelMessages.every((m) => !!m.readBy)).toBeTrue();
   });
 
   it('should emit #activeChannelMessages$', async () => {
@@ -873,7 +890,7 @@ describe('ChannelService', () => {
 
   it('should load more thread replies', async () => {
     await init();
-    const parentMessage = service.activeChannelMessages[0] as StreamMessage;
+    const parentMessage = service.activeChannelMessages[0];
     await service.setAsActiveParentMessage(
       getLatestValue(service.activeChannelMessages$).find(
         (m) => m.id === parentMessage.id
@@ -2469,15 +2486,16 @@ describe('ChannelService', () => {
     ).not.toBeUndefined();
   });
 
-  it('should only update #readBy of the latest message, if read state changes', async () => {
+  it('should only update the messages with changed #readBy, if read state changes', async () => {
     await init();
     const channel = getActiveChannel();
     const before = getLatestValue(service.activeChannelMessages$);
+    const lastReadIndex = 10;
     const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    // jack read every message
+    // jack read the messages until (and including) lastReadIndex
     const read = {
       [user.id]: {
-        last_read: dateToNs(new Date()),
+        last_read: before[lastReadIndex].created_at,
         user,
         unread_messages: 0,
       },
@@ -2489,9 +2507,30 @@ describe('ChannelService', () => {
     const after = getLatestValue(service.activeChannelMessages$);
 
     expect(after).not.toBe(before);
-    expect(after[after.length - 1]).not.toBe(before[before.length - 1]);
-    expect(after[after.length - 1].readBy.map((u) => u.id)).toEqual(['jack']);
-    after.slice(0, -1).forEach((m, i) => expect(m).toBe(before[i]));
+    after.forEach((m, i) => {
+      if (i <= lastReadIndex) {
+        expect(m).not.toBe(before[i]);
+        expect(m.readBy.map((u) => u.id)).toEqual(['jack']);
+      } else {
+        expect(m).toBe(before[i]);
+        expect(m.readBy).toEqual([]);
+      }
+    });
+  });
+
+  it(`shouldn't emit the message list, if read state changes don't change #readBy`, async () => {
+    await init();
+    const channel = getActiveChannel();
+    const spy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(spy);
+    spy.calls.reset();
+    const read = {} as Channel['state']['read'];
+    channel.state.read = read;
+    (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
+      { read }
+    );
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('should recalculate #readBy, if a channel is activated again (read events received while the channel was inactive)', async () => {
@@ -2516,38 +2555,45 @@ describe('ChannelService', () => {
     (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
       { read }
     );
+    const spy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(spy);
+    spy.calls.reset();
     service.setAsActiveChannel(channel);
     const after = getLatestValue(service.activeChannelMessages$);
 
     expect(after[after.length - 1].readBy.map((u) => u.id)).toEqual(['jack']);
+    // The message list is emitted once, with the up-to-date readBy lists
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('should update #readBy of every message, if a user is updated', async () => {
     await init();
     const channel = getActiveChannel();
     const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    const read = {
+    const setRead = (read: Channel['state']['read']) => {
+      channel.state.read = read;
+      (
+        channel.state as unknown as MockStateStore<{ read: unknown }>
+      ).partialNext({ read });
+    };
+    setRead({
       [user.id]: {
         last_read: dateToNs(new Date()),
         user,
         unread_messages: 0,
       },
-    } as unknown as Channel['state']['read'];
-    channel.state.read = read;
-    // Simulate a channel switch, so readBy is calculated for every message
-    service.deselectActiveChannel();
-    service.setAsActiveChannel(channel);
+    } as unknown as Channel['state']['read']);
     const before = getLatestValue(service.activeChannelMessages$);
 
     expect(before.every((m) => m.readBy[0]?.name === 'Jack')).toBeTrue();
 
-    channel.state.read = {
-      [user.id]: { ...read[user.id], user: { ...user, name: 'Jack Updated' } },
-    } as unknown as Channel['state']['read'];
-    events$.next({
-      eventType: 'user.updated',
-      event: { type: 'user.updated', user },
-    } as unknown as ClientEvent);
+    // stream-chat updates the users of the read state on user.updated events
+    setRead({
+      [user.id]: {
+        ...channel.state.read[user.id],
+        user: { ...user, name: 'Jack Updated' },
+      },
+    } as unknown as Channel['state']['read']);
     const after = getLatestValue(service.activeChannelMessages$);
 
     expect(after.every((m) => m.readBy[0]?.name === 'Jack Updated')).toBeTrue();

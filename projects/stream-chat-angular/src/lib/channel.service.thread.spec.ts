@@ -484,6 +484,17 @@ describe('ChannelService - threads', () => {
     );
   }));
 
+  it('should return the same messages from #activeChannelThreadReplies as #activeThreadMessages$', async () => {
+    await init();
+    await service.setAsActiveParentMessage(mockMessage());
+    const replies = getLatestValue<StreamMessage[]>(
+      service.activeThreadMessages$
+    );
+
+    expect(replies.length).toBeGreaterThan(0);
+    expect(service.activeChannelThreadReplies).toBe(replies);
+  });
+
   it('should set empty readBy field for thread messages', async () => {
     await init();
     const message = mockMessage();
@@ -749,6 +760,71 @@ describe('ChannelService - threads', () => {
 
     expect(messagesSpy).toHaveBeenCalledWith([]);
     expect(parentMessageSpy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should release the active thread, if custom handler deselects the parent message', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const parentMessage = getChannelMessages()[0];
+    await service.setAsActiveParentMessage(parentMessage);
+    const thread = getThread(parentMessage.id);
+    service.customChannelTruncatedHandler = (
+      _,
+      __,
+      ___,
+      ____,
+      _____,
+      parentMessageSetter
+    ) => parentMessageSetter(undefined);
+    channel.handleEvent('channel.truncated', {
+      type: 'channel.truncated',
+      cid: channel.cid,
+      channel: { cid: channel.cid },
+    });
+
+    expect(getLatestValue(service.activeParentMessageId$)).toBeUndefined();
+    expect(getLatestValue(service.activeThreadMessages$)).toEqual([]);
+    expect(thread.state.getLatestValue().active).toBeFalse();
+
+    await service.setAsActiveParentMessage(parentMessage);
+
+    expect(getLatestValue(service.activeParentMessageId$)).toBe(
+      parentMessage.id
+    );
+    expect(thread.state.getLatestValue().active).toBeTrue();
+  });
+
+  it('should switch the active thread, if custom handler sets a new parent message', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const [parentMessage, newParentMessage] = getChannelMessages();
+    await service.setAsActiveParentMessage(parentMessage);
+    const thread = getThread(parentMessage.id);
+    service.customChannelTruncatedHandler = (
+      _,
+      __,
+      ___,
+      ____,
+      _____,
+      parentMessageSetter
+    ) => parentMessageSetter(newParentMessage);
+    channel.handleEvent('channel.truncated', {
+      type: 'channel.truncated',
+      cid: channel.cid,
+      channel: { cid: channel.cid },
+    });
+    await Promise.resolve();
+    const newThread = getThread(newParentMessage.id);
+
+    expect(getLatestValue(service.activeParentMessageId$)).toBe(
+      newParentMessage.id
+    );
+    expect(thread.state.getLatestValue().active).toBeFalse();
+    expect(
+      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).map(
+        (m) => m.id
+      )
+    ).toEqual(newThread.messagePaginator.items!.map((m) => m.id));
   });
 
   it('should emit thread messages if reactions change', async () => {

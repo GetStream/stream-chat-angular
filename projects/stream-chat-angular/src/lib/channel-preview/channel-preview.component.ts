@@ -72,11 +72,24 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
         ({ latestMessage }) => {
           this.ngZone.run(() => {
             this.setLatestMessage(latestMessage ?? undefined);
+            this.updateLatestMessageStatus();
             this.updateUnreadState();
           });
         }
       );
     this.subscriptions.push({ unsubscribe: unsubscribeFromLatestMessage });
+    // Read receipts are tracked by stream-chat, the message list uses the same data
+    const unsubscribeFromReadReceipts =
+      this.channel!.messageReceiptsTracker.snapshotStore.subscribeWithSelector(
+        (state) => ({ revision: state.revision }),
+        (_, prev) => {
+          if (!prev) {
+            return;
+          }
+          this.ngZone.run(() => this.updateLatestMessageStatus());
+        }
+      );
+    this.subscriptions.push({ unsubscribe: unsubscribeFromReadReceipts });
     // stream-chat updates the unread count after the latest message (message.new), so the latest message subscription reads the previous count
     const ownUserId = this.chatClientService.chatClient.user?.id;
     const unsubscribeFromUnreadCount =
@@ -146,23 +159,22 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     void this.channelService.setAsActiveChannel(this.channel!);
   }
 
-  private setLatestMessage(localMessage?: LocalMessage) {
-    const message = localMessage;
+  private setLatestMessage(message?: LocalMessage) {
     this.latestMessage = message;
     if (!message) {
       this.latestMessageText = 'streamChat.Nothing yet...';
-    } else if (message?.deleted_at) {
+    } else if (message.deleted_at) {
       this.latestMessageText = 'streamChat.Message deleted';
-    } else if (message?.text) {
+    } else if (message.text) {
       this.latestMessageText =
         getMessageTranslation(
-          localMessage,
+          message,
           this.channel,
           this.chatClientService.chatClient.user
         ) || message.text;
-    } else if (message?.attachments && message.attachments.length) {
+    } else if (message.attachments && message.attachments.length) {
       this.latestMessageText = 'streamChat.🏙 Attachment...';
-    } else if (message?.poll_id) {
+    } else if (message.poll_id) {
       this.latestMessageText = `📊 ${message.poll?.name}`;
     }
     if (this.latestMessage && this.latestMessage.type === 'regular') {
@@ -175,7 +187,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private updateUnreadState() {
+  private updateLatestMessageStatus() {
     if (
       this.channel &&
       this.latestMessage &&
@@ -190,6 +202,9 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
     } else {
       this.latestMessageStatus = undefined;
     }
+  }
+
+  private updateUnreadState() {
     if (
       (this.isActive && !this.isUnreadMessageWasCalled) ||
       !this.canSendReadEvents

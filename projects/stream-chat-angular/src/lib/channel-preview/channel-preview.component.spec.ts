@@ -494,13 +494,15 @@ describe('ChannelPreviewComponent', () => {
 
     expect(component.latestMessageStatus).toBe('delivered');
 
-    channel.state.read['otheruser'] = {
-      last_read: latestMessage.created_at,
-      unread_messages: 0,
-      user: { id: 'otheruser' },
-    } as unknown as MockChannel['state']['read'][string];
-    channel.handleEvent('message.read', {
-      message: latestMessage,
+    // stream-chat updates the read state (and the read receipts) on message.read events
+    (channel.state as unknown as MockStateStore<Channel['state']>).partialNext({
+      read: {
+        otheruser: {
+          last_read: latestMessage.created_at,
+          unread_messages: 0,
+          user: { id: 'otheruser' },
+        },
+      } as unknown as Channel['state']['read'],
     });
 
     expect(component.latestMessageStatus).toBe('read');

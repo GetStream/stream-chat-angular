@@ -38,7 +38,6 @@ import {
 } from './get-message-translation';
 import { createMessagePreview } from './message-preview';
 import { NotificationService } from './notification.service';
-import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
   AttachmentUploadErrorReason,
@@ -53,6 +52,7 @@ import {
 } from './types';
 import { ChannelQuery } from './channel-query';
 import { toLocalMessage } from './local-message';
+import { getReadBy } from './read-by';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list.
@@ -375,6 +375,7 @@ export class ChannelService {
     {
       errorStatusCode?: number;
       translationLanguage?: string;
+      readByRevision?: number;
       message: StreamMessage;
     }
   >();
@@ -464,7 +465,8 @@ export class ChannelService {
   };
 
   private parentMessageSetter = (message: StreamMessage | undefined) => {
-    this.activeParentMessageIdSubject.next(message?.id);
+    // Switches/releases the active thread too, setting only the parent message id would leave the previous thread active
+    void this.setAsActiveParentMessage(message);
   };
   private dismissErrorNotification?: () => void;
   private areReadEventsPaused = false;
@@ -631,14 +633,16 @@ export class ChannelService {
   /**
    * Sets the given `channel` as active and marks it as read.
    * If the channel wasn't previously part of the channel, it will be added to the beginning of the list.
+   *
+   * The channel has to be [watched](/chat/docs/javascript/creating-channels/) before calling this method (channels returned by `channelService.channels$` are always watched). If you have a channel that isn't watched yet, call `await channel.watch()` first.
    * @param channel
    */
   setAsActiveChannel(channel: Channel) {
-    this.channelSwitchStateSubject.next('start');
     const prevActiveChannel = this.activeChannelSubject.getValue();
     if (prevActiveChannel?.cid === channel.cid) {
       return;
     }
+    this.channelSwitchStateSubject.next('start');
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
     this.releaseThread();
     this.flushMarkReadQueue();
@@ -657,15 +661,10 @@ export class ChannelService {
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
     this.watchForActiveChannelEvents(channel);
-    // The cached messages keep the readBy lists from the last time the channel was active, read events received since then aren't reflected (same as before stream-chat v10, readBy is recalculated on activation)
-    this.refreshReadBy(channel, 'all');
     // Activated channels are reloaded by stream-chat after a reconnect
     this.releaseActiveChannel = channel.activate();
     this.setChannelState(channel);
     this.channelSwitchStateSubject.next('end');
-    if (!channel.initialized || channel.messagePaginator.items === undefined) {
-      void this.loadInitialMessages(channel);
-    }
   }
 
   /**
@@ -743,7 +742,7 @@ export class ChannelService {
       // Thread reloads (stale thread, reconnect) don't use the paginator's queries, the thread has its own loading state
       const isThreadLoading = () => thread.state.getLatestValue().isLoading;
       this.activeThreadPaginatorSubscriptions = [
-        ...this.bindMessagePaginator(
+        this.bindMessagePaginator(
           thread.messagePaginator,
           this.activeThreadMessagesSubject,
           this.activeThreadMessagesPaginationStateSubject,
@@ -1628,8 +1627,6 @@ export class ChannelService {
           const activeChannel = this.activeChannelSubject.getValue();
           if (activeChannel) {
             this.activeChannelSubject.next(activeChannel);
-            // Refresh the users of the readBy lists (same as before stream-chat v10)
-            this.refreshReadBy(activeChannel, 'all');
             // The language of the user might have changed
             this.refreshTranslations();
           }
@@ -1693,7 +1690,7 @@ export class ChannelService {
 
   private watchForActiveChannelEvents(channel: Channel) {
     this.activeChannelPaginatorSubscriptions = [
-      ...this.bindMessagePaginator(
+      this.bindMessagePaginator(
         channel.messagePaginator,
         this.activeChannelMessagesSubject,
         this.activeChannelMessagesPaginationStateSubject,
@@ -1714,9 +1711,9 @@ export class ChannelService {
           });
         }
       ),
-      // read state changes (for example message.read events): update the readBy property of the latest message (same as before stream-chat v10)
-      channel.state.subscribeWithSelector(
-        (state) => ({ read: state.read }),
+      // read receipts changed (for example message.read or user.updated events): emit the message list if the readBy property of any message changed
+      channel.messageReceiptsTracker.snapshotStore.subscribeWithSelector(
+        (state) => ({ revision: state.revision }),
         (_, prev) => {
           if (!prev) {
             return;
@@ -1725,7 +1722,17 @@ export class ChannelService {
             if (this.activeChannelSubject.getValue() !== channel) {
               return;
             }
-            this.refreshReadBy(channel, 'latest');
+            const messages = this.activeChannelMessagesSubject.getValue();
+            const isChanged = messages.some((message) => {
+              const cached = this.streamMessageCache.get(message)?.message;
+              return (
+                !!cached &&
+                this.transformToStreamMessage(message, channel) !== cached
+              );
+            });
+            if (isChanged) {
+              this.activeChannelMessagesSubject.next([...messages]);
+            }
           });
         }
       ),
@@ -1793,41 +1800,45 @@ export class ChannelService {
     isActive: () => boolean,
     isLoadingOutsidePaginator: () => boolean = () => false
   ) {
-    return [
-      paginator.state.subscribeWithSelector(
-        (state) => ({
-          items: state.items,
-          hasMoreTail: state.hasMoreTail,
-          hasMoreHead: state.hasMoreHead,
-          isLoading: state.isLoading,
-          lastQueryError: state.lastQueryError,
-        }),
-        (state, prev) => {
-          this.ngZone.run(() => {
-            if (!isActive()) {
-              return;
-            }
-            // hasMoreHead is also used to decide if the latest message is in the list
-            if (
-              !prev ||
-              state.items !== prev.items ||
-              state.hasMoreHead !== prev.hasMoreHead
-            ) {
-              messagesSubject.next(state.items ?? []);
-            }
-            paginationStateSubject.next({
-              hasMoreOlder: state.hasMoreTail,
-              hasMoreNewer: state.hasMoreHead,
-              isLoading: state.isLoading || isLoadingOutsidePaginator(),
-              error: state.lastQueryError,
-            });
+    return paginator.state.subscribeWithSelector(
+      (state) => ({
+        items: state.items,
+        hasMoreTail: state.hasMoreTail,
+        hasMoreHead: state.hasMoreHead,
+        isLoading: state.isLoading,
+        lastQueryError: state.lastQueryError,
+      }),
+      (state, prev) => {
+        this.ngZone.run(() => {
+          if (!isActive()) {
+            return;
+          }
+          // hasMoreHead is also used to decide if the latest message is in the list
+          if (
+            !prev ||
+            state.items !== prev.items ||
+            state.hasMoreHead !== prev.hasMoreHead
+          ) {
+            messagesSubject.next(state.items ?? []);
+          }
+          paginationStateSubject.next({
+            hasMoreOlder: state.hasMoreTail,
+            hasMoreNewer: state.hasMoreHead,
+            isLoading: state.isLoading || isLoadingOutsidePaginator(),
+            error: state.lastQueryError,
           });
-        }
-      ),
-    ];
+        });
+      }
+    );
   }
 
-  private getMessagePaginator(parentId?: string) {
+  /**
+   * Returns the message paginator of the active channel, or the message paginator of the thread, if `parentId` is provided
+   * @internal
+   * @param parentId
+   * @returns the message paginator
+   */
+  getMessagePaginator(parentId?: string) {
     if (parentId) {
       return this.activeThread?.id === parentId
         ? this.activeThread.messagePaginator
@@ -1936,14 +1947,20 @@ export class ChannelService {
    * The current active channel messages
    */
   get activeChannelMessages() {
-    return this.activeChannelMessagesSubject.getValue() || [];
+    // Same messages as emitted by activeChannelMessages$ (shareReplay keeps the latest value)
+    let messages: StreamMessage[] = [];
+    this.activeChannelMessages$.pipe(take(1)).subscribe((m) => (messages = m));
+    return messages;
   }
 
   /**
    * The current thread replies
    */
   get activeChannelThreadReplies() {
-    return this.activeThreadMessagesSubject.getValue() || [];
+    // Same messages as emitted by activeThreadMessages$ (shareReplay keeps the latest value)
+    let messages: StreamMessage[] = [];
+    this.activeThreadMessages$.pipe(take(1)).subscribe((m) => (messages = m));
+    return messages;
   }
 
   /**
@@ -2328,24 +2345,32 @@ export class ChannelService {
     const localMessage = message as LocalMessage | MessageResponse;
     const errorStatusCode = this.errorStatusCodes.get(localMessage.id);
     const translationLanguage = getTranslationLanguage(channel, user);
+    const readByRevision =
+      isThreadMessage || !channel
+        ? undefined
+        : channel.messageReceiptsTracker.snapshotStore.getLatestValue()
+            .revision;
     const cached = this.streamMessageCache.get(localMessage);
-    // readBy is calculated when the message object is created, after that it's only updated by refreshReadBy (same as before stream-chat v10)
     if (
       cached &&
       cached.errorStatusCode === errorStatusCode &&
       cached.translationLanguage === translationLanguage
     ) {
+      // readBy is only recalculated if the read receipts changed, and the message object is only replaced if the readBy list changed
+      if (cached.readByRevision !== readByRevision) {
+        const readBy = this.getMessageReadBy(localMessage, channel);
+        if (!this.isSameUserList(readBy, cached.message.readBy)) {
+          cached.message = { ...cached.message, readBy };
+        }
+        cached.readByRevision = readByRevision;
+      }
       return cached.message;
     }
     // Messages are stored by stream-chat, they shouldn't be mutated, we create a new object instead
     const streamMessage: StreamMessage = {
       ...localMessage,
       status: (localMessage as LocalMessage).status || 'received',
-      readBy: isThreadMessage
-        ? []
-        : channel
-        ? getReadBy(localMessage, channel)
-        : [],
+      readBy: this.getMessageReadBy(localMessage, channel),
       translation: getMessageTranslation(localMessage, channel, user),
       errorStatusCode,
       quoted_message: localMessage.quoted_message
@@ -2362,6 +2387,7 @@ export class ChannelService {
     this.streamMessageCache.set(localMessage, {
       errorStatusCode,
       translationLanguage,
+      readByRevision,
       message: streamMessage,
     });
     return streamMessage;
@@ -2388,30 +2414,11 @@ export class ChannelService {
     );
   }
 
-  /**
-   * Recalculates the readBy property of the latest (or all) messages of the active channel, and emits the message list if anything changed
-   * @param channel
-   * @param scope
-   */
-  private refreshReadBy(channel: Channel, scope: 'latest' | 'all') {
-    const messages = this.activeChannelMessagesSubject.getValue();
-    const messagesToRefresh =
-      scope === 'latest' ? messages.slice(-1) : messages;
-    let isChanged = false;
-    messagesToRefresh.forEach((message) => {
-      const cached = this.streamMessageCache.get(message);
-      if (!cached || cached.message.parent_id) {
-        return;
-      }
-      const readBy = getReadBy(cached.message, channel);
-      if (!this.isSameUserList(readBy, cached.message.readBy)) {
-        cached.message = { ...cached.message, readBy };
-        isChanged = true;
-      }
-    });
-    if (isChanged) {
-      this.activeChannelMessagesSubject.next([...messages]);
-    }
+  private getMessageReadBy(
+    message: LocalMessage | MessageResponse,
+    channel?: Channel
+  ) {
+    return message.parent_id || !channel ? [] : getReadBy(message, channel);
   }
 
   private isSameUserList(users1: UserResponse[], users2: UserResponse[]) {

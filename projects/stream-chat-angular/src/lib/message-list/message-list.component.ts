@@ -649,14 +649,6 @@ export class MessageListComponent
     }
   }
 
-  private getMessagePaginator() {
-    return this.mode === 'main'
-      ? this.channelService.activeChannel?.messagePaginator
-      : this.chatClientService.chatClient?.threads?.get(
-          this.parentMessage?.id || ''
-        )?.messagePaginator;
-  }
-
   /**
    * Tells the channel service if the user sees the latest messages (if the channel is marked as read, new messages don't increase the unread count)
    */
@@ -765,7 +757,11 @@ export class MessageListComponent
       tap((messages) => {
         const latestMessageInList = messages[messages.length - 1];
         const channel = this.channelService.activeChannel;
-        const paginator = this.getMessagePaginator();
+        const paginator =
+          this.mode === 'main'
+            ? this.channelService.getMessagePaginator()
+            : this.parentMessage &&
+              this.channelService.getMessagePaginator(this.parentMessage.id);
         const allMessages =
           this.mode === 'main'
             ? this.channelService.activeChannelMessages
