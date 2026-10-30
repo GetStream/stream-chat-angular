@@ -11,8 +11,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
+  nsToMs,
   ReactionGroupResponse,
   ReactionResponse,
+  TimestampNS,
   UserResponse,
 } from 'stream-chat';
 import { MessageReactionType } from '../types';
@@ -21,7 +23,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
 
 /**
- * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](/chat/docs/javascript/send_reaction/) in the platform documentation.
+ * The `MessageReactions` component displays the reactions of a message. You can read more about [message reactions](/chat/docs/javascript/send-reaction/) in the platform documentation.
  */
 @Component({
   selector: 'stream-message-reactions',
@@ -96,9 +98,10 @@ export class MessageReactionsComponent
           this.messageReactionGroups![k] = {
             count: this.messageReactionCounts?.[k] ?? 0,
             sum_scores: this.messageReactionCounts?.[k] ?? 0,
-            first_reaction_at: undefined,
-            last_reaction_at: undefined,
-          };
+            // Not known when only counts are provided, sorting falls back to the current time
+            first_reaction_at: undefined as unknown as TimestampNS,
+            last_reaction_at: undefined as unknown as TimestampNS,
+          } as ReactionGroupResponse;
         });
       }
       this.setExistingReactions();
@@ -128,10 +131,8 @@ export class MessageReactionsComponent
       });
     } else {
       this.selectedReactionType = reactionType;
-      if (!this.usersByReactions[this.selectedReactionType]) {
-        this.usersByReactions[this.selectedReactionType] = {
-          users: [],
-        };
+      // The users of a reaction type are only stored after a page is loaded, if the first page couldn't be loaded, the next click on the reaction tries again
+      if (!this.usersByReactions[reactionType]) {
         await this.loadNextPageOfReactions();
       }
     }
@@ -142,22 +143,30 @@ export class MessageReactionsComponent
       return;
     }
 
+    // The modal can be closed (that resets usersByReactions) or another reaction type can be selected while the request is in progress
+    const reactionType = this.selectedReactionType;
+    const usersByReactions = this.usersByReactions;
+    const loaded = usersByReactions[reactionType];
     this.isLoading = true;
     try {
       const response = await this.messageReactionsService.queryReactions(
         this.messageId,
-        this.selectedReactionType,
-        this.usersByReactions[this.selectedReactionType].next
+        reactionType,
+        loaded?.next
       );
-      this.usersByReactions[this.selectedReactionType].users = [
-        ...this.usersByReactions[this.selectedReactionType].users,
-        ...(response.reactions
-          .map((r) => r.user)
-          .filter((u) => !!u) as UserResponse[]),
-      ];
-      this.usersByReactions[this.selectedReactionType].next = response.next;
+      usersByReactions[reactionType] = {
+        users: [
+          ...(loaded?.users ?? []),
+          ...(response.reactions
+            .map((r) => r.user)
+            .filter((u) => !!u) as UserResponse[]),
+        ],
+        next: response.next,
+      };
     } catch (_) {
-      this.selectedReactionType = undefined;
+      if (this.selectedReactionType === reactionType) {
+        this.selectedReactionType = undefined;
+      }
     } finally {
       this.isLoading = false;
     }
@@ -186,14 +195,15 @@ export class MessageReactionsComponent
       .filter((k) => this.reactionOptions.indexOf(k) !== -1)
       .filter((k) => this.messageReactionGroups![k].count > 0)
       .sort((r1, r2) => {
-        const date1 = this.messageReactionGroups![r1].first_reaction_at
-          ? new Date(this.messageReactionGroups![r1].first_reaction_at!)
-          : new Date();
-        const date2 = this.messageReactionGroups![r2].first_reaction_at
-          ? new Date(this.messageReactionGroups![r2].first_reaction_at!)
-          : new Date();
+        const firstReactionAt1 =
+          this.messageReactionGroups![r1].first_reaction_at;
+        const firstReactionAt2 =
+          this.messageReactionGroups![r2].first_reaction_at;
+        const now = Date.now();
+        const time1 = firstReactionAt1 ? nsToMs(firstReactionAt1) : now;
+        const time2 = firstReactionAt2 ? nsToMs(firstReactionAt2) : now;
 
-        return date1.getTime() - date2.getTime();
+        return time1 - time2;
       });
   }
 }

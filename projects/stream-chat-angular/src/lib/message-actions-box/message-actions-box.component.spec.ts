@@ -7,7 +7,7 @@ import {
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Channel, ReactionResponse } from 'stream-chat';
+import { Channel, ReactionResponse, StreamAPIError } from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -43,8 +43,9 @@ describe('MessageActionsBoxComponent', () => {
   let message: StreamMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
+  let flagMessageSpy: jasmine.Spy;
   let channelService: {
-    updateMessage: jasmine.Spy;
+    updateMessagePartial: jasmine.Spy;
     activeChannel$: Observable<Channel>;
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
@@ -57,8 +58,9 @@ describe('MessageActionsBoxComponent', () => {
 
   beforeEach(async () => {
     mockChatClient = mockStreamChatClient();
+    flagMessageSpy = jasmine.createSpy('flagMessage');
     channelService = {
-      updateMessage: jasmine.createSpy(),
+      updateMessagePartial: jasmine.createSpy(),
       activeChannel$: new BehaviorSubject(generateMockChannels(1)[0]),
       deleteMessage: jasmine.createSpy(),
       selectMessageToQuote: jasmine.createSpy(),
@@ -75,7 +77,10 @@ describe('MessageActionsBoxComponent', () => {
         MessageReactionsSelectorComponent,
       ],
       providers: [
-        { provide: ChatClientService, useValue: mockChatClient },
+        {
+          provide: ChatClientService,
+          useValue: { ...mockChatClient, flagMessage: flagMessageSpy },
+        },
         { provide: ChannelService, useValue: channelService },
         {
           provide: textareaInjectionToken,
@@ -248,7 +253,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(flagMessageSpy).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Message has been successfully flagged',
       'success'
@@ -258,7 +263,20 @@ describe('MessageActionsBoxComponent', () => {
   it(`should display error message, if flag action wasn't successful`, async () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    mockChatClient.flagMessage.and.rejectWith();
+    flagMessageSpy.and.rejectWith(
+      new StreamAPIError('Flag failed with error: "error"', {
+        code: 4,
+        status: 400,
+        response: {
+          data: {
+            code: 4,
+            message: 'Flag failed with error: "error"',
+            StatusCode: 400,
+          },
+          status: 400,
+        } as unknown as StreamAPIError['response'],
+      })
+    );
     component.enabledActions = ['flag-message'];
     component.ngOnChanges({ enabledActions: {} as SimpleChange });
     fixture.detectChanges();
@@ -267,7 +285,7 @@ describe('MessageActionsBoxComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith(message.id);
+    expect(flagMessageSpy).toHaveBeenCalledWith(message.id);
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.Error adding flag'
     );
@@ -379,7 +397,20 @@ describe('MessageActionsBoxComponent', () => {
   it(`should display error notification if message couldn't be deleted`, fakeAsync(() => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    channelService.deleteMessage.and.rejectWith(new Error('Error'));
+    channelService.deleteMessage.and.rejectWith(
+      new StreamAPIError('DeleteMessage failed with error: "error"', {
+        code: 4,
+        status: 400,
+        response: {
+          data: {
+            code: 4,
+            message: 'DeleteMessage failed with error: "error"',
+            StatusCode: 400,
+          },
+          status: 400,
+        } as unknown as StreamAPIError['response'],
+      })
+    );
     component.enabledActions = ['delete-any'];
     component.ngOnChanges({
       enabledActions: {} as SimpleChange,

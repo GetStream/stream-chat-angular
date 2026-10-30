@@ -1,4 +1,5 @@
 import { SimpleChange } from '@angular/core';
+import { ChannelMemberResponse, Event, UserResponse } from 'stream-chat';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, Subject, of } from 'rxjs';
 import { ChatClientService, ClientEvent } from '../chat-client.service';
@@ -123,7 +124,7 @@ describe('AvatarComponent', () => {
     expect(component.initials).toBe('');
 
     let channel = generateMockChannels()[0];
-    channel.data!.name = undefined;
+    channel.data!.custom!.name = undefined;
     component.channel = channel;
     component.type = 'channel';
     component.ngOnChanges({
@@ -136,16 +137,19 @@ describe('AvatarComponent', () => {
     expect(component.initials).toBe('#');
 
     channel = generateMockChannels()[0];
-    channel.data!.name = 'Test';
+    channel.data!.custom!.name = 'Test';
     channel.state.members = {
       otheruser: {
         user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack' },
-      },
+        user: { id: 'otheruser', name: 'Jack' } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     component.type = 'channel';
@@ -159,16 +163,19 @@ describe('AvatarComponent', () => {
     expect(component.initials).toBe('T');
 
     channel = generateMockChannels()[0];
-    channel.data!.name = undefined;
+    channel.data!.custom!.name = undefined;
     channel.state.members = {
       otheruser: {
         user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack' },
-      },
+        user: { id: 'otheruser', name: 'Jack' } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     component.ngOnChanges({
@@ -189,12 +196,12 @@ describe('AvatarComponent', () => {
     channel.state.members = {
       otheruser: {
         user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack' },
-      },
+        user: { id: 'otheruser', name: 'Jack' } as UserResponse,
+      } as ChannelMemberResponse,
       otheruser2: {
         user_id: 'otheruser2',
-        user: { id: 'otheruser2', name: 'Sara' },
-      },
+        user: { id: 'otheruser2', name: 'Sara' } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     component.ngOnChanges({
@@ -211,12 +218,19 @@ describe('AvatarComponent', () => {
     channel.state.members = {
       otheruser: {
         user_id: 'otheruser',
-        user: { id: 'otheruser', name: 'Jack', image: 'url/to/img' },
-      },
+        user: {
+          id: 'otheruser',
+          name: 'Jack',
+          image: 'url/to/img',
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.imageUrl = undefined;
     component.channel = channel;
@@ -245,8 +259,8 @@ describe('AvatarComponent', () => {
 
     channel.state.members['thirduser'] = {
       user_id: 'thirduser',
-      user: { id: 'thirduser', image: 'profile/img' },
-    };
+      user: { id: 'thirduser', image: 'profile/img' } as UserResponse,
+    } as ChannelMemberResponse;
     component.ngOnChanges({
       channel: {} as SimpleChange,
     });
@@ -265,12 +279,15 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: true,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     void component.ngOnChanges({ channel: {} as SimpleChange });
@@ -290,12 +307,15 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: false,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     void component.ngOnChanges({ channel: {} as SimpleChange });
@@ -315,12 +335,15 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: false,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     void component.ngOnChanges({ channel: {} as SimpleChange });
@@ -333,8 +356,8 @@ describe('AvatarComponent', () => {
       eventType: 'user.presence.changed',
       event: {
         type: 'user.presence.changed',
-        user: { id: 'otheruser', online: true },
-      },
+        user: { id: 'otheruser', online: true } as UserResponse,
+      } as Event,
     });
     fixture.detectChanges();
 
@@ -351,8 +374,8 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: true,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       thirduser: {
         user_id: 'thirduser',
         user: {
@@ -360,12 +383,15 @@ describe('AvatarComponent', () => {
           name: 'John',
           image: 'url/to/img',
           online: true,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     void component.ngOnChanges({ channel: {} as SimpleChange });
@@ -385,12 +411,15 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: true,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     component.showOnlineIndicator = false;
@@ -424,12 +453,15 @@ describe('AvatarComponent', () => {
           name: 'Jack',
           image: 'url/to/img',
           online: true,
-        },
-      },
+        } as UserResponse,
+      } as ChannelMemberResponse,
       [chatClientServiceMock.chatClient.user.id]: {
         user_id: chatClientServiceMock.chatClient.user.id,
-        user: { id: chatClientServiceMock.chatClient.user.id, name: 'Sara' },
-      },
+        user: {
+          id: chatClientServiceMock.chatClient.user.id,
+          name: 'Sara',
+        } as UserResponse,
+      } as ChannelMemberResponse,
     };
     component.channel = channel;
     void component.ngOnChanges({ channel: {} as SimpleChange });

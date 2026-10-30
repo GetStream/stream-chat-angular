@@ -8,7 +8,7 @@ import { StreamMessage } from '../types';
 /**
  * The component watches for the [`channelService.bouncedMessage$` stream](/chat/docs/sdk/angular/services/ChannelService/#bouncedmessage) and opens the bounce modal if a message is emitted.
  *
- * To bounce messages, you need to set up [semantic filters for moderation](https://getstream.io/automated-moderation/docs/automod_configuration/?q=semantic%20filters).
+ * To bounce messages, you need to set up [semantic filters for moderation](/moderation/docs/node/configuration/policies/).
  */
 @Component({
   selector: 'stream-message-bounce-prompt',

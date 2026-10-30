@@ -5,7 +5,7 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { UserResponse } from 'stream-chat';
+import { dateToNs, UserResponse } from 'stream-chat';
 import { StreamMessage } from '../types';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
@@ -183,14 +183,14 @@ describe('MessageComponent', () => {
     component.message = {
       ...component.message,
       ...{ reaction_groups: { wow: { count: 1, sum_scores: 1 } } },
-    } as StreamMessage;
+    } as unknown as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const container = queryContainer();
     let classList = container?.classList;
 
     expect(
-      classList?.contains(`str-chat__message--${message.type as string}`)
+      classList?.contains(`str-chat__message--${message.type}`)
     ).toBeTrue();
 
     expect(
@@ -205,7 +205,10 @@ describe('MessageComponent', () => {
       classList?.contains('str-chat__message-with-thread-link')
     ).toBeFalse();
 
-    component.message.user = { id: 'notcurrentUser', name: 'Jane' };
+    component.message.user = {
+      id: 'notcurrentUser',
+      name: 'Jane',
+    } as UserResponse;
     component.message.reaction_groups = {};
     component.message.reply_count = 3;
     component.ngOnChanges({ message: {} as SimpleChange });
@@ -281,7 +284,7 @@ describe('MessageComponent', () => {
       expect(queryDeliveredIndicator()).toBeNull();
       expect(queryReadIndicator()).toBeNull();
 
-      message.user = { id: 'notcurrentuser', name: 'Daniel' };
+      message.user = { id: 'notcurrentuser', name: 'Daniel' } as UserResponse;
       fixture.detectChanges();
 
       expect(querySendingIndicator()).toBeNull();
@@ -295,7 +298,13 @@ describe('MessageComponent', () => {
     const senderImage = 'link/to/profile/photo';
     component.message = {
       ...message,
-      ...{ user: { id: 'id', name: senderName, image: senderImage } },
+      ...{
+        user: {
+          id: 'id',
+          name: senderName,
+          image: senderImage,
+        } as UserResponse,
+      },
     };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -305,7 +314,7 @@ describe('MessageComponent', () => {
     expect(avatar.imageUrl).toContain(senderImage);
     expect(avatar.type).toBe('user');
     expect(avatar.location).toBe('message-sender');
-    expect(avatar.user).toBe(component.message.user!);
+    expect(avatar.user).toBe(component.message.user);
   });
 
   it('should display text message', () => {
@@ -389,16 +398,10 @@ describe('MessageComponent', () => {
 
       component.message = {
         ...message,
-        moderation_details: {
+        moderation: {
           original_text: 'Ricciardo should retire',
-          action: 'MESSAGE_RESPONSE_ACTION_BOUNCE',
-          harms: [
-            {
-              name: 'hammurabi_filter',
-              phrase_list_ids: [139],
-            },
-          ],
-          error_msg: 'this message did not meet our content guidelines',
+          action: 'bounce',
+          blocklists_matched: ['hammurabi_filter'],
         },
         type: 'error',
       };
@@ -419,7 +422,7 @@ describe('MessageComponent', () => {
   });
 
   it('should display message sender and date', () => {
-    const sender = { id: 'sender', name: 'Jack' };
+    const sender = { id: 'sender', name: 'Jack' } as UserResponse;
     component.message = { ...message, ...{ user: sender } };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -636,7 +639,10 @@ describe('MessageComponent', () => {
 
     expect(messageActionsBoxComponent.isMine).toBeTrue();
 
-    component.message = { ...message, ...{ user: { id: 'notcurrentuser' } } };
+    component.message = {
+      ...message,
+      ...{ user: { id: 'notcurrentuser' } as UserResponse },
+    };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -663,7 +669,7 @@ describe('MessageComponent', () => {
 
     expect(queryAttachmentComponent()).toBeUndefined();
 
-    const attachments = [{ image_url: 'image/url' }];
+    const attachments = [{ image_url: 'image/url', custom: {} }];
     component.message = {
       ...message,
       ...{ attachments },
@@ -734,7 +740,7 @@ describe('MessageComponent', () => {
   it('should display deleted message placeholder', () => {
     expect(queryDeletedMessageContainer()).toBeNull();
 
-    component.message = { ...message, deleted_at: new Date() };
+    component.message = { ...message, deleted_at: dateToNs(new Date()) };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -880,8 +886,11 @@ describe('MessageComponent', () => {
         id: 'sara',
         name: 'Sara',
         image: 'http://url/to/img',
-      };
-      quotedMessage.attachments = [{ image_url: '1' }, { image_url: '2' }];
+      } as UserResponse;
+      quotedMessage.attachments = [
+        { image_url: '1', custom: {} },
+        { image_url: '2', custom: {} },
+      ];
       quotedMessage.text = 'This message was quoted';
       component.message = {
         ...component.message!,
@@ -904,15 +913,15 @@ describe('MessageComponent', () => {
         .query(By.directive(AttachmentListComponent))
         .componentInstance as AttachmentListComponent;
 
-      expect(avatar.name).toBe(component.message!.quoted_message!.user!.name);
+      expect(avatar.name).toBe(component.message!.quoted_message!.user.name);
       expect(avatar.imageUrl).toBe(
-        component.message!.quoted_message!.user!.image
+        component.message!.quoted_message!.user.image
       );
 
       expect(avatar.type).toBe('user');
       expect(avatar.location).toBe('quoted-message-sender');
-      expect(avatar.user).toBe(component.message!.quoted_message!.user!);
-      expect(attachments.attachments).toEqual([{ image_url: '1' }]);
+      expect(avatar.user).toBe(component.message!.quoted_message!.user);
+      expect(attachments.attachments).toEqual([{ image_url: '1', custom: {} }]);
       expect(
         nativeElement.querySelector('[data-testid="quoted-message-text"]')
           ?.innerHTML
@@ -934,7 +943,10 @@ describe('MessageComponent', () => {
 
       expect(quotedMessageContainer?.classList).toContain('mine');
 
-      component.message = { ...component.message!, user: { id: 'otheruser' } };
+      component.message = {
+        ...component.message!,
+        user: { id: 'otheruser' } as UserResponse,
+      };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
@@ -943,9 +955,9 @@ describe('MessageComponent', () => {
 
     it('should display reply if we reply with attachments without text', () => {
       component.message!.attachments = [
-        { image_url: 'http://url/to/image', type: 'image' },
+        { image_url: 'http://url/to/image', type: 'image', custom: {} },
       ];
-      component.message!.text = undefined;
+      component.message!.text = '';
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
@@ -1010,7 +1022,7 @@ describe('MessageComponent', () => {
   });
 
   it(`should display edited flag if message was edited, edited info should be collapsed`, () => {
-    component.message!.message_text_updated_at = new Date().toISOString();
+    component.message!.message_text_updated_at = dateToNs(new Date());
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -1024,7 +1036,7 @@ describe('MessageComponent', () => {
   });
 
   it(`should display edited flag if message was edited, display timestamp if clicked`, () => {
-    component.message!.message_text_updated_at = new Date().toISOString();
+    component.message!.message_text_updated_at = dateToNs(new Date());
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     queryMessageInner()?.click();
@@ -1043,22 +1055,6 @@ describe('MessageComponent', () => {
       queryBlockedMessageComponent = () =>
         fixture.debugElement.query(By.directive(MessageBlockedComponent))
           ?.componentInstance as MessageBlockedComponent;
-    });
-
-    it('should display blocked message component when moderation_details.action is MESSAGE_RESPONSE_ACTION_REMOVE', () => {
-      component.message = {
-        ...mockMessage(),
-        type: 'error',
-        moderation_details: {
-          action: 'MESSAGE_RESPONSE_ACTION_REMOVE',
-        },
-      } as StreamMessage;
-      component.ngOnChanges({ message: {} as SimpleChange });
-      fixture.detectChanges();
-
-      const blockedMessageComponent = queryBlockedMessageComponent();
-      expect(blockedMessageComponent).not.toBeNull();
-      expect(queryContainer()).toBeNull();
     });
 
     it('should display blocked message component when moderation.action is remove', () => {
@@ -1081,8 +1077,8 @@ describe('MessageComponent', () => {
       const blockedMessage = {
         ...mockMessage(),
         type: 'error',
-        moderation_details: {
-          action: 'MESSAGE_RESPONSE_ACTION_REMOVE',
+        moderation: {
+          action: 'remove',
         },
       } as StreamMessage;
 

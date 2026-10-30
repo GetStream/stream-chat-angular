@@ -36,7 +36,12 @@ import {
 } from '../types';
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
-import { MessageResponse, UserResponse } from 'stream-chat';
+import {
+  MessageResponse,
+  nsToDate,
+  TimestampNS,
+  UserResponse,
+} from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { listUsers } from '../list-users';
 import { DateParserService } from '../date-parser.service';
@@ -138,7 +143,8 @@ export class MessageListComponent
   private usersTypingInThread$!: Observable<UserResponse[]>;
   private isLatestMessageInList = true;
   private channelId?: string;
-  private parsedDates = new Map<Date, string>();
+  private parsedDates = new Map<TimestampNS, string>();
+  private dates = new Map<TimestampNS, Date>();
   private isViewInited = false;
   private checkIfUnreadNotificationIsVisibleTimeout?: ReturnType<
     typeof setTimeout
@@ -205,6 +211,7 @@ export class MessageListComponent
           this.highlightedMessageId = undefined;
           this.isUnreadNotificationVisible = false;
           this.parsedDates = new Map();
+          this.dates = new Map();
           this.resetScrollState();
           this.setMessages$();
           this.channelId = channel?.id;
@@ -444,6 +451,9 @@ export class MessageListComponent
   }
 
   ngOnDestroy(): void {
+    if (this.mode === 'main') {
+      this.channelService.setIsLatestMessageVisible(false);
+    }
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.newMessageSubscription?.unsubscribe();
     if (this.scrollEndTimeout) {
@@ -562,13 +572,23 @@ export class MessageListComponent
     return message.user?.id === this.chatClientService.chatClient.user?.id;
   }
 
-  parseDate(date: Date) {
-    if (this.parsedDates.has(date)) {
-      return this.parsedDates.get(date);
+  parseDate(timestamp: TimestampNS) {
+    if (this.parsedDates.has(timestamp)) {
+      return this.parsedDates.get(timestamp);
     }
-    const parsedDate = this.dateParser.parseDate(date);
-    this.parsedDates.set(date, parsedDate);
+    const parsedDate = this.dateParser.parseDate(nsToDate(timestamp));
+    this.parsedDates.set(timestamp, parsedDate);
     return parsedDate;
+  }
+
+  toDate(timestamp: TimestampNS) {
+    // Same Date object for the same timestamp, so custom date separator templates don't receive a new value on every change detection
+    let date = this.dates.get(timestamp);
+    if (!date) {
+      date = nsToDate(timestamp);
+      this.dates.set(timestamp, date);
+    }
+    return date;
   }
 
   get replyCountParam() {
@@ -591,6 +611,7 @@ export class MessageListComponent
     if (this.isUserScrolled !== isUserScrolled) {
       this.ngZone.run(() => {
         this.isUserScrolled = isUserScrolled;
+        this.updateViewingLive();
         if (!this.isUserScrolled) {
           this.newMessageCountWhileBeingScrolled = 0;
         }
@@ -627,6 +648,18 @@ export class MessageListComponent
       });
     }
   }
+
+  /**
+   * Tells the channel service if the user sees the latest messages (if the channel is marked as read, new messages don't increase the unread count)
+   */
+  private updateViewingLive = () => {
+    if (this.mode !== 'main') {
+      return;
+    }
+    this.channelService.setIsLatestMessageVisible(
+      !this.isUserScrolled && this.isLatestMessageInList
+    );
+  };
 
   private preserveScrollbarPosition() {
     if (!this.messageIdToAnchorTo) {
@@ -724,20 +757,27 @@ export class MessageListComponent
       tap((messages) => {
         const latestMessageInList = messages[messages.length - 1];
         const channel = this.channelService.activeChannel;
-        const messagesFromState =
-          (this.mode === 'main'
-            ? channel?.state.latestMessages
-            : channel?.state.threads[this.parentMessage?.id || '']) || [];
+        const paginator =
+          this.mode === 'main'
+            ? this.channelService.getMessagePaginator()
+            : this.parentMessage &&
+              this.channelService.getMessagePaginator(this.parentMessage.id);
+        const allMessages =
+          this.mode === 'main'
+            ? this.channelService.activeChannelMessages
+            : this.channelService.activeChannelThreadReplies;
         this.isLatestMessageInList =
           !latestMessageInList ||
           latestMessageInList.cid !== channel?.cid ||
           (this.mode === 'thread' &&
             latestMessageInList?.parent_id !== this.parentMessage?.id) ||
-          latestMessageInList?.id ===
-            messagesFromState[messagesFromState.length - 1]?.id;
+          (!paginator?.hasMoreHead &&
+            latestMessageInList?.id ===
+              allMessages[allMessages.length - 1]?.id);
         if (!this.isLatestMessageInList) {
           this.isUserScrolled = true;
         }
+        this.updateViewingLive();
       }),
       map((messages) => {
         return this.direction === 'bottom-to-top'
@@ -771,6 +811,8 @@ export class MessageListComponent
               jumpToMessage.position = 'top';
             }
             this.isJumpingToMessage = true;
+            // Render the new message window first, otherwise we might scroll to the message in the previous window
+            this.cdRef.detectChanges();
             this.scrollMessageIntoView({
               messageId: this.firstUnreadMessageId || messageId,
               position: jumpToMessage.position || 'middle',
@@ -836,9 +878,8 @@ export class MessageListComponent
       this.jumpToMessageTimeouts.push(
         setTimeout(() => {
           this.isJumpingToMessage = false;
-          if (!this.isUserScrolled) {
-            this.checkIfUserScrolled();
-          }
+          // Scroll position isn't tracked during jumps, update it, so the virtualized list knows if it needs to load more messages after the jump
+          this.checkIfUserScrolled();
         }, 200)
       );
       this.jumpToMessageTimeouts.push(
@@ -896,6 +937,9 @@ export class MessageListComponent
     if (!message || !nextMessage) {
       return false;
     }
-    return isOnSeparateDate(message.created_at, nextMessage.created_at);
+    return isOnSeparateDate(
+      nsToDate(message.created_at),
+      nsToDate(nextMessage.created_at)
+    );
   }
 }

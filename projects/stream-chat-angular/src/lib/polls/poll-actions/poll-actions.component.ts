@@ -7,7 +7,11 @@ import {
   ViewChild,
 } from '@angular/core';
 import { BasePollComponent } from '../base-poll.component';
-import { Poll, PollAnswer, PollOption } from 'stream-chat';
+import {
+  Poll,
+  PollVoteResponseData,
+  PollOptionResponseData,
+} from 'stream-chat';
 import { ModalContext } from '../../types';
 import { CustomTemplatesService } from '../../custom-templates.service';
 import { ChatClientService } from '../../chat-client.service';
@@ -42,13 +46,13 @@ export class PollActionsComponent extends BasePollComponent {
    */
   @Input() maxPollOptions = 100;
   name = '';
-  options: PollOption[] = [];
+  options: PollOptionResponseData[] = [];
   isClosed = false;
   allowUserSuggestions = false;
   allowAnswers = false;
   answerCount = 0;
   isOwnPoll = false;
-  ownAnwer: PollAnswer | undefined;
+  ownAnwer: PollVoteResponseData | undefined;
   selectedAction: Action | undefined = undefined;
   isModalOpen = false;
   @ViewChild('allOptions') allOptions!: TemplateRef<void>;

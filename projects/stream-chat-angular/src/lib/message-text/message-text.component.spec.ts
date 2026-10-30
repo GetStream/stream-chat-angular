@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MessageTextComponent } from './message-text.component';
 import { StreamMessage } from '../types';
+import { UserResponse } from 'stream-chat';
 import { SimpleChange } from '@angular/core';
 import { MessageService } from '../message.service';
 import { generateMockMessages } from '../mocks';
@@ -148,7 +149,7 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
     ]);
 
@@ -163,7 +164,7 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
       { content: ', how are you?', type: 'text' },
     ]);
@@ -182,13 +183,13 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'id2334', name: 'Jack' },
+        user: { id: 'id2334', name: 'Jack' } as UserResponse,
       },
       { content: ' and ', type: 'text' },
       {
         content: '@Lucie',
         type: 'mention',
-        user: { id: 'id3444', name: 'Lucie' },
+        user: { id: 'id3444', name: 'Lucie' } as UserResponse,
       },
       { content: ', how are you?', type: 'text' },
     ]);
@@ -205,7 +206,11 @@ describe('MessageTextComponent', () => {
           '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a> this is the link ',
         type: 'text',
       },
-      { content: '@sara', type: 'mention', user: { id: 'sara' } },
+      {
+        content: '@sara',
+        type: 'mention',
+        user: { id: 'sara' } as UserResponse,
+      },
     ]);
 
     component.message = {
@@ -272,7 +277,10 @@ describe('MessageTextComponent', () => {
       ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
     );
 
-    component.message.html = undefined;
+    component.message = {
+      ...component.message,
+      html: undefined,
+    } as unknown as StreamMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(

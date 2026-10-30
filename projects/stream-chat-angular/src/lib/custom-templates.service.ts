@@ -64,7 +64,7 @@ export class CustomTemplatesService {
     TemplateRef<CommandAutocompleteListItemContext> | undefined
   >(undefined);
   /**
-   * Template used to display an item in the [channel list](/chat/docs/sdk/angular/components/ChannelListComponent/) (instead of the default [channal list item](/chat/docs/sdk/angular/components/ChannelPreviewComponent/))
+   * Template used to display an item in the [channel list](/chat/docs/sdk/angular/components/ChannelListComponent/) (instead of the default [channel list item](/chat/docs/sdk/angular/components/ChannelPreviewComponent/))
    *
    */
   channelPreviewTemplate$ = new BehaviorSubject<
@@ -78,7 +78,7 @@ export class CustomTemplatesService {
     TemplateRef<MentionTemplateContext> | undefined
   >(undefined);
   /**
-   * The template for [emoji picker](/chat/docs/sdk/angular/code-examples/emoji-picker)
+   * The template for [emoji picker](/chat/docs/sdk/angular/guides/emoji-picker)
    *
    */
   emojiPickerTemplate$ = new BehaviorSubject<
@@ -280,7 +280,7 @@ export class CustomTemplatesService {
     TemplateRef<AttachmentContext> | undefined
   >(undefined);
   /**
-   * The template used to display [system messages](/chat/docs/javascript/silent_messages/) indise the [message component](/chat/docs/sdk/angular/components/MessageComponent/)
+   * The template used to display [system messages](/chat/docs/javascript/silent-messages/) indise the [message component](/chat/docs/sdk/angular/components/MessageComponent/)
    */
   systemMessageTemplate$ = new BehaviorSubject<
     TemplateRef<SystemMessageContext> | undefined

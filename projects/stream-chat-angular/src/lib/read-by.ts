@@ -1,17 +1,15 @@
-import { Channel, FormatMessageResponse, UserResponse } from 'stream-chat';
+import { Channel, MessageResponse, UserResponse } from 'stream-chat';
 
-export const getReadBy = (message: FormatMessageResponse, channel: Channel) => {
-  const readBy: UserResponse[] = [];
-  Object.keys(channel.state.read).forEach((key) => {
-    const lastRead = channel.state.read[key].last_read;
-    if (
-      lastRead &&
-      lastRead.getTime() >= message.created_at.getTime() &&
-      message.user?.id !== key
-    ) {
-      readBy.push(channel.state.read[key].user);
-    }
-  });
-
-  return readBy;
-};
+/**
+ * Returns the users who have read the given message (the author of the message isn't included). The read receipts are tracked by stream-chat (`channel.messageReceiptsTracker`).
+ * @param message
+ * @param channel
+ * @returns the users who have read the message
+ */
+export const getReadBy = (
+  message: Pick<MessageResponse, 'id' | 'created_at' | 'user'>,
+  channel: Channel
+): UserResponse[] =>
+  channel.messageReceiptsTracker
+    .readersForMessage({ timestamp: message.created_at, msgId: message.id })
+    .filter((user) => user.id !== message.user?.id);

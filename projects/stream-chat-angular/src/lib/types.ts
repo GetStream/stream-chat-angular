@@ -1,17 +1,17 @@
 import { TemplateRef } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import type {
+  AppResponseFields,
   Attachment,
   Channel,
   ChannelFilters,
   ChannelMemberResponse,
-  CommandResponse,
+  Command,
   CustomMessageData,
-  FormatMessageResponse,
-  MessageResponseBase,
+  LocalMessage,
+  MessageResponse,
   ReactionGroupResponse,
   ReactionResponse,
-  User,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
@@ -26,11 +26,32 @@ export type CustomTrigger = {
   };
 };
 
-export type StreamMessage = FormatMessageResponse & {
+export type StreamMessage = LocalMessage & {
   readBy: UserResponse[];
   translation?: string;
   errorStatusCode?: number;
-  quoted_message?: MessageResponseBase & { translation?: string };
+  quoted_message?: MessageResponse & { translation?: string };
+};
+
+export type AppSettings = Partial<AppResponseFields>;
+
+export type MessageListPaginationState = {
+  /**
+   * `true` if there are older messages that can be loaded
+   */
+  hasMoreOlder: boolean;
+  /**
+   * `true` if there are newer messages that can be loaded (for example after jumping to an older message)
+   */
+  hasMoreNewer: boolean;
+  /**
+   * `true` if a page is being loaded
+   */
+  isLoading: boolean;
+  /**
+   * The error of the last failed query (cleared on the next successful query)
+   */
+  error?: Error;
 };
 
 export type AttachmentUploadErrorReason =
@@ -66,7 +87,7 @@ export type MentionAutcompleteListItem = (
   autocompleteLabel: string;
 };
 
-export type ComandAutocompleteListItem = CommandResponse & {
+export type ComandAutocompleteListItem = Command & {
   autocompleteLabel: string;
 };
 
@@ -87,7 +108,7 @@ export type ChannelPreviewContext = {
 };
 
 export type ChannelPreviewInfoContext = ChannelPreviewContext & {
-  latestMessage?: StreamMessage;
+  latestMessage?: LocalMessage;
   /**
    * The text of the latest message, or some meta information (for example: "Nothing yet")
    */
@@ -164,7 +185,7 @@ export type AvatarContext = {
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel;
-  user?: User;
+  user?: UserResponse;
   initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
   showOnlineIndicator?: boolean;
 };
@@ -249,7 +270,7 @@ export type MessageReactionsContext = {
   messageId: string | undefined;
   /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send_reaction/&q=queryReactions#query-reactions) */
+  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send-reaction/#querying-reactions) */
   latestReactions: ReactionResponse[];
   ownReactions: ReactionResponse[];
   messageReactionGroups: {
@@ -463,13 +484,18 @@ export type CustomAutocomplete = {
 };
 
 export type MessageTextContext = {
-  message: StreamMessage | undefined | MessageResponseBase;
+  message:
+    | StreamMessage
+    | undefined
+    | MessageResponse
+    | (MessageResponse & { translation?: string });
   isQuoted: boolean;
   shouldTranslate: boolean;
 };
 
 export type GalleryAttachment = {
   type: 'gallery';
+  custom: Attachment['custom'];
   images: Attachment[];
 };
 

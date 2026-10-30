@@ -13,24 +13,31 @@ import {
   ChannelFilters,
   ChannelOptions,
   ChannelResponse,
-  ChannelSort,
   CustomMessageData,
   CustomReactionData,
   Event,
-  EventTypes,
-  FormatMessageResponse,
+  EventPayload,
+  EventType,
+  formatMessage,
+  nsToDate,
   LocalMessage,
   MemberFilters,
-  Message,
+  MessageIntervalPaginator,
   MessageResponse,
   ReactionResponse,
+  SortParamRequest,
+  StreamAPIError,
+  Thread,
+  UpdateMessagePartialRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
-import { getMessageTranslation } from './get-message-translation';
+import {
+  getMessageTranslation,
+  getTranslationLanguage,
+} from './get-message-translation';
 import { createMessagePreview } from './message-preview';
 import { NotificationService } from './notification.service';
-import { getReadBy } from './read-by';
 import {
   AttachmentUpload,
   AttachmentUploadErrorReason,
@@ -40,9 +47,12 @@ import {
   MessageInput,
   MessageReactionType,
   NextPageConfiguration,
+  MessageListPaginationState,
   StreamMessage,
 } from './types';
 import { ChannelQuery } from './channel-query';
+import { toLocalMessage } from './local-message';
+import { getReadBy } from './read-by';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list.
@@ -56,7 +66,7 @@ export class ChannelService {
    */
   hasMoreChannels$: Observable<boolean>;
   /**
-   * Emits the currently loaded and [watched](/chat/docs/javascript/watch_channel/) channel list.
+   * Emits the currently loaded and [watched](/chat/docs/javascript/creating-channels/) channel list.
    *
    * :::important
    * If you want to subscribe to channel events, you need to manually reenter Angular's change detection zone, our [Change detection guide](/chat/docs/sdk/angular/concepts/change-detection/) explains this in detail.
@@ -81,6 +91,14 @@ export class ChannelService {
    * Emits the list of currently loaded messages of the active channel.
    */
   activeChannelMessages$: Observable<StreamMessage[]>;
+  /**
+   * Emits the pagination state (loading, has more older/newer messages, last error) of the active channel's message list.
+   */
+  activeChannelMessagesPaginationState$: Observable<MessageListPaginationState>;
+  /**
+   * Emits the pagination state (loading, has more older/newer replies, last error) of the active thread's message list.
+   */
+  activeThreadMessagesPaginationState$: Observable<MessageListPaginationState>;
   /**
    * Emits the list of pinned messages of the active channel.
    */
@@ -118,7 +136,7 @@ export class ChannelService {
    */
   latestMessageDateByUserByChannels$: Observable<{ [key: string]: Date }>;
   /**
-   * If you're using [semantic filters for moderation](/moderation/docs/) you can set up rules for bouncing messages.
+   * If you're using [semantic filters for moderation](/moderation/docs/node/) you can set up rules for bouncing messages.
    *
    * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](/chat/docs/sdk/angular/components/MessageBouncePromptComponent/) will display the bounce option to the user if a bounced message is clicked.
    */
@@ -136,9 +154,9 @@ export class ChannelService {
    */
   activeChannelUnreadCount?: number;
   /**
-   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/)
+   * Custom event handler to call if a new message received from a channel that is not being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels)
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customNewMessageNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -148,9 +166,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when the user is added to a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customAddedToChannelNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -160,9 +178,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when the user is removed from a channel, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customRemovedFromChannelNotificationHandler?: (
     clientEvent: ClientEvent,
@@ -172,9 +190,9 @@ export class ChannelService {
     ) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is deleted, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelDeletedHandler?: (
     event: Event,
@@ -188,9 +206,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelUpdatedHandler?: (
     event: Event,
@@ -204,9 +222,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelTruncatedHandler?: (
     event: Event,
@@ -220,9 +238,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelHiddenHandler?: (
     event: Event,
@@ -236,9 +254,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customChannelVisibleHandler?: (
     event: Event,
@@ -252,9 +270,9 @@ export class ChannelService {
     parentMessageSetter: (message: StreamMessage | undefined) => void
   ) => void;
   /**
-   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels/).
+   * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
    *
-   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/watch_channel/) channel.
+   * If you're adding a new channel, make sure that it's a [watched](/chat/docs/javascript/creating-channels/) channel.
    */
   customNewMessageHandler?: (
     event: Event,
@@ -302,11 +320,12 @@ export class ChannelService {
     input: MessageInput
   ) => MessageInput | Promise<MessageInput>;
   /**
-   * The provided method will be called before a message is sent to Stream's API for update. You can use this hook to tranfrom or enrich the message being updated.
+   * The provided method will be called before a message update is sent to Stream's API. You can use this hook to tranfrom or enrich the fields being set and unset (the update is a partial update, fields that aren't in `set` or `unset` are left as is).
    */
   beforeUpdateMessage?: (
+    update: UpdateMessagePartialRequest,
     message: StreamMessage
-  ) => StreamMessage | Promise<StreamMessage>;
+  ) => UpdateMessagePartialRequest | Promise<UpdateMessagePartialRequest>;
   /**
    * Since switching channels changes the state of multiple obserables, this observable can be used to check if all observables are updated.
    * - `end` means all observables are in stable state
@@ -317,6 +336,12 @@ export class ChannelService {
    * @internal
    */
   static readonly MAX_MESSAGE_REACTIONS_TO_FETCH = 1200;
+  private static readonly initialPaginationState: MessageListPaginationState = {
+    hasMoreOlder: true,
+    hasMoreNewer: false,
+    isLoading: false,
+    error: undefined,
+  };
   /**
    * @internal
    */
@@ -329,8 +354,31 @@ export class ChannelService {
     undefined
   );
   private activeChannelMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage | MessageResponse | LocalMessage)[]
   >([]);
+  private activeChannelMessagesPaginationStateSubject =
+    new BehaviorSubject<MessageListPaginationState>(
+      ChannelService.initialPaginationState
+    );
+  private activeThreadMessagesPaginationStateSubject =
+    new BehaviorSubject<MessageListPaginationState>(
+      ChannelService.initialPaginationState
+    );
+  private activeChannelPaginatorSubscriptions: (() => void)[] = [];
+  private activeThreadPaginatorSubscriptions: (() => void)[] = [];
+  private releaseActiveChannel?: () => void;
+  private releaseActiveThread?: () => void;
+  private activeThread?: Thread;
+  private errorStatusCodes = new Map<string, number | undefined>();
+  private streamMessageCache = new WeakMap<
+    object,
+    {
+      errorStatusCode?: number;
+      translationLanguage?: string;
+      readByRevision?: number;
+      message: StreamMessage;
+    }
+  >();
   private activeChannelPinnedMessagesSubject = new BehaviorSubject<
     StreamMessage[]
   >([]);
@@ -341,7 +389,7 @@ export class ChannelService {
     string | undefined
   >(undefined);
   private activeThreadMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | FormatMessageResponse)[]
+    (StreamMessage | MessageResponse | LocalMessage)[]
   >([]);
   private jumpToMessageSubject = new BehaviorSubject<{
     id?: string;
@@ -387,23 +435,11 @@ export class ChannelService {
       if (!this.channelSubscriptions[channel.cid]) {
         this.watchForChannelEvents(channel);
       }
-      if (deletedChannels.includes(channel)) {
-        if (shouldStopWatchingRemovedChannels) {
-          if (this.channelSubscriptions[channel.cid]) {
-            this.channelSubscriptions[channel.cid]();
-            delete this.channelSubscriptions.cid;
-          }
-          void this.chatClientService.chatClient.activeChannels[channel.cid]
-            ?.stopWatching()
-            .catch((err) =>
-              this.chatClientService.chatClient.logger(
-                'warn',
-                'Failed to unwatch channel',
-                err as Record<string, unknown>
-              )
-            );
-        }
-      }
+    }
+    if (shouldStopWatchingRemovedChannels) {
+      deletedChannels.forEach((channel) =>
+        this.stopWatchingChannel(channel.cid)
+      );
     }
     const nextChannels = channels;
     this.channelsSubject.next(nextChannels);
@@ -415,7 +451,7 @@ export class ChannelService {
       if (nextChannels.length > 0) {
         this.setAsActiveChannel(nextChannels[0]);
       } else {
-        this.activeChannelSubject.next(undefined);
+        this.deselectActiveChannel();
       }
     }
   };
@@ -429,10 +465,12 @@ export class ChannelService {
   };
 
   private parentMessageSetter = (message: StreamMessage | undefined) => {
-    this.activeParentMessageIdSubject.next(message?.id);
+    // Switches/releases the active thread too, setting only the parent message id would leave the previous thread active
+    void this.setAsActiveParentMessage(message);
   };
   private dismissErrorNotification?: () => void;
   private areReadEventsPaused = false;
+  private isLatestMessageVisible = false;
   private markReadThrottleTime = 1050;
   private markReadTimeout?: ReturnType<typeof setTimeout>;
   private scheduledMarkReadRequest?: () => void;
@@ -486,12 +524,22 @@ export class ChannelService {
             return undefined;
           } else {
             const message = messages.find((m) => m.id === parentMessageId);
-            if (!message) {
-              void this.setAsActiveParentMessage(undefined);
-              return undefined;
-            } else {
+            if (message) {
               return message;
             }
+            // The parent message might not be in the currently loaded message list window (for example after a jump)
+            const parentMessageFromThread =
+              this.activeThread?.id === parentMessageId
+                ? this.activeThread.state.getLatestValue().parentMessage
+                : undefined;
+            if (parentMessageFromThread) {
+              return this.transformToStreamMessage(
+                parentMessageFromThread,
+                this.activeChannelSubject.getValue()
+              );
+            }
+            void this.setAsActiveParentMessage(undefined);
+            return undefined;
           }
         }
       ),
@@ -517,6 +565,14 @@ export class ChannelService {
     this.activeChannelPinnedMessages$ = this.activeChannelPinnedMessagesSubject
       .asObservable()
       .pipe(shareReplay(1));
+    this.activeChannelMessagesPaginationState$ =
+      this.activeChannelMessagesPaginationStateSubject
+        .asObservable()
+        .pipe(shareReplay(1));
+    this.activeThreadMessagesPaginationState$ =
+      this.activeThreadMessagesPaginationStateSubject
+        .asObservable()
+        .pipe(shareReplay(1));
     this.channelQueryState$ = this.channelQueryStateSubject
       .asObservable()
       .pipe(shareReplay(1));
@@ -539,10 +595,21 @@ export class ChannelService {
     if (!this._shouldMarkActiveChannelAsRead && shouldMarkActiveChannelAsRead) {
       const activeChannel = this.activeChannelSubject.getValue();
       if (activeChannel && this.canSendReadEvents) {
-        void activeChannel.markRead();
+        void this.sendMarkReadRequest(activeChannel);
       }
     }
     this._shouldMarkActiveChannelAsRead = shouldMarkActiveChannelAsRead;
+    this.updateViewingLive();
+  }
+
+  /**
+   * The message list reports if the user sees the latest messages of the active channel
+   * @internal
+   * @param isVisible
+   */
+  setIsLatestMessageVisible(isVisible: boolean) {
+    this.isLatestMessageVisible = isVisible;
+    this.updateViewingLive();
   }
 
   /**
@@ -550,7 +617,7 @@ export class ChannelService {
    *
    * The method will be called with the result of the latest channel query.
    *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
+   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/docs/platform/query-syntax-operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
   set customPaginator(
     paginator:
@@ -566,15 +633,18 @@ export class ChannelService {
   /**
    * Sets the given `channel` as active and marks it as read.
    * If the channel wasn't previously part of the channel, it will be added to the beginning of the list.
+   *
+   * The channel has to be [watched](/chat/docs/javascript/creating-channels/) before calling this method (channels returned by `channelService.channels$` are always watched). If you have a channel that isn't watched yet, call `await channel.watch()` first.
    * @param channel
    */
   setAsActiveChannel(channel: Channel) {
-    this.channelSwitchStateSubject.next('start');
     const prevActiveChannel = this.activeChannelSubject.getValue();
     if (prevActiveChannel?.cid === channel.cid) {
       return;
     }
+    this.channelSwitchStateSubject.next('start');
     this.stopWatchForActiveChannelEvents(prevActiveChannel);
+    this.releaseThread();
     this.flushMarkReadQueue();
     this.areReadEventsPaused = false;
     this.isMessageLoadingInProgress = false;
@@ -582,21 +652,17 @@ export class ChannelService {
       channel.state.read[this.chatClientService.chatClient.user?.id || ''];
     this.activeChannelLastReadMessageId = readState?.last_read_message_id;
     if (
-      channel.state.latestMessages[channel.state.latestMessages.length - 1]
-        ?.id === this.activeChannelLastReadMessageId
+      channel.messagePaginator.anchoredHeadItem?.id ===
+      this.activeChannelLastReadMessageId
     ) {
       this.activeChannelLastReadMessageId = undefined;
     }
     this.activeChannelUnreadCount = readState?.unread_messages || 0;
-    this.watchForActiveChannelEvents(channel);
     this.addChannel(channel);
     this.activeChannelSubject.next(channel);
-    const channelStateLength = channel.state.latestMessages.length;
-    if (channelStateLength > 2 * this.messagePageSize) {
-      channel.state.latestMessages = channel.state.latestMessages.slice(
-        channelStateLength - 2 * this.messagePageSize
-      );
-    }
+    this.watchForActiveChannelEvents(channel);
+    // Activated channels are reloaded by stream-chat after a reconnect
+    this.releaseActiveChannel = channel.activate();
     this.setChannelState(channel);
     this.channelSwitchStateSubject.next('end');
   }
@@ -605,14 +671,18 @@ export class ChannelService {
    * Deselects the currently active (if any) channel
    */
   deselectActiveChannel() {
-    this.channelSwitchStateSubject.next('start');
     const activeChannel = this.activeChannelSubject.getValue();
     if (!activeChannel) {
       return;
     }
+    this.channelSwitchStateSubject.next('start');
     this.stopWatchForActiveChannelEvents(activeChannel);
+    this.releaseThread();
     this.flushMarkReadQueue();
     this.activeChannelMessagesSubject.next([]);
+    this.activeChannelMessagesPaginationStateSubject.next(
+      ChannelService.initialPaginationState
+    );
     this.activeChannelSubject.next(undefined);
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
@@ -632,17 +702,18 @@ export class ChannelService {
   /**
    * Sets the given `message` as an active parent message. If `undefined` is provided, it will deleselect the current parent message.
    * @param message
-   * @param loadMessagesForm
+   * @param _loadMessagesForm deprecated, thread replies are always loaded through the thread's message paginator
    */
   async setAsActiveParentMessage(
     message: StreamMessage | undefined,
-    loadMessagesForm: 'request' | 'state' = 'request'
+    _loadMessagesForm: 'request' | 'state' = 'request'
   ) {
     const messageToQuote = this.messageToQuoteSubject.getValue();
     if (messageToQuote && !!messageToQuote.parent_id) {
       this.messageToQuoteSubject.next(undefined);
     }
     if (!message) {
+      this.releaseThread();
       this.activeParentMessageIdSubject.next(undefined);
       this.activeThreadMessagesSubject.next([]);
       const messageToJumpTo = this.jumpToMessageSubject.getValue();
@@ -650,100 +721,151 @@ export class ChannelService {
         this.jumpToMessageSubject.next({ id: undefined, parentId: undefined });
       }
     } else {
-      this.activeParentMessageIdSubject.next(message.id);
       const activeChannel = this.activeChannelSubject.getValue();
-      if (loadMessagesForm === 'request') {
-        const result = await activeChannel?.getReplies(message.id, {
-          limit: this.messagePageSize,
+      if (!activeChannel) {
+        return;
+      }
+      if (this.activeThread?.id === message.id) {
+        return;
+      }
+      this.releaseThread();
+      const client = this.chatClientService.chatClient;
+      const parentMessage =
+        activeChannel.messagePaginator.getItem(message.id) ??
+        toLocalMessage(message);
+      const thread =
+        client.threads.get(message.id) ??
+        client.threads.ensure({ channel: activeChannel, parentMessage });
+      this.activeThread = thread;
+      this.activeParentMessageIdSubject.next(message.id);
+      const isActiveThread = () => this.activeThread === thread;
+      // Thread reloads (stale thread, reconnect) don't use the paginator's queries, the thread has its own loading state
+      const isThreadLoading = () => thread.state.getLatestValue().isLoading;
+      this.activeThreadPaginatorSubscriptions = [
+        this.bindMessagePaginator(
+          thread.messagePaginator,
+          this.activeThreadMessagesSubject,
+          this.activeThreadMessagesPaginationStateSubject,
+          isActiveThread,
+          isThreadLoading
+        ),
+        thread.state.subscribeWithSelector(
+          (state) => ({ isLoading: state.isLoading }),
+          ({ isLoading }, prev) => {
+            if (!prev) {
+              return;
+            }
+            this.ngZone.run(() => {
+              if (!isActiveThread()) {
+                return;
+              }
+              this.activeThreadMessagesPaginationStateSubject.next({
+                ...this.activeThreadMessagesPaginationStateSubject.getValue(),
+                isLoading: thread.messagePaginator.isLoading || isLoading,
+              });
+            });
+          }
+        ),
+      ];
+      if (thread.hasStaleState) {
+        // Load before activation: activating a stale thread also triggers a reload in stream-chat, but without error handling (that reload is skipped while this one is in progress)
+        try {
+          await thread.reload();
+        } catch (error) {
+          if (isActiveThread()) {
+            this.activeThreadMessagesPaginationStateSubject.next({
+              ...this.activeThreadMessagesPaginationStateSubject.getValue(),
+              error: error as Error,
+            });
+            this.notificationService.addTemporaryNotification(
+              'streamChat.Error loading messages'
+            );
+          }
+        }
+      }
+      if (
+        !thread.hasStaleState &&
+        thread.messagePaginator.items === undefined &&
+        thread.state.getLatestValue().replyCount === 0
+      ) {
+        // stream-chat doesn't load threads without replies, so the reply list keeps the paginator defaults (has more older and newer replies). Mark it complete, otherwise the first reply makes the message list think it shows an older reply window and jump to the latest replies.
+        // `items` stays `undefined`: stream-chat only places the replies of a reload (for example after a reconnect) as a first page when nothing is loaded, an empty list would make it drop them.
+        thread.messagePaginator.state.partialNext({
+          hasMoreHead: false,
+          hasMoreTail: false,
         });
-        this.activeThreadMessagesSubject.next(result?.messages || []);
-      } else {
-        this.activeThreadMessagesSubject.next(
-          activeChannel?.state.threads[message.id] || []
-        );
+      }
+      if (this.activeThread === thread && !this.releaseActiveThread) {
+        this.releaseActiveThread = thread.activate();
       }
     }
   }
 
   /**
-   * Loads the next page of messages of the active channel. The page size can be set in the [query option](/chat/docs/javascript/query_channels/#query-options) object.
+   * Loads the next page of messages of the active channel.
    * @param direction
+   * @returns `false` if there are no more messages to load in the given direction, otherwise a `Promise` that resolves when the page is loaded
    */
   loadMoreMessages(direction: 'older' | 'newer' = 'older') {
-    const activeChnannel = this.activeChannelSubject.getValue();
-    const messages = this.activeChannelMessagesSubject.getValue();
-    const lastMessageId =
-      messages[direction === 'older' ? 0 : messages.length - 1]?.id;
-    if (
-      direction === 'newer' &&
-      activeChnannel?.state?.latestMessages === activeChnannel?.state?.messages
-    ) {
-      // If we are on latest message set, activeChannelMessages$ will be refreshed by WS events, no need for a request
+    const activeChannel = this.activeChannelSubject.getValue();
+    if (!activeChannel) {
       return false;
     }
-    return activeChnannel
-      ?.query({
-        messages: {
-          limit: this.messagePageSize,
-          [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
-        },
-        members: { limit: 0 },
-        watchers: { limit: 0 },
-      })
-      .then((res) => {
-        if (
-          activeChnannel?.data?.id ===
-          this.activeChannelSubject.getValue()?.data?.id
-        ) {
-          this.activeChannelMessagesSubject.next([
-            ...activeChnannel.state.messages,
-          ]);
-        }
-
-        return res;
-      });
+    return this.loadMore(activeChannel.messagePaginator, direction);
   }
 
   /**
-   * Loads the next page of messages of the active thread. The page size can be set in the [query option](/chat/docs/javascript/query_channels/#query-options) object.
+   * Loads the next page of messages of the active thread.
    * @param direction
+   * @returns `false` if there are no more replies to load in the given direction, otherwise a `Promise` that resolves when the page is loaded
    */
   loadMoreThreadReplies(direction: 'older' | 'newer' = 'older') {
-    if (direction === 'newer') {
-      // Thread replies aren't broke into different message sets, activeThreadMessages$ will be refreshed by WS events, no need for a request
+    if (!this.activeThread) {
       return false;
     }
-    const activeChnannel = this.activeChannelSubject.getValue();
-    const parentMessageId = this.activeParentMessageIdSubject.getValue();
-    if (!parentMessageId || !activeChnannel) {
+    return this.loadMore(this.activeThread.messagePaginator, direction);
+  }
+
+  private loadMore(
+    paginator: MessageIntervalPaginator,
+    direction: 'older' | 'newer'
+  ) {
+    const hasMore =
+      direction === 'older' ? paginator.hasMoreTail : paginator.hasMoreHead;
+    if (!hasMore || paginator.isLoading) {
       return false;
     }
-    const threadMessages = this.activeThreadMessagesSubject.getValue();
-    const lastMessageId =
-      threadMessages[direction === 'older' ? 0 : threadMessages.length - 1]?.id;
-    return activeChnannel
-      .getReplies(parentMessageId, {
-        limit: this.messagePageSize,
-        [direction === 'older' ? 'id_lt' : 'id_gt']: lastMessageId,
-      })
+    // There is no loaded message to paginate from (for example the channel/thread is empty), no need for a request
+    if (!paginator.items?.length) {
+      return false;
+    }
+    return (direction === 'older' ? paginator.toTail() : paginator.toHead())
       .then(() => {
-        this.activeThreadMessagesSubject.next(
-          activeChnannel?.state.threads[parentMessageId] || []
+        const error = paginator.lastQueryError;
+        if (error) {
+          throw error;
+        }
+      })
+      .catch((error: Error) => {
+        this.chatClientService.logger.warn(
+          `Failed to load ${direction} messages`,
+          { error }
         );
+        throw error;
       });
   }
 
   /**
-   * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
+   * Queries the channels with the given filters, sorts and options. More info about [channel querying](/chat/docs/javascript/query-channels/) can be found in the platform documentation. By default the first channel in the list will be set as active channel and will be marked as read.
    * @param filters
-   * @param sort
+   * @param sort The sort in the format expected by stream-chat, for example `[{ field: 'last_message_at', direction: -1 }]`
    * @param options
    * @param shouldSetActiveChannel Decides if the first channel in the result should be made as an active channel or not.
    * @returns the list of channels found by the query
    */
   init(
     filters: ChannelFilters,
-    sort?: ChannelSort,
+    sort?: SortParamRequest[],
     options?: ChannelOptions,
     shouldSetActiveChannel: boolean = true
   ) {
@@ -751,7 +873,7 @@ export class ChannelService {
       this.chatClientService,
       this,
       filters,
-      sort || { last_message_at: -1 },
+      sort || [{ field: 'last_message_at', direction: -1 }],
       {
         limit: 25,
         state: true,
@@ -770,7 +892,7 @@ export class ChannelService {
   }
 
   /**
-   * Queries the channels with the given query function. More info about [channel querying](/chat/docs/javascript/query_channels/) can be found in the platform documentation.
+   * Queries the channels with the given query function. More info about [channel querying](/chat/docs/javascript/query-channels/) can be found in the platform documentation.
    * @param query
    * @param options
    * @param options.shouldSetActiveChannel The `shouldSetActiveChannel` specifies if the first channel in the result should be selected as the active channel or not. Default is `true`.
@@ -789,7 +911,7 @@ export class ChannelService {
   }
 
   /**
-   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](/chat/docs/sdk/angular/services/ChatClientService/#disconnectuser/).
+   * Resets the `activeChannel$`, `channels$` and `activeChannelMessages$` Observables. Useful when disconnecting a chat user, use in combination with [`disconnectUser`](/chat/docs/sdk/angular/services/ChatClientService/#disconnectuser).
    */
   reset() {
     this.deselectActiveChannel();
@@ -805,7 +927,7 @@ export class ChannelService {
   }
 
   /**
-   * Loads the next page of channels. The page size can be set in the [query option](/chat/docs/javascript/query_channels/#query-options) object.
+   * Loads the next page of channels. The page size can be set in the [query option](/chat/docs/javascript/query-channels/#query-options) object.
    */
   async loadMoreChannels() {
     await this.queryChannels(false, 'next-page');
@@ -822,10 +944,15 @@ export class ChannelService {
     reactionType: MessageReactionType,
     customData?: CustomReactionData
   ) {
-    await this.activeChannelSubject.getValue()?.sendReaction(messageId, {
-      type: reactionType,
-      ...customData,
-    });
+    await this.activeChannelSubject.getValue()?.sendReaction(
+      { id: messageId },
+      {
+        reaction: {
+          type: reactionType,
+          custom: customData,
+        },
+      }
+    );
   }
 
   /**
@@ -836,7 +963,7 @@ export class ChannelService {
   async removeReaction(messageId: string, reactionType: MessageReactionType) {
     await this.activeChannelSubject
       .getValue()
-      ?.deleteReaction(messageId, reactionType);
+      ?.deleteReaction({ id: messageId, type: reactionType });
   }
 
   /**
@@ -871,7 +998,7 @@ export class ChannelService {
       input = await this.beforeSendMessage(input);
     }
     const preview = createMessagePreview(
-      this.chatClientService.chatClient.user!,
+      this.chatClientService.chatClient.user as UserResponse,
       input.text,
       input.attachments,
       input.mentionedUsers,
@@ -880,8 +1007,9 @@ export class ChannelService {
       input.customData,
       input.pollId
     );
-    const channel = this.activeChannelSubject.getValue()!;
-    channel.state.addMessageSorted(preview, true);
+    // stream-chat's message paginator only accepts messages of its own channel (filtered by cid)
+    preview.cid = this.activeChannelSubject.getValue()!.cid;
+    this.getMessagePaginator(preview.parent_id)?.ingestItem(preview);
     const response = await this.sendMessageRequest(preview, input.customData);
     return response;
   }
@@ -891,61 +1019,51 @@ export class ChannelService {
    * @param message The message to resend
    */
   async resendMessage(message: StreamMessage) {
-    const channel = this.activeChannelSubject.getValue()!;
-    channel.state.addMessageSorted(
-      {
-        ...(message as unknown as MessageResponse),
-        // @ts-expect-error stream-chat doesn't know about this property
-        errorStatusCode: undefined,
-        status: 'sending',
-      },
-      true
-    );
-    return this.sendMessageRequest(message, undefined, true);
+    this.errorStatusCodes.delete(message.id);
+    // Use the given message, not the stored one: editing a bounced message resends it with the new content
+    const localMessage = toLocalMessage(message);
+    this.getMessagePaginator(message.parent_id)?.ingestItem({
+      ...localMessage,
+      status: 'sending',
+    });
+    return this.sendMessageRequest(localMessage, undefined, true);
   }
 
   /**
-   * Updates the message in the active channel
+   * Updates the message with a partial update: only the fields in `update.set` are changed, and the fields in `update.unset` are removed, the rest of the message is left as is
    * @param message Mesage to be updated
+   * @param update The fields to set and unset
    */
-  async updateMessage(message: StreamMessage) {
-    let messageToUpdate: StreamMessage = {
-      ...message,
-    };
-    if (messageToUpdate.quoted_message) {
-      messageToUpdate.quoted_message = {
-        ...messageToUpdate.quoted_message,
-      };
-    }
-    delete messageToUpdate.i18n;
+  async updateMessagePartial(
+    message: StreamMessage,
+    update: UpdateMessagePartialRequest
+  ) {
     if (this.beforeUpdateMessage) {
-      messageToUpdate = await this.beforeUpdateMessage(messageToUpdate);
+      update = await this.beforeUpdateMessage(update, message);
     }
-    if (messageToUpdate.readBy) {
-      // @ts-expect-error this is only a run time proparty for the SDK
-      delete messageToUpdate.readBy;
+    if (message.type === 'error' && message.moderation?.action === 'bounce') {
+      const messageToResend: Record<string, unknown> = {
+        ...message,
+        ...update.set,
+      };
+      update.unset?.forEach((field) => delete messageToResend[field]);
+      return this.resendMessage(messageToResend as unknown as StreamMessage);
     }
-    if (messageToUpdate.translation) {
-      delete messageToUpdate.translation;
+    const response =
+      await this.chatClientService.chatClient.updateMessagePartial(
+        { id: message.id },
+        update
+      );
+
+    if (!response.message) {
+      return message;
     }
-    if (messageToUpdate.quoted_message?.translation) {
-      delete messageToUpdate.quoted_message.translation;
-    }
-    if (message.moderation_details) {
-      return this.resendMessage(message);
-    }
-    const response = await this.chatClientService.chatClient.updateMessage(
-      messageToUpdate as unknown as LocalMessage
-    );
 
     const channel = this.channelsSubject
       .getValue()
       ?.find((c) => c.cid === message.cid);
 
-    if (
-      response.message.type === 'error' &&
-      response.message.moderation_details
-    ) {
+    if (response.message.type === 'error' && response.message.moderation) {
       this.notificationService.addTemporaryNotification(
         'streamChat.This message did not meet our content guidelines'
       );
@@ -962,33 +1080,26 @@ export class ChannelService {
    */
   async deleteMessage(message: StreamMessage, isLocalDelete = false) {
     if (isLocalDelete && this.activeChannel) {
-      const result = this.activeChannel.state.removeMessage({
+      this.getMessagePaginator(message.parent_id)?.removeItem({
         id: message.id,
-        parent_id: message.parent_id,
       });
-      if (result) {
-        message.parent_id
-          ? this.activeThreadMessagesSubject.next(
-              this.activeChannel.state.threads[message.parent_id]
-            )
-          : this.activeChannelMessagesSubject.next(
-              this.activeChannel.state.messages
-            );
-      }
+      this.errorStatusCodes.delete(message.id);
       return;
     }
     if (this.messageDeleteConfirmationHandler) {
       const result = await this.messageDeleteConfirmationHandler(message);
       if (result) {
-        await this.chatClientService.chatClient.deleteMessage(message.id);
+        await this.chatClientService.chatClient.deleteMessage({
+          id: message.id,
+        });
       }
     } else {
-      await this.chatClientService.chatClient.deleteMessage(message.id);
+      await this.chatClientService.chatClient.deleteMessage({ id: message.id });
     }
   }
 
   /**
-   * Uploads files to the channel. If you want to know more about [file uploads](/chat/docs/javascript/file_uploads/) check out the platform documentation.
+   * Uploads files to the channel. If you want to know more about [file uploads](/chat/docs/javascript/file-uploads/) check out the platform documentation.
    * @param uploads the attachments to upload (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    * @returns the result of file upload requests
    */
@@ -1002,10 +1113,10 @@ export class ChannelService {
         upload.type === 'image'
           ? this.customImageUploadRequest
             ? this.customImageUploadRequest(upload.file, channel)
-            : channel.sendImage(upload.file, upload.file.name, upload.file.type)
+            : channel.uploadImage({ file: upload.file })
           : this.customFileUploadRequest
           ? this.customFileUploadRequest(upload.file, channel)
-          : channel.sendFile(upload.file, upload.file.name, upload.file.type)
+          : channel.uploadFile({ file: upload.file })
       )
     );
     uploadResults.forEach((uploadResult, i) => {
@@ -1016,9 +1127,11 @@ export class ChannelService {
           file,
           type,
           state: 'success',
-          url: uploadResult.value.file,
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-          thumb_url: (uploadResult.value as any).thumb_url,
+          url: uploadResult.value.file!,
+          thumb_url:
+            'thumb_url' in uploadResult.value
+              ? uploadResult.value.thumb_url
+              : undefined,
         });
       } else {
         let reason: AttachmentUploadErrorReason = 'unknown';
@@ -1069,7 +1182,7 @@ export class ChannelService {
   }
 
   /**
-   * Deletes an uploaded file by URL. If you want to know more about [file uploads](/chat/docs/javascript/file_uploads/) check out the platform documentation
+   * Deletes an uploaded file by URL. If you want to know more about [file uploads](/chat/docs/javascript/file-uploads/) check out the platform documentation
    * @param attachmentUpload Attachment to be deleted (output of the [`AttachmentService`](/chat/docs/sdk/angular/services/AttachmentService/))
    */
   async deleteAttachment(attachmentUpload: AttachmentUpload) {
@@ -1077,14 +1190,14 @@ export class ChannelService {
     await (attachmentUpload.type === 'image'
       ? this.customImageDeleteRequest
         ? this.customImageDeleteRequest(attachmentUpload.url!, channel)
-        : channel.deleteImage(attachmentUpload.url!)
+        : channel.deleteImage({ url: attachmentUpload.url! })
       : this.customFileDeleteRequest
       ? this.customFileDeleteRequest(attachmentUpload.url!, channel)
-      : channel.deleteFile(attachmentUpload.url!));
+      : channel.deleteFile({ url: attachmentUpload.url! }));
   }
 
   /**
-   * Returns the autocomplete options for current channel members. If member_count is equal to the number of members in the channel, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query_members/#pagination-and-ordering) with the given search term.
+   * Returns the autocomplete options for current channel members. If member_count is equal to the number of members in the channel, it returns the channel members, otherwise sends a [search request](/chat/docs/javascript/query-members/#paginating-channel-members) with the given search term.
    * @param searchTerm Text to search for in the names of members
    * @returns The list of members matching the search filter
    */
@@ -1105,8 +1218,12 @@ export class ChannelService {
         return [];
       }
       const result = await activeChannel.queryMembers({
-        name: { $autocomplete: searchTerm },
-      } as MemberFilters); // TODO: find out why we need typecast here
+        payload: {
+          filter_conditions: {
+            name: { $autocomplete: searchTerm },
+          } as MemberFilters,
+        },
+      });
 
       return result.members.filter(
         (m) => m.user_id !== this.chatClientService.chatClient?.user?.id
@@ -1115,7 +1232,7 @@ export class ChannelService {
   }
 
   /**
-   * [Runs a message action](https://getstream.io/chat/docs/rest/#messages-runmessageaction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
+   * [Runs a message action](https://getstream.github.io/protocol/?urls.primaryName=Chat#/product%3Achat/RunMessageAction) in the current channel. Updates the message list based on the action result (if no message is returned, the message will be removed from the message list).
    * @param messageId
    * @param formData
    * @param parentMessageId
@@ -1127,29 +1244,16 @@ export class ChannelService {
   ) {
     const channel = this.activeChannelSubject.getValue()!;
     const response = await channel.sendAction(messageId, formData);
+    const paginator = this.getMessagePaginator(parentMessageId);
     if (response?.message) {
-      channel.state.addMessageSorted({
-        ...response.message,
-        status: 'received',
-      });
-      const isThreadReply = !!response.message.parent_id;
-      isThreadReply
-        ? this.activeThreadMessagesSubject.next([
-            ...channel.state.threads[response.message.parent_id!],
-          ])
-        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+      paginator?.ingestItem(
+        formatMessage({
+          ...response.message,
+          status: 'received',
+        } as LocalMessage)
+      );
     } else {
-      channel.state.removeMessage({
-        id: messageId,
-        parent_id: parentMessageId,
-      });
-      if (parentMessageId) {
-        this.activeThreadMessagesSubject.next(
-          channel.state.threads[this.activeParentMessageIdSubject.getValue()!]
-        );
-      } else {
-        this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      }
+      paginator?.removeItem({ id: messageId });
     }
   }
 
@@ -1157,11 +1261,14 @@ export class ChannelService {
    * Selects or deselects the current message to quote reply to
    * @param message The message to select, if called with `undefined`, it deselects the message
    */
-  selectMessageToQuote(message: StreamMessage | undefined | MessageResponse) {
-    if (message && !this.isStreamMessage(message)) {
-      message = this.transformToStreamMessage(message);
-    }
-    this.messageToQuoteSubject.next(message);
+  selectMessageToQuote(
+    message: StreamMessage | undefined | MessageResponse | LocalMessage
+  ) {
+    this.messageToQuoteSubject.next(
+      message
+        ? this.transformToStreamMessage(message, this.activeChannel)
+        : undefined
+    );
   }
 
   /**
@@ -1185,19 +1292,7 @@ export class ChannelService {
     const remainingChannels = this.channels.filter((c) => c.cid !== cid);
 
     if (shouldStopWatching) {
-      if (this.channelSubscriptions[cid]) {
-        this.channelSubscriptions[cid]();
-        delete this.channelSubscriptions.cid;
-      }
-      void this.chatClientService.chatClient.activeChannels[cid]
-        ?.stopWatching()
-        .catch((err) =>
-          this.chatClientService.chatClient.logger(
-            'warn',
-            'Failed to unwatch channel',
-            err as Record<string, unknown>
-          )
-        );
+      this.stopWatchingChannel(cid);
     }
 
     if (remainingChannels.length < this.channels.length) {
@@ -1206,96 +1301,85 @@ export class ChannelService {
         if (remainingChannels.length > 0) {
           this.setAsActiveChannel(remainingChannels[0]);
         } else {
-          this.activeChannelSubject.next(undefined);
+          // Release the channel (activation, paginator and event subscriptions), not just clear the active channel
+          this.deselectActiveChannel();
         }
       }
     }
   }
 
+  private stopWatchingChannel(cid: string) {
+    if (this.channelSubscriptions[cid]) {
+      this.channelSubscriptions[cid]();
+      delete this.channelSubscriptions[cid];
+    }
+    void this.chatClientService.chatClient.channelManager
+      .get(cid)
+      ?.stopWatching()
+      .catch((error) =>
+        this.chatClientService.logger.warn('Failed to unwatch channel', {
+          error: error as Error,
+        })
+      );
+  }
+
   private async sendMessageRequest(
-    preview: MessageResponse | StreamMessage,
+    preview: LocalMessage,
     customData?: CustomMessageData,
     isResend = false
   ) {
     const channel = this.activeChannelSubject.getValue()!;
-    const isThreadReply = !!preview.parent_id;
-    isThreadReply
-      ? this.activeThreadMessagesSubject.next([
-          ...channel.state.threads[preview.parent_id!],
-        ])
-      : this.activeChannelMessagesSubject.next([...channel.state.messages]);
+    const paginator = this.getMessagePaginator(preview.parent_id);
     try {
       const response = await channel.sendMessage({
-        id: preview.id,
-        text: preview.text,
-        attachments: preview.attachments,
-        mentioned_users: preview.mentioned_users?.map((u) => u.id),
-        parent_id: preview.parent_id,
-        quoted_message_id: preview.quoted_message_id,
-        poll_id: preview.poll_id,
-        ...customData,
-      } as Message); // TODO: find out why we need typecast here
-      channel.state.addMessageSorted(
-        {
+        message: {
+          id: preview.id,
+          text: preview.text,
+          attachments: preview.attachments,
+          mentioned_users: preview.mentioned_users?.map((u) => u.id),
+          parent_id: preview.parent_id,
+          quoted_message_id: preview.quoted_message_id,
+          poll_id: preview.poll_id,
+          custom: customData ?? preview.custom,
+        },
+      });
+      paginator?.ingestItem(
+        formatMessage({
           ...response.message,
           status: 'received',
-        },
-        true
+        } as LocalMessage)
       );
-      isThreadReply
-        ? this.activeThreadMessagesSubject.next([
-            ...channel.state.threads[preview.parent_id!],
-          ])
-        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      let messages!: StreamMessage[];
-      (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
-        .pipe(take(1))
-        .subscribe((m) => (messages = m));
-      const newMessage = messages[messages.length - 1];
-      return newMessage;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const stringError = JSON.stringify(error);
-      const parsedError: {
-        status?: number;
-        code?: number;
-        response?: { data?: { message?: string } };
-      } = stringError ? (JSON.parse(stringError) as { status?: number }) : {};
+      return this.getSentMessage(preview);
+    } catch (error) {
+      // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
+      const apiError = error instanceof StreamAPIError ? error : undefined;
+      const isAlreadyExists =
+        isResend &&
+        apiError?.status === 400 &&
+        apiError.code === 4 &&
+        apiError.message.includes('already exists');
 
-      let isAlreadyExists = false;
-      if (isResend) {
-        if (
-          parsedError.status === 400 &&
-          parsedError.code === 4 &&
-          parsedError?.response?.data?.message?.includes('already exists')
-        ) {
-          isAlreadyExists = true;
-        }
-      }
-
-      channel.state.addMessageSorted(
-        {
-          ...(preview as MessageResponse),
-          // @ts-expect-error stream-chat doesn't know about this property
-          errorStatusCode: isAlreadyExists
-            ? undefined
-            : parsedError.status || undefined,
-          status: isAlreadyExists ? 'received' : 'failed',
-        },
-        true
+      this.errorStatusCodes.set(
+        preview.id,
+        isAlreadyExists
+          ? undefined
+          : (error as { status?: number } | undefined)?.status || undefined
       );
-      isThreadReply
-        ? this.activeThreadMessagesSubject.next([
-            ...channel.state.threads[preview.parent_id!],
-          ])
-        : this.activeChannelMessagesSubject.next([...channel.state.messages]);
-      let messages!: StreamMessage[];
-      (isThreadReply ? this.activeThreadMessages$ : this.activeChannelMessages$)
-        .pipe(take(1))
-        .subscribe((m) => (messages = m));
-      const newMessage = messages[messages.length - 1];
-      return newMessage;
+      paginator?.ingestItem({
+        ...(paginator.getItem(preview.id) ?? preview),
+        status: isAlreadyExists ? 'received' : 'failed',
+      });
+      return this.getSentMessage(preview);
     }
+  }
+
+  private getSentMessage(preview: LocalMessage) {
+    const paginator = this.getMessagePaginator(preview.parent_id);
+    const message = paginator?.getItem(preview.id) ?? preview;
+    return this.transformToStreamMessage(
+      message,
+      this.activeChannelSubject.getValue()
+    );
   }
 
   /**
@@ -1307,23 +1391,97 @@ export class ChannelService {
     this.isMessageLoadingInProgress = true;
     const activeChannel = this.activeChannelSubject.getValue();
     try {
-      await activeChannel?.state.loadMessageIntoState(
-        messageId,
-        parentMessageId
-      );
-      const messages = activeChannel?.state.messages || [];
-      this.activeChannelMessagesSubject.next([...messages]);
-      if (parentMessageId) {
-        const parentMessage = messages.find((m) => m.id === parentMessageId);
-        void this.setAsActiveParentMessage(
-          parentMessage as StreamMessage,
-          'state'
-        );
+      if (!activeChannel) {
+        throw new Error('No active channel');
       }
+      if (parentMessageId) {
+        // The parent message is displayed in the main message list as well (and activeParentMessage$ reads it from there)
+        const isParentLoaded = !!activeChannel.messagePaginator.items?.find(
+          (m) => m.id === parentMessageId
+        );
+        if (!isParentLoaded) {
+          await activeChannel.messagePaginator.jumpToMessage(parentMessageId, {
+            pageSize: this.messagePageSize,
+            suppressFocusSignal: true,
+          });
+          activeChannel.messagePaginator.flushState();
+        }
+        if (this.activeThread?.id !== parentMessageId) {
+          const parentMessage = await this.getMessage(
+            activeChannel,
+            parentMessageId
+          );
+          await this.setAsActiveParentMessage(
+            this.transformToStreamMessage(parentMessage, activeChannel)
+          );
+        }
+      }
+      const paginator = parentMessageId
+        ? this.activeThread?.messagePaginator
+        : activeChannel.messagePaginator;
+      if (!paginator) {
+        throw new Error('Message paginator not found');
+      }
+      const isSuccess =
+        messageId === 'latest'
+          ? await paginator.jumpToTheLatestMessage({
+              suppressFocusSignal: true,
+            })
+          : await paginator.jumpToMessage(messageId, {
+              pageSize: this.messagePageSize,
+              suppressFocusSignal: true,
+            });
+      if (!isSuccess) {
+        throw new Error(`Unable to jump to message ${messageId}`);
+      }
+      // Make sure activeChannelMessages$ and activeThreadMessages$ are updated before the message list receives the jump instruction
+      paginator.flushState();
       this.jumpToMessageSubject.next({
         id: messageId,
         parentId: parentMessageId,
       });
+    } catch (error) {
+      this.notificationService.addTemporaryNotification(
+        'streamChat.Message not found'
+      );
+      throw error;
+    } finally {
+      this.isMessageLoadingInProgress = false;
+    }
+  }
+
+  /**
+   * Jumps to the first unread message of the active channel, if the message is not yet loaded, it'll load the message (and it's surroundings) from the API.
+   * @returns `true` if the jump was successful
+   */
+  async jumpToFirstUnreadMessage() {
+    const activeChannel = this.activeChannelSubject.getValue();
+    if (!activeChannel) {
+      return false;
+    }
+    this.isMessageLoadingInProgress = true;
+    try {
+      const paginator = activeChannel.messagePaginator;
+      const previousQueryError = paginator.lastQueryError;
+      const isSuccess = await paginator.jumpToTheFirstUnreadMessage({
+        pageSize: this.messagePageSize,
+      });
+      if (!isSuccess) {
+        // The paginator doesn't throw API errors, it records them as lastQueryError
+        const queryError = paginator.lastQueryError;
+        if (queryError && queryError !== previousQueryError) {
+          throw queryError;
+        }
+        return false;
+      }
+      paginator.flushState();
+      // The SDK has its own scroll/highlight logic, the focus signal is only used to know the jump target
+      const messageId =
+        paginator.messageFocusSignal.getLatestValue().signal?.messageId;
+      if (messageId) {
+        this.jumpToMessageSubject.next({ id: messageId });
+      }
+      return true;
     } catch (error) {
       this.notificationService.addTemporaryNotification(
         'streamChat.Message not found'
@@ -1347,7 +1505,7 @@ export class ChannelService {
    */
   async pinMessage(message: StreamMessage) {
     try {
-      await this.chatClientService.chatClient?.pinMessage(message);
+      await this.chatClientService.chatClient?.pinMessage({ id: message.id });
       this.notificationService.addTemporaryNotification(
         'streamChat.Message pinned',
         'success'
@@ -1366,7 +1524,7 @@ export class ChannelService {
    */
   async unpinMessage(message: StreamMessage) {
     try {
-      await this.chatClientService.chatClient?.unpinMessage(message);
+      await this.chatClientService.chatClient?.unpinMessage({ id: message.id });
       this.notificationService.addTemporaryNotification(
         'streamChat.Message unpinned',
         'success'
@@ -1396,12 +1554,12 @@ export class ChannelService {
               shoulSetActiveChannel || false,
               'recover-state'
             );
-            if (this.activeChannelSubject.getValue()) {
-              // Thread messages are not refetched so active thread gets deselected to avoid displaying stale messages
-              void this.setAsActiveParentMessage(undefined);
+            const activeChannel = this.activeChannelSubject.getValue();
+            if (activeChannel) {
+              // The active channel and thread are activated, so stream-chat reloads them after reconnect, the message lists are updated by the paginator subscriptions, the active thread can stay open
+              this.markRead(activeChannel);
               // Update and reselect message to quote
               const messageToQuote = this.messageToQuoteSubject.getValue();
-              this.setChannelState(this.activeChannelSubject.getValue()!);
               let messages!: StreamMessage[];
               this.activeChannelMessages$
                 .pipe(take(1))
@@ -1461,36 +1619,16 @@ export class ChannelService {
       }
       case 'user.updated': {
         this.ngZone.run(() => {
-          const updatedChannels = this.channelsSubject.getValue()?.map((c) => {
-            if (this.chatClientService.chatClient.activeChannels[c.cid]) {
-              return this.chatClientService.chatClient.activeChannels[c.cid];
-            } else {
-              return c;
-            }
-          });
-          this.channelsSubject.next(updatedChannels);
+          // stream-chat updates the user objects in the messages, message lists are updated via the paginators
+          const channels = this.channelsSubject.getValue();
+          if (channels) {
+            this.channelsSubject.next([...channels]);
+          }
           const activeChannel = this.activeChannelSubject.getValue();
           if (activeChannel) {
-            this.activeChannelSubject.next(
-              this.chatClientService.chatClient.activeChannels[
-                activeChannel.cid
-              ] || activeChannel
-            );
-            this.activeChannelMessagesSubject.next(
-              activeChannel.state.messages.map((m) => {
-                (m as StreamMessage).readBy = getReadBy(m, activeChannel);
-                return { ...m };
-              })
-            );
-            const activeParentMessage =
-              this.activeParentMessageIdSubject.getValue();
-            if (activeParentMessage) {
-              const messages = activeChannel.state.threads[activeParentMessage];
-              this.activeThreadMessagesSubject.next([...messages]);
-            }
-            this.activeChannelPinnedMessagesSubject.next([
-              ...(activeChannel.state.pinnedMessages as StreamMessage[]),
-            ]);
+            this.activeChannelSubject.next(activeChannel);
+            // The language of the user might have changed
+            this.refreshTranslations();
           }
         });
         break;
@@ -1498,20 +1636,30 @@ export class ChannelService {
     }
   }
 
+  private getEventChannel(event: Event) {
+    return 'channel' in event
+      ? (event.channel as ChannelResponse | undefined)
+      : undefined;
+  }
+
   private handleRemovedFromChannelNotification(clientEvent: ClientEvent) {
-    const channelIdToBeRemoved = clientEvent.event.channel!.cid;
-    this.removeChannel(channelIdToBeRemoved, true);
+    const channel = this.getEventChannel(clientEvent.event);
+    if (channel) {
+      this.removeChannel(channel.cid, true);
+    }
   }
 
   private handleNewMessageNotification(clientEvent: ClientEvent) {
-    if (clientEvent.event.channel) {
-      void this.addChannelFromNotification(clientEvent.event.channel);
+    const channel = this.getEventChannel(clientEvent.event);
+    if (channel) {
+      void this.addChannelFromNotification(channel);
     }
   }
 
   private handleAddedToChannelNotification(clientEvent: ClientEvent) {
-    if (clientEvent.event.channel) {
-      void this.addChannelFromNotification(clientEvent.event.channel);
+    const channel = this.getEventChannel(clientEvent.event);
+    if (channel) {
+      void this.addChannelFromNotification(channel);
     }
   }
 
@@ -1524,13 +1672,14 @@ export class ChannelService {
     if (currentChannels.find((c) => c.cid === newChannel.cid)) {
       return;
     }
-    await newChannel.watch().catch((err) => {
-      this.chatClientService.chatClient.logger(
-        'error',
+    try {
+      await newChannel.watch();
+    } catch (error) {
+      this.chatClientService.logger.error(
         'Failed to add channel to channel list because watch request failed',
-        err as Record<string, unknown>
+        { error: error as Error }
       );
-    });
+    }
     currentChannels = this.channelsSubject.getValue() || [];
     if (currentChannels.find((c) => c.cid === newChannel.cid)) {
       return;
@@ -1540,19 +1689,57 @@ export class ChannelService {
   }
 
   private watchForActiveChannelEvents(channel: Channel) {
+    this.activeChannelPaginatorSubscriptions = [
+      this.bindMessagePaginator(
+        channel.messagePaginator,
+        this.activeChannelMessagesSubject,
+        this.activeChannelMessagesPaginationStateSubject,
+        () => this.activeChannelSubject.getValue() === channel
+      ),
+      channel.pinnedMessagesPaginator.state.subscribeWithSelector(
+        (state) => ({ items: state.items }),
+        ({ items }) => {
+          this.ngZone.run(() => {
+            if (this.activeChannelSubject.getValue() !== channel) {
+              return;
+            }
+            this.activeChannelPinnedMessagesSubject.next(
+              (items ?? []).map((m) =>
+                this.transformToStreamMessage(m, channel)
+              )
+            );
+          });
+        }
+      ),
+      // read receipts changed (for example message.read or user.updated events): emit the message list if the readBy property of any message changed
+      channel.messageReceiptsTracker.snapshotStore.subscribeWithSelector(
+        (state) => ({ revision: state.revision }),
+        (_, prev) => {
+          if (!prev) {
+            return;
+          }
+          this.ngZone.run(() => {
+            if (this.activeChannelSubject.getValue() !== channel) {
+              return;
+            }
+            const messages = this.activeChannelMessagesSubject.getValue();
+            const isChanged = messages.some((message) => {
+              const cached = this.streamMessageCache.get(message)?.message;
+              return (
+                !!cached &&
+                this.transformToStreamMessage(message, channel) !== cached
+              );
+            });
+            if (isChanged) {
+              this.activeChannelMessagesSubject.next([...messages]);
+            }
+          });
+        }
+      ),
+    ];
     this.activeChannelSubscriptions.push(
       channel.on('message.new', (event) => {
         this.ngZone.run(() => {
-          event.message && event.message.parent_id
-            ? event.message.parent_id ===
-              this.activeParentMessageIdSubject.getValue()
-              ? this.activeThreadMessagesSubject.next([
-                  ...channel.state.threads[event.message.parent_id],
-                ])
-              : null
-            : this.activeChannelMessagesSubject.next([
-                ...channel.state.messages,
-              ]);
           this.activeChannel$.pipe(first()).subscribe((c) => {
             if (c) {
               this.markRead(c);
@@ -1563,57 +1750,18 @@ export class ChannelService {
       })
     );
     this.activeChannelSubscriptions.push(
-      channel.on('message.updated', (event) => this.messageUpdated(event))
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('message.deleted', (event) => this.messageUpdated(event))
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('reaction.new', (e) => this.messageReactionEventReceived(e))
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('reaction.deleted', (e) =>
-        this.messageReactionEventReceived(e)
-      )
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('reaction.updated', (e) =>
-        this.messageReactionEventReceived(e)
-      )
-    );
-    this.activeChannelSubscriptions.push(
-      channel.on('message.read', (e) => {
-        this.ngZone.run(() => {
-          let latestMessage!: StreamMessage;
-          let messages!: StreamMessage[];
-          this.activeChannelMessages$.pipe(first()).subscribe((m) => {
-            messages = m;
-            latestMessage = messages[messages.length - 1];
-          });
-          if (!latestMessage || !e.user) {
-            return;
-          }
-          if (latestMessage.readBy) {
-            latestMessage.readBy.splice(0, latestMessage.readBy.length);
-          } else {
-            latestMessage.readBy = [];
-          }
-          latestMessage.readBy.push(...getReadBy(latestMessage, channel));
-          messages[messages.length - 1] = { ...latestMessage };
-
-          this.activeChannelMessagesSubject.next([...messages]);
-        });
-      })
-    );
-    this.activeChannelSubscriptions.push(
       this.chatClientService.events$
         .pipe(
           filter(
             (e) =>
               e.eventType === 'notification.mark_unread' &&
+              e.event.type === 'notification.mark_unread' &&
               e.event.channel_id === channel.id
           ),
-          map((e) => e.event)
+          map(
+            (e) =>
+              e.event as Extract<Event, { type: 'notification.mark_unread' }>
+          )
         )
         .subscribe((e) => {
           this.ngZone.run(() => {
@@ -1633,6 +1781,134 @@ export class ChannelService {
         this.ngZone.run(() => this.handleTypingStopEvent(e))
       )
     );
+  }
+
+  /**
+   * Subscribes to the given message paginator, and emits the message list and pagination state via the provided subjects
+   * @param paginator
+   * @param messagesSubject
+   * @param paginationStateSubject
+   * @param isActive
+   * @param isLoadingOutsidePaginator loading state that isn't reflected by the paginator (for example a thread reload)
+   */
+  private bindMessagePaginator(
+    paginator: MessageIntervalPaginator,
+    messagesSubject: BehaviorSubject<
+      (StreamMessage | MessageResponse | LocalMessage)[]
+    >,
+    paginationStateSubject: BehaviorSubject<MessageListPaginationState>,
+    isActive: () => boolean,
+    isLoadingOutsidePaginator: () => boolean = () => false
+  ) {
+    return paginator.state.subscribeWithSelector(
+      (state) => ({
+        items: state.items,
+        hasMoreTail: state.hasMoreTail,
+        hasMoreHead: state.hasMoreHead,
+        isLoading: state.isLoading,
+        lastQueryError: state.lastQueryError,
+      }),
+      (state, prev) => {
+        this.ngZone.run(() => {
+          if (!isActive()) {
+            return;
+          }
+          // hasMoreHead is also used to decide if the latest message is in the list
+          if (
+            !prev ||
+            state.items !== prev.items ||
+            state.hasMoreHead !== prev.hasMoreHead
+          ) {
+            messagesSubject.next(state.items ?? []);
+          }
+          paginationStateSubject.next({
+            hasMoreOlder: state.hasMoreTail,
+            hasMoreNewer: state.hasMoreHead,
+            isLoading: state.isLoading || isLoadingOutsidePaginator(),
+            error: state.lastQueryError,
+          });
+        });
+      }
+    );
+  }
+
+  /**
+   * Returns the message paginator of the active channel, or the message paginator of the thread, if `parentId` is provided
+   * @internal
+   * @param parentId
+   * @returns the message paginator
+   */
+  getMessagePaginator(parentId?: string) {
+    if (parentId) {
+      return this.activeThread?.id === parentId
+        ? this.activeThread.messagePaginator
+        : this.chatClientService.chatClient.threads.get(parentId)
+            ?.messagePaginator;
+    }
+    return this.activeChannelSubject.getValue()?.messagePaginator;
+  }
+
+  private async getMessage(channel: Channel, messageId: string) {
+    const message = channel.messagePaginator.getItem(messageId);
+    if (message) {
+      return message;
+    }
+    const response = await channel.getMessagesById([messageId]);
+    const result = response.messages?.[0];
+    if (!result) {
+      throw new Error(`Message ${messageId} not found`);
+    }
+    return formatMessage(result);
+  }
+
+  private releaseThread() {
+    this.activeThreadPaginatorSubscriptions.forEach((unsubscribe) =>
+      unsubscribe()
+    );
+    this.activeThreadPaginatorSubscriptions = [];
+    this.releaseActiveThread?.();
+    this.releaseActiveThread = undefined;
+    this.activeThread = undefined;
+    this.activeThreadMessagesPaginationStateSubject.next(
+      ChannelService.initialPaginationState
+    );
+  }
+
+  private async loadInitialMessages(channel: Channel) {
+    this.activeChannelMessagesPaginationStateSubject.next({
+      ...this.activeChannelMessagesPaginationStateSubject.getValue(),
+      isLoading: true,
+      error: undefined,
+    });
+    try {
+      await channel.watch();
+    } catch (error) {
+      if (this.activeChannelSubject.getValue() === channel) {
+        this.activeChannelMessagesPaginationStateSubject.next({
+          ...this.activeChannelMessagesPaginationStateSubject.getValue(),
+          isLoading: false,
+          error: error as Error,
+        });
+        this.notificationService.addTemporaryNotification(
+          'streamChat.Error loading messages'
+        );
+      }
+    }
+  }
+
+  /**
+   * Retries loading the messages of the active channel (for example after a failed request)
+   */
+  async reloadActiveChannelMessages() {
+    const channel = this.activeChannelSubject.getValue();
+    if (!channel) {
+      return;
+    }
+    if (!channel.initialized) {
+      await this.loadInitialMessages(channel);
+    } else {
+      await channel.messagePaginator.reload();
+    }
   }
 
   /**
@@ -1671,18 +1947,24 @@ export class ChannelService {
    * The current active channel messages
    */
   get activeChannelMessages() {
-    return this.activeChannelMessagesSubject.getValue() || [];
+    // Same messages as emitted by activeChannelMessages$ (shareReplay keeps the latest value)
+    let messages: StreamMessage[] = [];
+    this.activeChannelMessages$.pipe(take(1)).subscribe((m) => (messages = m));
+    return messages;
   }
 
   /**
    * The current thread replies
    */
   get activeChannelThreadReplies() {
-    return this.activeThreadMessagesSubject.getValue() || [];
+    // Same messages as emitted by activeThreadMessages$ (shareReplay keeps the latest value)
+    let messages: StreamMessage[] = [];
+    this.activeThreadMessages$.pipe(take(1)).subscribe((m) => (messages = m));
+    return messages;
   }
 
   /**
-   * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](/chat/docs/javascript/send_reaction/#paginating-reactions).
+   * Get the last 1200 reactions of a message in the current active channel. If you need to fetch more reactions please use the [following endpoint](/chat/docs/javascript/send-reaction/#paginating-reactions).
    * @deprecated use [`messageReactionsService.queryReactions()`](/chat/docs/sdk/angular/services/MessageReactionsService/#queryreactions) instead
    * @param messageId
    * @returns all reactions of a message
@@ -1696,10 +1978,13 @@ export class ChannelService {
 
     while (lastPageSize === limit && reactions.length < reactionsLimit) {
       try {
-        const response = await this.activeChannel?.getReactions(messageId, {
-          offset,
-          limit,
-        });
+        const response = await this.chatClientService.chatClient.getReactions(
+          { id: messageId },
+          {
+            offset,
+            limit,
+          }
+        );
         lastPageSize = response?.reactions?.length || 0;
         if (lastPageSize > 0) {
           reactions.push(...response!.reactions);
@@ -1730,27 +2015,18 @@ export class ChannelService {
         message_id: messageId,
       });
       this.areReadEventsPaused = true;
+      this.updateViewingLive();
       return response;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-      const error: {
-        response?: {
-          data?: { code?: number; message?: string; StatusCode?: number };
-        };
-      } = JSON.parse(JSON.stringify(e)) as {
-        response?: {
-          data?: { code?: number; message?: string; StatusCode?: number };
-        };
-      };
-      const data = error?.response?.data;
+    } catch (e) {
+      // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
+      const apiError = e instanceof StreamAPIError ? e : undefined;
       if (
-        data &&
-        data.code === 4 &&
-        data.StatusCode === 400 &&
-        data.message?.includes('it is older than last')
+        apiError?.status === 400 &&
+        apiError.code === 4 &&
+        apiError.message.includes('it is older than last')
       ) {
         const count = /\d+ channel messages/
-          .exec(data.message)?.[0]
+          .exec(apiError.message)?.[0]
           .match(/\d+/)?.[0];
         if (count) {
           this.notificationService.addTemporaryNotification(
@@ -1769,94 +2045,20 @@ export class ChannelService {
     }
   }
 
-  private messageUpdated(event: Event) {
-    this.ngZone.run(() => {
-      const isThreadReply = event.message && event.message.parent_id;
-      const channel = this.activeChannelSubject.getValue();
-      if (!channel) {
-        return;
-      }
-      // Get messages from state as message order could change, and message could've been deleted
-      const messages: FormatMessageResponse[] = isThreadReply
-        ? channel.state.threads[event?.message?.parent_id || '']
-        : channel.state.messages;
-      if (!messages) {
-        return;
-      }
-      const messageIndex = messages.findIndex(
-        (m) => m.id === event?.message?.id
-      );
-      if (messageIndex !== -1 || event.type === 'message.deleted') {
-        isThreadReply
-          ? this.activeThreadMessagesSubject.next([...messages])
-          : this.activeChannelMessagesSubject.next([...messages]);
-        this.activeChannelPinnedMessagesSubject.next([
-          ...(channel.state.pinnedMessages as StreamMessage[]),
-        ]);
-      }
-    });
-  }
-
-  private messageReactionEventReceived(e: Event) {
-    this.ngZone.run(() => {
-      const isThreadMessage = e.message && e.message.parent_id;
-      let messages!: StreamMessage[];
-      (isThreadMessage
-        ? this.activeThreadMessages$
-        : this.activeChannelMessages$
-      )
-        .pipe(first())
-        .subscribe((m) => (messages = m));
-      const messageIndex = messages.findIndex((m) => m.id === e?.message?.id);
-      if (messageIndex === -1) {
-        return;
-      }
-      const message = messages[messageIndex];
-      message.reaction_counts = { ...e.message?.reaction_counts };
-      message.reaction_scores = { ...e.message?.reaction_scores };
-      message.latest_reactions = [...(e.message?.latest_reactions || [])];
-      message.own_reactions = [...(e.message?.own_reactions || [])];
-      message.reaction_groups = { ...e.message?.reaction_groups };
-
-      messages[messageIndex] = { ...message };
-      isThreadMessage
-        ? this.activeThreadMessagesSubject.next([...messages])
-        : this.activeChannelMessagesSubject.next([...messages]);
-    });
-  }
-
-  private formatMessage(message: MessageResponse) {
-    const m = message as unknown as FormatMessageResponse;
-    m.pinned_at = message.pinned_at ? new Date(message.pinned_at) : null;
-    m.created_at = message.created_at
-      ? new Date(message.created_at)
-      : new Date();
-    m.updated_at = message.updated_at
-      ? new Date(message.updated_at)
-      : new Date();
-    message.status = message.status || 'received';
-
-    return m;
-  }
-
-  private isStreamMessage(
-    message: StreamMessage | FormatMessageResponse | MessageResponse
-  ): message is StreamMessage {
-    return 'readBy' in message;
-  }
-
-  private isFormatMessageResponse(
-    message: StreamMessage | FormatMessageResponse | MessageResponse
-  ): message is FormatMessageResponse {
-    return message.created_at instanceof Date;
-  }
-
   private stopWatchForActiveChannelEvents(channel: Channel | undefined) {
     if (!channel) {
       return;
     }
     this.activeChannelSubscriptions.forEach((s) => s.unsubscribe());
     this.activeChannelSubscriptions = [];
+    this.activeChannelPaginatorSubscriptions.forEach((unsubscribe) =>
+      unsubscribe()
+    );
+    this.activeChannelPaginatorSubscriptions = [];
+    this.isLatestMessageVisible = false;
+    channel.messagePaginator.setViewingLive(false);
+    this.releaseActiveChannel?.();
+    this.releaseActiveChannel = undefined;
   }
 
   private async queryChannels(
@@ -1917,8 +2119,7 @@ export class ChannelService {
       this.channelSubscriptions[channel.cid]();
     }
     const unsubscribe = channel.on((event: Event) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      const type = event.type as EventTypes | 'capabilities.changed';
+      const type: EventType = event.type;
       switch (type) {
         case 'message.new': {
           this.ngZone.run(() => {
@@ -2002,6 +2203,10 @@ export class ChannelService {
             } else {
               this.handleChannelUpdate(event);
             }
+            // The auto translation language of the channel might have changed
+            if (channel === this.activeChannelSubject.getValue()) {
+              this.refreshTranslations();
+            }
           });
           break;
         }
@@ -2024,7 +2229,7 @@ export class ChannelService {
         }
         case 'capabilities.changed': {
           this.ngZone.run(() => {
-            const cid = event.cid;
+            const cid = 'cid' in event ? event.cid : undefined;
             if (cid) {
               const currentChannels = this.channelsSubject.getValue();
               const index = currentChannels?.findIndex((c) => c.cid === cid);
@@ -2034,6 +2239,7 @@ export class ChannelService {
                   this.activeChannelSubject.next(
                     this.activeChannelSubject.getValue()
                   );
+                  this.updateViewingLive();
                 }
               }
             }
@@ -2052,15 +2258,21 @@ export class ChannelService {
   }
 
   private handleChannelHidden(event: Event) {
-    this.removeChannel(event.channel!.cid, false);
+    const cid = 'cid' in event ? event.cid : undefined;
+    if (cid) {
+      this.removeChannel(cid, false);
+    }
   }
 
   private handleChannelDeleted(event: Event) {
-    this.removeChannel(event.channel!.cid, false);
+    const cid = 'cid' in event ? event.cid : undefined;
+    if (cid) {
+      this.removeChannel(cid, false);
+    }
   }
 
-  private handleChannelVisible(event: Event, channel: Channel) {
-    if (!this.channels.find((c) => c.cid === event.cid)) {
+  private handleChannelVisible(_: Event, channel: Channel) {
+    if (!this.channels.find((c) => c.cid === channel.cid)) {
       this.ngZone.run(() =>
         this.channelsSubject.next([...this.channels, channel])
       );
@@ -2068,40 +2280,28 @@ export class ChannelService {
   }
 
   private handleChannelUpdate(event: Event) {
-    const channelIndex = this.channels.findIndex(
-      (c) => c.cid === event.channel!.cid
-    );
+    const cid = 'cid' in event ? event.cid : undefined;
+    const channelIndex = this.channels.findIndex((c) => c.cid === cid);
     if (channelIndex !== -1) {
+      // stream-chat updates channel.data (and keeps hidden, own_capabilities and member_count)
       const channel = this.channels[channelIndex];
-      const notIncludedProperies = {
-        hidden: channel.data?.hidden || false,
-        own_capabilities: channel.data?.own_capabilities || [],
-      };
-      channel.data = {
-        ...event.channel!,
-        ...notIncludedProperies,
-      };
       this.channelsSubject.next([...this.channels]);
-      if (event.channel?.cid === this.activeChannelSubject.getValue()?.cid) {
+      if (cid === this.activeChannelSubject.getValue()?.cid) {
         this.activeChannelSubject.next(channel);
       }
     }
   }
 
   private handleChannelTruncate(event: Event) {
-    const channelIndex = this.channels.findIndex(
-      (c) => c.cid === event.channel!.cid
-    );
+    const cid = 'cid' in event ? event.cid : undefined;
+    const channelIndex = this.channels.findIndex((c) => c.cid === cid);
     if (channelIndex !== -1) {
-      this.channels[channelIndex].state.messages = [];
+      // stream-chat truncates the message paginator, message list is updated via the paginator
       this.channelsSubject.next([...this.channels]);
-      if (event.channel?.cid === this.activeChannelSubject.getValue()?.cid) {
+      if (cid === this.activeChannelSubject.getValue()?.cid) {
         const channel = this.activeChannelSubject.getValue()!;
-        channel.state.messages = [];
         this.activeChannelSubject.next(channel);
-        this.activeChannelMessagesSubject.next([]);
-        this.activeParentMessageIdSubject.next(undefined);
-        this.activeThreadMessagesSubject.next([]);
+        void this.setAsActiveParentMessage(undefined);
       }
     }
   }
@@ -2111,72 +2311,129 @@ export class ChannelService {
     if (!channel) {
       return false;
     }
-    const capabilites = channel.data?.own_capabilities as string[];
-    return capabilites.indexOf('read-events') !== -1;
+    const capabilites = channel.data?.own_capabilities ?? [];
+    return (
+      capabilites.indexOf('read-events') !== -1 &&
+      channel.config.readEvents.enabled
+    );
   }
 
   private transformToStreamMessage(
-    message: StreamMessage | MessageResponse | FormatMessageResponse,
+    message: StreamMessage | MessageResponse | LocalMessage,
     channel?: Channel
-  ) {
+  ): StreamMessage {
     const isThreadMessage = !!message.parent_id;
-    if (
-      this.isStreamMessage(message) &&
-      this.isFormatMessageResponse(message)
-    ) {
-      if (message.quoted_message) {
-        message.quoted_message.translation = getMessageTranslation(
-          message.quoted_message,
-          channel,
-          this.chatClientService.chatClient.user
-        );
-      }
-      message.translation = getMessageTranslation(
-        message,
-        channel,
-        this.chatClientService.chatClient.user
-      );
-      return message;
-    } else {
-      if (message.quoted_message) {
-        (message as StreamMessage).quoted_message!.translation =
-          getMessageTranslation(
-            message.quoted_message,
-            channel,
-            this.chatClientService.chatClient.user
-          );
-      }
-      if (this.isFormatMessageResponse(message)) {
-        (message as StreamMessage).readBy = isThreadMessage
-          ? []
-          : channel
-          ? getReadBy(message, channel)
-          : [];
-        (message as StreamMessage).translation = getMessageTranslation(
-          message,
-          channel,
-          this.chatClientService.chatClient.user
-        );
-
-        return message as StreamMessage;
-      } else {
-        message = this.formatMessage(message);
-        (message as StreamMessage).readBy = isThreadMessage
-          ? []
-          : channel
-          ? getReadBy(message, channel)
-          : [];
-        (message as StreamMessage).translation = getMessageTranslation(
-          message,
-          channel,
-          this.chatClientService.chatClient.user
-        );
-        return message as StreamMessage;
-      }
+    const user = this.chatClientService.chatClient.user;
+    if ('readBy' in message) {
+      // Already a StreamMessage (for example set via a custom handler)
+      const streamMessage = message as StreamMessage;
+      return {
+        ...streamMessage,
+        translation: getMessageTranslation(streamMessage, channel, user),
+        quoted_message: streamMessage.quoted_message
+          ? {
+              ...streamMessage.quoted_message,
+              translation: getMessageTranslation(
+                streamMessage.quoted_message,
+                channel,
+                user
+              ),
+            }
+          : undefined,
+      };
     }
+    const localMessage = message as LocalMessage | MessageResponse;
+    const errorStatusCode = this.errorStatusCodes.get(localMessage.id);
+    const translationLanguage = getTranslationLanguage(channel, user);
+    const readByRevision =
+      isThreadMessage || !channel
+        ? undefined
+        : channel.messageReceiptsTracker.snapshotStore.getLatestValue()
+            .revision;
+    const cached = this.streamMessageCache.get(localMessage);
+    if (
+      cached &&
+      cached.errorStatusCode === errorStatusCode &&
+      cached.translationLanguage === translationLanguage
+    ) {
+      // readBy is only recalculated if the read receipts changed, and the message object is only replaced if the readBy list changed
+      if (cached.readByRevision !== readByRevision) {
+        const readBy = this.getMessageReadBy(localMessage, channel);
+        if (!this.isSameUserList(readBy, cached.message.readBy)) {
+          cached.message = { ...cached.message, readBy };
+        }
+        cached.readByRevision = readByRevision;
+      }
+      return cached.message;
+    }
+    // Messages are stored by stream-chat, they shouldn't be mutated, we create a new object instead
+    const streamMessage: StreamMessage = {
+      ...localMessage,
+      status: (localMessage as LocalMessage).status || 'received',
+      readBy: this.getMessageReadBy(localMessage, channel),
+      translation: getMessageTranslation(localMessage, channel, user),
+      errorStatusCode,
+      quoted_message: localMessage.quoted_message
+        ? {
+            ...localMessage.quoted_message,
+            translation: getMessageTranslation(
+              localMessage.quoted_message,
+              channel,
+              user
+            ),
+          }
+        : undefined,
+    };
+    this.streamMessageCache.set(localMessage, {
+      errorStatusCode,
+      translationLanguage,
+      readByRevision,
+      message: streamMessage,
+    });
+    return streamMessage;
   }
 
-  private handleTypingStartEvent(event: Event) {
+  /**
+   * Emits the message lists of the active channel again, so the translations follow the current translation language (only the messages with a changed translation language get a new object)
+   */
+  private refreshTranslations() {
+    const channel = this.activeChannelSubject.getValue();
+    if (!channel) {
+      return;
+    }
+    this.activeChannelMessagesSubject.next([
+      ...this.activeChannelMessagesSubject.getValue(),
+    ]);
+    this.activeThreadMessagesSubject.next([
+      ...this.activeThreadMessagesSubject.getValue(),
+    ]);
+    this.activeChannelPinnedMessagesSubject.next(
+      (channel.pinnedMessagesPaginator.items ?? []).map((m) =>
+        this.transformToStreamMessage(m, channel)
+      )
+    );
+  }
+
+  private getMessageReadBy(
+    message: LocalMessage | MessageResponse,
+    channel?: Channel
+  ) {
+    return message.parent_id || !channel ? [] : getReadBy(message, channel);
+  }
+
+  private isSameUserList(users1: UserResponse[], users2: UserResponse[]) {
+    return (
+      users1.length === users2.length &&
+      users1.every(
+        (u, i) =>
+          u.id === users2[i]?.id &&
+          u.name === users2[i]?.name &&
+          u.image === users2[i]?.image
+      )
+    );
+  }
+
+  private handleTypingStartEvent(event: EventPayload<'typing.start'>) {
     if (event.user?.id === this.chatClientService.chatClient.user?.id) {
       return;
     }
@@ -2198,7 +2455,7 @@ export class ChannelService {
     }
   }
 
-  private handleTypingStopEvent(event: Event) {
+  private handleTypingStopEvent(event: EventPayload<'typing.stop'>) {
     const usersTypingInChannel = this.usersTypingInChannelSubject.getValue();
     const usersTypingInThread = this.usersTypingInThreadSubject.getValue();
     const user = event.user;
@@ -2220,7 +2477,7 @@ export class ChannelService {
     }
   }
 
-  private updateLatestMessages(event: Event) {
+  private updateLatestMessages(event: EventPayload<'message.new'>) {
     if (
       event.message?.user?.id !== this.chatClientService?.chatClient.user?.id
     ) {
@@ -2235,7 +2492,7 @@ export class ChannelService {
     if (!channelId) {
       return;
     }
-    const messageDate = new Date(event.message.created_at);
+    const messageDate = nsToDate(event.message.created_at);
     if (
       !latestMessages[channelId] ||
       latestMessages[channelId]?.getTime() < messageDate.getTime()
@@ -2248,27 +2505,8 @@ export class ChannelService {
   }
 
   private setChannelState(channel: Channel) {
-    channel.state.messages.forEach((m) => {
-      (m as StreamMessage).readBy = getReadBy(m, channel);
-      (m as StreamMessage).translation = getMessageTranslation(
-        m,
-        channel,
-        this.chatClientService.chatClient.user
-      );
-      if (m.quoted_message) {
-        (m as StreamMessage).quoted_message!.translation =
-          getMessageTranslation(
-            m.quoted_message,
-            channel,
-            this.chatClientService.chatClient.user
-          );
-      }
-    });
     this.markRead(channel);
-    this.activeChannelMessagesSubject.next([...channel.state.messages]);
-    this.activeChannelPinnedMessagesSubject.next([
-      ...(channel.state.pinnedMessages as StreamMessage[]),
-    ]);
+    // Messages and pinned messages are emitted by the paginator subscriptions (see watchForActiveChannelEvents)
     this.activeParentMessageIdSubject.next(undefined);
     this.activeThreadMessagesSubject.next([]);
     this.messageToQuoteSubject.next(undefined);
@@ -2285,9 +2523,23 @@ export class ChannelService {
       if (isThrottled) {
         this.markReadThrottled(channel);
       } else {
-        void channel.markRead();
+        void this.sendMarkReadRequest(channel);
       }
     }
+  }
+
+  /**
+   * stream-chat doesn't increase the unread count while viewing live, because it expects the channel to be marked as read, so we only tell it if we mark the channel as read
+   */
+  private updateViewingLive() {
+    this.activeChannelSubject
+      .getValue()
+      ?.messagePaginator.setViewingLive(
+        this.isLatestMessageVisible &&
+          this.canSendReadEvents &&
+          this.shouldMarkActiveChannelAsRead &&
+          !this.areReadEventsPaused
+      );
   }
 
   private markReadThrottled(channel: Channel) {
@@ -2305,6 +2557,16 @@ export class ChannelService {
     }
   }
 
+  private async sendMarkReadRequest(channel: Channel) {
+    try {
+      await channel.markReadViaReporter();
+    } catch (error) {
+      this.chatClientService.logger.warn('Failed to mark channel as read', {
+        error: error as Error,
+      });
+    }
+  }
+
   private flushMarkReadQueue() {
     this.scheduledMarkReadRequest?.();
     this.scheduledMarkReadRequest = undefined;
@@ -2318,9 +2580,20 @@ export class ChannelService {
   }) {
     this.shouldSetActiveChannel = settings.shouldSetActiveChannel;
     this.messagePageSize = settings.messagePageSize;
+    const client = this.chatClientService.chatClient;
+    // Use the same page size for message list pagination, as for the initial message list (queryChannels message_limit)
+    client.config.setConfig('channel', {
+      messagePaginator: { pageSize: this.messagePageSize },
+    });
+    client.config.setConfig('thread', {
+      messagePaginator: { pageSize: this.messagePageSize },
+    });
     this.clientEventsSubscription = this.chatClientService.events$.subscribe(
       (notification) => void this.handleNotification(notification)
     );
+    // Thread events are only delivered to threads if thread manager subscriptions are active (this is a no-op if already registered)
+    // We don't unregister on reset: unregistering disposes the message paginators of threads, which are reused by stream-chat
+    client.threads.registerSubscriptions();
     try {
       const result = await this.queryChannels(
         this.shouldSetActiveChannel,

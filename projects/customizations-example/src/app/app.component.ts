@@ -206,7 +206,7 @@ export class AppComponent implements AfterViewInit {
   inviteClicked(channel: Channel) {
     alert(
       `You can add channel actions to the channel header to manage the ${
-        channel.data?.name || (channel.data?.id as string)
+        channel.data?.custom?.name || (channel.data?.id as string)
       } channel`
     );
   }
@@ -223,6 +223,7 @@ export class AppComponent implements AfterViewInit {
       type: 'image',
       image_url: 'https://picsum.photos/200/300',
       fallback: 'Just a random image',
+      custom: {},
     };
     attachmentService.addAttachment(customAttachment);
   }

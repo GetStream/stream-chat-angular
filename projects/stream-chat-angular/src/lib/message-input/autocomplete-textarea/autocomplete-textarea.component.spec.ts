@@ -7,7 +7,7 @@ import {
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { MentionModule } from '@stream-io/angular-mentions';
-import { Channel } from 'stream-chat';
+import { Channel, ChannelMemberResponse, UserResponse } from 'stream-chat';
 import { ChatClientService } from '../../chat-client.service';
 import { ChannelService } from '../../channel.service';
 import { mockChannelService, MockChannelService } from '../../mocks';
@@ -195,16 +195,20 @@ describe('AutocompleteTextareaComponent', () => {
   it('should add channel members to autocomplete config', () => {
     expect(component.autocompleteConfig.mentions![0].items).toEqual([
       {
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
         autocompleteLabel: 'Jack',
         type: 'mention',
       },
       {
-        user: { id: 'sara', name: 'Sara' },
+        user: { id: 'sara', name: 'Sara' } as UserResponse,
         autocompleteLabel: 'Sara',
         type: 'mention',
       },
-      { user: { id: 'eddie' }, autocompleteLabel: 'eddie', type: 'mention' },
+      {
+        user: { id: 'eddie' } as UserResponse,
+        autocompleteLabel: 'eddie',
+        type: 'mention',
+      },
     ]);
   });
 
@@ -212,12 +216,10 @@ describe('AutocompleteTextareaComponent', () => {
     const userMentionSpy = jasmine.createSpy();
     component.userMentions.subscribe(userMentionSpy);
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
-      { user: { id: 'sophie' } },
+      { user: { id: 'sophie' } as UserResponse } as ChannelMemberResponse,
     ]);
     channelServiceMock.activeChannel$.next({
-      getConfig: () => ({
-        commands: [],
-      }),
+      config: { availableCommands: [] },
     } as any as Channel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -231,7 +233,7 @@ describe('AutocompleteTextareaComponent', () => {
     component.userMentions.subscribe(userMentionSpy);
     component.autocompleteConfig.mentions![0].mentionSelect!(
       {
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
       '@'
     );
@@ -252,7 +254,7 @@ describe('AutocompleteTextareaComponent', () => {
     expect(
       component.autocompleteConfig.mentions![0].mentionSelect!(
         {
-          user: { id: 'jack', name: 'Jack' },
+          user: { id: 'jack', name: 'Jack' } as UserResponse,
           autocompleteLabel: 'Jack',
         },
         '@'
@@ -265,7 +267,7 @@ describe('AutocompleteTextareaComponent', () => {
     component.userMentions.subscribe(userMentionSpy);
     component.autocompleteConfig.mentions![0].mentionSelect!(
       {
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
       '@'
     );
@@ -289,7 +291,7 @@ describe('AutocompleteTextareaComponent', () => {
     component.userMentions.subscribe(userMentionSpy);
     component.autocompleteConfig.mentions![0].mentionSelect!(
       {
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
       '@'
     );
@@ -351,8 +353,12 @@ describe('AutocompleteTextareaComponent', () => {
 
   it('should filter autocomplete options', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
-      { user: { id: 'dom13re4ty', name: 'Jeff' } },
-      { user: { id: '3sfwer232', name: 'Dominique' } },
+      {
+        user: { id: 'dom13re4ty', name: 'Jeff' } as UserResponse,
+      } as ChannelMemberResponse,
+      {
+        user: { id: '3sfwer232', name: 'Dominique' } as UserResponse,
+      } as ChannelMemberResponse,
     ]);
     component.autcompleteSearchTermChanged('@dom');
     tick(300);
@@ -362,7 +368,9 @@ describe('AutocompleteTextareaComponent', () => {
 
   it('should transliterate - option contains non-Latin characters', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
-      { user: { id: '12', name: 'Ádám' } },
+      {
+        user: { id: '12', name: 'Ádám' } as UserResponse,
+      } as ChannelMemberResponse,
     ]);
     component.autcompleteSearchTermChanged('@Adam');
     tick(300);
@@ -372,7 +380,9 @@ describe('AutocompleteTextareaComponent', () => {
 
   it('should transliterate - search term contains non-Latin characters', fakeAsync(() => {
     spyOn(channelServiceMock, 'autocompleteMembers').and.returnValue([
-      { user: { id: '12', name: 'Adam' } },
+      {
+        user: { id: '12', name: 'Adam' } as UserResponse,
+      } as ChannelMemberResponse,
     ]);
     component.autcompleteSearchTermChanged('@Ádám');
     tick(300);

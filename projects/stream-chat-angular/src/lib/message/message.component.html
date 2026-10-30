@@ -1,9 +1,6 @@
 <ng-container
   *ngIf="
-    message?.type === 'error' &&
-      (message?.moderation_details?.action ===
-        'MESSAGE_RESPONSE_ACTION_REMOVE' ||
-        message?.moderation?.action === 'remove');
+    message?.type === 'error' && message?.moderation?.action === 'remove';
     else notBlockedMessage
   "
 >
@@ -38,7 +35,7 @@
     [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
     [class.str-chat__message-send-can-be-retried]="
       (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
-      (message?.type === 'error' && message?.moderation_details)
+      isBounced
     "
     [class.str-chat__message-with-touch-support]="hasTouchSupport"
     [class.str-chat__message-without-touch-support]="!hasTouchSupport"
@@ -213,8 +210,7 @@
               [class.str-chat__message-text--pointer-cursor]="
                 (message?.status === 'failed' &&
                   message?.errorStatusCode !== 403) ||
-                (this.message?.type === 'error' &&
-                  this.message?.moderation_details) ||
+                isBounced ||
                 message?.message_text_updated_at
               "
               (click)="messageClicked()"
@@ -236,7 +232,7 @@
                   data-testid="client-error-message"
                   class="str-chat__simple-message--error-message str-chat__message--error-message"
                 >
-                  <ng-container *ngIf="!message?.moderation_details">{{
+                  <ng-container *ngIf="!message?.moderation">{{
                     "streamChat.Error · Unsent" | translate
                   }}</ng-container>
                 </div>
@@ -492,10 +488,7 @@
             }"
           >
             <span>{{ "streamChat.Edited" | translate }}</span>
-            <time
-              dateTime="{{ message?.message_text_updated_at }}"
-              title="{{ message?.message_text_updated_at }}"
-            >
+            <time dateTime="{{ editedDateTime }}" title="{{ editedDateTime }}">
               {{ pasedEditedDate }}
             </time>
           </div>

@@ -7,7 +7,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Poll, PollAnswer } from 'stream-chat';
+import { Poll, PollVoteResponseData } from 'stream-chat';
 import { BasePollComponent } from '../../base-poll.component';
 
 /**
@@ -27,7 +27,7 @@ export class UpsertAnswerComponent
   /**
    * The poll comment to edit, when in edit mode
    */
-  @Input() answer: PollAnswer | undefined;
+  @Input() answer: PollVoteResponseData | undefined;
   /**
    * The callback to close the modal the component is displayed in
    */

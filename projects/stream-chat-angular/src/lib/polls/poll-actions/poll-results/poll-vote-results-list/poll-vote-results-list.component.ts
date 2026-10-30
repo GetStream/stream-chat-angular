@@ -6,7 +6,11 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { BasePollComponent } from '../../../base-poll.component';
-import { Poll, PollOption, PollVote } from 'stream-chat';
+import {
+  Poll,
+  PollOptionResponseData,
+  PollVoteResponseData,
+} from 'stream-chat';
 
 /**
  *
@@ -24,12 +28,12 @@ export class PollVoteResultsListComponent
   /**
    * The poll option to display the votes for
    */
-  @Input() option: PollOption | undefined;
+  @Input() option: PollOptionResponseData | undefined;
   isWinner = false;
   voteCount = 0;
   isLoading = false;
   next?: string | undefined;
-  votes: PollVote[] = [];
+  votes: PollVoteResponseData[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
@@ -51,7 +55,7 @@ export class PollVoteResultsListComponent
         filter: {
           option_id: this.option?.id ?? '',
         },
-        sort: { created_at: -1 },
+        sort: [{ field: 'created_at', direction: -1 }],
         options: {
           next: this.next,
         },
@@ -72,7 +76,7 @@ export class PollVoteResultsListComponent
     }
   }
 
-  trackByVoteId = (_: number, vote: PollVote) => {
+  trackByVoteId = (_: number, vote: PollVoteResponseData) => {
     return vote.id;
   };
 

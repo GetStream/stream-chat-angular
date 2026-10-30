@@ -12,7 +12,7 @@ import {
   ElementRef,
   NgZone,
 } from '@angular/core';
-import { Attachment, UserResponse } from 'stream-chat';
+import { Attachment, nsToDate, nsToRfc3339, UserResponse } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import {
@@ -57,7 +57,7 @@ export class MessageComponent
    */
   @Input() message: StreamMessage | undefined;
   /**
-   * The list of [channel capabilities](/chat/docs/javascript/channel_capabilities/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](/chat/docs/javascript/channel_capabilities/).
+   * The list of [channel capabilities](/chat/docs/node/chat-permission-policies/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](/chat/docs/node/chat-permission-policies/).
    */
   @Input() enabledMessageActions: string[] = [];
   /**
@@ -91,6 +91,7 @@ export class MessageComponent
   isMessageDeliveredAndRead = false;
   parsedDate = '';
   pasedEditedDate = '';
+  editedDateTime?: string;
   areOptionsVisible = false;
   hasAttachment = false;
   hasReactions = false;
@@ -234,15 +235,18 @@ export class MessageComponent
       this.parsedDate =
         (this.message &&
           this.message.created_at &&
-          this.dateParser.parseDateTime(this.message.created_at)) ||
+          this.dateParser.parseDateTime(nsToDate(this.message.created_at))) ||
         '';
       this.pasedEditedDate =
         (this.message &&
           this.message.message_text_updated_at &&
           this.dateParser.parseDateTime(
-            new Date(this.message.message_text_updated_at)
+            nsToDate(this.message.message_text_updated_at)
           )) ||
         '';
+      this.editedDateTime = this.message?.message_text_updated_at
+        ? nsToRfc3339(this.message.message_text_updated_at)
+        : undefined;
       this.hasAttachment =
         !!this.message?.attachments && !!this.message.attachments.length;
       this.hasReactions =
@@ -444,16 +448,20 @@ export class MessageComponent
     };
   }
 
+  get isBounced() {
+    return (
+      this.message?.type === 'error' &&
+      this.message?.moderation?.action === 'bounce'
+    );
+  }
+
   messageClicked() {
     if (
       this.message?.status === 'failed' &&
       this.message?.errorStatusCode !== 403
     ) {
       this.resendMessage();
-    } else if (
-      this.message?.type === 'error' &&
-      this.message?.moderation_details
-    ) {
+    } else if (this.isBounced) {
       this.openMessageBouncePrompt();
     } else {
       this.isEditedFlagOpened = !this.isEditedFlagOpened;

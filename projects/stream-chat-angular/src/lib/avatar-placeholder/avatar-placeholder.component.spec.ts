@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Channel } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { AvatarPlaceholderComponent } from './avatar-placeholder.component';
@@ -34,7 +34,7 @@ describe('AvatarPlaceholderComponent', () => {
     component.name = 'name';
     component.type = 'user';
     component.location = 'autocomplete-item';
-    const user = { id: 'user-id' };
+    const user = { id: 'user-id' } as UserResponse;
     component.user = user;
     component.ngOnChanges();
     fixture.detectChanges();

@@ -1,7 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-import { Event, UserResponse } from 'stream-chat';
+import {
+  Channel,
+  dateToNs,
+  nsToDate,
+  Event,
+  LocalMessage,
+  UserResponse,
+} from 'stream-chat';
 import { AvatarPlaceholderComponent } from '../avatar-placeholder/avatar-placeholder.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ChannelService } from '../channel.service';
@@ -10,13 +17,30 @@ import {
   generateMockChannels,
   mockChannelService,
   MockChannelService,
+  MockChannel,
   mockMessage,
+  MockStateStore,
 } from '../mocks';
+import { toLocalMessage } from '../local-message';
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
 import { DateParserService } from '../date-parser.service';
 import { IconModule } from '../icon/icon.module';
 import { IconPlaceholderComponent } from '../icon/icon-placeholder/icon-placeholder.component';
+
+const getLastMessage = (channel: MockChannel) => {
+  const items = channel.messagePaginator.items!;
+  return items[items.length - 1];
+};
+
+const updateLastMessage = (
+  channel: MockChannel,
+  update: (message: LocalMessage) => LocalMessage
+) => {
+  const items = [...channel.messagePaginator.items!];
+  items[items.length - 1] = update(items[items.length - 1]);
+  channel.messagePaginator.setItems(items);
+};
 
 describe('ChannelPreviewComponent', () => {
   let fixture: ComponentFixture<ChannelPreviewComponent>;
@@ -38,7 +62,7 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock = mockChannelService();
     chatClientServiceMock = {
       events$: new Subject(),
-      chatClient: { user: { id: 'currentUser' } },
+      chatClient: { user: { id: 'currentUser' } as UserResponse },
       user$: of({ id: 'currentUser' }),
     };
     TestBed.configureTestingModule({
@@ -107,11 +131,48 @@ describe('ChannelPreviewComponent', () => {
 
     countUnreadSpy.and.returnValue(1);
     const newMessage = mockMessage();
-    channel.state.latestMessages.push(newMessage);
-    channel.handleEvent('message.new', { message: newMessage });
+    newMessage.id = 'new-message';
+    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeTrue();
+    expect(component.unreadCount).toBe(1);
+    expect(queryUnreadBadge()?.innerHTML).toContain('1');
+  });
+
+  it('should update unread badge, if unread count is updated after the latest message', () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    channel.id = 'notactive';
+    component.channel = channel;
+    // stream-chat derives the unread count from the read state
+    spyOn(channel, 'countUnread').and.callFake(
+      () =>
+        (
+          channel.state as unknown as MockStateStore<Channel['state']>
+        ).getLatestValue().read['currentUser']?.unread_messages ?? 0
+    );
+    fixture.detectChanges();
+
+    expect(queryUnreadBadge()).toBeNull();
+
+    // On message.new stream-chat updates the latest message first, then the read state
+    const newMessage = mockMessage();
+    newMessage.id = 'new-message';
+    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
+    fixture.detectChanges();
+
+    expect(queryUnreadBadge()).toBeNull();
+
+    (channel.state as unknown as MockStateStore<Channel['state']>).partialNext({
+      read: {
+        currentUser: {
+          unread_messages: 1,
+        },
+      } as unknown as Channel['state']['read'],
+    });
+    fixture.detectChanges();
+
     expect(component.unreadCount).toBe(1);
     expect(queryUnreadBadge()?.innerHTML).toContain('1');
   });
@@ -185,12 +246,41 @@ describe('ChannelPreviewComponent', () => {
     chatClientServiceMock.events$.next({
       eventType: 'notification.mark_unread',
       event: {
+        type: 'notification.mark_unread',
         channel_id: channel.id,
       } as Event,
     });
 
     expect(component.isUnread).toBe(true);
     expect(component.unreadCount).toBe(1);
+  });
+
+  it(`should keep unread state of active channel after 'notification.mark_unread', if other user reads the channel`, () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    spyOn(channel, 'countUnread').and.returnValue(1);
+    component.channel = channel;
+    channelServiceMock.activeChannel$.next(channel);
+    component.ngOnInit();
+    chatClientServiceMock.events$.next({
+      eventType: 'notification.mark_unread',
+      event: {
+        type: 'notification.mark_unread',
+        channel_id: channel.id,
+      } as Event,
+    });
+
+    expect(component.isUnread).toBe(true);
+
+    channel.handleEvent('message.read', { user: { id: 'otherUser' } });
+
+    expect(component.isUnread).toBe(true);
+    expect(component.unreadCount).toBe(1);
+
+    channel.handleEvent('message.read', { user: { id: 'currentUser' } });
+
+    expect(component.isUnread).toBe(false);
+    expect(component.unreadCount).toBe(0);
   });
 
   it('should set channel as active', () => {
@@ -211,8 +301,8 @@ describe('ChannelPreviewComponent', () => {
     fixture.detectChanges();
     const avatar = queryAvatar();
 
-    expect(avatar.imageUrl).toBe(channel.data?.image as string);
-    expect(avatar.name).toBe(channel.data?.name);
+    expect(avatar.imageUrl).toBe(channel.data?.custom?.image as string);
+    expect(avatar.name).toBe(channel.data?.custom?.name);
     expect(avatar.type).toBe('channel');
     expect(avatar.channel).toBe(channel);
     expect(avatar.location).toBe('channel-preview');
@@ -220,13 +310,13 @@ describe('ChannelPreviewComponent', () => {
 
   it('should display channel display text', () => {
     const channel = generateMockChannels()[0];
-    channel.data!.name = undefined;
+    channel.data!.custom!.name = undefined;
     channel.state.members = {
       user1: { user: { id: 'user1', name: 'Ben' } },
       [chatClientServiceMock.chatClient.user.id]: {
         user: { id: chatClientServiceMock.chatClient.user.id },
       },
-    };
+    } as unknown as MockChannel['state']['members'];
     component.channel = channel;
     fixture.detectChanges();
 
@@ -236,7 +326,7 @@ describe('ChannelPreviewComponent', () => {
   describe('should display latest message of channel', () => {
     it('if channel has no messages', () => {
       const channel = generateMockChannels()[0];
-      channel.state.latestMessages = [];
+      channel.messagePaginator.setItems([]);
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
@@ -251,19 +341,17 @@ describe('ChannelPreviewComponent', () => {
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(
-        channel.state.latestMessages[channel.state.latestMessages.length - 1]
-          .text
+        getLastMessage(channel).text
       );
     });
 
     it('if last message has attachments', () => {
       const channel = generateMockChannels()[0];
-      channel.state.latestMessages[
-        channel.state.latestMessages.length - 1
-      ].text = undefined;
-      channel.state.latestMessages[
-        channel.state.latestMessages.length - 1
-      ].attachments = [{}];
+      updateLastMessage(channel, (m) => ({
+        ...m,
+        text: '',
+        attachments: [{ custom: {} }],
+      }));
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
@@ -277,9 +365,9 @@ describe('ChannelPreviewComponent', () => {
       component.channel = channel;
       fixture.detectChanges();
       const newMessage = mockMessage();
+      newMessage.id = 'new-message';
       newMessage.text = 'this is the text of  new message';
-      channel.state.latestMessages.push(newMessage);
-      channel.handleEvent('message.new', { message: newMessage });
+      channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(newMessage.text);
@@ -290,11 +378,11 @@ describe('ChannelPreviewComponent', () => {
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
-      const updatedMessage = mockMessage();
-      updatedMessage.text = 'this is the text of  new message';
-      channel.state.latestMessages[channel.state.latestMessages.length - 1] =
-        updatedMessage;
-      channel.handleEvent('message.updated', { message: updatedMessage });
+      const updatedMessage = {
+        ...getLastMessage(channel),
+        text: 'this is the text of  new message',
+      };
+      channel.messagePaginator.ingestItem(updatedMessage);
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(updatedMessage.text);
@@ -305,11 +393,11 @@ describe('ChannelPreviewComponent', () => {
       channelServiceMock.activeChannel$.next(channel);
       component.channel = channel;
       fixture.detectChanges();
-      const deletedMessage = mockMessage();
-      deletedMessage.deleted_at = new Date();
-      channel.state.latestMessages[channel.state.latestMessages.length - 1] =
-        deletedMessage;
-      channel.handleEvent('message.updated', { message: deletedMessage });
+      const deletedMessage = {
+        ...getLastMessage(channel),
+        deleted_at: dateToNs(new Date()),
+      };
+      channel.messagePaginator.ingestItem(deletedMessage);
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain('Message deleted');
@@ -321,10 +409,11 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock.activeChannel$.next(channel);
     component.channel = channel;
     fixture.detectChanges();
-    const updatedMessage = mockMessage();
-    updatedMessage.text = 'this is the text of  new message';
-    channel.state.latestMessages[0] = updatedMessage;
-    channel.handleEvent('message.updated', updatedMessage);
+    const updatedMessage = {
+      ...channel.messagePaginator.items![0],
+      text: 'this is the text of  new message',
+    };
+    channel.messagePaginator.ingestItem(updatedMessage);
     fixture.detectChanges();
 
     expect(queryLatestMessage()?.textContent).not.toContain(
@@ -337,8 +426,8 @@ describe('ChannelPreviewComponent', () => {
     channelServiceMock.activeChannel$.next(channel);
     component.channel = channel;
     fixture.detectChanges();
-    channel.state.latestMessages = [];
-    channel.handleEvent('channel.truncated', { type: 'channel.truncated' });
+    // stream-chat clears the paginator on truncate
+    channel.messagePaginator.setItems([]);
     fixture.detectChanges();
 
     expect(queryLatestMessage()?.textContent).toContain('Nothing yet...');
@@ -346,13 +435,14 @@ describe('ChannelPreviewComponent', () => {
 
   it('should display translated message', () => {
     const channel = generateMockChannels()[0];
-    const latestMessage =
-      channel.state.latestMessages[channel.state.latestMessages.length - 1];
-    latestMessage.i18n = {
-      hu_text: 'Hogy vagy?',
-      language: 'en',
-    };
-    latestMessage.user!.id += 'not';
+    updateLastMessage(channel, (m) => ({
+      ...m,
+      i18n: {
+        hu_text: 'Hogy vagy?',
+        language: 'en',
+      },
+      user: { ...m.user, id: m.user.id + 'not' },
+    }));
     channel.data!.auto_translation_language = 'hu';
     channelServiceMock.activeChannel$.next(channel);
     component.channel = channel;
@@ -395,37 +485,36 @@ describe('ChannelPreviewComponent', () => {
 
   it('should set last message status', () => {
     const channel = generateMockChannels()[0];
-    const latestMessage =
-      channel.state.messages[channel.state.messages.length - 1];
+    const latestMessage = getLastMessage(channel);
     component.channel = channel;
     fixture.detectChanges();
 
-    expect(component.latestMessage).toBe(latestMessage);
+    expect(component.latestMessage?.id).toBe(latestMessage.id);
+    expect(component.latestMessage?.created_at).toEqual(jasmine.any(Number));
 
     expect(component.latestMessageStatus).toBe('delivered');
 
-    channel.state.read['otheruser'] = {
-      last_read: latestMessage.created_at,
-      unread_messages: 0,
-      user: { id: 'otheruser' },
-    };
-    channel.handleEvent('message.read', {
-      message: latestMessage,
+    // stream-chat updates the read state (and the read receipts) on message.read events
+    (channel.state as unknown as MockStateStore<Channel['state']>).partialNext({
+      read: {
+        otheruser: {
+          last_read: latestMessage.created_at,
+          unread_messages: 0,
+          user: { id: 'otheruser' },
+        },
+      } as unknown as Channel['state']['read'],
     });
 
     expect(component.latestMessageStatus).toBe('read');
 
-    latestMessage.type = 'deleted';
-    channel.handleEvent('message.deleted', {
-      message: latestMessage,
-    });
+    channel.messagePaginator.ingestItem({ ...latestMessage, type: 'deleted' });
 
     expect(component.latestMessageStatus).toBe(undefined);
 
-    latestMessage.type = 'regular';
-    latestMessage.user!.id = 'other-user';
-    channel.handleEvent('message.updated', {
-      message: latestMessage,
+    channel.messagePaginator.ingestItem({
+      ...latestMessage,
+      type: 'regular',
+      user: { ...latestMessage.user, id: 'other-user' },
     });
 
     expect(component.latestMessageStatus).toBe(undefined);
@@ -437,17 +526,20 @@ describe('ChannelPreviewComponent', () => {
     spyOn(dateParser, 'parseTime');
 
     const channel = generateMockChannels()[0];
-    const latestMessage =
-      channel.state.messages[channel.state.messages.length - 1];
-    latestMessage.created_at = new Date();
+    const now = new Date();
+    updateLastMessage(channel, (m) => ({ ...m, created_at: dateToNs(now) }));
     component.channel = channel;
     component.ngOnInit();
 
-    expect(dateParser.parseTime).toHaveBeenCalledWith(latestMessage.created_at);
+    // stream-chat's nsToMs floors, so a Date -> ns -> Date round trip can lose 1ms
+    expect(dateParser.parseTime).toHaveBeenCalledWith(nsToDate(dateToNs(now)));
 
-    latestMessage.created_at = new Date('2024-04-02T03:24:00');
-    component.ngOnInit();
+    const earlier = new Date('2024-04-02T03:24:00');
+    updateLastMessage(channel, (m) => ({
+      ...m,
+      created_at: dateToNs(earlier),
+    }));
 
-    expect(dateParser.parseDate).toHaveBeenCalledWith(latestMessage.created_at);
+    expect(dateParser.parseDate).toHaveBeenCalledWith(earlier);
   });
 });

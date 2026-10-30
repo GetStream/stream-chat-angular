@@ -1,4 +1,8 @@
 const fs = require('fs');
+const {
+  normalizeGeneratedDocs,
+  servicesDocsBaseUrl,
+} = require('./normalize-generated-docs');
 
 const sourcePath = 'temp-service-docs/classes';
 const serviceDocsTargetPath = process.argv[2];
@@ -30,26 +34,15 @@ fs.readdir(sourcePath, (err: any, files: string[]) => {
         throw err;
       }
 
-      // Remove the thre prefix from the title
-      const result =
-        `---` +
-        `\n` +
-        `title: ${file.replace('.md', '')}` +
-        `\n` +
-        `slug: /chat/docs/sdk/angular/services/${file.replace('.md', '')}/` +
-        `\n` +
-        `---` +
-        '\n\n' +
+      // Title and slug come from the sidebar config, so no frontmatter is added
+      const result = normalizeGeneratedDocs(
         data
           .replace(`# Class: ${file.replace('.md', '')}`, '')
-          .replace(
-            /\b(?!README)(\w+)\.md\b/g,
-            '/chat/docs/sdk/angular/services/$1'
-          )
+          .replace(/\b(?!README)(\w+)\.md\b/g, `${servicesDocsBaseUrl}/$1/`)
           .replace(/•\s/g, '')
           .replace(/▸\s/g, '')
           .replace('<T\\>', '')
-          .replace('\\', '');
+      );
 
       fs.writeFile(`${sourcePath}/${file}`, result, 'utf8', (err: any) => {
         if (err) {

@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { BasePollComponent } from '../../base-poll.component';
-import { Poll, PollOption } from 'stream-chat';
+import { Poll, PollOptionResponseData } from 'stream-chat';
 import { createUniqueValidator } from '../../unique.validator';
 
 /**
@@ -35,7 +35,7 @@ export class AddOptionComponent extends BasePollComponent {
       }),
     ]),
   });
-  options: PollOption[] = [];
+  options: PollOptionResponseData[] = [];
 
   async addOption() {
     if (this.formGroup.invalid || !this.messageId) {
@@ -52,7 +52,7 @@ export class AddOptionComponent extends BasePollComponent {
         'streamChat.Failed to add option ({{ message }})',
         'error',
         undefined,
-        { message: error }
+        { message: (error as Error)?.message }
       );
       this.markForCheck();
       throw error;

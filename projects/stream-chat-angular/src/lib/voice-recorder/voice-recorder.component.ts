@@ -9,6 +9,7 @@ import {
 import { AudioRecorderService } from './audio-recorder.service';
 import { MediaRecordingState } from './media-recorder';
 import { Subscription } from 'rxjs';
+import { Attachment } from 'stream-chat';
 import { AudioRecording } from '../types';
 import { VoiceRecorderService } from '../message-input/voice-recorder.service';
 
@@ -26,6 +27,10 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
   recordState: MediaRecordingState = MediaRecordingState.STOPPED;
   isLoading = false;
   recording?: AudioRecording;
+  /**
+   * The recording in the attachment format, used to play back the recording before it's sent
+   */
+  recordingAttachment?: Attachment;
   readonly MediaRecordingState = MediaRecordingState;
   private subscriptions: Subscription[] = [];
   private isVisibleSubscription?: Subscription;
@@ -48,7 +53,7 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
       this.isVisibleSubscription =
         this.voiceRecorderService.isRecorderVisible$.subscribe((isVisible) => {
           if (!isVisible) {
-            this.recording = undefined;
+            this.setRecording(undefined);
             this.isLoading = false;
           }
         });
@@ -63,7 +68,7 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
 
   cancel() {
     if (this.recording) {
-      this.recording = undefined;
+      this.setRecording(undefined);
     } else {
       void this.recorder.stop({ cancel: true });
     }
@@ -71,7 +76,7 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async stop() {
-    this.recording = await this.recorder.stop();
+    this.setRecording(await this.recorder.stop());
   }
 
   pause() {
@@ -88,5 +93,23 @@ export class VoiceRecorderComponent implements OnInit, OnDestroy, OnChanges {
     }
     this.isLoading = true;
     this.voiceRecorderService?.recording$.next(this.recording);
+  }
+
+  private setRecording(recording: AudioRecording | undefined) {
+    this.recording = recording;
+    this.recordingAttachment = recording
+      ? {
+          type: 'voiceRecording',
+          asset_url:
+            typeof recording.asset_url === 'string'
+              ? recording.asset_url
+              : undefined,
+          custom: {
+            mime_type: recording.mime_type,
+            duration: recording.duration,
+            waveform_data: recording.waveform_data,
+          },
+        }
+      : undefined;
   }
 }

@@ -1,3 +1,4 @@
+import { Attachment, UserResponse } from 'stream-chat';
 import { mockCurrentUser } from './mocks';
 import { createMessagePreview } from './message-preview';
 declare module 'stream-chat' {
@@ -14,8 +15,8 @@ describe('createMessagePreview', () => {
     const attachments = [
       { fallback: 'image.png', image_url: 'http://url/to/image' },
       { fallback: 'christmas.jpg', image_url: 'http://url/to/image' },
-    ];
-    const users = [{ id: 'jack', name: 'Jack' }];
+    ] as Attachment[];
+    const users = [{ id: 'jack', name: 'Jack' }] as UserResponse[];
     const parentId = 'parentId';
     const quotedMessageId = 'quotedMessageId';
     const preview = createMessagePreview(
@@ -32,16 +33,17 @@ describe('createMessagePreview', () => {
     );
 
     expect(preview.created_at).not.toBeUndefined();
+    expect(typeof preview.created_at).toBe('number');
+    expect(preview.updated_at).toBe(preview.created_at);
+    expect(preview.status).toBe('sending');
     expect(preview.html).toBe(text);
-    // @ts-expect-error internal property
-    expect(preview.__html).toBe(text);
     expect(preview.user).toBe(user);
     expect(preview.id).toContain(user.id);
     expect(preview.attachments).toBe(attachments);
     expect(preview.mentioned_users).toBe(users);
     expect(preview.parent_id).toBe(parentId);
     expect(preview.quoted_message_id).toBe(quotedMessageId);
-    expect(preview.isVote).toBe(true);
-    expect(preview.options).toEqual(['Monday', 'Tuesday', 'Friday']);
+    expect(preview.custom.isVote).toBe(true);
+    expect(preview.custom.options).toEqual(['Monday', 'Tuesday', 'Friday']);
   });
 });
