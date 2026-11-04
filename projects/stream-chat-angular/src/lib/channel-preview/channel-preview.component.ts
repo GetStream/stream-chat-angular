@@ -63,8 +63,7 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
           (this.isActive = activeChannel?.id === this.channel?.id)
       )
     );
-    const capabilities = this.channel?.data?.own_capabilities || [];
-    this.canSendReadEvents = capabilities.indexOf('read-events') !== -1;
+    this.canSendReadEvents = !!this.channel?.readEventsEnabled;
     // The latest message is tracked by stream-chat (new, updated, deleted messages, truncate)
     const unsubscribeFromLatestMessage =
       this.channel!.messagePaginator.aggregateState.subscribeWithSelector(

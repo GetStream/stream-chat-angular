@@ -193,6 +193,22 @@ describe('ChannelPreviewComponent', () => {
     expect(queryUnreadBadge()).toBeNull();
   });
 
+  it(`shouldn't apply unread class, if read events are disabled for the channel`, () => {
+    const channels = generateMockChannels();
+    const channel = channels[0];
+    channel.config.readEvents.enabled = false;
+    component.channel = channel;
+    component.ngOnInit();
+    const countUnreadSpy = spyOn(channel, 'countUnread');
+    countUnreadSpy.and.returnValue(1);
+    const unreadClass = 'str-chat__channel-preview-messenger--unread';
+    const container = queryContainer();
+    fixture.detectChanges();
+
+    expect(container?.classList.contains(unreadClass)).toBeFalse();
+    expect(queryUnreadBadge()).toBeNull();
+  });
+
   it('should remove unread class and badge, if user marked channel as read', () => {
     const channels = generateMockChannels();
     const channel = channels[0];
