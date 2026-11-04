@@ -314,10 +314,7 @@ export const mockThread = (channel: Channel, parentMessage: LocalMessage) => {
 };
 
 export type MockChannel = Channel & {
-  handleEvent: (
-    name: EventType | 'capabilities.changed',
-    payload?: any
-  ) => void;
+  handleEvent: (name: EventType, payload?: any) => void;
   messagePaginator: MockMessagePaginator;
   pinnedMessagesPaginator: MockMessagePaginator;
 };
@@ -325,8 +322,20 @@ export type MockChannel = Channel & {
 export const generateMockChannels = (length = 25) => {
   const channels = Array.from({ length }, (_, index) => {
     const eventHandlers: { [key: string]: Function } = {};
+    const ownCapabilities = [
+      'upload-file',
+      'flag-message',
+      'send-reaction',
+      'update-any-message',
+      'delete-any-message',
+      'read-events',
+      'send-links',
+      'send-message',
+      'typing-events',
+    ];
     const stateStore = new MockStateStore({
       read: {} as Channel['state']['read'],
+      ownCapabilities,
     });
     const state = stateStore as unknown as Channel['state'] &
       MockStateStore<object>;
@@ -370,17 +379,13 @@ export const generateMockChannels = (length = 25) => {
           name: `Channel${index}`,
           image: 'link/to/image',
         },
-        own_capabilities: [
-          'upload-file',
-          'flag-message',
-          'send-reaction',
-          'update-any-message',
-          'delete-any-message',
-          'read-events',
-          'send-links',
-          'send-message',
-          'typing-events',
-        ],
+        own_capabilities: ownCapabilities,
+      },
+      get readEventsEnabled() {
+        return (
+          channel.config.readEvents.enabled &&
+          (channel.data?.own_capabilities ?? []).indexOf('read-events') !== -1
+        );
       },
       config: {
         readEvents: { enabled: true },

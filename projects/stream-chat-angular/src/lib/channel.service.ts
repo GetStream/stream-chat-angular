@@ -2227,28 +2227,22 @@ export class ChannelService {
           });
           break;
         }
-        case 'capabilities.changed': {
-          this.ngZone.run(() => {
-            const cid = 'cid' in event ? event.cid : undefined;
-            if (cid) {
-              const currentChannels = this.channelsSubject.getValue();
-              const index = currentChannels?.findIndex((c) => c.cid === cid);
-              if (index !== -1 && index !== undefined) {
-                this.channelsSubject.next([...currentChannels!]);
-                if (cid === this.activeChannelSubject.getValue()?.cid) {
-                  this.activeChannelSubject.next(
-                    this.activeChannelSubject.getValue()
-                  );
-                  this.updateViewingLive();
-                }
-              }
-            }
-          });
-          break;
-        }
       }
     });
-    this.channelSubscriptions[channel.cid] = unsubscribe.unsubscribe;
+    const unsubscribeFromCapabilities = channel.state.subscribeWithSelector(
+      ({ ownCapabilities }) => ({ ownCapabilities }),
+      (_, prev) => {
+        // subscribeWithSelector emits the current value right away (without prev), only changes are interesting
+        if (!prev) {
+          return;
+        }
+        this.ngZone.run(() => this.handleCapabilitiesChange(channel));
+      }
+    );
+    this.channelSubscriptions[channel.cid] = () => {
+      unsubscribe.unsubscribe();
+      unsubscribeFromCapabilities();
+    };
   }
 
   private handleNewMessage(_: Event, channel: Channel) {
@@ -2292,6 +2286,18 @@ export class ChannelService {
     }
   }
 
+  private handleCapabilitiesChange(channel: Channel) {
+    const currentChannels = this.channelsSubject.getValue();
+    const index = currentChannels?.findIndex((c) => c.cid === channel.cid);
+    if (index !== -1 && index !== undefined) {
+      this.channelsSubject.next([...currentChannels!]);
+    }
+    if (channel.cid === this.activeChannelSubject.getValue()?.cid) {
+      this.activeChannelSubject.next(this.activeChannelSubject.getValue());
+      this.updateViewingLive();
+    }
+  }
+
   private handleChannelTruncate(event: Event) {
     const cid = 'cid' in event ? event.cid : undefined;
     const channelIndex = this.channels.findIndex((c) => c.cid === cid);
@@ -2307,15 +2313,7 @@ export class ChannelService {
   }
 
   private get canSendReadEvents() {
-    const channel = this.activeChannelSubject.getValue();
-    if (!channel) {
-      return false;
-    }
-    const capabilites = channel.data?.own_capabilities ?? [];
-    return (
-      capabilites.indexOf('read-events') !== -1 &&
-      channel.config.readEvents.enabled
-    );
+    return !!this.activeChannelSubject.getValue()?.readEventsEnabled;
   }
 
   private transformToStreamMessage(

@@ -1324,22 +1324,53 @@ describe('ChannelService', () => {
     expect(activeChannelSpy).toHaveBeenCalledWith(channel);
   });
 
-  it('should emit changed channel if `capabilities.changed` dispatched', async () => {
+  it('should emit changed channel if own capabilities change', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const channelsSpy = jasmine.createSpy();
+    const activeChannelSpy = jasmine.createSpy();
+    service.channels$.subscribe(channelsSpy);
+    service.activeChannel$.subscribe(activeChannelSpy);
+    channelsSpy.calls.reset();
+    activeChannelSpy.calls.reset();
+    channel.data!.own_capabilities = ['send-message'];
+    (channel.state as unknown as MockStateStore<object>).partialNext({
+      ownCapabilities: ['send-message'],
+    });
+
+    expect(channelsSpy).toHaveBeenCalledTimes(1);
+    const channels = channelsSpy.calls.mostRecent().args[0] as Channel[];
+    const updatedChannel = channels.find((c) => c.cid === channel.cid);
+
+    expect(updatedChannel!.data!.own_capabilities).toEqual(['send-message']);
+    expect(activeChannelSpy).toHaveBeenCalledWith(channel);
+  });
+
+  it(`shouldn't emit changed channel if own capabilities didn't change`, async () => {
     await init();
     const channel = getActiveChannel();
     const spy = jasmine.createSpy();
     service.channels$.subscribe(spy);
-    channel.data!.own_capabilities = ['send-message'];
-    channel.handleEvent('capabilities.changed', {
-      type: 'capabilities.changed',
-      cid: channel.cid,
+    spy.calls.reset();
+    (channel.state as unknown as MockStateStore<object>).partialNext({
+      read: {},
     });
 
-    const channels = spy.calls.mostRecent().args[0] as Channel[];
+    expect(spy).not.toHaveBeenCalled();
+  });
 
-    const updatedChannel = channels.find((c) => c.cid === channel.cid);
+  it(`shouldn't watch own capabilities after channel is removed`, async () => {
+    await init();
+    const channel = getActiveChannel();
+    service.removeChannel(channel.cid);
+    const spy = jasmine.createSpy();
+    service.channels$.subscribe(spy);
+    spy.calls.reset();
+    (channel.state as unknown as MockStateStore<object>).partialNext({
+      ownCapabilities: ['send-message'],
+    });
 
-    expect(updatedChannel!.data!.own_capabilities).toEqual(['send-message']);
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('should call #customChannelUpdatedHandler, if updated and handler is provided', async () => {
