@@ -67,7 +67,7 @@ The `userOrId` parameter type changed from `string | OwnUserResponse | UserRespo
 
 After a reconnect, the SDK refreshes the channel list (same as before). In addition, `stream-chat` v10 now reloads the active channel and the open thread, so they catch up with the messages sent while the user was offline.
 
-The SDK no longer sets `client.recoverStateOnReconnect = false` (the option doesn't exist in v10); connection recovery is on by default. Don't turn it off (`client.connectionRecovery.enabled: false`): then `stream-chat` doesn't dispatch the `connection.recovered` event, and the SDK doesn't refresh the channel list after a reconnect either.
+The SDK no longer sets `client.recoverStateOnReconnect = false` (the option doesn't exist in v10); connection recovery is on by default. If you turn it off (`client.connectionRecovery.enabled: false`), the SDK still refreshes the channel list after a reconnect (`connection.recovered` is dispatched on every reconnect), but `stream-chat` doesn't reload the active channel and the open thread, so they can miss the messages sent while the user was offline.
 
 ## Connection state
 
@@ -144,6 +144,8 @@ In v10, every custom field lives under the `custom` object of the entity (channe
 ```
 
 The SDK's `DefaultChannelData` augmentation now types the `custom` object (`channel.data.custom.name`, `channel.data.custom.image`). If you augment `CustomChannelData` yourself, your fields are typed under `channel.data.custom` as well.
+
+`CustomCommandData` was removed from `stream-chat` (command names are plain `string`). Delete its augmentations and imports: a leftover `declare module 'stream-chat'` augmentation still compiles but has no effect, so search your code for the name.
 
 ### Messages
 
