@@ -53,7 +53,7 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 
 ### Install with NPM
 
-> v8 is currently a release candidate, published under the `rc` tag on npm. It is built on [`stream-chat`](https://github.com/getstream/stream-chat-js) v10, which is also published under the `rc` tag. If you are upgrading from v7, follow the [upgrade guide](https://getstream.io/chat/docs/sdk/angular/v8/basics/upgrade-to-v8/).
+> v8 is built on [`stream-chat`](https://github.com/getstream/stream-chat-js) v10. If you are upgrading from v7, follow the [upgrade guide](https://getstream.io/chat/docs/sdk/angular/v8/basics/upgrade-to-v8/).
 
 Supported Angular versions: **Angular 17-22**
 
@@ -64,7 +64,7 @@ _Zoneless mode isn't yet supported_
 Run this command if you are using **Angular 22**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-ui@21 --legacy-peer-deps
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@21 --legacy-peer-deps
 ```
 
 > `ngx-float-ui` does not have an Angular 22 build yet, so install its latest (v21) with `--legacy-peer-deps` until an Angular 22 release is available.
@@ -72,31 +72,31 @@ npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-
 Run this command if you are using **Angular 21**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-ui@21
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@21
 ```
 
 Run this command if you are using **Angular 20**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-ui@20
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@20
 ```
 
 Run this command if you are using **Angular 19**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-ui@19
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@19
 ```
 
 Run this command if you are using **Angular 18**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core ngx-float-ui@18
+npm install stream-chat-angular stream-chat @ngx-translate/core ngx-float-ui@18
 ```
 
 Run this command if you are using **Angular 17**:
 
 ```shell
-npm install stream-chat-angular@rc stream-chat@rc @ngx-translate/core@17 ngx-float-ui@17
+npm install stream-chat-angular stream-chat @ngx-translate/core@17 ngx-float-ui@17
 ```
 
 Supported Node versions: 22.18+
