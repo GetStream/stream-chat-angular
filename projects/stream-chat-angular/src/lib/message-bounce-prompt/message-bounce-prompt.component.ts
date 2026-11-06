@@ -1,9 +1,9 @@
+import { LocalMessage } from 'stream-chat';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { Subscription } from 'rxjs';
 import { MessageActionsService } from '../message-actions.service';
-import { StreamMessage } from '../types';
 
 /**
  * The component watches for the [`channelService.bouncedMessage$` stream](/chat/docs/sdk/angular/services/ChannelService/#bouncedmessage) and opens the bounce modal if a message is emitted.
@@ -18,7 +18,7 @@ import { StreamMessage } from '../types';
 export class MessageBouncePromptComponent implements OnDestroy {
   @HostBinding() class = 'str-chat__message-bounce-prompt';
   isModalOpen = false;
-  message?: StreamMessage;
+  message?: LocalMessage;
   private subscriptions: Subscription[] = [];
 
   constructor(

@@ -26,13 +26,6 @@ export type CustomTrigger = {
   };
 };
 
-export type StreamMessage = LocalMessage & {
-  readBy: UserResponse[];
-  translation?: string;
-  errorStatusCode?: number;
-  quoted_message?: MessageResponse & { translation?: string };
-};
-
 export type AppSettings = Partial<AppResponseFields>;
 
 export type MessageListPaginationState = {
@@ -142,7 +135,11 @@ export type TypingIndicatorContext = {
 };
 
 export type MessageContext = {
-  message: StreamMessage | undefined;
+  message: LocalMessage | undefined;
+  /**
+   * The channel of the message
+   */
+  channel: Channel | undefined;
   enabledMessageActions: string[];
   isLastSentMessage: boolean | undefined;
   mode: 'thread' | 'main';
@@ -203,7 +200,7 @@ export type IconContext = {
 
 export type MessageActionsBoxContext = {
   isMine: boolean;
-  message: StreamMessage | undefined;
+  message: LocalMessage | undefined;
   enabledActions: string[];
   messageTextHtmlElement: HTMLElement | undefined;
 };
@@ -214,14 +211,14 @@ export type MessageActionHandlerExtraParams = {
 };
 
 export type MessageActionHandler = (
-  message: StreamMessage,
+  message: LocalMessage,
   params: MessageActionHandlerExtraParams
 ) => void;
 
 export type MessageActionBoxItemContext = {
   actionName: string;
-  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
-  message: StreamMessage;
+  actionLabelOrTranslationKey: ((message: LocalMessage) => string) | string;
+  message: LocalMessage;
   actionHandlerExtraParams: MessageActionHandlerExtraParams;
   actionHandler: MessageActionHandler;
 };
@@ -231,16 +228,16 @@ export type MessageReactionActionItem = {
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage
+    message: LocalMessage
   ) => boolean;
 };
 
 type MessageActionItemBase = {
-  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
+  actionLabelOrTranslationKey: ((message: LocalMessage) => string) | string;
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage
+    message: LocalMessage
   ) => boolean;
   actionHandler: MessageActionHandler;
 };
@@ -290,7 +287,7 @@ export type NotificationContext = {
 };
 
 export type ThreadHeaderContext = {
-  parentMessage: StreamMessage | undefined;
+  parentMessage: LocalMessage | undefined;
   closeThreadHandler: () => void;
 };
 
@@ -312,20 +309,24 @@ export type VideoAttachmentConfiguration = ImageAttachmentConfiguration & {
 };
 
 export type DeliveredStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type SendingStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type CustomMetadataContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type ReadStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
   readByText: string;
+  /**
+   * The users who have read the message (the current user isn't included)
+   */
+  readBy: UserResponse[];
 };
 
 export type ChannelHeaderInfoContext = { channel: Channel };
@@ -440,7 +441,7 @@ export type CustomAttachmentPreviewListContext = {
 };
 
 export type ThreadReplyButtonContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type CustomAutocompleteItemContext = {
@@ -484,13 +485,13 @@ export type CustomAutocomplete = {
 };
 
 export type MessageTextContext = {
-  message:
-    | StreamMessage
-    | undefined
-    | MessageResponse
-    | (MessageResponse & { translation?: string });
+  message: LocalMessage | MessageResponse | undefined;
   isQuoted: boolean;
   shouldTranslate: boolean;
+  /**
+   * The translation of the message text to the current translation language (if there is any), it's displayed if `shouldTranslate` is `true`
+   */
+  translation?: string;
 };
 
 export type GalleryAttachment = {
@@ -500,6 +501,6 @@ export type GalleryAttachment = {
 };
 
 export type MessageBlockedContext = {
-  message: StreamMessage;
+  message: LocalMessage;
   isMyMessage: boolean;
 };

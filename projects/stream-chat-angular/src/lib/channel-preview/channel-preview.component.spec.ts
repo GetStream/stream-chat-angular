@@ -21,7 +21,6 @@ import {
   mockMessage,
   MockStateStore,
 } from '../mocks';
-import { toLocalMessage } from '../local-message';
 import { ChannelPreviewComponent } from './channel-preview.component';
 import { Observable, Subject, of } from 'rxjs';
 import { DateParserService } from '../date-parser.service';
@@ -132,7 +131,7 @@ describe('ChannelPreviewComponent', () => {
     countUnreadSpy.and.returnValue(1);
     const newMessage = mockMessage();
     newMessage.id = 'new-message';
-    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
+    channel.messagePaginator.ingestItem(newMessage);
     fixture.detectChanges();
 
     expect(container?.classList.contains(unreadClass)).toBeTrue();
@@ -159,7 +158,7 @@ describe('ChannelPreviewComponent', () => {
     // On message.new stream-chat updates the latest message first, then the read state
     const newMessage = mockMessage();
     newMessage.id = 'new-message';
-    channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
+    channel.messagePaginator.ingestItem(newMessage);
     fixture.detectChanges();
 
     expect(queryUnreadBadge()).toBeNull();
@@ -383,7 +382,7 @@ describe('ChannelPreviewComponent', () => {
       const newMessage = mockMessage();
       newMessage.id = 'new-message';
       newMessage.text = 'this is the text of  new message';
-      channel.messagePaginator.ingestItem(toLocalMessage(newMessage));
+      channel.messagePaginator.ingestItem(newMessage);
       fixture.detectChanges();
 
       expect(queryLatestMessage()?.textContent).toContain(newMessage.text);

@@ -1,3 +1,4 @@
+import { LocalMessage } from 'stream-chat';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import {
@@ -6,7 +7,6 @@ import {
   MessageActionItem,
   MessageActionsClickDetails,
   MessageReactionActionItem,
-  StreamMessage,
 } from './types';
 import { ChatClientService } from './chat-client.service';
 import { NotificationService } from './notification.service';
@@ -32,19 +32,19 @@ export class MessageActionsService {
     {
       actionName: 'mark-unread',
       actionLabelOrTranslationKey: 'streamChat.Mark as unread',
-      actionHandler: (message: StreamMessage) => {
+      actionHandler: (message: LocalMessage) => {
         void this.channelService.markMessageUnread(message.id);
       },
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage
+        message: LocalMessage
       ) => enabledActions.indexOf('read-events') !== -1 && !message.parent_id,
     },
     {
       actionName: 'quote',
       actionLabelOrTranslationKey: 'streamChat.Reply',
-      actionHandler: (message: StreamMessage) => {
+      actionHandler: (message: LocalMessage) => {
         this.channelService.selectMessageToQuote(message);
       },
       isVisible: (enabledActions: string[]) =>
@@ -53,20 +53,20 @@ export class MessageActionsService {
     {
       actionName: 'thread-reply',
       actionLabelOrTranslationKey: 'streamChat.Thread',
-      actionHandler: (message: StreamMessage) => {
+      actionHandler: (message: LocalMessage) => {
         void this.channelService.setAsActiveParentMessage(message);
       },
       isVisible: (
         enabledActions: string[],
         _: boolean,
-        message: StreamMessage
+        message: LocalMessage
       ) => enabledActions.indexOf('send-reply') !== -1 && !message.parent_id,
     },
     {
       actionName: 'pin',
-      actionLabelOrTranslationKey: (message: StreamMessage) =>
+      actionLabelOrTranslationKey: (message: LocalMessage) =>
         message.pinned ? 'streamChat.Unpin' : 'streamChat.Pin',
-      actionHandler: (message: StreamMessage) => {
+      actionHandler: (message: LocalMessage) => {
         message.pinned
           ? void this.channelService.unpinMessage(message)
           : void this.channelService.pinMessage(message);
@@ -78,7 +78,7 @@ export class MessageActionsService {
       actionName: 'flag',
       actionLabelOrTranslationKey: 'streamChat.Flag',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      actionHandler: async (message: StreamMessage) => {
+      actionHandler: async (message: LocalMessage) => {
         try {
           await this.chatClientService.flagMessage(message.id);
           this.notificationService.addTemporaryNotification(
@@ -97,7 +97,7 @@ export class MessageActionsService {
     {
       actionName: 'edit',
       actionLabelOrTranslationKey: 'streamChat.Edit Message',
-      actionHandler: (message: StreamMessage) => {
+      actionHandler: (message: LocalMessage) => {
         this.messageToEdit$.next(message);
       },
       isVisible: (enabledActions: string[], isMine: boolean) =>
@@ -108,7 +108,7 @@ export class MessageActionsService {
       actionName: 'delete',
       actionLabelOrTranslationKey: 'streamChat.Delete',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      actionHandler: async (message: StreamMessage) => {
+      actionHandler: async (message: LocalMessage) => {
         try {
           await this.channelService.deleteMessage(message);
         } catch (error) {
@@ -127,7 +127,7 @@ export class MessageActionsService {
     {
       actionName: 'copy-message-text',
       actionLabelOrTranslationKey: 'streamChat.Copy text',
-      isVisible: (_: string[], __: boolean, message: StreamMessage) => {
+      isVisible: (_: string[], __: boolean, message: LocalMessage) => {
         const isClipboardSupported = navigator?.clipboard?.write !== undefined;
         if (!isClipboardSupported && !this.hasDisplayedClipboardWarning) {
           console.warn(
@@ -142,7 +142,7 @@ export class MessageActionsService {
         );
       },
       actionHandler: (
-        message: StreamMessage,
+        message: LocalMessage,
         extraParams: MessageActionHandlerExtraParams
       ) => {
         const fallbackContent = message.text || '';
@@ -171,7 +171,7 @@ export class MessageActionsService {
   /**
    * The built-in components will handle changes to this observable.
    */
-  messageToEdit$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
+  messageToEdit$ = new BehaviorSubject<LocalMessage | undefined>(undefined);
   /**
    * You can pass your own custom actions that will be displayed inside the built-in message actions component
    */
@@ -227,7 +227,7 @@ export class MessageActionsService {
    * @returns the count
    */
   getAuthorizedMessageActionsCount(
-    message: StreamMessage,
+    message: LocalMessage,
     enabledActions: string[]
   ) {
     const customActions = this.customActions$.getValue() || [];

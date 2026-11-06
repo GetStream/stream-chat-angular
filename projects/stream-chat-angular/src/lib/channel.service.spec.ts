@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { first, take } from 'rxjs/operators';
 import {
   Attachment,
@@ -14,7 +14,6 @@ import {
   ReactionResponse,
   SortParamRequest,
   StreamAPIError,
-  UpdateMessagePartialRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
@@ -32,8 +31,7 @@ import {
   MockThread,
 } from './mocks';
 import { NotificationService } from './notification.service';
-import { toLocalMessage } from './local-message';
-import { AttachmentUpload, MessageInput, StreamMessage } from './types';
+import { AttachmentUpload, MessageInput } from './types';
 
 // The error stream-chat v10 throws for API errors (see api-client.ts)
 const apiError = (message: string, code = 4, status = 400) =>
@@ -81,10 +79,11 @@ describe('ChannelService', () => {
     new Promise((resolve) => {
       setTimeout(resolve, service['markReadThrottleTime']);
     });
-  const toLocal = (m: StreamMessage) => toLocalMessage(m);
+  const toLocal = (m: LocalMessage) => m;
   const mockPaginator = (c: Channel) =>
     c.messagePaginator as unknown as MockMessagePaginator;
 
+  let userSubject$: BehaviorSubject<UserResponse | undefined>;
   beforeEach(() => {
     user = mockCurrentUser();
     const client = mockStreamChatClient();
@@ -106,12 +105,18 @@ describe('ChannelService', () => {
       error: jasmine.createSpy(),
       info: jasmine.createSpy(),
     };
+    userSubject$ = new BehaviorSubject<UserResponse | undefined>(
+      mockChatClient.user
+    );
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ChatClientService,
           useValue: {
             chatClient: mockChatClient,
+            get user$() {
+              return userSubject$;
+            },
             events$,
             logger,
           },
@@ -568,19 +573,19 @@ describe('ChannelService', () => {
     expect(result.cid).toBe(newActiveChannel.cid);
     expect(messagesSpy).toHaveBeenCalledWith(jasmine.any(Object));
     expect(
-      (messagesSpy.calls.mostRecent().args[0] as StreamMessage[]).map(
+      (messagesSpy.calls.mostRecent().args[0] as LocalMessage[]).map(
         (m) => m.id
       )
     ).toEqual(newActiveChannel.messagePaginator.items!.map((m) => m.id));
     expect(newActiveChannel.markReadViaReporter).toHaveBeenCalledWith();
     expect(messageToQuoteSpy).toHaveBeenCalledWith(undefined);
     expect(
-      (pinnedMessagesSpy.calls.mostRecent().args[0] as StreamMessage[]).map(
+      (pinnedMessagesSpy.calls.mostRecent().args[0] as LocalMessage[]).map(
         (m) => m.id
       )
     ).toEqual(pinnedMessages.map((m) => m.id));
     expect(
-      (pinnedMessagesSpy.calls.mostRecent().args[0] as StreamMessage[])[0]
+      (pinnedMessagesSpy.calls.mostRecent().args[0] as LocalMessage[])[0]
         .created_at
     ).toBe(pinnedMessages[0].created_at);
     expect(typingUsersSpy).toHaveBeenCalledWith([]);
@@ -688,7 +693,6 @@ describe('ChannelService', () => {
     const messages = getLatestValue(service.activeChannelMessages$);
 
     expect(service.activeChannelMessages).toBe(messages);
-    expect(service.activeChannelMessages.every((m) => !!m.readBy)).toBeTrue();
   });
 
   it('should emit #activeChannelMessages$', async () => {
@@ -697,7 +701,7 @@ describe('ChannelService', () => {
     service.activeChannelMessages$.subscribe(spy);
     const messages = generateMockChannels()[0].messagePaginator.items!;
 
-    const result = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const result = spy.calls.mostRecent().args[0] as LocalMessage[];
 
     expect(result.length).toBe(messages.length);
     result.forEach((m, i) => {
@@ -711,12 +715,12 @@ describe('ChannelService', () => {
     const channel = getActiveChannel();
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
-    const prevMessages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const prevMessages = spy.calls.mostRecent().args[0] as LocalMessage[];
     spy.calls.reset();
     const newMessage = toLocal(mockMessage(100));
     channel.messagePaginator.ingestItem(newMessage);
 
-    let messages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    let messages = spy.calls.mostRecent().args[0] as LocalMessage[];
 
     expect(messages.length).toBe(prevMessages.length + 1);
     expect(messages[messages.length - 1].id).toBe(newMessage.id);
@@ -774,11 +778,16 @@ describe('ChannelService', () => {
     });
   });
 
-  it('should add readBy field to messages', async () => {
+  it('should emit the messages stored by stream-chat (without transforming them)', async () => {
     await init();
-    service.activeChannelMessages$.subscribe((messages) => {
-      messages.forEach((m) => expect(m.readBy).not.toBeUndefined());
-    });
+    const messages = getLatestValue(service.activeChannelMessages$);
+
+    expect(messages.length).toBe(
+      getActiveChannel().messagePaginator.items!.length
+    );
+    messages.forEach((m, i) =>
+      expect(m).toBe(getActiveChannel().messagePaginator.items![i])
+    );
   });
 
   it('should load more older messages', async () => {
@@ -790,13 +799,12 @@ describe('ChannelService', () => {
     paginator.loadPage = () => olderMessages;
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
-    const prevCount = (spy.calls.mostRecent().args[0] as StreamMessage[])
-      .length;
+    const prevCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
     await service.loadMoreMessages();
 
     expect(paginator.toTail).toHaveBeenCalledWith();
 
-    const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const messages = spy.calls.mostRecent().args[0] as LocalMessage[];
 
     expect(messages.length).toBe(prevCount + olderMessages.length);
     expect(messages[0].id).toBe(olderMessages[0].id);
@@ -906,12 +914,11 @@ describe('ChannelService', () => {
     paginator.loadPage = () => olderReplies;
     const spy = jasmine.createSpy();
     service.activeThreadMessages$.subscribe(spy);
-    const prevCount = (spy.calls.mostRecent().args[0] as StreamMessage[])
-      .length;
+    const prevCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
     await service.loadMoreThreadReplies();
 
     expect(paginator.toTail).toHaveBeenCalledWith();
-    expect((spy.calls.mostRecent().args[0] as StreamMessage[]).length).toBe(
+    expect((spy.calls.mostRecent().args[0] as LocalMessage[]).length).toBe(
       prevCount + olderReplies.length
     );
 
@@ -959,8 +966,7 @@ describe('ChannelService', () => {
     await waitForMarkReadThrottle();
     const spy = jasmine.createSpy();
     service.activeChannelMessages$.subscribe(spy);
-    const prevCount = (spy.calls.mostRecent().args[0] as StreamMessage[])
-      .length;
+    const prevCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
     spy.calls.reset();
     const activeChannel = getActiveChannel();
     const newMessage = toLocal(mockMessage(100));
@@ -969,7 +975,7 @@ describe('ChannelService', () => {
     activeChannel.messagePaginator.ingestItem(newMessage);
     activeChannel.handleEvent('message.new', { message: newMessage });
 
-    const newCount = (spy.calls.mostRecent().args[0] as StreamMessage[]).length;
+    const newCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
 
     expect(newCount).toBe(prevCount + 1);
     expect(activeChannel.markReadViaReporter).toHaveBeenCalledWith();
@@ -1087,13 +1093,13 @@ describe('ChannelService', () => {
     const message = items[items.length - 1];
     activeChannel.messagePaginator.ingestItem({ ...message, text: 'updated' });
 
-    const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const messages = spy.calls.mostRecent().args[0] as LocalMessage[];
     const updatedMessage = messages[messages.length - 1];
 
     expect(updatedMessage.text).toBe('updated');
 
     expect(
-      (pinnedMessagesSpy.calls.mostRecent().args[0] as StreamMessage[]).map(
+      (pinnedMessagesSpy.calls.mostRecent().args[0] as LocalMessage[]).map(
         (m) => m.id
       )
     ).toEqual(pinnedMessages.map((m) => m.id));
@@ -1112,7 +1118,7 @@ describe('ChannelService', () => {
       reaction_counts: { wow: 1 },
     } as LocalMessage);
 
-    const messages = spy.calls.mostRecent().args[0] as StreamMessage[];
+    const messages = spy.calls.mostRecent().args[0] as LocalMessage[];
 
     expect(messages[0].reaction_counts).toEqual({ wow: 1 });
   });
@@ -1145,7 +1151,7 @@ describe('ChannelService', () => {
 
     expect(spy).toHaveBeenCalled();
     expect(
-      (spy.calls.mostRecent().args[0] as StreamMessage[]).find(
+      (spy.calls.mostRecent().args[0] as LocalMessage[]).find(
         (m) => m.id === message.id
       )
     ).toBeUndefined();
@@ -1763,7 +1769,7 @@ describe('ChannelService', () => {
       quotedMessageId,
       customData
     );
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     let messageCount!: number;
     service.activeChannelMessages$.subscribe((m) => {
       latestMessage = m[m.length - 1];
@@ -1938,7 +1944,7 @@ describe('ChannelService', () => {
         attachments: [giphy],
       },
     });
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -1986,54 +1992,104 @@ describe('ChannelService', () => {
     expect(channel.messagePaginator.removeItem).not.toHaveBeenCalled();
   });
 
-  it('should update message with a partial update', async () => {
-    const message = mockMessage();
-    mockChatClient.updateMessagePartial.and.resolveTo({
-      message: { ...toLocalMessage(message), text: 'Edited text' },
-    });
-    const result = await service.updateMessagePartial(message, {
-      set: { text: 'Edited text' },
-      unset: ['custom_field'],
-    });
-
-    expect(mockChatClient.updateMessagePartial).toHaveBeenCalledWith(
-      { id: message.id },
-      { set: { text: 'Edited text' }, unset: ['custom_field'] }
+  it('should update message (the edit is displayed immediately)', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    let resolveRequest!: () => void;
+    spyOn(channel.messageOperations.requests, 'update').and.callFake(
+      (m: LocalMessage) =>
+        new Promise((resolve) => {
+          resolveRequest = () => resolve({ message: { ...m } });
+        })
     );
+    const resultPromise = service.updateMessage({
+      ...message,
+      text: 'Edited text',
+    });
+    await settle();
+
+    expect(channel.messagePaginator.getItem(message.id)!.text).toBe(
+      'Edited text'
+    );
+    expect(channel.messageOperations.requests.update).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: message.id, text: 'Edited text' })
+    );
+
+    resolveRequest();
+    const result = await resultPromise;
+
     expect(result.id).toBe(message.id);
     expect(result.text).toBe('Edited text');
     expect(result.created_at).toEqual(message.created_at);
+    expect(result).toBe(channel.messagePaginator.getItem(message.id)!);
   });
 
-  it('should return the original message if the partial update response has no message', async () => {
-    const message = mockMessage();
-    mockChatClient.updateMessagePartial.and.resolveTo({});
-    const result = await service.updateMessagePartial(message, {
-      set: { text: 'Edited text' },
+  it('should mark the message as failed if the update fails', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    const error = { status: 500, message: 'Internal error' };
+    spyOn(channel.messageOperations.requests, 'update').and.rejectWith(error);
+    const result = await service.updateMessage({
+      ...message,
+      text: 'Edited text',
     });
 
-    expect(result).toBe(message);
+    expect(result.status).toBe('failed');
+    expect(result.error).toBe(error as unknown as LocalMessage['error']);
+    expect(result.text).toBe('Edited text');
+    expect(getLatestValue(service.activeChannelMessages$)[0]).toBe(result);
   });
 
-  it('should display notification if updated message was rejected by moderation', async () => {
-    const message = mockMessage();
-    mockChatClient.updateMessagePartial.and.resolveTo({
-      message: {
-        ...toLocalMessage(message),
-        type: 'error',
-        moderation: { action: 'bounce' },
-      },
-    });
+  it('should keep the original message and display notification if updated message was rejected by moderation', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    spyOn(channel.messageOperations.requests, 'update').and.callFake(
+      (m: LocalMessage) =>
+        Promise.resolve({
+          message: {
+            ...m,
+            type: 'error',
+            moderation: { action: 'bounce' },
+          } as unknown as LocalMessage,
+        })
+    );
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    const result = await service.updateMessagePartial(message, {
-      set: { text: 'Edited text' },
+    const result = await service.updateMessage({
+      ...message,
+      text: 'Edited text',
     });
 
     expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
       'streamChat.This message did not meet our content guidelines'
     );
     expect(result).toBe(message);
+    expect(channel.messagePaginator.getItem(message.id)).toBe(message);
+  });
+
+  it('should update thread reply', async () => {
+    await init();
+    const parentMessage = getLatestValue(service.activeChannelMessages$)[0];
+    await service.setAsActiveParentMessage(parentMessage);
+    const thread = mockChatClient.threads.get(parentMessage.id)!;
+    const reply = thread.messagePaginator.items![0];
+    spyOn(thread.messageOperations, 'update').and.callThrough();
+    spyOn(getActiveChannel().messageOperations, 'update').and.callThrough();
+    await service.updateMessage({ ...reply, text: 'Edited reply' });
+
+    expect(thread.messageOperations.update).toHaveBeenCalledWith({
+      localMessage: jasmine.objectContaining({
+        id: reply.id,
+        text: 'Edited reply',
+      }),
+    });
+    expect(getActiveChannel().messageOperations.update).not.toHaveBeenCalled();
+    expect(thread.messagePaginator.getItem(reply.id)!.text).toBe(
+      'Edited reply'
+    );
   });
 
   it('should resend instead of update if message was bounced', async () => {
@@ -2041,18 +2097,16 @@ describe('ChannelService', () => {
     const message = mockMessage();
     const channel = getActiveChannel();
     spyOn(channel, 'sendMessage').and.callThrough();
+    spyOn(channel.messageOperations, 'update').and.callThrough();
     (message as { type: string }).type = 'error';
     message.moderation = {
       action: 'bounce',
       original_text: 'Ricciardo should retire',
-    } as unknown as StreamMessage['moderation'];
+    } as unknown as LocalMessage['moderation'];
     (message as unknown as Record<string, unknown>)['custom_field'] = 'value';
-    await service.updateMessagePartial(message, {
-      set: { text: 'Edited text' },
-      unset: ['custom_field'],
-    });
+    await service.updateMessage({ ...message, text: 'Edited text' });
 
-    expect(mockChatClient.updateMessagePartial).not.toHaveBeenCalled();
+    expect(channel.messageOperations.update).not.toHaveBeenCalled();
     expect(channel.sendMessage).toHaveBeenCalledWith({
       message: jasmine.objectContaining({
         id: message.id,
@@ -2063,47 +2117,91 @@ describe('ChannelService', () => {
       .args[0].message as Record<string, unknown>;
 
     expect(Object.keys(sentMessage)).not.toContain('custom_field');
+    expect(Object.keys(sentMessage)).not.toContain('moderation');
   });
 
   it('should update message - #beforeUpdateMessage is provided', async () => {
-    const message = mockMessage();
-    mockChatClient.updateMessagePartial.and.resolveTo({
-      message: toLocalMessage(message),
-    });
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    spyOn(channel.messageOperations.requests, 'update').and.callThrough();
     const spy = jasmine.createSpy();
     service.beforeUpdateMessage = spy;
-    spy.and.callFake((update: UpdateMessagePartialRequest) =>
+    spy.and.callFake((m: LocalMessage) =>
       Promise.resolve({
-        ...update,
-        set: { ...update.set, text: 'Testing beforeUpdateMessage hook' },
-        unset: ['custom_field'],
+        ...m,
+        text: 'Testing beforeUpdateMessage hook',
+        custom: { field: 'value' },
       })
     );
-    await service.updateMessagePartial(message, {
-      set: { text: 'Edited text' },
-    });
+    const editedMessage = { ...message, text: 'Edited text' };
+    await service.updateMessage(editedMessage);
 
-    expect(spy).toHaveBeenCalledWith({ set: { text: 'Edited text' } }, message);
-    expect(mockChatClient.updateMessagePartial).toHaveBeenCalledWith(
-      { id: message.id },
-      {
-        set: { text: 'Testing beforeUpdateMessage hook' },
-        unset: ['custom_field'],
-      }
+    expect(spy).toHaveBeenCalledWith(editedMessage);
+    expect(channel.messageOperations.requests.update).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        id: message.id,
+        text: 'Testing beforeUpdateMessage hook',
+        custom: { field: 'value' },
+      })
     );
   });
 
-  it('should delete message', async () => {
+  it('should delete message (the message is marked as deleted immediately)', async () => {
     await init();
     const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
     spyOn(channel.messagePaginator, 'removeItem');
-    const message = mockMessage();
-    await service.deleteMessage(message);
+    let resolveRequest!: () => void;
+    spyOn(channel.messageOperations.requests, 'delete').and.returnValue(
+      new Promise((resolve) => {
+        resolveRequest = () => resolve({});
+      })
+    );
+    const deletePromise = service.deleteMessage(message);
+    await settle();
 
-    expect(mockChatClient.deleteMessage).toHaveBeenCalledWith({
-      id: message.id,
-    });
+    expect(channel.messageOperations.requests.delete).toHaveBeenCalledWith(
+      message.id
+    );
+    expect(channel.messagePaginator.getItem(message.id)!.type).toBe('deleted');
+
+    resolveRequest();
+    await deletePromise;
+
     expect(channel.messagePaginator.removeItem).not.toHaveBeenCalled();
+  });
+
+  it('should restore the message and reject if delete fails', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    const error = new Error('Delete failed');
+    spyOn(channel.messageOperations.requests, 'delete').and.rejectWith(error);
+    let rejection: unknown;
+    try {
+      await service.deleteMessage(message);
+    } catch (e) {
+      rejection = e;
+    }
+
+    expect(rejection).toBe(error);
+    expect(channel.messagePaginator.getItem(message.id)).toBe(message);
+  });
+
+  it('should delete thread reply', async () => {
+    await init();
+    const parentMessage = getLatestValue(service.activeChannelMessages$)[0];
+    await service.setAsActiveParentMessage(parentMessage);
+    const thread = mockChatClient.threads.get(parentMessage.id)!;
+    const reply = thread.messagePaginator.items![0];
+    spyOn(thread.messageOperations, 'delete').and.callThrough();
+    await service.deleteMessage(reply);
+
+    expect(thread.messageOperations.delete).toHaveBeenCalledWith({
+      localMessage: reply,
+    });
+    expect(thread.messagePaginator.getItem(reply.id)!.type).toBe('deleted');
   });
 
   it('should delete message - local', async () => {
@@ -2111,32 +2209,37 @@ describe('ChannelService', () => {
     const message = mockMessage();
     const channel = getActiveChannel();
     spyOn(channel.messagePaginator, 'removeItem');
+    spyOn(channel.messageOperations, 'delete');
     await service.deleteMessage(message, true);
 
-    expect(mockChatClient.deleteMessage).not.toHaveBeenCalled();
+    expect(channel.messageOperations.delete).not.toHaveBeenCalled();
     expect(channel.messagePaginator.removeItem).toHaveBeenCalledWith({
       id: message.id,
     });
   });
 
   it(`should call #messageDeleteConfirmationHandler is that's provided`, async () => {
+    await init();
+    const channel = getActiveChannel();
+    const message = channel.messagePaginator.items![0];
+    spyOn(channel.messageOperations.requests, 'delete').and.callThrough();
     const spy = jasmine.createSpy();
-    const message = mockMessage();
     service.messageDeleteConfirmationHandler = spy;
     spy.and.resolveTo(false);
     await service.deleteMessage(message);
 
     expect(spy).toHaveBeenCalledWith(message);
-    expect(mockChatClient.deleteMessage).not.toHaveBeenCalled();
+    expect(channel.messageOperations.requests.delete).not.toHaveBeenCalled();
+    expect(channel.messagePaginator.getItem(message.id)).toBe(message);
 
     spy.and.resolveTo(true);
     spy.calls.reset();
     await service.deleteMessage(message);
 
     expect(spy).toHaveBeenCalledWith(message);
-    expect(mockChatClient.deleteMessage).toHaveBeenCalledWith({
-      id: message.id,
-    });
+    expect(channel.messageOperations.requests.delete).toHaveBeenCalledWith(
+      message.id
+    );
   });
 
   it('should resend message', async () => {
@@ -2147,7 +2250,7 @@ describe('ChannelService', () => {
       ...items[items.length - 1],
       status: 'failed',
     });
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe((m) => {
       latestMessage = m[m.length - 1];
     });
@@ -2181,7 +2284,44 @@ describe('ChannelService', () => {
     );
 
     expect(latestMessage.status).toBe('received');
-    expect(latestMessage.errorStatusCode).toBeUndefined();
+    expect(latestMessage.error).toBeUndefined();
+  });
+
+  it('should display bounced message as sending while it is resent', async () => {
+    await init();
+    const channel = getActiveChannel();
+    const items = channel.messagePaginator.items!;
+    const bouncedMessage = {
+      ...items[items.length - 1],
+      type: 'error',
+      status: 'received',
+      moderation: { action: 'bounce' },
+    } as unknown as LocalMessage;
+    channel.messagePaginator.ingestItem(bouncedMessage);
+    spyOn(channel, 'sendMessage').and.returnValue(new Promise(() => {}));
+    void service.resendMessage(bouncedMessage);
+    await settle();
+    const latestMessage = getLatestValue(service.activeChannelMessages$).find(
+      (m) => m.id === bouncedMessage.id
+    )!;
+
+    expect(latestMessage.status).toBe('sending');
+    expect(latestMessage.type).toBe('regular');
+  });
+
+  it('should treat first send as successful if message already exists (an earlier attempt landed)', async () => {
+    await init();
+    const channel = getActiveChannel();
+    spyOn(channel, 'sendMessage').and.rejectWith(
+      new StreamAPIError(
+        'SendMessage failed with error: "a message with ID abc already exists"',
+        { code: 4, status: 400, response: undefined }
+      )
+    );
+    const result = await service.sendMessage('Hi');
+
+    expect(result.status).toBe('received');
+    expect(result.error).toBeUndefined();
   });
 
   it('should ignore error if resend failed because message already exists', async () => {
@@ -2192,7 +2332,7 @@ describe('ChannelService', () => {
       ...items[items.length - 1],
       status: 'failed',
     });
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe((m) => {
       latestMessage = m[m.length - 1];
     });
@@ -2212,7 +2352,7 @@ describe('ChannelService', () => {
     );
 
     expect(latestMessage.status).toBe('received');
-    expect(latestMessage.errorStatusCode).toBeUndefined();
+    expect(latestMessage.error).toBeUndefined();
   });
 
   it('should set message state while sending', async () => {
@@ -2220,7 +2360,7 @@ describe('ChannelService', () => {
     const channel = getActiveChannel();
     spyOn(channel, 'sendMessage').and.returnValue(new Promise(() => {}));
     const text = 'Hi';
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -2233,7 +2373,7 @@ describe('ChannelService', () => {
   it('should set message state after message is sent', async () => {
     await init();
     const text = 'Hi';
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -2251,7 +2391,7 @@ describe('ChannelService', () => {
     const localMessage = items.splice(items.length - 2, 1)[0];
     items.push(localMessage);
     channel.messagePaginator.setItems(items);
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -2262,12 +2402,15 @@ describe('ChannelService', () => {
   it('should set message state, if an error occured', async () => {
     await init();
     const channel = getActiveChannel();
-    spyOn(channel, 'sendMessage').and.callFake(() =>
-      Promise.reject({ status: 500 })
-    );
+    const error = new StreamAPIError('Internal error', {
+      code: undefined,
+      status: 500,
+      response: undefined,
+    });
+    spyOn(channel, 'sendMessage').and.callFake(() => Promise.reject(error));
     spyOn(channel.messagePaginator, 'ingestItem').and.callThrough();
     const text = 'Hi';
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -2277,32 +2420,33 @@ describe('ChannelService', () => {
       jasmine.objectContaining({ status: 'failed' })
     );
     expect(latestMessage.status).toBe('failed');
-    expect(latestMessage.errorStatusCode).toBe(500);
+    expect(latestMessage.error?.status).toBe(500);
     expect(result.status).toBe('failed');
-    expect(result.errorStatusCode).toBe(500);
+    expect(result.error).toBe(error);
 
-    // resend clears the error status code
+    // resend clears the error
     (channel.sendMessage as jasmine.Spy).and.callThrough();
     await service.resendMessage(latestMessage);
 
     expect(latestMessage.status).toBe('received');
-    expect(latestMessage.errorStatusCode).toBeUndefined();
+    expect(latestMessage.error).toBeUndefined();
   });
 
-  it('should clear error status code if failed message is deleted locally', async () => {
+  it('should remove failed message if it is deleted locally', async () => {
     await init();
     const channel = getActiveChannel();
     spyOn(channel, 'sendMessage').and.rejectWith({ status: 500 });
+    spyOn(channel.messageOperations, 'delete');
     const failedMessage = await service.sendMessage('Hi');
 
-    expect(failedMessage.errorStatusCode).toBe(500);
+    expect(failedMessage.status).toBe('failed');
 
     await service.deleteMessage(failedMessage, true);
 
     expect(
       service.activeChannelMessages.find((m) => m.id === failedMessage.id)
     ).toBeUndefined();
-    expect(service['errorStatusCodes'].has(failedMessage.id)).toBeFalse();
+    expect(channel.messageOperations.delete).not.toHaveBeenCalled();
   });
 
   it('should add sent message to message list', async () => {
@@ -2313,7 +2457,7 @@ describe('ChannelService', () => {
         message: { id: 'new-message' },
       })
     );
-    let latestMessage!: StreamMessage;
+    let latestMessage!: LocalMessage;
     service.activeChannelMessages$.subscribe(
       (m) => (latestMessage = m[m.length - 1])
     );
@@ -2326,14 +2470,14 @@ describe('ChannelService', () => {
     await init();
     const channel = getActiveChannel();
     await service.sendMessage('Hi');
-    let newMessage!: StreamMessage;
+    let newMessage!: LocalMessage;
     service.activeChannelMessages$.pipe(first()).subscribe((m) => {
       newMessage = m[m.length - 1];
     });
     // stream-chat ingests the message from the message.new event
     channel.messagePaginator.ingestItem(toLocal(newMessage));
     channel.handleEvent('message.new', { message: toLocal(newMessage) });
-    let messages!: StreamMessage[];
+    let messages!: LocalMessage[];
     service.activeChannelMessages$.pipe(first()).subscribe((m) => {
       messages = m;
     });
@@ -2488,16 +2632,12 @@ describe('ChannelService', () => {
     expect(channel.deleteFile).toHaveBeenCalledWith({ url });
   });
 
-  it('should update #readBy array, if active channel is read', async () => {
+  it(`shouldn't emit the message list, if read state changes (read receipts are displayed by the message component)`, async () => {
     await init();
     const channel = getActiveChannel();
-    let latestMessage!: StreamMessage;
-    service.activeChannelMessages$.subscribe(
-      (messages) => (latestMessage = messages[messages.length - 1])
-    );
-
-    expect(latestMessage.readBy.length).toBe(0);
-
+    const spy = jasmine.createSpy();
+    service.activeChannelMessages$.subscribe(spy);
+    spy.calls.reset();
     const user = { id: 'jack', name: 'Jack' } as UserResponse;
     const read = {
       [user.id]: {
@@ -2506,56 +2646,6 @@ describe('ChannelService', () => {
         unread_messages: 0,
       },
     } as unknown as Channel['state']['read'];
-    // stream-chat updates the read state on message.read events
-    channel.state.read = read;
-    (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
-      { read }
-    );
-
-    expect(
-      latestMessage.readBy.find((u) => u.id === 'jack')
-    ).not.toBeUndefined();
-  });
-
-  it('should only update the messages with changed #readBy, if read state changes', async () => {
-    await init();
-    const channel = getActiveChannel();
-    const before = getLatestValue(service.activeChannelMessages$);
-    const lastReadIndex = 10;
-    const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    // jack read the messages until (and including) lastReadIndex
-    const read = {
-      [user.id]: {
-        last_read: before[lastReadIndex].created_at,
-        user,
-        unread_messages: 0,
-      },
-    } as unknown as Channel['state']['read'];
-    channel.state.read = read;
-    (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
-      { read }
-    );
-    const after = getLatestValue(service.activeChannelMessages$);
-
-    expect(after).not.toBe(before);
-    after.forEach((m, i) => {
-      if (i <= lastReadIndex) {
-        expect(m).not.toBe(before[i]);
-        expect(m.readBy.map((u) => u.id)).toEqual(['jack']);
-      } else {
-        expect(m).toBe(before[i]);
-        expect(m.readBy).toEqual([]);
-      }
-    });
-  });
-
-  it(`shouldn't emit the message list, if read state changes don't change #readBy`, async () => {
-    await init();
-    const channel = getActiveChannel();
-    const spy = jasmine.createSpy();
-    service.activeChannelMessages$.subscribe(spy);
-    spy.calls.reset();
-    const read = {} as Channel['state']['read'];
     channel.state.read = read;
     (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
       { read }
@@ -2564,114 +2654,60 @@ describe('ChannelService', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should recalculate #readBy, if a channel is activated again (read events received while the channel was inactive)', async () => {
-    const channels = generateMockChannels(2);
-    await init(channels);
-    const [channel, otherChannel] = channels;
-    const before = getLatestValue(service.activeChannelMessages$);
-
-    expect(before[before.length - 1].readBy.length).toBe(0);
-
-    service.setAsActiveChannel(otherChannel);
-    // jack reads the messages while the channel is inactive
-    const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    const read = {
-      [user.id]: {
-        last_read: dateToNs(new Date()),
-        user,
-        unread_messages: 0,
-      },
-    } as unknown as Channel['state']['read'];
-    channel.state.read = read;
-    (channel.state as unknown as MockStateStore<{ read: unknown }>).partialNext(
-      { read }
-    );
+  it('should emit #activeChannelTranslationLanguage$', async () => {
+    await init();
+    const channel = getActiveChannel();
     const spy = jasmine.createSpy();
-    service.activeChannelMessages$.subscribe(spy);
-    spy.calls.reset();
-    service.setAsActiveChannel(channel);
-    const after = getLatestValue(service.activeChannelMessages$);
+    service.activeChannelTranslationLanguage$.subscribe(spy);
 
-    expect(after[after.length - 1].readBy.map((u) => u.id)).toEqual(['jack']);
-    // The message list is emitted once, with the up-to-date readBy lists
-    expect(spy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should update #readBy of every message, if a user is updated', async () => {
-    await init();
-    const channel = getActiveChannel();
-    const user = { id: 'jack', name: 'Jack' } as UserResponse;
-    const setRead = (read: Channel['state']['read']) => {
-      channel.state.read = read;
-      (
-        channel.state as unknown as MockStateStore<{ read: unknown }>
-      ).partialNext({ read });
-    };
-    setRead({
-      [user.id]: {
-        last_read: dateToNs(new Date()),
-        user,
-        unread_messages: 0,
-      },
-    } as unknown as Channel['state']['read']);
-    const before = getLatestValue(service.activeChannelMessages$);
-
-    expect(before.every((m) => m.readBy[0]?.name === 'Jack')).toBeTrue();
-
-    // stream-chat updates the users of the read state on user.updated events
-    setRead({
-      [user.id]: {
-        ...channel.state.read[user.id],
-        user: { ...user, name: 'Jack Updated' },
-      },
-    } as unknown as Channel['state']['read']);
-    const after = getLatestValue(service.activeChannelMessages$);
-
-    expect(after.every((m) => m.readBy[0]?.name === 'Jack Updated')).toBeTrue();
-  });
-
-  it('should update translations, if the translation language changes', async () => {
-    await init();
-    const channel = getActiveChannel();
-    mockChatClient.user = { ...mockChatClient.user, language: 'ja' };
-    const translatedMessage = {
-      ...toLocal(mockMessage(1)),
-      user: { id: 'jack' },
-      i18n: { ja_text: 'こんにちは', fr_text: 'Bonjour', language: 'en' },
-    } as unknown as LocalMessage;
-    const otherMessage = {
-      ...toLocal(mockMessage(2)),
-      user: { id: 'jack' },
-    } as LocalMessage;
-    mockPaginator(channel).setItems([translatedMessage, otherMessage]);
-    const before = getLatestValue(service.activeChannelMessages$);
-
-    expect(before[0].translation).toBe('こんにちは');
+    expect(spy).toHaveBeenCalledOnceWith(undefined);
 
     // the user's language changed
-    mockChatClient.user = { ...mockChatClient.user, language: 'fr' };
-    events$.next({
-      eventType: 'user.updated',
-      event: { type: 'user.updated', user: mockChatClient.user },
-    } as unknown as ClientEvent);
-    const after = getLatestValue(service.activeChannelMessages$);
+    spy.calls.reset();
+    userSubject$.next({ ...mockChatClient.user, language: 'fr' });
 
-    expect(after[0].translation).toBe('Bonjour');
+    expect(spy).toHaveBeenCalledOnceWith('fr');
 
-    // the user has no language, the auto translation language of the channel changed
-    mockChatClient.user = {
+    // the user has no language, the auto translation language of the channel is used
+    spy.calls.reset();
+    userSubject$.next({
       ...mockChatClient.user,
       language: undefined,
-    } as unknown as UserResponse;
+    } as unknown as UserResponse);
+
+    expect(spy).toHaveBeenCalledOnceWith(undefined);
+
+    spy.calls.reset();
     channel.data!.auto_translation_language = 'ja';
     channel.handleEvent('channel.updated', {
       type: 'channel.updated',
       cid: channel.cid,
     });
 
-    expect(getLatestValue(service.activeChannelMessages$)[0].translation).toBe(
-      'こんにちは'
-    );
+    expect(spy).toHaveBeenCalledOnceWith('ja');
+
+    // the channel changed
+    spy.calls.reset();
+    const otherChannel = generateMockChannels(2)[1];
+    service.setAsActiveChannel(otherChannel);
+
+    expect(spy).toHaveBeenCalledOnceWith(undefined);
+  });
+
+  it('should emit #activeChannelTranslationLanguage$ if channel.updated is handled by a custom handler', async () => {
+    await init();
+    const channel = getActiveChannel();
+    service.customChannelUpdatedHandler = () => {};
+    const spy = jasmine.createSpy();
+    service.activeChannelTranslationLanguage$.subscribe(spy);
+    spy.calls.reset();
+    channel.data!.auto_translation_language = 'ja';
+    channel.handleEvent('channel.updated', {
+      type: 'channel.updated',
+      cid: channel.cid,
+    });
+
+    expect(spy).toHaveBeenCalledOnceWith('ja');
   });
 
   it(`shouldn't create new message objects, if the translation language didn't change`, async () => {
@@ -2785,7 +2821,7 @@ describe('ChannelService', () => {
       jasmine.objectContaining({ id: message.id, text: message.text })
     );
 
-    // LocalMessage is converted to StreamMessage, dates stay TimestampNS
+    // LocalMessage is converted to LocalMessage, dates stay TimestampNS
     const localMessage = getActiveChannel().messagePaginator.items![0];
     service.selectMessageToQuote(localMessage);
 
@@ -3405,7 +3441,7 @@ describe('ChannelService', () => {
     );
     expect(thread.state.getLatestValue().active).toBeTrue();
     expect(
-      (threadMessagesSpy.calls.mostRecent().args[0] as StreamMessage[]).map(
+      (threadMessagesSpy.calls.mostRecent().args[0] as LocalMessage[]).map(
         (m) => m.id
       )
     ).toEqual(thread.messagePaginator.items!.map((m) => m.id));
@@ -3419,11 +3455,9 @@ describe('ChannelService', () => {
     thread.messagePaginator.ingestItem(newReply);
 
     const replies = threadMessagesSpy.calls.mostRecent()
-      .args[0] as StreamMessage[];
+      .args[0] as LocalMessage[];
 
     expect(replies[replies.length - 1].id).toBe(newReply.id);
-    // thread replies don't have readBy
-    expect(replies[replies.length - 1].readBy).toEqual([]);
 
     // same thread selected twice
     ensureSpy.calls.reset();

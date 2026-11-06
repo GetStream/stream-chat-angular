@@ -1,3 +1,4 @@
+import { LocalMessage } from 'stream-chat';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MessageBouncePromptComponent } from './message-bounce-prompt.component';
@@ -6,7 +7,6 @@ import { ChannelService } from '../channel.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { MessageActionsService } from '../message-actions.service';
 import { ModalComponent } from '../modal/modal.component';
-import { StreamMessage } from '../types';
 
 describe('MessageBouncePromptComponent', () => {
   let component: MessageBouncePromptComponent;
@@ -65,7 +65,7 @@ describe('MessageBouncePromptComponent', () => {
   });
 
   describe('modal actions', () => {
-    let message: StreamMessage;
+    let message: LocalMessage;
 
     beforeEach(() => {
       message = generateMockMessages()[0];

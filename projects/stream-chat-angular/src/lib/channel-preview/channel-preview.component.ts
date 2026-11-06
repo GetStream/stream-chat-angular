@@ -5,7 +5,10 @@ import { Channel, LocalMessage, nsToDate } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
 import { ChatClientService } from '../chat-client.service';
-import { getMessageTranslation } from '../get-message-translation';
+import {
+  getMessageTranslation,
+  getTranslationLanguage,
+} from '../get-message-translation';
 import { MessageService } from '../message.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getReadBy } from '../read-by';
@@ -168,8 +171,11 @@ export class ChannelPreviewComponent implements OnInit, OnDestroy {
       this.latestMessageText =
         getMessageTranslation(
           message,
-          this.channel,
-          this.chatClientService.chatClient.user
+          getTranslationLanguage(
+            this.channel,
+            this.chatClientService.chatClient.user
+          ),
+          this.chatClientService.chatClient.user?.id
         ) || message.text;
     } else if (message.attachments && message.attachments.length) {
       this.latestMessageText = 'streamChat.🏙 Attachment...';

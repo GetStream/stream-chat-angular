@@ -5,8 +5,13 @@ import {
   tick,
 } from '@angular/core/testing';
 
-import { dateToNs, UserResponse } from 'stream-chat';
-import { StreamMessage } from '../types';
+import {
+  Channel,
+  dateToNs,
+  UserResponse,
+  LocalMessage,
+  StreamAPIError,
+} from 'stream-chat';
 import { LoadingIndicatorComponent } from '../icon/loading-indicator/loading-indicator.component';
 import { MessageComponent } from './message.component';
 import { AvatarComponent } from '../avatar/avatar.component';
@@ -31,7 +36,7 @@ describe('MessageComponent', () => {
   let component: MessageComponent;
   let fixture: ComponentFixture<MessageComponent>;
   let nativeElement: HTMLElement;
-  let message: StreamMessage;
+  let message: LocalMessage;
   let currentUser: UserResponse;
   let queryContainer: () => HTMLElement | null;
   let querySender: () => HTMLElement | null;
@@ -59,7 +64,8 @@ describe('MessageComponent', () => {
   let resendMessageSpy: jasmine.Spy;
   let setAsActiveParentMessageSpy: jasmine.Spy;
   let jumpToMessageSpy: jasmine.Spy;
-  let bouncedMessage$: BehaviorSubject<StreamMessage | undefined>;
+  let bouncedMessage$: BehaviorSubject<LocalMessage | undefined>;
+  let translationLanguage$: BehaviorSubject<string | undefined>;
   const mockChannel = {
     cid: 'messaging:general',
     data: {
@@ -72,7 +78,8 @@ describe('MessageComponent', () => {
     setAsActiveParentMessageSpy = jasmine.createSpy(
       'setAsActiveParentMessageSpy'
     );
-    bouncedMessage$ = new BehaviorSubject<StreamMessage | undefined>(undefined);
+    bouncedMessage$ = new BehaviorSubject<LocalMessage | undefined>(undefined);
+    translationLanguage$ = new BehaviorSubject<string | undefined>('hu');
     jumpToMessageSpy = jasmine.createSpy('jumpToMessage');
     currentUser = mockCurrentUser();
     TestBed.configureTestingModule({
@@ -111,6 +118,7 @@ describe('MessageComponent', () => {
             setAsActiveParentMessage: setAsActiveParentMessageSpy,
             jumpToMessage: jumpToMessageSpy,
             bouncedMessage$,
+            activeChannelTranslationLanguage$: translationLanguage$,
           },
         },
       ],
@@ -183,7 +191,7 @@ describe('MessageComponent', () => {
     component.message = {
       ...component.message,
       ...{ reaction_groups: { wow: { count: 1, sum_scores: 1 } } },
-    } as unknown as StreamMessage;
+    } as unknown as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
     const container = queryContainer();
@@ -249,7 +257,7 @@ describe('MessageComponent', () => {
 
     it('if message is delivered', () => {
       component.isLastSentMessage = true;
-      component.message = { ...message, ...{ readBy: [] } };
+      component.message = { ...message };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
       const deliveredIndicator = queryDeliveredIndicator();
@@ -290,6 +298,152 @@ describe('MessageComponent', () => {
       expect(querySendingIndicator()).toBeNull();
       expect(queryDeliveredIndicator()).toBeNull();
       expect(queryReadIndicator()).toBeNull();
+    });
+
+    describe('read status', () => {
+      let readers: UserResponse[];
+      let receiptHandlers: (() => void)[];
+      let unsubscribeSpy: jasmine.Spy;
+      let readersForMessageSpy: jasmine.Spy;
+      let channel: Channel;
+      const alice = { id: 'alice', name: 'Alice' } as UserResponse;
+      const bob = { id: 'bob', name: 'Bob' } as UserResponse;
+      const queryReadByTooltip = () =>
+        nativeElement.querySelector('[data-testid="read-by-tooltip"]');
+      const notifyReceiptsChanged = () => {
+        receiptHandlers.forEach((h) => h());
+        fixture.detectChanges();
+      };
+
+      beforeEach(() => {
+        readers = [];
+        receiptHandlers = [];
+        unsubscribeSpy = jasmine.createSpy('unsubscribe');
+        readersForMessageSpy = jasmine
+          .createSpy('readersForMessage')
+          .and.callFake(() => readers);
+        channel = {
+          cid: mockChannel.cid,
+          messageReceiptsTracker: {
+            readersForMessage: readersForMessageSpy,
+            snapshotStore: {
+              subscribeWithSelector: (_: unknown, handler: () => void) => {
+                receiptHandlers.push(handler);
+                handler();
+                return () => {
+                  receiptHandlers = receiptHandlers.filter(
+                    (h) => h !== handler
+                  );
+                  unsubscribeSpy();
+                };
+              },
+            },
+          },
+        } as unknown as Channel;
+        component.channel = channel;
+        component.isLastSentMessage = true;
+        component.ngOnChanges({
+          channel: {} as SimpleChange,
+          isLastSentMessage: {} as SimpleChange,
+        });
+        fixture.detectChanges();
+      });
+
+      it('should display delivered status, if no one read the message', () => {
+        expect(readersForMessageSpy).toHaveBeenCalledWith({
+          timestamp: message.created_at,
+          msgId: message.id,
+        });
+        expect(queryDeliveredIndicator()).not.toBeNull();
+        expect(queryReadIndicator()).toBeNull();
+        expect(component.readBy).toEqual([]);
+      });
+
+      it('should display read status and update it if read receipts change', () => {
+        readers = [alice];
+        notifyReceiptsChanged();
+
+        expect(queryReadIndicator()).not.toBeNull();
+        expect(queryDeliveredIndicator()).toBeNull();
+        expect(component.readBy).toEqual([alice]);
+        expect(component.getReadStatusContext().readBy).toEqual([alice]);
+
+        readers = [alice, bob];
+        notifyReceiptsChanged();
+
+        expect(component.readByText).toContain('Alice');
+        expect(component.readByText).toContain('Bob');
+        expect(queryReadByTooltip()?.textContent).toContain('Bob');
+      });
+
+      it(`shouldn't count the author of the message as a reader`, () => {
+        readers = [currentUser, alice];
+        notifyReceiptsChanged();
+
+        expect(component.readBy).toEqual([alice]);
+      });
+
+      it('should only watch read receipts for the last message sent by the current user', () => {
+        expect(receiptHandlers.length).toBe(1);
+
+        component.isLastSentMessage = false;
+        component.ngOnChanges({ isLastSentMessage: {} as SimpleChange });
+
+        expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+        expect(receiptHandlers.length).toBe(0);
+        expect(component.readBy).toEqual([]);
+
+        component.isLastSentMessage = true;
+        component.message = {
+          ...message,
+          user: { id: 'otheruser' } as UserResponse,
+        };
+        component.ngOnChanges({
+          isLastSentMessage: {} as SimpleChange,
+          message: {} as SimpleChange,
+        });
+
+        expect(receiptHandlers.length).toBe(0);
+      });
+
+      it(`shouldn't watch read receipts in thread mode or while the message is being sent`, () => {
+        component.mode = 'thread';
+        component.ngOnChanges({ mode: {} as SimpleChange });
+
+        expect(receiptHandlers.length).toBe(0);
+
+        component.mode = 'main';
+        component.message = { ...message, status: 'sending' };
+        component.ngOnChanges({
+          mode: {} as SimpleChange,
+          message: {} as SimpleChange,
+        });
+
+        expect(receiptHandlers.length).toBe(0);
+
+        component.message = { ...message, status: 'received' };
+        component.ngOnChanges({ message: {} as SimpleChange });
+
+        expect(receiptHandlers.length).toBe(1);
+      });
+
+      it(`shouldn't resubscribe if the same message gets a new object (for example a reaction is added)`, () => {
+        component.message = { ...message, reaction_groups: {} };
+        component.ngOnChanges({ message: {} as SimpleChange });
+
+        expect(unsubscribeSpy).not.toHaveBeenCalled();
+        expect(receiptHandlers.length).toBe(1);
+      });
+
+      it('should stop watching read receipts on destroy', () => {
+        component.ngOnDestroy();
+
+        expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should pass the channel in the message context', () => {
+        expect(component.getMessageContext().channel).toBe(channel);
+      });
     });
   });
 
@@ -343,7 +497,7 @@ describe('MessageComponent', () => {
 
       component.message = {
         ...message,
-        ...{ errorStatusCode: 403, status: 'failed' },
+        ...{ error: { status: 403 } as StreamAPIError, status: 'failed' },
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
@@ -361,7 +515,7 @@ describe('MessageComponent', () => {
 
       component.message = {
         ...message,
-        ...{ errorStatusCode: 500, status: 'failed' },
+        ...{ error: { status: 500 } as StreamAPIError, status: 'failed' },
       };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
@@ -721,7 +875,7 @@ describe('MessageComponent', () => {
     component.message = {
       ...component.message!,
       status: 'failed',
-      errorStatusCode: 403,
+      error: { status: 403 } as StreamAPIError,
     };
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -800,7 +954,6 @@ describe('MessageComponent', () => {
 
       expect(querySendingIndicator()).not.toBeNull();
 
-      message.readBy = [];
       message.status = 'received';
       fixture.detectChanges();
 
@@ -877,7 +1030,7 @@ describe('MessageComponent', () => {
   describe('quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
-    let quotedMessage: StreamMessage;
+    let quotedMessage: LocalMessage;
 
     beforeEach(() => {
       quotedMessage = mockMessage();
@@ -975,14 +1128,39 @@ describe('MessageComponent', () => {
       );
     });
 
-    it('should display translation notifce and user should be able to change between translation and original', () => {
-      component.message!.translation = 'Hogy vagy?';
+    const queryMessageTextComponents = () =>
+      fixture.debugElement
+        .queryAll(By.directive(MessageTextComponent))
+        .map((d) => d.componentInstance as MessageTextComponent);
+    const queryMainMessageTextComponent = () =>
+      queryMessageTextComponents().find((c) => !c.isQuoted)!;
+    const queryQuotedMessageTextComponent = () =>
+      queryMessageTextComponents().find((c) => c.isQuoted)!;
+
+    const setTranslatedMessage = () => {
+      component.message = {
+        ...component.message!,
+        user: { id: 'otheruser', name: 'Alice' } as UserResponse,
+        i18n: { hu_text: 'Hogy vagy?', de_text: 'Wie geht es dir?' },
+        quoted_message: {
+          ...component.message!.quoted_message!,
+          i18n: { hu_text: 'Ezt az üzenetet idézték', de_text: 'Zitiert' },
+        },
+      };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
+    };
+
+    it('should display translation notifce and user should be able to change between translation and original', () => {
+      setTranslatedMessage();
 
       expect(queryTranslationNotice()).not.toBeNull();
       expect(querySeeTranslationButton()).toBeNull();
       expect(queryMessageTextComponent('text').shouldTranslate).toBeTrue();
+      expect(queryMainMessageTextComponent().translation).toBe('Hogy vagy?');
+      expect(queryQuotedMessageTextComponent().translation).toBe(
+        'Ezt az üzenetet idézték'
+      );
       expect(
         queryMessageTextComponent('quoted-message-text').shouldTranslate
       ).toBeTrue();
@@ -1007,10 +1185,49 @@ describe('MessageComponent', () => {
     });
 
     it(`shouldn't display translation notice if message isn't translated`, () => {
-      component.message!.translation = undefined;
+      component.message = {
+        ...component.message!,
+        user: { id: 'otheruser', name: 'Alice' } as UserResponse,
+        i18n: undefined,
+      };
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
+      expect(queryTranslationNotice()).toBeNull();
+    });
+
+    it(`shouldn't translate the messages of the current user`, () => {
+      component.message = {
+        ...component.message!,
+        i18n: { hu_text: 'Hogy vagy?' },
+      };
+      component.ngOnChanges({ message: {} as SimpleChange });
+      fixture.detectChanges();
+
+      expect(component.translation).toBeUndefined();
+      expect(queryTranslationNotice()).toBeNull();
+    });
+
+    it('should update the translation if the translation language changes', () => {
+      setTranslatedMessage();
+      querySeeOriginalButton()?.click();
+      fixture.detectChanges();
+
+      expect(queryMainMessageTextComponent().shouldTranslate).toBeFalse();
+
+      translationLanguage$.next('de');
+      fixture.detectChanges();
+
+      expect(queryMainMessageTextComponent().translation).toBe(
+        'Wie geht es dir?'
+      );
+      expect(queryMainMessageTextComponent().shouldTranslate).toBeTrue();
+      expect(queryQuotedMessageTextComponent().translation).toBe('Zitiert');
+
+      translationLanguage$.next(undefined);
+      fixture.detectChanges();
+
+      expect(component.translation).toBeUndefined();
       expect(queryTranslationNotice()).toBeNull();
     });
   });
@@ -1064,7 +1281,7 @@ describe('MessageComponent', () => {
         moderation: {
           action: 'remove',
         },
-      } as StreamMessage;
+      } as LocalMessage;
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 
@@ -1080,7 +1297,7 @@ describe('MessageComponent', () => {
         moderation: {
           action: 'remove',
         },
-      } as StreamMessage;
+      } as LocalMessage;
 
       component.message = blockedMessage;
       component.ngOnChanges({ message: {} as SimpleChange });
@@ -1101,7 +1318,7 @@ describe('MessageComponent', () => {
       component.message = {
         ...mockMessage(),
         type: 'error',
-      } as StreamMessage;
+      } as LocalMessage;
       component.ngOnChanges({ message: {} as SimpleChange });
       fixture.detectChanges();
 

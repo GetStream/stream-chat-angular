@@ -1,3 +1,4 @@
+import { LocalMessage } from 'stream-chat';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -17,7 +18,6 @@ import {
   MessageActionItem,
   MessageReactionActionItem,
   MessageReactionsSelectorContext,
-  StreamMessage,
 } from '../types';
 import { MessageActionsService } from '../message-actions.service';
 /**
@@ -38,7 +38,7 @@ export class MessageActionsBoxComponent
   /**
    * The message the actions will be executed on
    */
-  @Input() message: StreamMessage | undefined;
+  @Input() message: LocalMessage | undefined;
   /**
    * The HTML element which contains the message text, it's used for the "copy message text" action
    */
@@ -112,7 +112,7 @@ export class MessageActionsBoxComponent
   }
 
   getActionLabel(
-    actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string
+    actionLabelOrTranslationKey: ((message: LocalMessage) => string) | string
   ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey

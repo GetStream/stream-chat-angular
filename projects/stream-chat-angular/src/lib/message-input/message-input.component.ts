@@ -8,6 +8,7 @@ import {
   EventEmitter,
   HostBinding,
   Inject,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -19,6 +20,8 @@ import {
   Type,
   ViewChild,
 } from '@angular/core';
+import { ChatClientService } from '../chat-client.service';
+import { getMessageTranslation } from '../get-message-translation';
 import { combineLatest, Observable, Subject, Subscription, timer } from 'rxjs';
 import { distinctUntilChanged, first, map, take, tap } from 'rxjs/operators';
 import {
@@ -27,6 +30,7 @@ import {
   DraftResponse,
   MessageRequest,
   UserResponse,
+  LocalMessage,
 } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
@@ -39,7 +43,6 @@ import {
   CustomAttachmentUploadContext,
   EmojiPickerContext,
   MessageTextContext,
-  StreamMessage,
 } from '../types';
 import { MessageInputConfigService } from './message-input-config.service';
 import { TextareaDirective } from './textarea.directive';
@@ -86,7 +89,7 @@ export class MessageInputComponent
   /**
    * The message to edit
    */
-  @Input() message: StreamMessage | undefined;
+  @Input() message: LocalMessage | undefined;
   /**
    * An observable that can be used to trigger message sending from the outside
    */
@@ -121,7 +124,7 @@ export class MessageInputComponent
    * Emits when a message was successfuly sent or updated
    */
   @Output() readonly messageUpdate = new EventEmitter<{
-    message: StreamMessage;
+    message: LocalMessage;
   }>();
   /**
    * Emits the messsage draft whenever the composed message changes.
@@ -154,7 +157,11 @@ export class MessageInputComponent
   textareaValue = '';
   textareaRef: ComponentRef<TextareaInterface & Partial<OnChanges>> | undefined;
   mentionedUsers: UserResponse[] = [];
-  quotedMessage: undefined | StreamMessage;
+  quotedMessage: undefined | LocalMessage;
+  /**
+   * The translation of the quoted message text, if there is any
+   */
+  quotedMessageTranslation: string | undefined;
   typingStart$ = new Subject<void>();
   cooldown$: Observable<number> | undefined;
   isCooldownInProgress = false;
@@ -178,11 +185,13 @@ export class MessageInputComponent
   private sendMessageSubcription: Subscription | undefined;
   private readonly defaultTextareaPlaceholder = 'streamChat.Type your message';
   private readonly slowModeTextareaPlaceholder = 'streamChat.Slow Mode ON';
-  private messageToEdit?: StreamMessage;
+  private messageToEdit?: LocalMessage;
   private pollId: string | undefined;
   private isChannelChangeResetInProgress = false;
   private isSendingMessage = false;
   private isLoadingDraft = false;
+  private translationLanguage?: string;
+  private readonly chatClientService = inject(ChatClientService);
 
   constructor(
     private channelService: ChannelService,
@@ -262,9 +271,18 @@ export class MessageInputComponent
           (this.mode === 'main' && !isThreadReply)
         ) {
           this.quotedMessage = m;
+          this.updateQuotedMessageTranslation();
           this.updateMessageDraft();
         }
       })
+    );
+    this.subscriptions.push(
+      this.channelService.activeChannelTranslationLanguage$.subscribe(
+        (language) => {
+          this.translationLanguage = language;
+          this.updateQuotedMessageTranslation();
+        }
+      )
     );
     this.subscriptions.push(
       this.messageActionsService.messageToEdit$.subscribe((message) => {
@@ -459,8 +477,10 @@ export class MessageInputComponent
     }
     try {
       const message = await (this.isUpdate
-        ? this.channelService.updateMessagePartial(this.message!, {
-            set: { text, attachments },
+        ? this.channelService.updateMessage({
+            ...this.message!,
+            text,
+            attachments,
           })
         : this.channelService.sendMessage(
             text,
@@ -477,13 +497,9 @@ export class MessageInputComponent
       } else {
         this.attachmentService.resetAttachmentUploads();
       }
-    } catch (error) {
+    } catch {
+      // Failed requests are displayed on the message (message.status and message.error), this only happens if a beforeSendMessage/beforeUpdateMessage hook throws
       this.isSendingMessage = false;
-      if (this.isUpdate) {
-        this.notificationService.addTemporaryNotification(
-          'streamChat.Edit message request failed'
-        );
-      }
     } finally {
       this.isSendingMessage = false;
       this.updateMessageDraft();
@@ -567,7 +583,16 @@ export class MessageInputComponent
       message: this.quotedMessage,
       isQuoted: true,
       shouldTranslate: true,
+      translation: this.quotedMessageTranslation,
     };
+  }
+
+  private updateQuotedMessageTranslation() {
+    this.quotedMessageTranslation = getMessageTranslation(
+      this.quotedMessage,
+      this.translationLanguage,
+      this.chatClientService.chatClient?.user?.id
+    );
   }
 
   async startVoiceRecording() {

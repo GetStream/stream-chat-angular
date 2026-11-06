@@ -363,6 +363,7 @@ describe('MessageListComponent', () => {
     channelServiceMock.activeChannel$.next({
       id: 'nextchannel',
       on: () => {},
+      messageReceiptsTracker: generateMockChannels(1)[0].messageReceiptsTracker,
     } as any as Channel);
     channelServiceMock.activeChannelMessages$.next([]);
     fixture.detectChanges();

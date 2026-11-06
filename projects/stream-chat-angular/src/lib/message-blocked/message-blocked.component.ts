@@ -1,5 +1,5 @@
+import { LocalMessage } from 'stream-chat';
 import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
-import { StreamMessage } from '../types';
 
 /**
  * The `MessageBlocked` component displays a message that has been blocked by moderation policies.
@@ -14,7 +14,7 @@ export class MessageBlockedComponent {
   /**
    * The message that has been blocked.
    */
-  @Input() message: StreamMessage | undefined;
+  @Input() message: LocalMessage | undefined;
   /**
    * Whether the message is the current user's own message.
    */

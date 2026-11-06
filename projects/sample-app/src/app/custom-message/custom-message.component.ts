@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { nsToDate } from 'stream-chat';
-import { ChatClientService, StreamMessage } from 'stream-chat-angular';
+import { LocalMessage, nsToDate } from 'stream-chat';
+import { ChatClientService } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-custom-message',
@@ -8,7 +8,7 @@ import { ChatClientService, StreamMessage } from 'stream-chat-angular';
   styleUrls: ['./custom-message.component.scss'],
 })
 export class CustomMessageComponent {
-  @Input() message: StreamMessage | undefined;
+  @Input() message: LocalMessage | undefined;
   userId: string | undefined;
 
   constructor(private chatClientService: ChatClientService) {

@@ -1,10 +1,9 @@
-import { dateToNs, nsToDate } from 'stream-chat';
+import { dateToNs, nsToDate, LocalMessage } from 'stream-chat';
 import { mockMessage } from '../mocks';
-import { StreamMessage } from '../types';
 import { getGroupStyles } from './group-styles';
 
 describe('getGroupStyles', () => {
-  let messages: StreamMessage[];
+  let messages: LocalMessage[];
 
   beforeEach(() => {
     messages = [

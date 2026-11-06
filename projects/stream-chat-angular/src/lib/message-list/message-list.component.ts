@@ -27,7 +27,6 @@ import {
 } from 'rxjs/operators';
 import {
   MessageContext,
-  StreamMessage,
   TypingIndicatorContext,
   DateSeparatorContext,
   UnreadMessagesNotificationContext,
@@ -37,6 +36,8 @@ import {
 import { ChatClientService } from '../chat-client.service';
 import { getGroupStyles, GroupStyle } from './group-styles';
 import {
+  Channel,
+  LocalMessage,
   MessageResponse,
   nsToDate,
   TimestampNS,
@@ -112,7 +113,11 @@ export class MessageListComponent
     | undefined;
   emptyMainMessageListTemplate: TemplateRef<void> | null = null;
   emptyThreadMessageListTemplate: TemplateRef<void> | null = null;
-  messages$!: Observable<StreamMessage[]>;
+  messages$!: Observable<LocalMessage[]>;
+  /**
+   * The active channel, the messages are passed to the message component with their channel
+   */
+  channel: Channel | undefined;
   enabledMessageActions: string[] = [];
   isEmpty = true;
   newMessageCountWhileBeingScrolled = 0;
@@ -120,7 +125,7 @@ export class MessageListComponent
   groupStyles: GroupStyle[] = [];
   isNextMessageOnSeparateDate: boolean[] = [];
   lastSentMessageId: string | undefined;
-  parentMessage: StreamMessage | undefined;
+  parentMessage: LocalMessage | undefined;
   highlightedMessageId: string | undefined;
   loadingState: 'idle' | 'loading-top' | 'loading-bottom' = 'idle';
   scrollEndTimeout?: ReturnType<typeof setTimeout>;
@@ -198,6 +203,7 @@ export class MessageListComponent
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((channel) => {
+        this.channel = channel;
         let wasChannelSwitch = false;
         if (this.channelId !== channel?.id) {
           wasChannelSwitch = true;
@@ -469,7 +475,7 @@ export class MessageListComponent
     this.disposeVirtualizedList();
   }
 
-  trackByMessageId(_: number, item: StreamMessage) {
+  trackByMessageId(_: number, item: LocalMessage) {
     return item.id;
   }
 
@@ -565,7 +571,7 @@ export class MessageListComponent
     return text;
   }
 
-  isSentByCurrentUser(message?: StreamMessage) {
+  isSentByCurrentUser(message?: LocalMessage) {
     if (!message) {
       return false;
     }
@@ -931,8 +937,8 @@ export class MessageListComponent
   }
 
   private checkIfOnSeparateDates(
-    message?: StreamMessage,
-    nextMessage?: StreamMessage
+    message?: LocalMessage,
+    nextMessage?: LocalMessage
   ) {
     if (!message || !nextMessage) {
       return false;

@@ -1,5 +1,5 @@
 import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { first } from 'rxjs/operators';
 import {
   Attachment,
@@ -24,8 +24,6 @@ import {
   MockThread,
 } from './mocks';
 import { NotificationService } from './notification.service';
-import { StreamMessage } from './types';
-import { toLocalMessage } from './local-message';
 
 // The error stream-chat v10 throws for API errors (see api-client.ts)
 const apiError = (message: string, code = 4, status = 400) =>
@@ -54,7 +52,7 @@ describe('ChannelService - threads', () => {
   const getThread = (parentId: string) => client.threads.get(parentId)!;
 
   const createThread = (parentId: string) => {
-    const parentMessage = toLocalMessage(mockMessage());
+    const parentMessage = mockMessage();
     parentMessage.id = parentId;
     return client.threads.ensure({
       channel: getActiveChannel(),
@@ -71,17 +69,22 @@ describe('ChannelService - threads', () => {
   };
 
   const getChannelMessages = () =>
-    getLatestValue<StreamMessage[]>(service.activeChannelMessages$);
+    getLatestValue<LocalMessage[]>(service.activeChannelMessages$);
 
+  let userSubject$: BehaviorSubject<UserResponse | undefined>;
   beforeEach(() => {
     client = mockStreamChatClient();
     events$ = new Subject();
+    userSubject$ = new BehaviorSubject<UserResponse | undefined>(client.user);
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ChatClientService,
           useValue: {
             chatClient: client,
+            get user$() {
+              return userSubject$;
+            },
             events$,
             logger: jasmine.createSpyObj('logger', ['warn', 'error', 'info']),
           },
@@ -140,7 +143,7 @@ describe('ChannelService - threads', () => {
     activeParentMessageIdSpy.calls.reset();
     activeParentMessageSpy.calls.reset();
     const channel = getActiveChannel();
-    const parentMessage = getLatestValue<StreamMessage[]>(
+    const parentMessage = getLatestValue<LocalMessage[]>(
       service.activeChannelMessages$
     )[0];
     spyOn(client.threads, 'ensure').and.callThrough();
@@ -179,7 +182,7 @@ describe('ChannelService - threads', () => {
 
     expect(client.threads.ensure).not.toHaveBeenCalled();
     expect(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).map(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).map(
         (m) => m.id
       )
     ).toEqual(replies.map((r) => r.id));
@@ -218,7 +221,7 @@ describe('ChannelService - threads', () => {
     expect(thread.activate).toHaveBeenCalledWith();
     expect(thread.state.getLatestValue().active).toBeTrue();
     expect(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).map(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).map(
         (m) => m.id
       )
     ).toEqual(reloadedReplies.map((r) => r.id));
@@ -381,8 +384,7 @@ describe('ChannelService - threads', () => {
     );
 
     expect(
-      getLatestValue<StreamMessage | undefined>(service.activeParentMessage$)
-        ?.id
+      getLatestValue<LocalMessage | undefined>(service.activeParentMessage$)?.id
     ).toBe(parentMessage.id);
   });
 
@@ -487,24 +489,12 @@ describe('ChannelService - threads', () => {
   it('should return the same messages from #activeChannelThreadReplies as #activeThreadMessages$', async () => {
     await init();
     await service.setAsActiveParentMessage(mockMessage());
-    const replies = getLatestValue<StreamMessage[]>(
+    const replies = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
 
     expect(replies.length).toBeGreaterThan(0);
     expect(service.activeChannelThreadReplies).toBe(replies);
-  });
-
-  it('should set empty readBy field for thread messages', async () => {
-    await init();
-    const message = mockMessage();
-    await service.setAsActiveParentMessage(message);
-    const threadMessages = getLatestValue<StreamMessage[]>(
-      service.activeThreadMessages$
-    );
-
-    expect(threadMessages.length).toBeGreaterThan(0);
-    threadMessages.forEach((m) => expect(m.readBy).toEqual([]));
   });
 
   it('should load more older messages', async () => {
@@ -521,11 +511,11 @@ describe('ChannelService - threads', () => {
         direction === 'tail' ? olderReplies : []
       );
     spyOn(paginator, 'toTail').and.callThrough();
-    const prevCount = getLatestValue<StreamMessage[]>(
+    const prevCount = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     ).length;
     await service.loadMoreThreadReplies();
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
 
@@ -570,11 +560,11 @@ describe('ChannelService - threads', () => {
     paginator.loadPage = (direction) =>
       direction === 'head' ? newerReplies : [];
     spyOn(paginator, 'toHead').and.callThrough();
-    const prevCount = getLatestValue<StreamMessage[]>(
+    const prevCount = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     ).length;
     await service.loadMoreThreadReplies('newer');
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
 
@@ -617,8 +607,7 @@ describe('ChannelService - threads', () => {
     const parentMessage = mockMessage();
     await service.setAsActiveParentMessage(parentMessage);
     service.activeThreadMessages$.subscribe(spy);
-    const prevCount = (spy.calls.mostRecent().args[0] as StreamMessage[])
-      .length;
+    const prevCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
     spy.calls.reset();
     const activeChannel = getActiveChannel();
     const newMessage = mockMessage();
@@ -626,13 +615,11 @@ describe('ChannelService - threads', () => {
     newMessage.parent_id = parentMessage.id;
     spyOn(activeChannel, 'markReadViaReporter');
     // stream-chat adds the message to the thread's paginator
-    getThread(parentMessage.id).messagePaginator.ingestItem(
-      toLocalMessage(newMessage)
-    );
+    getThread(parentMessage.id).messagePaginator.ingestItem(newMessage);
     activeChannel.handleEvent('message.new', {
       message: newMessage,
     });
-    const newCount = (spy.calls.mostRecent().args[0] as StreamMessage[]).length;
+    const newCount = (spy.calls.mostRecent().args[0] as LocalMessage[]).length;
 
     expect(newCount).toBe(prevCount + 1);
     expect(activeChannel.markReadViaReporter).toHaveBeenCalledWith();
@@ -649,7 +636,7 @@ describe('ChannelService - threads', () => {
     const newMessage = mockMessage();
     newMessage.id = 'new-reply';
     newMessage.parent_id = otherThread.id;
-    otherThread.messagePaginator.ingestItem(toLocalMessage(newMessage));
+    otherThread.messagePaginator.ingestItem(newMessage);
 
     expect(spy).not.toHaveBeenCalled();
   });
@@ -661,7 +648,7 @@ describe('ChannelService - threads', () => {
     const paginator = getThread(parentMessage.id).messagePaginator;
     const messageToUpdate = paginator.items![0];
     paginator.ingestItem({ ...messageToUpdate, text: 'updated' });
-    const message = getLatestValue<StreamMessage[]>(
+    const message = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     )[0];
 
@@ -681,7 +668,7 @@ describe('ChannelService - threads', () => {
       type: 'deleted',
       deleted_at: deletedAt,
     });
-    const message = getLatestValue<StreamMessage[]>(
+    const message = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     )[0];
 
@@ -725,7 +712,7 @@ describe('ChannelService - threads', () => {
           __,
           ___,
           ____,
-          threadListSetter: (list: StreamMessage[]) => {},
+          threadListSetter: (list: LocalMessage[]) => {},
           parentMessageSetter: (id: string | undefined) => {}
         ) => {
           threadListSetter([]);
@@ -821,7 +808,7 @@ describe('ChannelService - threads', () => {
     );
     expect(thread.state.getLatestValue().active).toBeFalse();
     expect(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).map(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).map(
         (m) => m.id
       )
     ).toEqual(newThread.messagePaginator.items!.map((m) => m.id));
@@ -877,7 +864,7 @@ describe('ChannelService - threads', () => {
       isVote: true,
       options: ['A', 'B', 'C'],
     };
-    const prevMessageCount = getLatestValue<StreamMessage[]>(
+    const prevMessageCount = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     ).length;
     await service.sendMessage(
@@ -888,7 +875,7 @@ describe('ChannelService - threads', () => {
       undefined,
       customData
     );
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
     const latestMessage = threadMessages[threadMessages.length - 1];
@@ -959,7 +946,7 @@ describe('ChannelService - threads', () => {
       },
       parentMessage.id
     );
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
     const message = threadMessages.find((m) => m.id === replyId)!;
@@ -995,7 +982,7 @@ describe('ChannelService - threads', () => {
     });
 
     expect(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).find(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).find(
         (m) => m.id === replyId
       )
     ).toBeUndefined();
@@ -1027,7 +1014,7 @@ describe('ChannelService - threads', () => {
       [],
       parentMessage.id
     );
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
 
@@ -1044,14 +1031,14 @@ describe('ChannelService - threads', () => {
     const text = 'Hi';
     spyOn(channel, 'sendMessage').and.rejectWith({ status: 500 });
     await service.sendMessage(text, [], [], parentMessage.id);
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
     const latestMessage = threadMessages[threadMessages.length - 1];
 
     expect(latestMessage.text).toBe(text);
     expect(latestMessage.status).toBe('failed');
-    expect(latestMessage.errorStatusCode).toBe(500);
+    expect(latestMessage.error?.status).toBe(500);
   });
 
   it('should add sent message to message list', async () => {
@@ -1074,7 +1061,7 @@ describe('ChannelService - threads', () => {
           text,
         },
       })) as never);
-    const prevCount = getLatestValue<StreamMessage[]>(
+    const prevCount = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     ).length;
     const sentMessage = await service.sendMessage(
@@ -1083,7 +1070,7 @@ describe('ChannelService - threads', () => {
       [],
       parentMessage.id
     );
-    const threadMessages = getLatestValue<StreamMessage[]>(
+    const threadMessages = getLatestValue<LocalMessage[]>(
       service.activeThreadMessages$
     );
     const latestMessage = threadMessages[threadMessages.length - 1];
@@ -1310,13 +1297,13 @@ describe('ChannelService - threads', () => {
     parentMessage.id = 'parent';
     await service.setAsActiveParentMessage(parentMessage);
     const paginator = getThread('parent').messagePaginator;
-    const message = toLocalMessage(mockMessage());
+    const message = mockMessage();
     message.id = 'local-message';
     message.parent_id = 'parent';
     paginator.ingestItem(message);
     spyOn(paginator, 'removeItem').and.callThrough();
     await service.deleteMessage(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).find(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).find(
         (m) => m.id === message.id
       )!,
       true
@@ -1328,7 +1315,7 @@ describe('ChannelService - threads', () => {
     });
 
     expect(
-      getLatestValue<StreamMessage[]>(service.activeThreadMessages$).find(
+      getLatestValue<LocalMessage[]>(service.activeThreadMessages$).find(
         (m) => m.id === message.id
       )
     ).toBeUndefined();

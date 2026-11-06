@@ -11,7 +11,7 @@ This guide lists every breaking change in `stream-chat-angular`. If your app cal
 3. [Connection state](#connection-state)
 4. [Channel list (`ChannelService.init`, custom queries, filters, sort)](#channel-list)
 5. [Custom data moved under `custom`](#custom-data-moved-under-custom)
-6. [`StreamMessage` and other message types](#streammessage-and-other-message-types)
+6. [`StreamMessage` removed, messages are `LocalMessage`](#streammessage-removed-messages-are-localmessage)
 7. [Message list, pagination, and jumping to messages](#message-list-pagination-and-jumping-to-messages)
 8. [Threads](#threads)
 9. [Custom event handlers and setters](#custom-event-handlers-and-setters)
@@ -155,9 +155,19 @@ Custom message fields are read from `message.custom` (for example `message.custo
 
 Custom user fields are under `user.custom`. `ChannelService.addReaction`'s `customData` parameter is sent as `reaction.custom`.
 
-## `StreamMessage` and other message types
+## `StreamMessage` removed, messages are `LocalMessage`
 
-`StreamMessage` is now based on the v10 `LocalMessage` type instead of `FormatMessageResponse` (removed in v10). The SDK doesn't convert the date fields: they are in the v10 format, `TimestampNS` (unix nanoseconds, a branded `number`), the same as in `stream-chat`. Use the `nsToDate` helper exported by `stream-chat` if you need a `Date` (and `dateToNs` for the other direction).
+`StreamMessage` was removed. The SDK emits the messages as `stream-chat` stores them: every message (`activeChannelMessages$`, `activeThreadMessages$`, `activeParentMessage$`, `messageToQuote$`, template contexts and so on) is a v10 `LocalMessage`, without any SDK-specific field. Replace `StreamMessage` with `LocalMessage` (imported from `stream-chat`) in your code.
+
+The fields `StreamMessage` added are available elsewhere:
+
+| `StreamMessage` field                       | Use instead                                                                                                                                                                                                                                         |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `readBy`                                    | `ReadStatusContext.readBy` in a custom read status template. Outside the message component: `getReadBy(message, channel)`, or `watchReadBy(message, channel, callback)` to be notified when the read receipts change                                |
+| `translation`, `quoted_message.translation` | `MessageTextContext.translation` in a custom message text template (or `MessageTextComponent.translation`). Outside of templates: `getMessageTranslation(message, language, currentUserId)` with `ChannelService.activeChannelTranslationLanguage$` |
+| `errorStatusCode`                           | `message.error?.status` (`error` is the `StreamAPIError` of the failed request, set by `stream-chat`)                                                                                                                                               |
+
+The date fields of `LocalMessage` are in the v10 format, `TimestampNS` (unix nanoseconds, a branded `number`), the same as in `stream-chat`. Use the `nsToDate` helper exported by `stream-chat` if you need a `Date` (and `dateToNs` for the other direction).
 
 ```ts
 import { nsToDate } from "stream-chat";
@@ -171,14 +181,15 @@ const sentAt = nsToDate(message.created_at).toLocaleString();
 
 In templates, convert the date in the component (or with your own pipe) before passing it to Angular's `date` pipe: the pipe treats numbers as milliseconds, so it would display a wrong date for a `TimestampNS`.
 
-| Change                                                                                                        | Before                                  | After                                                                                  |
-| ------------------------------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
-| Base type                                                                                                     | `FormatMessageResponse`                 | `LocalMessage`                                                                         |
-| Date fields (`created_at`, `updated_at`, `deleted_at`, `pinned_at`, `pin_expires`, `message_text_updated_at`) | `Date` (or `null`)                      | `TimestampNS` (unix nanoseconds), optional fields are `undefined` (never `null`)       |
-| `quoted_message`                                                                                              | `MessageResponseBase & { translation }` | `MessageResponse & { translation }` (dates are `TimestampNS`)                          |
-| Custom fields                                                                                                 | top-level                               | under `custom`                                                                         |
-| `moderation_details`                                                                                          | moderation result (v1)                  | removed, use `moderation` (see [Moderation](#moderation-bounced-and-blocked-messages)) |
-| `__html`                                                                                                      | set on message previews                 | removed                                                                                |
+| Change                                                                                                        | Before                                                    | After                                                                                  |
+| ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Type                                                                                                          | `StreamMessage` (`FormatMessageResponse` with SDK fields) | `LocalMessage`                                                                         |
+| Date fields (`created_at`, `updated_at`, `deleted_at`, `pinned_at`, `pin_expires`, `message_text_updated_at`) | `Date` (or `null`)                                        | `TimestampNS` (unix nanoseconds), optional fields are `undefined` (never `null`)       |
+| `quoted_message`                                                                                              | `MessageResponseBase & { translation }`                   | `LocalMessage` (dates are `TimestampNS`, no `translation`)                             |
+| `readBy`, `translation`, `errorStatusCode`                                                                    | set by the SDK                                            | removed, see the table above                                                           |
+| Custom fields                                                                                                 | top-level                                                 | under `custom`                                                                         |
+| `moderation_details`                                                                                          | moderation result (v1)                                    | removed, use `moderation` (see [Moderation](#moderation-bounced-and-blocked-messages)) |
+| `__html`                                                                                                      | set on message previews                                   | removed                                                                                |
 
 `DateParserService` (and custom date parsers) still work with `Date` objects; the SDK converts the message dates before calling it. The date separator template context (`DateSeparatorContext.date`) is also a `Date`.
 
@@ -236,6 +247,7 @@ The custom handler hooks (`customNewMessageHandler`, `customChannelUpdatedHandle
 
   `EventTypes` was renamed to `EventType`. Custom event fields are under `event.custom`.
 
+- `messageListSetter`, `threadListSetter` and `parentMessageSetter` take `LocalMessage` instead of `StreamMessage`.
 - `messageListSetter` and `threadListSetter` still work, but the message lists are owned by `stream-chat`'s message paginators: the next paginator update (for example the next message) overwrites the list you set. To permanently change a message list, update the paginator instead (`channel.messagePaginator.removeItem` / `ingestItem`).
 - `channel.updated`: the SDK no longer copies `event.channel` into `channel.data` (`stream-chat` v10 does it, keeping `hidden`, `own_capabilities` and `member_count`).
 - `channel.truncated`: the SDK no longer clears `channel.state.messages`; `stream-chat` v10 truncates the message list.
@@ -277,30 +289,14 @@ In v10, attachment metadata moved under `attachment.custom`. This includes the f
 - `MessageInputComponent.loadDraft` takes the v10 `DraftResponse`: `draft.message.mentioned_users` is now a list of users (it was a list of ids), and dates are `TimestampNS`. To save a draft with `stream-chat` v10: `channel.createDraft({ message: draft })`.
 - Slash commands come from `channel.config.availableCommands` (was `channel.getConfig().commands`). `ComandAutocompleteListItem` is now based on `Command` (was `CommandResponse`).
 
-### Editing messages (`updateMessage` → `updateMessagePartial`, `beforeUpdateMessage`)
+### Sending, editing and deleting messages
 
-Messages are now edited with a partial update: only the fields you set or unset change, the rest of the message is kept as is (with `stream-chat` v10, a full update would remove every field that isn't sent).
+`ChannelService.sendMessage`, `resendMessage`, `updateMessage` and `deleteMessage` keep their signatures (with `LocalMessage` instead of `StreamMessage`, the same for the `beforeUpdateMessage` and `messageDeleteConfirmationHandler` hooks), but they now use `stream-chat`'s message operations (`channel.messageOperations`, `thread.messageOperations`):
 
-- `ChannelService.updateMessage(message)` was renamed to `ChannelService.updateMessagePartial(message, { set, unset })`. `message` is the message to edit, `set` has the new field values, and `unset` lists the names of the fields to remove:
-
-  ```ts
-  // Before
-  channelService.updateMessage({ ...message, text: "Edited text" });
-  // After
-  channelService.updateMessagePartial(message, { set: { text: "Edited text" } });
-  ```
-
-- `ChannelService.beforeUpdateMessage` receives and returns the partial update (`UpdateMessagePartialRequest`) instead of the whole message. The message being edited is the second parameter:
-
-  ```ts
-  // Before
-  channelService.beforeUpdateMessage = (message) => ({ ...message, text: message.text?.trim() });
-  // After
-  channelService.beforeUpdateMessage = (update, message) => ({
-    ...update,
-    set: { ...update.set, text: update.set?.text?.trim() },
-  });
-  ```
+- Edits are displayed immediately. If the update request fails, the message is marked as failed (`message.status === 'failed'`, the error is in `message.error`) and the user can retry by clicking the message. The "Edit message request failed" notification was removed, and `updateMessage` doesn't reject if the request fails: check `message.status` / `message.error` of the returned message instead.
+- `updateMessage` sends the whole message (the same as before). `beforeUpdateMessage` may receive a message with `i18n` (translations): `stream-chat` only clears it if the text of the message changes.
+- Deletes are displayed immediately. If the delete request fails, the message is restored, and `deleteMessage` rejects (the "Error deleting message" notification is displayed, the same as before).
+- If a send request fails, but the message was saved by the API (for example the response was lost), the message is displayed as sent. Previously this was only handled when resending a message.
 
 ## Polls
 
@@ -329,23 +325,31 @@ v10 messages no longer have `moderation_details`. Bounced messages are detected 
 
 ## Other type changes
 
-| Type / API                                                                      | Before                                                          | After                                                                   |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `ChatClientService.appSettings$` / `AppSettings`                                | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`) |
-| `ChannelService.activeChannelMessages` getter                                   | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `(StreamMessage \| MessageResponse \| LocalMessage)[]`                  |
-| `ChannelService.selectMessageToQuote`                                           | `StreamMessage \| MessageResponse \| undefined`                 | also accepts `LocalMessage`                                             |
-| `MessageTextContext.message`                                                    | `StreamMessage \| MessageResponseBase \| undefined`             | `StreamMessage \| MessageResponse \| undefined`                         |
-| `ChannelSort`                                                                   | from `stream-chat`                                              | removed, use `SortParamRequest[]` from `stream-chat`                    |
-| `getChannelDisplayText(channel, user)`                                          | `user: UserResponse`                                            | `user?: { id?: string }`                                                |
-| `listUsers(users)`                                                              | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                |
-| `AvatarComponent.user`, `AvatarPlaceholderComponent.user`, `AvatarContext.user` | `User`                                                          | `UserResponse`                                                          |
-| `getReadBy(message, channel)`                                                   | `message: FormatMessageResponse`                                | `message: Pick<MessageResponse, 'created_at' \| 'user'>`                |
-| `createMessagePreview(...)`                                                     | returns `MessageResponse`                                       | returns `LocalMessage` (`customData` is set as `custom`)                |
-| `MessageListComponent.parseDate`                                                | `parseDate(date: Date)`                                         | `parseDate(timestamp: TimestampNS)`                                     |
+| Type / API                                                                                                                                                                                                        | Before                                                          | After                                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ChatClientService.appSettings$` / `AppSettings`                                                                                                                                                                  | `AppSettings` from `stream-chat`                                | `AppSettings` from `stream-chat-angular` (`Partial<AppResponseFields>`)                                                                                        |
+| `ChannelService.activeChannelMessages$`, `activeThreadMessages$`, `activeChannelPinnedMessages$`                                                                                                                  | `StreamMessage[]`                                               | `LocalMessage[]`                                                                                                                                               |
+| `ChannelService.activeChannelMessages` getter                                                                                                                                                                     | `(StreamMessage \| MessageResponse \| FormatMessageResponse)[]` | `LocalMessage[]`                                                                                                                                               |
+| `ChannelService.activeParentMessage$`, `messageToQuote$`, `bouncedMessage$`                                                                                                                                       | `StreamMessage`                                                 | `LocalMessage`                                                                                                                                                 |
+| `ChannelService.selectMessageToQuote`                                                                                                                                                                             | `StreamMessage \| MessageResponse \| undefined`                 | `LocalMessage \| MessageResponse \| undefined`                                                                                                                 |
+| `ChannelService.updateMessage`, `resendMessage`, `deleteMessage`, `beforeUpdateMessage`, `messageDeleteConfirmationHandler`                                                                                       | `StreamMessage`                                                 | `LocalMessage`                                                                                                                                                 |
+| `MessageContext.message`, `MessageBlockedContext.message`, `ReadStatusContext.message`, `DeliveredStatusContext.message`, `SendingStatusContext.message`, `CustomMetadataContext.message`, custom message actions | `StreamMessage`                                                 | `LocalMessage`                                                                                                                                                 |
+| `MessageTextContext.message`, `MessageTextComponent.message`                                                                                                                                                      | `StreamMessage \| MessageResponseBase \| undefined`             | `LocalMessage \| MessageResponse \| undefined`                                                                                                                 |
+| `getMessageTranslation(message, channel, user)`                                                                                                                                                                   | the language is read from `channel` and `user`                  | `getMessageTranslation(message, language, currentUserId)`, use `getTranslationLanguage(channel, user)` or `activeChannelTranslationLanguage$` for the language |
+| `MessageComponent.lastReadUser`, `isOnlyReadByMe`, `isReadByMultipleUsers`                                                                                                                                        | public fields                                                   | removed, use `MessageComponent.readBy`                                                                                                                         |
+| `ChannelSort`                                                                                                                                                                                                     | from `stream-chat`                                              | removed, use `SortParamRequest[]` from `stream-chat`                                                                                                           |
+| `getChannelDisplayText(channel, user)`                                                                                                                                                                            | `user: UserResponse`                                            | `user?: { id?: string }`                                                                                                                                       |
+| `listUsers(users)`                                                                                                                                                                                                | `users: UserResponse[]`                                         | `users: { id: string; name?: string }[]`                                                                                                                       |
+| `AvatarComponent.user`, `AvatarPlaceholderComponent.user`, `AvatarContext.user`                                                                                                                                   | `User`                                                          | `UserResponse`                                                                                                                                                 |
+| `getReadBy(message, channel)`                                                                                                                                                                                     | `message: FormatMessageResponse`                                | `message: Pick<MessageResponse, 'created_at' \| 'user'>`                                                                                                       |
+| `createMessagePreview(...)`                                                                                                                                                                                       | returns `MessageResponse`                                       | returns `LocalMessage` (`customData` is set as `custom`)                                                                                                       |
+| `MessageListComponent.parseDate`                                                                                                                                                                                  | `parseDate(date: Date)`                                         | `parseDate(timestamp: TimestampNS)`                                                                                                                            |
 
 ## Translations
 
 New translation key: `streamChat.Error loading messages` (displayed if the messages of a channel or thread can't be loaded). If you provide your own translations, add this key.
+
+Removed translation key: `streamChat.Edit message request failed` (failed edits are displayed on the message, see [Sending, editing and deleting messages](#sending-editing-and-deleting-messages)).
 
 ## Behavior changes
 
@@ -353,7 +357,9 @@ These changes don't require code changes, but your app may behave differently:
 
 - **Reconnect:** after a reconnect, the SDK refreshes the channel list (same as before), and `stream-chat` reloads the active channel and the open thread. The open thread now stays open (previously it was closed because its replies weren't reloaded).
 - **Message list updates:** messages arriving via WebSocket can be displayed up to 500 ms later: `stream-chat` v10 batches message list updates. Messages sent by the current user are displayed immediately.
-- **Message objects:** when a message changes (for example a reaction is added), only that message gets a new object in `activeChannelMessages$`.
+- **Message objects:** the SDK emits the message objects stored by `stream-chat`. When a message changes (for example a reaction is added), only that message gets a new object in `activeChannelMessages$`. Read receipt and translation language changes don't create new message objects: the message component reads them itself.
+- **Read receipts** are only tracked for the last message sent by the current user (the only message that displays them).
+- **Optimistic edits and deletes**, see [Sending, editing and deleting messages](#sending-editing-and-deleting-messages).
 - **Hard deleted user messages:** in v10, `user.messages.deleted` events with `hard_delete` remove the messages instead of displaying a "This message was deleted" placeholder.
 - **Read events:** the active channel is marked as read with `channel.markReadViaReporter()` (v9's `markRead` behavior). If read events are disabled for the channel, the SDK doesn't send read requests, and mark as unread fails with an error notification.
 - **Typing events** are only sent if typing events are enabled for the channel (`channel.config.typingEvents.enabled`).
@@ -362,6 +368,11 @@ These changes don't require code changes, but your app may behave differently:
 
 - `ChannelService.activeChannelMessagesPaginationState$` and `activeThreadMessagesPaginationState$`: pagination state of the message lists (`MessageListPaginationState`: `hasMoreOlder`, `hasMoreNewer`, `isLoading`, `error`).
 - `ChannelService.jumpToFirstUnreadMessage()`: jumps to the first unread message of the active channel (uses `stream-chat`'s unread state). Resolves to `false` if there's nothing to jump to. If the message can't be loaded, the promise rejects and the "Message not found" notification is displayed.
+- `ChannelService.activeChannelTranslationLanguage$`: the language the messages of the active channel are translated to (the user's `language`, or the channel's `auto_translation_language`), updated on `user.updated` and `channel.updated` events.
+- `MessageComponent.channel` input and `MessageContext.channel`: the channel of the message (used to display read receipts). If you display `stream-message` from a custom message template, pass the `channel` from the template context.
+- `ReadStatusContext.readBy`, `MessageComponent.readBy`: the users who read the message.
+- `MessageTextContext.translation`, `MessageTextComponent.translation`: the translation of the message text. If you display `stream-message-text` from a custom template, pass the `translation` from the template context.
+- `watchReadBy(message, channel, callback)`: calls `callback` with the readers of the message every time the read receipts of the channel change, returns the unsubscribe function.
 - `getTranslationLanguage(channel, user)`: the language messages are translated to (the user's `language`, or the channel's `auto_translation_language`). The SDK now updates message translations when either of them changes.
 - `ChannelService.reloadActiveChannelMessages()`: retries loading the messages of the active channel (for example after an error).
 - `MessageListPaginationState` and `AppSettings` types.

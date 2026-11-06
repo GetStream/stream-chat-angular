@@ -18,6 +18,7 @@ import {
   MessageResponse,
   StreamAPIError,
   UserResponse,
+  LocalMessage,
 } from 'stream-chat';
 import { AttachmentService } from '../attachment.service';
 import { ChannelService } from '../channel.service';
@@ -30,7 +31,7 @@ import {
   mockMessage,
 } from '../mocks';
 import { NotificationService } from '../notification.service';
-import { AttachmentUpload, StreamMessage } from '../types';
+import { AttachmentUpload } from '../types';
 import { MessageInputComponent } from './message-input.component';
 import { TextareaDirective } from './textarea.directive';
 import { AutocompleteTextareaComponent } from './autocomplete-textarea/autocomplete-textarea.component';
@@ -58,7 +59,8 @@ describe('MessageInputComponent', () => {
   let mockActiveChannel$: BehaviorSubject<Channel>;
   let mockActiveParentMessageId$: BehaviorSubject<string | undefined>;
   let sendMessageSpy: jasmine.Spy;
-  let updateMessagePartialSpy: jasmine.Spy;
+  let updateMessageSpy: jasmine.Spy;
+  let translationLanguage$: BehaviorSubject<string | undefined>;
   let channelSwitchState$: BehaviorSubject<'start' | 'end'>;
   let channel: Channel;
   let user: UserResponse;
@@ -76,7 +78,7 @@ describe('MessageInputComponent', () => {
     retryAttachmentUpload: jasmine.Spy;
   };
 
-  let mockMessageToQuote$: BehaviorSubject<undefined | StreamMessage>;
+  let mockMessageToQuote$: BehaviorSubject<undefined | LocalMessage>;
   let selectMessageToQuoteSpy: jasmine.Spy;
   let typingStartedSpy: jasmine.Spy;
   let typingStoppedSpy: jasmine.Spy;
@@ -92,7 +94,8 @@ describe('MessageInputComponent', () => {
     );
     user = mockCurrentUser();
     sendMessageSpy = jasmine.createSpy();
-    updateMessagePartialSpy = jasmine.createSpy();
+    updateMessageSpy = jasmine.createSpy();
+    translationLanguage$ = new BehaviorSubject<string | undefined>('hu');
     typingStartedSpy = jasmine.createSpy();
     typingStoppedSpy = jasmine.createSpy();
     attachmentService = {
@@ -108,7 +111,7 @@ describe('MessageInputComponent', () => {
       deleteAttachment: jasmine.createSpy(),
       retryAttachmentUpload: jasmine.createSpy(),
     };
-    mockMessageToQuote$ = new BehaviorSubject<undefined | StreamMessage>(
+    mockMessageToQuote$ = new BehaviorSubject<undefined | LocalMessage>(
       undefined
     );
     latestMessageDateByUserByChannels$ = new BehaviorSubject({});
@@ -146,7 +149,8 @@ describe('MessageInputComponent', () => {
           useValue: {
             activeChannel$: mockActiveChannel$,
             sendMessage: sendMessageSpy,
-            updateMessagePartial: updateMessagePartialSpy,
+            updateMessage: updateMessageSpy,
+            activeChannelTranslationLanguage$: translationLanguage$,
             autocompleteMembers: jasmine.createSpy().and.resolveTo([]),
             activeParentMessageId$: mockActiveParentMessageId$,
             messageToQuote$: mockMessageToQuote$,
@@ -231,41 +235,36 @@ describe('MessageInputComponent', () => {
     tick();
     fixture.detectChanges();
 
-    expect(updateMessagePartialSpy).toHaveBeenCalledWith(messageToEdit, {
-      set: { text: message, attachments: [] },
+    expect(updateMessageSpy).toHaveBeenCalledWith({
+      ...messageToEdit,
+      text: message,
+      attachments: [],
     });
     expect(messageToEditSpy).toHaveBeenCalledWith(undefined);
   }));
 
-  it('should show error message if message update failed', async () => {
+  it(`shouldn't show error notification if message update failed (the error is displayed on the message)`, async () => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addTemporaryNotification');
-    const spy = jasmine.createSpy();
-    component.messageUpdate.subscribe(spy);
-    component.message = mockMessage();
+    const messageToEdit = mockMessage();
+    component.message = messageToEdit;
     component.ngOnChanges({ message: {} as any as SimpleChange });
     fixture.detectChanges();
-    updateMessagePartialSpy.and.rejectWith(
-      new StreamAPIError('UpdateMessage failed with error: "error"', {
+    updateMessageSpy.and.resolveTo({
+      ...messageToEdit,
+      status: 'failed',
+      error: new StreamAPIError('UpdateMessage failed with error: "error"', {
         code: 4,
         status: 400,
-        response: {
-          data: {
-            code: 4,
-            message: 'UpdateMessage failed with error: "error"',
-            StatusCode: 400,
-          },
-          status: 400,
-        } as unknown as StreamAPIError['response'],
-      })
-    );
+        response: undefined,
+      }),
+    });
     await component.messageSent();
 
-    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
-      'streamChat.Edit message request failed'
+    expect(updateMessageSpy).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: messageToEdit.id })
     );
-
-    expect(spy).not.toHaveBeenCalledWith();
+    expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
   });
 
   it(`shouldn't display send button if corresponding input is false`, () => {
@@ -299,7 +298,7 @@ describe('MessageInputComponent', () => {
     fixture.detectChanges();
     const spy = jasmine.createSpy();
     component.messageUpdate.subscribe(spy);
-    updateMessagePartialSpy.and.resolveTo({ id: component.message.id });
+    updateMessageSpy.and.resolveTo({ id: component.message.id });
     await component.messageSent();
 
     expect(spy).toHaveBeenCalledWith({
@@ -805,6 +804,28 @@ describe('MessageInputComponent', () => {
     expect(selectMessageToQuoteSpy).toHaveBeenCalledWith(undefined);
   });
 
+  it('should translate the quoted message', () => {
+    const message = {
+      ...mockMessage(),
+      user: { id: 'otheruser', name: 'Alice' },
+      i18n: { hu_text: 'Szia', de_text: 'Hallo' },
+    } as unknown as LocalMessage;
+    mockMessageToQuote$.next(message);
+    fixture.detectChanges();
+    const queryTextComponent = () =>
+      fixture.debugElement
+        .query(By.css('[data-testid="quoted-message-container"]'))
+        .query(By.directive(MessageTextComponent))
+        .componentInstance as MessageTextComponent;
+
+    expect(queryTextComponent().translation).toBe('Szia');
+
+    translationLanguage$.next('de');
+    fixture.detectChanges();
+
+    expect(queryTextComponent().translation).toBe('Hallo');
+  });
+
   it('should display quoted message', () => {
     const quotedMessageContainerSelector =
       '[data-testid="quoted-message-container"]';
@@ -843,6 +864,7 @@ describe('MessageInputComponent', () => {
     expect(textComponent.message).toBe(message);
     expect(textComponent.isQuoted).toBe(true);
     expect(textComponent.shouldTranslate).toBe(true);
+    expect(textComponent.translation).toBeUndefined();
 
     mockMessageToQuote$.next(undefined);
     fixture.detectChanges();

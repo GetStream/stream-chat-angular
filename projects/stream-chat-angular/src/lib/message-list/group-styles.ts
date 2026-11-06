@@ -1,12 +1,12 @@
-import { nsToDate, TimestampNS } from 'stream-chat';
-import { GroupStyleOptions, StreamMessage } from '../types';
+import { nsToDate, TimestampNS, LocalMessage } from 'stream-chat';
+import { GroupStyleOptions } from '../types';
 
 export type GroupStyle = '' | 'middle' | 'top' | 'bottom' | 'single';
 
 export const getGroupStyles = (
-  message: StreamMessage,
-  previousMessage?: StreamMessage,
-  nextMessage?: StreamMessage,
+  message: LocalMessage,
+  previousMessage?: LocalMessage,
+  nextMessage?: LocalMessage,
   options: GroupStyleOptions = {
     noGroupByUser: false,
     lastReadMessageId: undefined,

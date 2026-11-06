@@ -1,4 +1,4 @@
-import { ChannelQueryState, StreamMessage } from '../types';
+import { ChannelQueryState } from '../types';
 import { BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import {
   Channel,
@@ -7,13 +7,13 @@ import {
   EventType,
   dateToNs,
   LocalMessage,
+  MessageRequest,
   MessageResponse,
   msToNs,
   nsToDate,
   UserResponse,
 } from 'stream-chat';
 import { AppSettings } from '../types';
-import { toLocalMessage } from '../local-message';
 
 export const mockCurrentUser = () =>
   ({
@@ -33,9 +33,8 @@ export const mockMessage = (id?: number) =>
     status: 'received',
     created_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
     updated_at: dateToNs(new Date('2021-09-14T13:08:30.004112Z')),
-    readBy: [{ id: 'alice', name: 'Alice' }],
     custom: {},
-  } as any as StreamMessage);
+  } as any as LocalMessage);
 
 export const generateMockMessages = (offset = 0, isOlder = false) => {
   const messages = Array.from({ length: 25 }, (_, index) => {
@@ -52,10 +51,10 @@ export const generateMockMessages = (offset = 0, isOlder = false) => {
 };
 
 /**
- * The same messages as `generateMockMessages`, but in the format stream-chat stores them (`LocalMessage` with `TimestampNS` dates)
+ * The same messages as `generateMockMessages` (the messages are in the format stream-chat stores them: `LocalMessage` with `TimestampNS` dates)
  */
 export const generateMockLocalMessages = (offset = 0, isOlder = false) =>
-  generateMockMessages(offset, isOlder).map((m) => toLocalMessage(m));
+  generateMockMessages(offset, isOlder);
 
 /**
  * Minimal implementation of the `StateStore` API (`@stream-io/state-store`) used by the SDK
@@ -268,10 +267,162 @@ export class MockMessagePaginator {
   }
 }
 
+type MockOperationResponse = { message?: MessageResponse | LocalMessage };
+
+const isAlreadyExistsError = (error: unknown) => {
+  const e = error as { status?: number; code?: number; message?: string };
+  return (
+    e?.status === 400 &&
+    e?.code === 4 &&
+    !!e?.message?.includes('already exists')
+  );
+};
+
+/**
+ * Minimal implementation of stream-chat's `MessageOperations` (`channel.messageOperations` / `thread.messageOperations`): the same optimistic updates and failure handling, but the requests are mocks
+ *
+ * - send/retry: displayed as `sending`, `received` on success, `failed` with `error` on failure (an "already exists" error counts as success)
+ * - update: applied immediately, `failed` with `error` on failure
+ * - delete: marked as `deleted` immediately, restored on failure
+ *
+ * Failed requests are rethrown, the same as stream-chat does
+ */
+export class MockMessageOperations {
+  /**
+   * The requests, spy on these in tests (send is `channel.sendMessage`)
+   */
+  requests: {
+    send: (message: MessageRequest) => Promise<MockOperationResponse>;
+    update: (message: LocalMessage) => Promise<MockOperationResponse>;
+    delete: (id: string) => Promise<MockOperationResponse>;
+  };
+
+  constructor(
+    private paginator: MockMessagePaginator,
+    send: (message: MessageRequest) => Promise<MockOperationResponse>
+  ) {
+    this.requests = {
+      send,
+      update: (message) => Promise.resolve({ message: { ...message } }),
+      delete: (id) =>
+        Promise.resolve({
+          message: {
+            ...this.paginator.getItem(id)!,
+            type: 'deleted',
+            deleted_at: dateToNs(new Date()),
+          },
+        }),
+    };
+  }
+
+  send = ({
+    localMessage,
+    message,
+  }: {
+    localMessage: LocalMessage;
+    message?: MessageRequest;
+  }) => this.runSend(localMessage, message);
+
+  retry = ({
+    localMessage,
+    message,
+  }: {
+    localMessage: LocalMessage;
+    message?: MessageRequest;
+  }) => this.runSend({ ...localMessage, type: 'regular' }, message);
+
+  update = async ({ localMessage }: { localMessage: LocalMessage }) => {
+    const isFailed = localMessage.status === 'failed';
+    this.paginator.ingestItem({
+      ...localMessage,
+      error: isFailed ? localMessage.error : undefined,
+    });
+    try {
+      const response = await this.requests.update(localMessage);
+      if (response?.message) {
+        this.paginator.ingestItem({
+          ...(response.message as LocalMessage),
+          status: 'received',
+        });
+      }
+    } catch (error) {
+      this.paginator.ingestItem({
+        ...(this.paginator.getItem(localMessage.id) ?? localMessage),
+        error: error as LocalMessage['error'],
+        status: 'failed',
+      });
+      throw error;
+    }
+  };
+
+  delete = async ({ localMessage }: { localMessage: LocalMessage }) => {
+    const previous = this.paginator.getItem(localMessage.id);
+    if (previous) {
+      this.paginator.ingestItem({
+        ...localMessage,
+        type: 'deleted',
+        deleted_at: dateToNs(new Date()),
+      });
+    }
+    try {
+      const response = await this.requests.delete(localMessage.id);
+      if (response?.message && this.paginator.getItem(localMessage.id)) {
+        this.paginator.ingestItem({
+          ...(response.message as LocalMessage),
+          status: 'received',
+        });
+      }
+    } catch (error) {
+      if (previous) {
+        this.paginator.ingestItem(previous);
+      }
+      throw error;
+    }
+  };
+
+  private async runSend(localMessage: LocalMessage, message?: MessageRequest) {
+    this.paginator.ingestItem({
+      ...localMessage,
+      error: undefined,
+      status:
+        !localMessage.status || localMessage.status === 'failed'
+          ? 'sending'
+          : localMessage.status,
+    });
+    try {
+      const response = await this.requests.send(
+        message ?? (localMessage as unknown as MessageRequest)
+      );
+      this.paginator.ingestItem({
+        ...localMessage,
+        ...(response?.message as Partial<LocalMessage>),
+        error: undefined,
+        status: 'received',
+      } as LocalMessage);
+    } catch (error) {
+      if (isAlreadyExistsError(error)) {
+        this.paginator.ingestItem({
+          ...localMessage,
+          error: undefined,
+          status: 'received',
+        });
+        return;
+      }
+      this.paginator.ingestItem({
+        ...localMessage,
+        error: error as LocalMessage['error'],
+        status: 'failed',
+      });
+      throw error;
+    }
+  }
+}
+
 export type MockThread = {
   id: string;
   channel: Channel;
   messagePaginator: MockMessagePaginator;
+  messageOperations: MockMessageOperations;
   state: MockStateStore<{
     parentMessage: LocalMessage;
     isLoading: boolean;
@@ -303,6 +454,7 @@ export const mockThread = (channel: Channel, parentMessage: LocalMessage) => {
       active: false,
       replyCount: 25,
     }),
+    messageOperations: undefined as unknown as MockMessageOperations,
     hasStaleState: false,
     reload: () => Promise.resolve(),
     activate: () => {
@@ -310,6 +462,11 @@ export const mockThread = (channel: Channel, parentMessage: LocalMessage) => {
       return () => thread.state.partialNext({ active: false });
     },
   };
+  // A thread sends its replies with its channel
+  thread.messageOperations = new MockMessageOperations(
+    thread.messagePaginator,
+    (message) => channel.sendMessage({ message })
+  );
   return thread;
 };
 
@@ -317,6 +474,7 @@ export type MockChannel = Channel & {
   handleEvent: (name: EventType, payload?: any) => void;
   messagePaginator: MockMessagePaginator;
   pinnedMessagesPaginator: MockMessagePaginator;
+  messageOperations: MockMessageOperations;
 };
 
 export const generateMockChannels = (length = 25) => {
@@ -428,7 +586,7 @@ export const generateMockChannels = (length = 25) => {
       stopTyping: () => {},
       handleEvent: (name: EventType, payload?: any) => {
         if (eventHandlers[name as string]) {
-          eventHandlers[name as string](payload as StreamMessage);
+          eventHandlers[name as string](payload as LocalMessage);
         } else {
           eventHandlers['on']({ type: name, ...payload });
         }
@@ -453,6 +611,11 @@ export const generateMockChannels = (length = 25) => {
         },
       }),
     } as any as MockChannel;
+    channel.messageOperations = new MockMessageOperations(
+      channel.messagePaginator,
+      // Read at call time, so tests can spy on channel.sendMessage
+      (message) => channel.sendMessage({ message })
+    ) as unknown as MockChannel['messageOperations'];
 
     return channel;
   });
@@ -470,12 +633,13 @@ export const generateMockChannel = (type: string, id: string) => {
 
 export type MockChannelService = {
   hasMoreChannels$: Subject<boolean>;
+  activeChannelTranslationLanguage$: BehaviorSubject<string | undefined>;
   channels$: Subject<Channel[] | undefined>;
-  activeChannelMessages$: BehaviorSubject<StreamMessage[]>;
+  activeChannelMessages$: BehaviorSubject<LocalMessage[]>;
   activeChannel$: Subject<Channel>;
-  activeThreadMessages$: BehaviorSubject<StreamMessage[]>;
+  activeThreadMessages$: BehaviorSubject<LocalMessage[]>;
   activeParentMessageId$: BehaviorSubject<string | undefined>;
-  activeParentMessage$: BehaviorSubject<StreamMessage | undefined>;
+  activeParentMessage$: BehaviorSubject<LocalMessage | undefined>;
   usersTypingInChannel$: BehaviorSubject<UserResponse[]>;
   usersTypingInThread$: BehaviorSubject<UserResponse[]>;
   jumpToMessage$: BehaviorSubject<{ id?: string; parentId?: string }>;
@@ -483,14 +647,14 @@ export type MockChannelService = {
   activeChannelLastReadMessageId?: string;
   activeChannelUnreadCount?: number;
   activeChannel?: Channel;
-  activeChannelMessages: StreamMessage[];
-  activeChannelThreadReplies: StreamMessage[];
+  activeChannelMessages: LocalMessage[];
+  activeChannelThreadReplies: LocalMessage[];
   loadMoreMessages: (
     d: 'older' | 'newer'
-  ) => Promise<{ messages: StreamMessage[] }> | void;
+  ) => Promise<{ messages: LocalMessage[] }> | void;
   loadMoreChannels: () => void;
   setAsActiveChannel: (c: Channel) => void;
-  setAsActiveParentMessage: (m: StreamMessage | undefined) => void;
+  setAsActiveParentMessage: (m: LocalMessage | undefined) => void;
   loadMoreThreadReplies: (d: 'older' | 'newer') => void;
   autocompleteMembers: (s: string) => ChannelMemberResponse[];
   activeChannelMessagesPaginationState$: BehaviorSubject<{
@@ -521,20 +685,18 @@ type MockPaginationState = {
 
 export const mockChannelService = (): MockChannelService => {
   const messages = generateMockMessages();
-  const activeChannelMessages$ = new BehaviorSubject<StreamMessage[]>(messages);
-  const activeThreadMessages$ = new BehaviorSubject<StreamMessage[]>([]);
+  const activeChannelMessages$ = new BehaviorSubject<LocalMessage[]>(messages);
+  const activeThreadMessages$ = new BehaviorSubject<LocalMessage[]>([]);
   const activeParentMessageId$ = new BehaviorSubject<undefined | string>(
     undefined
   );
-  const activeParentMessage$ = new BehaviorSubject<undefined | StreamMessage>(
+  const activeParentMessage$ = new BehaviorSubject<undefined | LocalMessage>(
     undefined
   );
   const usersTypingInChannel$ = new BehaviorSubject<UserResponse[]>([]);
   const usersTypingInThread$ = new BehaviorSubject<UserResponse[]>([]);
   const activeChannel = generateMockChannels(1)[0];
-  activeChannel.messagePaginator.setItems(
-    messages.map((m) => toLocalMessage(m))
-  );
+  activeChannel.messagePaginator.setItems(messages);
   const activeChannelMessages = messages;
   const activeChannel$ = new BehaviorSubject<Channel>(activeChannel);
   const channels$ = new BehaviorSubject<Channel[] | undefined>(undefined);
@@ -586,7 +748,12 @@ export const mockChannelService = (): MockChannelService => {
     undefined
   );
 
+  const activeChannelTranslationLanguage$ = new BehaviorSubject<
+    string | undefined
+  >(undefined);
+
   return {
+    activeChannelTranslationLanguage$,
     activeChannelMessages$,
     activeChannelMessages,
     activeChannelThreadReplies: [],

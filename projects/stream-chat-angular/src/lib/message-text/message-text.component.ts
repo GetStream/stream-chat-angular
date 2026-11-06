@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { MentionTemplateContext, StreamMessage } from '../types';
-import { UserResponse } from 'stream-chat';
+import { MentionTemplateContext } from '../types';
+import { UserResponse, LocalMessage, MessageResponse } from 'stream-chat';
 import emojiRegex from 'emoji-regex';
 import { MessageService } from '../message.service';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -23,7 +23,7 @@ export class MessageTextComponent implements OnChanges {
   /**
    * The message which text should be displayed
    */
-  @Input() message: StreamMessage | undefined | StreamMessage['quoted_message'];
+  @Input() message: LocalMessage | undefined | MessageResponse;
   /**
    * `true` if the component displayes a message quote
    */
@@ -32,6 +32,10 @@ export class MessageTextComponent implements OnChanges {
    * `true` if the
    */
   @Input() shouldTranslate: boolean = false;
+  /**
+   * The translation of the message text, it's displayed if `shouldTranslate` is `true`
+   */
+  @Input() translation: string | undefined;
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
   displayAs: 'text' | 'html';
@@ -55,7 +59,7 @@ export class MessageTextComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.message || changes.shouldTranslate) {
+    if (changes.message || changes.shouldTranslate || changes.translation) {
       this.createMessageParts();
     }
   }
@@ -123,8 +127,7 @@ export class MessageTextComponent implements OnChanges {
   private getMessageContent() {
     const originalContent = this.message?.text;
     if (this.shouldTranslate) {
-      const translation = this.message?.translation;
-      return translation || originalContent;
+      return this.translation || originalContent;
     } else {
       return originalContent;
     }

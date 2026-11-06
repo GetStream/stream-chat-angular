@@ -7,7 +7,12 @@ import {
 } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Channel, ReactionResponse, StreamAPIError } from 'stream-chat';
+import {
+  Channel,
+  ReactionResponse,
+  StreamAPIError,
+  LocalMessage,
+} from 'stream-chat';
 import { TextareaComponent } from '../message-input/textarea/textarea.component';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
@@ -19,7 +24,6 @@ import {
   MockStreamChatClient,
 } from '../mocks';
 import { NotificationService } from '../notification.service';
-import { StreamMessage } from '../types';
 
 import { MessageActionsBoxComponent } from './message-actions-box.component';
 import { MessageActionsService } from '../message-actions.service';
@@ -40,7 +44,7 @@ describe('MessageActionsBoxComponent', () => {
   let queryReactionSelectorComponent: () =>
     | MessageReactionsSelectorComponent
     | undefined;
-  let message: StreamMessage;
+  let message: LocalMessage;
   let nativeElement: HTMLElement;
   let mockChatClient: MockStreamChatClient;
   let flagMessageSpy: jasmine.Spy;
@@ -49,7 +53,7 @@ describe('MessageActionsBoxComponent', () => {
     activeChannel$: Observable<Channel>;
     deleteMessage: jasmine.Spy;
     selectMessageToQuote: jasmine.Spy;
-    messageToQuote$: Observable<StreamMessage | undefined>;
+    messageToQuote$: Observable<LocalMessage | undefined>;
     pinMessage: jasmine.Spy;
     unpinMessage: jasmine.Spy;
     setAsActiveParentMessage: jasmine.Spy;

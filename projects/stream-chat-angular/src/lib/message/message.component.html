@@ -34,7 +34,7 @@
     [class.str-chat__message--highlighted]="isHighlighted"
     [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
     [class.str-chat__message-send-can-be-retried]="
-      (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
+      (message?.status === 'failed' && message?.error?.status !== 403) ||
       isBounced
     "
     [class.str-chat__message-with-touch-support]="hasTouchSupport"
@@ -209,7 +209,7 @@
               tabindex="0"
               [class.str-chat__message-text--pointer-cursor]="
                 (message?.status === 'failed' &&
-                  message?.errorStatusCode !== 403) ||
+                  message?.error?.status !== 403) ||
                 isBounced ||
                 message?.message_text_updated_at
               "
@@ -242,7 +242,7 @@
                   class="str-chat__simple-message--error-message str-chat__message--error-message"
                 >
                   {{
-                    (message?.errorStatusCode === 403
+                    (message?.error?.status === 403
                       ? "streamChat.Message Failed · Unauthorized"
                       : "streamChat.Message Failed · Click to try again"
                     ) | translate
@@ -260,11 +260,13 @@
                   let-message="message"
                   let-isQuoted="isQuoted"
                   let-shouldTranslate="shouldTranslate"
+                  let-translation="translation"
                 >
                   <stream-message-text
                     [message]="message"
                     [isQuoted]="isQuoted"
                     [shouldTranslate]="shouldTranslate"
+                    [translation]="translation"
                     data-testid="quoted-message-text"
                   />
                 </ng-template>
@@ -405,11 +407,13 @@
             let-message="message"
             let-isQuoted="isQuoted"
             let-shouldTranslate="shouldTranslate"
+            let-translation="translation"
           >
             <stream-message-text
               [message]="message"
               [isQuoted]="isQuoted"
               [shouldTranslate]="shouldTranslate"
+              [translation]="translation"
               data-testid="quoted-message-text"
             />
           </ng-template>

@@ -12,7 +12,6 @@ export const en = {
     Delete: 'Delete',
     Delivered: 'Delivered',
     'Edit Message': 'Edit Message',
-    'Edit message request failed': 'Edit message request failed',
     'Emoji matching': 'Emoji matching',
     'Empty message...': 'Empty message...',
     'Error adding flag': 'Error adding flag',

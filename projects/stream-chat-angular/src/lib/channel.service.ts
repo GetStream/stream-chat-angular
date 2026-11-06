@@ -6,7 +6,14 @@ import {
   ReplaySubject,
   Subscription,
 } from 'rxjs';
-import { filter, first, map, shareReplay, take } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  first,
+  map,
+  shareReplay,
+  take,
+} from 'rxjs/operators';
 import {
   Attachment,
   Channel,
@@ -22,20 +29,17 @@ import {
   nsToDate,
   LocalMessage,
   MemberFilters,
+  MessageRequest,
   MessageIntervalPaginator,
   MessageResponse,
   ReactionResponse,
   SortParamRequest,
   StreamAPIError,
   Thread,
-  UpdateMessagePartialRequest,
   UserResponse,
 } from 'stream-chat';
 import { ChatClientService, ClientEvent } from './chat-client.service';
-import {
-  getMessageTranslation,
-  getTranslationLanguage,
-} from './get-message-translation';
+import { getTranslationLanguage } from './get-message-translation';
 import { createMessagePreview } from './message-preview';
 import { NotificationService } from './notification.service';
 import {
@@ -48,11 +52,8 @@ import {
   MessageReactionType,
   NextPageConfiguration,
   MessageListPaginationState,
-  StreamMessage,
 } from './types';
 import { ChannelQuery } from './channel-query';
-import { toLocalMessage } from './local-message';
-import { getReadBy } from './read-by';
 
 /**
  * The `ChannelService` provides data and interaction for the channel list and message list.
@@ -90,7 +91,7 @@ export class ChannelService {
   /**
    * Emits the list of currently loaded messages of the active channel.
    */
-  activeChannelMessages$: Observable<StreamMessage[]>;
+  activeChannelMessages$: Observable<LocalMessage[]>;
   /**
    * Emits the pagination state (loading, has more older/newer messages, last error) of the active channel's message list.
    */
@@ -102,7 +103,7 @@ export class ChannelService {
   /**
    * Emits the list of pinned messages of the active channel.
    */
-  activeChannelPinnedMessages$: Observable<StreamMessage[]>;
+  activeChannelPinnedMessages$: Observable<LocalMessage[]>;
   /**
    * Emits the id of the currently selected parent message. If no message is selected, it emits undefined.
    */
@@ -110,15 +111,15 @@ export class ChannelService {
   /**
    * Emits the list of currently loaded thread replies belonging to the selected parent message. If there is no currently active thread it emits an empty array.
    */
-  activeThreadMessages$: Observable<StreamMessage[]>;
+  activeThreadMessages$: Observable<LocalMessage[]>;
   /**
    * Emits the currently selected parent message. If no message is selected, it emits undefined.
    */
-  activeParentMessage$: Observable<StreamMessage | undefined>;
+  activeParentMessage$: Observable<LocalMessage | undefined>;
   /**
    * Emits the currently selected message to quote
    */
-  messageToQuote$: Observable<StreamMessage | undefined>;
+  messageToQuote$: Observable<LocalMessage | undefined>;
   /**
    * Emits the ID of the message the message list should jump to (can be a channel message or thread message)
    */
@@ -140,7 +141,7 @@ export class ChannelService {
    *
    * If a message is bounced, it will be emitted via this `Observable`. The built-in [`MessageBouncePrompt` component](/chat/docs/sdk/angular/components/MessageBouncePromptComponent/) will display the bounce option to the user if a bounced message is clicked.
    */
-  bouncedMessage$: BehaviorSubject<StreamMessage | undefined>;
+  bouncedMessage$: BehaviorSubject<LocalMessage | undefined>;
   /**
    * The last read message id of the active channel, it's used by the message list component to display unread UI, and jump to latest read message
    *
@@ -201,9 +202,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is updated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
@@ -217,9 +218,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel is truncated, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
@@ -233,9 +234,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel becomes hidden, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
@@ -249,9 +250,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * Custom event handler to call when a channel becomes visible, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
@@ -265,9 +266,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * Custom event handler to call if a new message received from a channel that is being watched, provide an event handler if you want to override the [default channel list ordering](/chat/docs/sdk/angular/services/ChannelService/#channels).
@@ -281,9 +282,9 @@ export class ChannelService {
       channels: Channel[],
       shouldStopWatchingRemovedChannels?: boolean
     ) => void,
-    messageListSetter: (messages: StreamMessage[]) => void,
-    threadListSetter: (messages: StreamMessage[]) => void,
-    parentMessageSetter: (message: StreamMessage | undefined) => void
+    messageListSetter: (messages: LocalMessage[]) => void,
+    threadListSetter: (messages: LocalMessage[]) => void,
+    parentMessageSetter: (message: LocalMessage | undefined) => void
   ) => void;
   /**
    * You can override the default file upload request - you can use this to upload files to your own CDN
@@ -311,7 +312,7 @@ export class ChannelService {
    * The provided method will be called before deleting a message. If the returned Promise resolves to `true` to deletion will go ahead. If `false` is returned, the message won't be deleted.
    */
   messageDeleteConfirmationHandler?: (
-    message: StreamMessage
+    message: LocalMessage
   ) => Promise<boolean>;
   /**
    * The provided method will be called before a new message is sent to Stream's API. You can use this hook to tranfrom or enrich the message being sent.
@@ -320,12 +321,15 @@ export class ChannelService {
     input: MessageInput
   ) => MessageInput | Promise<MessageInput>;
   /**
-   * The provided method will be called before a message update is sent to Stream's API. You can use this hook to tranfrom or enrich the fields being set and unset (the update is a partial update, fields that aren't in `set` or `unset` are left as is).
+   * The provided method will be called before a message is sent to Stream's API for update. You can use this hook to tranfrom or enrich the message being updated.
    */
   beforeUpdateMessage?: (
-    update: UpdateMessagePartialRequest,
-    message: StreamMessage
-  ) => UpdateMessagePartialRequest | Promise<UpdateMessagePartialRequest>;
+    message: LocalMessage
+  ) => LocalMessage | Promise<LocalMessage>;
+  /**
+   * Emits the language messages of the active channel are translated to: the current user's `language`, or the `auto_translation_language` of the active channel (`undefined` if there is none). It's updated when the user or the channel is updated.
+   */
+  activeChannelTranslationLanguage$: Observable<string | undefined>;
   /**
    * Since switching channels changes the state of multiple obserables, this observable can be used to check if all observables are updated.
    * - `end` means all observables are in stable state
@@ -353,9 +357,9 @@ export class ChannelService {
   private activeChannelSubject = new BehaviorSubject<Channel | undefined>(
     undefined
   );
-  private activeChannelMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | LocalMessage)[]
-  >([]);
+  private activeChannelMessagesSubject = new BehaviorSubject<LocalMessage[]>(
+    []
+  );
   private activeChannelMessagesPaginationStateSubject =
     new BehaviorSubject<MessageListPaginationState>(
       ChannelService.initialPaginationState
@@ -369,18 +373,11 @@ export class ChannelService {
   private releaseActiveChannel?: () => void;
   private releaseActiveThread?: () => void;
   private activeThread?: Thread;
-  private errorStatusCodes = new Map<string, number | undefined>();
-  private streamMessageCache = new WeakMap<
-    object,
-    {
-      errorStatusCode?: number;
-      translationLanguage?: string;
-      readByRevision?: number;
-      message: StreamMessage;
-    }
-  >();
+  private activeChannelDataChangedSubject = new BehaviorSubject<void>(
+    undefined
+  );
   private activeChannelPinnedMessagesSubject = new BehaviorSubject<
-    StreamMessage[]
+    LocalMessage[]
   >([]);
   private hasMoreChannelsSubject = new ReplaySubject<boolean>(1);
   private activeChannelSubscriptions: { unsubscribe: () => void }[] = [];
@@ -388,9 +385,7 @@ export class ChannelService {
   private activeParentMessageIdSubject = new BehaviorSubject<
     string | undefined
   >(undefined);
-  private activeThreadMessagesSubject = new BehaviorSubject<
-    (StreamMessage | MessageResponse | LocalMessage)[]
-  >([]);
+  private activeThreadMessagesSubject = new BehaviorSubject<LocalMessage[]>([]);
   private jumpToMessageSubject = new BehaviorSubject<{
     id?: string;
     parentId?: string;
@@ -399,9 +394,9 @@ export class ChannelService {
     [key: string]: Date;
   }>({});
   private readonly attachmentMaxSizeFallbackInMB = 100;
-  private messageToQuoteSubject = new BehaviorSubject<
-    StreamMessage | undefined
-  >(undefined);
+  private messageToQuoteSubject = new BehaviorSubject<LocalMessage | undefined>(
+    undefined
+  );
   private usersTypingInChannelSubject = new BehaviorSubject<UserResponse[]>([]);
   private usersTypingInThreadSubject = new BehaviorSubject<UserResponse[]>([]);
   private _shouldMarkActiveChannelAsRead = true;
@@ -456,15 +451,15 @@ export class ChannelService {
     }
   };
 
-  private messageListSetter = (messages: StreamMessage[]) => {
+  private messageListSetter = (messages: LocalMessage[]) => {
     this.activeChannelMessagesSubject.next(messages);
   };
 
-  private threadListSetter = (messages: StreamMessage[]) => {
+  private threadListSetter = (messages: LocalMessage[]) => {
     this.activeThreadMessagesSubject.next(messages);
   };
 
-  private parentMessageSetter = (message: StreamMessage | undefined) => {
+  private parentMessageSetter = (message: LocalMessage | undefined) => {
     // Switches/releases the active thread too, setting only the parent message id would leave the previous thread active
     void this.setAsActiveParentMessage(message);
   };
@@ -484,16 +479,20 @@ export class ChannelService {
     this.activeChannel$ = this.activeChannelSubject
       .asObservable()
       .pipe(shareReplay(1));
-    this.activeChannelMessages$ = this.activeChannelMessagesSubject.pipe(
-      map((messages) => {
-        const channel = this.activeChannelSubject.getValue()!;
-        return messages.map((message) =>
-          this.transformToStreamMessage(message, channel)
-        );
-      }),
+    this.activeChannelMessages$ = this.activeChannelMessagesSubject
+      .asObservable()
+      .pipe(shareReplay(1));
+    // channel.updated re-emits the active channel (the auto translation language might have changed), user.updated re-emits the user (the language might have changed)
+    this.activeChannelTranslationLanguage$ = combineLatest([
+      this.chatClientService.user$,
+      this.activeChannel$,
+      this.activeChannelDataChangedSubject,
+    ]).pipe(
+      map(([user, channel]) => getTranslationLanguage(channel, user)),
+      distinctUntilChanged(),
       shareReplay(1)
     );
-    this.bouncedMessage$ = new BehaviorSubject<StreamMessage | undefined>(
+    this.bouncedMessage$ = new BehaviorSubject<LocalMessage | undefined>(
       undefined
     );
     this.hasMoreChannels$ = this.hasMoreChannelsSubject
@@ -502,24 +501,15 @@ export class ChannelService {
     this.activeParentMessageId$ = this.activeParentMessageIdSubject
       .asObservable()
       .pipe(shareReplay(1));
-    this.activeThreadMessages$ = this.activeThreadMessagesSubject.pipe(
-      map((messages) => {
-        const channel = this.activeChannelSubject.getValue()!;
-        return messages.map((message) =>
-          this.transformToStreamMessage(message, channel)
-        );
-      }),
-      shareReplay(1)
-    );
+    this.activeThreadMessages$ = this.activeThreadMessagesSubject
+      .asObservable()
+      .pipe(shareReplay(1));
     this.activeParentMessage$ = combineLatest([
       this.activeChannelMessages$,
       this.activeParentMessageId$,
     ]).pipe(
       map(
-        ([messages, parentMessageId]: [
-          StreamMessage[],
-          string | undefined
-        ]) => {
+        ([messages, parentMessageId]: [LocalMessage[], string | undefined]) => {
           if (!parentMessageId) {
             return undefined;
           } else {
@@ -533,10 +523,7 @@ export class ChannelService {
                 ? this.activeThread.state.getLatestValue().parentMessage
                 : undefined;
             if (parentMessageFromThread) {
-              return this.transformToStreamMessage(
-                parentMessageFromThread,
-                this.activeChannelSubject.getValue()
-              );
+              return parentMessageFromThread;
             }
             void this.setAsActiveParentMessage(undefined);
             return undefined;
@@ -705,7 +692,7 @@ export class ChannelService {
    * @param _loadMessagesForm deprecated, thread replies are always loaded through the thread's message paginator
    */
   async setAsActiveParentMessage(
-    message: StreamMessage | undefined,
+    message: LocalMessage | undefined,
     _loadMessagesForm: 'request' | 'state' = 'request'
   ) {
     const messageToQuote = this.messageToQuoteSubject.getValue();
@@ -731,8 +718,7 @@ export class ChannelService {
       this.releaseThread();
       const client = this.chatClientService.chatClient;
       const parentMessage =
-        activeChannel.messagePaginator.getItem(message.id) ??
-        toLocalMessage(message);
+        activeChannel.messagePaginator.getItem(message.id) ?? message;
       const thread =
         client.threads.get(message.id) ??
         client.threads.ensure({ channel: activeChannel, parentMessage });
@@ -1009,68 +995,71 @@ export class ChannelService {
     );
     // stream-chat's message paginator only accepts messages of its own channel (filtered by cid)
     preview.cid = this.activeChannelSubject.getValue()!.cid;
-    this.getMessagePaginator(preview.parent_id)?.ingestItem(preview);
-    const response = await this.sendMessageRequest(preview, input.customData);
-    return response;
+    try {
+      // stream-chat adds the message to the message list, and marks it as failed (with the error) if the request fails
+      await this.getMessageOperations(preview.parent_id)?.send({
+        localMessage: preview,
+        message: this.toMessageRequest(preview, input.customData),
+      });
+    } catch {
+      // The error is stored on the message (message.error)
+    }
+    return this.getStoredMessage(preview);
   }
 
   /**
    * Resends the given message to the active channel
    * @param message The message to resend
    */
-  async resendMessage(message: StreamMessage) {
-    this.errorStatusCodes.delete(message.id);
-    // Use the given message, not the stored one: editing a bounced message resends it with the new content
-    const localMessage = toLocalMessage(message);
-    this.getMessagePaginator(message.parent_id)?.ingestItem({
-      ...localMessage,
-      status: 'sending',
-    });
-    return this.sendMessageRequest(localMessage, undefined, true);
+  async resendMessage(message: LocalMessage) {
+    try {
+      // The status is set to failed, so stream-chat displays the message as sending during the retry (bounced messages have the received status)
+      await this.getMessageOperations(message.parent_id)?.retry({
+        localMessage: { ...message, status: 'failed' },
+        // Use the given message, not the stored one: editing a bounced message resends it with the new content
+        message: this.toMessageRequest(message),
+      });
+    } catch {
+      // The error is stored on the message (message.error)
+    }
+    return this.getStoredMessage(message);
   }
 
   /**
-   * Updates the message with a partial update: only the fields in `update.set` are changed, and the fields in `update.unset` are removed, the rest of the message is left as is
+   * Updates the message in the active channel. The message is updated in the message list immediately, if the request fails, the message is marked as failed (`message.status` and `message.error`) and the user can retry it.
    * @param message Mesage to be updated
-   * @param update The fields to set and unset
+   * @returns the updated message
    */
-  async updateMessagePartial(
-    message: StreamMessage,
-    update: UpdateMessagePartialRequest
-  ) {
+  async updateMessage(message: LocalMessage) {
     if (this.beforeUpdateMessage) {
-      update = await this.beforeUpdateMessage(update, message);
+      message = await this.beforeUpdateMessage(message);
     }
     if (message.type === 'error' && message.moderation?.action === 'bounce') {
-      const messageToResend: Record<string, unknown> = {
-        ...message,
-        ...update.set,
-      };
-      update.unset?.forEach((field) => delete messageToResend[field]);
-      return this.resendMessage(messageToResend as unknown as StreamMessage);
+      // Bounced messages aren't saved by the API, they're resent instead
+      return this.resendMessage(message);
     }
-    const response =
-      await this.chatClientService.chatClient.updateMessagePartial(
-        { id: message.id },
-        update
-      );
-
-    if (!response.message) {
-      return message;
+    const previous = this.getMessagePaginator(message.parent_id)?.getItem(
+      message.id
+    );
+    try {
+      await this.getMessageOperations(message.parent_id)?.update({
+        localMessage: message,
+      });
+    } catch {
+      // The error is stored on the message (message.error)
     }
-
-    const channel = this.channelsSubject
-      .getValue()
-      ?.find((c) => c.cid === message.cid);
-
-    if (response.message.type === 'error' && response.message.moderation) {
+    const updatedMessage = this.getStoredMessage(message);
+    if (updatedMessage.type === 'error' && updatedMessage.moderation) {
+      // The API rejected the update, but the original message is kept
+      if (previous) {
+        this.getMessagePaginator(message.parent_id)?.ingestItem(previous);
+      }
       this.notificationService.addTemporaryNotification(
         'streamChat.This message did not meet our content guidelines'
       );
-      return message;
+      return previous ?? message;
     }
-
-    return this.transformToStreamMessage(response.message, channel);
+    return updatedMessage;
   }
 
   /**
@@ -1078,24 +1067,26 @@ export class ChannelService {
    * @param message Message to be deleted
    * @param isLocalDelete set this `true` if you want to delete a message that's only part of the local state, not yet saved on the backend
    */
-  async deleteMessage(message: StreamMessage, isLocalDelete = false) {
+  async deleteMessage(message: LocalMessage, isLocalDelete = false) {
     if (isLocalDelete && this.activeChannel) {
+      // The message isn't saved by the API (for example a message that failed to send), it's only removed from the local state
       this.getMessagePaginator(message.parent_id)?.removeItem({
         id: message.id,
       });
-      this.errorStatusCodes.delete(message.id);
       return;
     }
-    if (this.messageDeleteConfirmationHandler) {
-      const result = await this.messageDeleteConfirmationHandler(message);
-      if (result) {
-        await this.chatClientService.chatClient.deleteMessage({
-          id: message.id,
-        });
-      }
-    } else {
-      await this.chatClientService.chatClient.deleteMessage({ id: message.id });
+    if (
+      this.messageDeleteConfirmationHandler &&
+      !(await this.messageDeleteConfirmationHandler(message))
+    ) {
+      return;
     }
+    // stream-chat marks the message as deleted immediately, and restores it if the request fails (the error is rethrown)
+    await this.getMessageOperations(message.parent_id)?.delete({
+      localMessage:
+        this.getMessagePaginator(message.parent_id)?.getItem(message.id) ??
+        message,
+    });
   }
 
   /**
@@ -1261,13 +1252,12 @@ export class ChannelService {
    * Selects or deselects the current message to quote reply to
    * @param message The message to select, if called with `undefined`, it deselects the message
    */
-  selectMessageToQuote(
-    message: StreamMessage | undefined | MessageResponse | LocalMessage
-  ) {
+  selectMessageToQuote(message: LocalMessage | MessageResponse | undefined) {
     this.messageToQuoteSubject.next(
-      message
-        ? this.transformToStreamMessage(message, this.activeChannel)
-        : undefined
+      // Messages from the API (for example the quoted message of a draft) are converted to the format stream-chat uses for local messages
+      message && !('status' in message && message.status)
+        ? formatMessage(message)
+        : (message as LocalMessage | undefined)
     );
   }
 
@@ -1323,62 +1313,26 @@ export class ChannelService {
       );
   }
 
-  private async sendMessageRequest(
-    preview: LocalMessage,
-    customData?: CustomMessageData,
-    isResend = false
-  ) {
-    const channel = this.activeChannelSubject.getValue()!;
-    const paginator = this.getMessagePaginator(preview.parent_id);
-    try {
-      const response = await channel.sendMessage({
-        message: {
-          id: preview.id,
-          text: preview.text,
-          attachments: preview.attachments,
-          mentioned_users: preview.mentioned_users?.map((u) => u.id),
-          parent_id: preview.parent_id,
-          quoted_message_id: preview.quoted_message_id,
-          poll_id: preview.poll_id,
-          custom: customData ?? preview.custom,
-        },
-      });
-      paginator?.ingestItem(
-        formatMessage({
-          ...response.message,
-          status: 'received',
-        } as LocalMessage)
-      );
-      return this.getSentMessage(preview);
-    } catch (error) {
-      // stream-chat throws StreamAPIError for API errors, it can't be serialized to JSON: the response is dropped
-      const apiError = error instanceof StreamAPIError ? error : undefined;
-      const isAlreadyExists =
-        isResend &&
-        apiError?.status === 400 &&
-        apiError.code === 4 &&
-        apiError.message.includes('already exists');
-
-      this.errorStatusCodes.set(
-        preview.id,
-        isAlreadyExists
-          ? undefined
-          : (error as { status?: number } | undefined)?.status || undefined
-      );
-      paginator?.ingestItem({
-        ...(paginator.getItem(preview.id) ?? preview),
-        status: isAlreadyExists ? 'received' : 'failed',
-      });
-      return this.getSentMessage(preview);
-    }
+  private toMessageRequest(
+    message: LocalMessage,
+    customData?: CustomMessageData
+  ): MessageRequest {
+    return {
+      id: message.id,
+      text: message.text,
+      attachments: message.attachments,
+      mentioned_users: message.mentioned_users?.map((u) => u.id),
+      parent_id: message.parent_id,
+      quoted_message_id: message.quoted_message_id,
+      poll_id: message.poll_id,
+      custom: customData ?? message.custom,
+    };
   }
 
-  private getSentMessage(preview: LocalMessage) {
-    const paginator = this.getMessagePaginator(preview.parent_id);
-    const message = paginator?.getItem(preview.id) ?? preview;
-    return this.transformToStreamMessage(
-      message,
-      this.activeChannelSubject.getValue()
+  private getStoredMessage(message: LocalMessage) {
+    return (
+      this.getMessagePaginator(message.parent_id)?.getItem(message.id) ??
+      message
     );
   }
 
@@ -1411,9 +1365,7 @@ export class ChannelService {
             activeChannel,
             parentMessageId
           );
-          await this.setAsActiveParentMessage(
-            this.transformToStreamMessage(parentMessage, activeChannel)
-          );
+          await this.setAsActiveParentMessage(parentMessage);
         }
       }
       const paginator = parentMessageId
@@ -1503,7 +1455,7 @@ export class ChannelService {
    * Pins the given message in the channel
    * @param message
    */
-  async pinMessage(message: StreamMessage) {
+  async pinMessage(message: LocalMessage) {
     try {
       await this.chatClientService.chatClient?.pinMessage({ id: message.id });
       this.notificationService.addTemporaryNotification(
@@ -1522,7 +1474,7 @@ export class ChannelService {
    * Removes the given message from pinned messages
    * @param message
    */
-  async unpinMessage(message: StreamMessage) {
+  async unpinMessage(message: LocalMessage) {
     try {
       await this.chatClientService.chatClient?.unpinMessage({ id: message.id });
       this.notificationService.addTemporaryNotification(
@@ -1560,7 +1512,7 @@ export class ChannelService {
               this.markRead(activeChannel);
               // Update and reselect message to quote
               const messageToQuote = this.messageToQuoteSubject.getValue();
-              let messages!: StreamMessage[];
+              let messages!: LocalMessage[];
               this.activeChannelMessages$
                 .pipe(take(1))
                 .subscribe((m) => (messages = m));
@@ -1627,8 +1579,6 @@ export class ChannelService {
           const activeChannel = this.activeChannelSubject.getValue();
           if (activeChannel) {
             this.activeChannelSubject.next(activeChannel);
-            // The language of the user might have changed
-            this.refreshTranslations();
           }
         });
         break;
@@ -1703,36 +1653,7 @@ export class ChannelService {
             if (this.activeChannelSubject.getValue() !== channel) {
               return;
             }
-            this.activeChannelPinnedMessagesSubject.next(
-              (items ?? []).map((m) =>
-                this.transformToStreamMessage(m, channel)
-              )
-            );
-          });
-        }
-      ),
-      // read receipts changed (for example message.read or user.updated events): emit the message list if the readBy property of any message changed
-      channel.messageReceiptsTracker.snapshotStore.subscribeWithSelector(
-        (state) => ({ revision: state.revision }),
-        (_, prev) => {
-          if (!prev) {
-            return;
-          }
-          this.ngZone.run(() => {
-            if (this.activeChannelSubject.getValue() !== channel) {
-              return;
-            }
-            const messages = this.activeChannelMessagesSubject.getValue();
-            const isChanged = messages.some((message) => {
-              const cached = this.streamMessageCache.get(message)?.message;
-              return (
-                !!cached &&
-                this.transformToStreamMessage(message, channel) !== cached
-              );
-            });
-            if (isChanged) {
-              this.activeChannelMessagesSubject.next([...messages]);
-            }
+            this.activeChannelPinnedMessagesSubject.next(items ?? []);
           });
         }
       ),
@@ -1793,9 +1714,7 @@ export class ChannelService {
    */
   private bindMessagePaginator(
     paginator: MessageIntervalPaginator,
-    messagesSubject: BehaviorSubject<
-      (StreamMessage | MessageResponse | LocalMessage)[]
-    >,
+    messagesSubject: BehaviorSubject<LocalMessage[]>,
     paginationStateSubject: BehaviorSubject<MessageListPaginationState>,
     isActive: () => boolean,
     isLoadingOutsidePaginator: () => boolean = () => false
@@ -1830,6 +1749,19 @@ export class ChannelService {
         });
       }
     );
+  }
+
+  private getMessageOperations(parentId?: string) {
+    const channel = this.activeChannelSubject.getValue();
+    if (parentId) {
+      const thread =
+        this.activeThread?.id === parentId
+          ? this.activeThread
+          : this.chatClientService.chatClient.threads.get(parentId);
+      // Without a thread instance the channel's operations update the message (stream-chat falls back to its message store)
+      return thread?.messageOperations ?? channel?.messageOperations;
+    }
+    return channel?.messageOperations;
   }
 
   /**
@@ -1948,7 +1880,7 @@ export class ChannelService {
    */
   get activeChannelMessages() {
     // Same messages as emitted by activeChannelMessages$ (shareReplay keeps the latest value)
-    let messages: StreamMessage[] = [];
+    let messages: LocalMessage[] = [];
     this.activeChannelMessages$.pipe(take(1)).subscribe((m) => (messages = m));
     return messages;
   }
@@ -1958,7 +1890,7 @@ export class ChannelService {
    */
   get activeChannelThreadReplies() {
     // Same messages as emitted by activeThreadMessages$ (shareReplay keeps the latest value)
-    let messages: StreamMessage[] = [];
+    let messages: LocalMessage[] = [];
     this.activeThreadMessages$.pipe(take(1)).subscribe((m) => (messages = m));
     return messages;
   }
@@ -2203,9 +2135,9 @@ export class ChannelService {
             } else {
               this.handleChannelUpdate(event);
             }
-            // The auto translation language of the channel might have changed
+            // The auto translation language of the channel might have changed (a custom handler might not emit the active channel)
             if (channel === this.activeChannelSubject.getValue()) {
-              this.refreshTranslations();
+              this.activeChannelDataChangedSubject.next();
             }
           });
           break;
@@ -2314,121 +2246,6 @@ export class ChannelService {
 
   private get canSendReadEvents() {
     return !!this.activeChannelSubject.getValue()?.readEventsEnabled;
-  }
-
-  private transformToStreamMessage(
-    message: StreamMessage | MessageResponse | LocalMessage,
-    channel?: Channel
-  ): StreamMessage {
-    const isThreadMessage = !!message.parent_id;
-    const user = this.chatClientService.chatClient.user;
-    if ('readBy' in message) {
-      // Already a StreamMessage (for example set via a custom handler)
-      const streamMessage = message as StreamMessage;
-      return {
-        ...streamMessage,
-        translation: getMessageTranslation(streamMessage, channel, user),
-        quoted_message: streamMessage.quoted_message
-          ? {
-              ...streamMessage.quoted_message,
-              translation: getMessageTranslation(
-                streamMessage.quoted_message,
-                channel,
-                user
-              ),
-            }
-          : undefined,
-      };
-    }
-    const localMessage = message as LocalMessage | MessageResponse;
-    const errorStatusCode = this.errorStatusCodes.get(localMessage.id);
-    const translationLanguage = getTranslationLanguage(channel, user);
-    const readByRevision =
-      isThreadMessage || !channel
-        ? undefined
-        : channel.messageReceiptsTracker.snapshotStore.getLatestValue()
-            .revision;
-    const cached = this.streamMessageCache.get(localMessage);
-    if (
-      cached &&
-      cached.errorStatusCode === errorStatusCode &&
-      cached.translationLanguage === translationLanguage
-    ) {
-      // readBy is only recalculated if the read receipts changed, and the message object is only replaced if the readBy list changed
-      if (cached.readByRevision !== readByRevision) {
-        const readBy = this.getMessageReadBy(localMessage, channel);
-        if (!this.isSameUserList(readBy, cached.message.readBy)) {
-          cached.message = { ...cached.message, readBy };
-        }
-        cached.readByRevision = readByRevision;
-      }
-      return cached.message;
-    }
-    // Messages are stored by stream-chat, they shouldn't be mutated, we create a new object instead
-    const streamMessage: StreamMessage = {
-      ...localMessage,
-      status: (localMessage as LocalMessage).status || 'received',
-      readBy: this.getMessageReadBy(localMessage, channel),
-      translation: getMessageTranslation(localMessage, channel, user),
-      errorStatusCode,
-      quoted_message: localMessage.quoted_message
-        ? {
-            ...localMessage.quoted_message,
-            translation: getMessageTranslation(
-              localMessage.quoted_message,
-              channel,
-              user
-            ),
-          }
-        : undefined,
-    };
-    this.streamMessageCache.set(localMessage, {
-      errorStatusCode,
-      translationLanguage,
-      readByRevision,
-      message: streamMessage,
-    });
-    return streamMessage;
-  }
-
-  /**
-   * Emits the message lists of the active channel again, so the translations follow the current translation language (only the messages with a changed translation language get a new object)
-   */
-  private refreshTranslations() {
-    const channel = this.activeChannelSubject.getValue();
-    if (!channel) {
-      return;
-    }
-    this.activeChannelMessagesSubject.next([
-      ...this.activeChannelMessagesSubject.getValue(),
-    ]);
-    this.activeThreadMessagesSubject.next([
-      ...this.activeThreadMessagesSubject.getValue(),
-    ]);
-    this.activeChannelPinnedMessagesSubject.next(
-      (channel.pinnedMessagesPaginator.items ?? []).map((m) =>
-        this.transformToStreamMessage(m, channel)
-      )
-    );
-  }
-
-  private getMessageReadBy(
-    message: LocalMessage | MessageResponse,
-    channel?: Channel
-  ) {
-    return message.parent_id || !channel ? [] : getReadBy(message, channel);
-  }
-
-  private isSameUserList(users1: UserResponse[], users2: UserResponse[]) {
-    return (
-      users1.length === users2.length &&
-      users1.every(
-        (u, i) =>
-          u.id === users2[i]?.id &&
-          u.name === users2[i]?.name &&
-          u.image === users2[i]?.image
-      )
-    );
   }
 
   private handleTypingStartEvent(event: EventPayload<'typing.start'>) {

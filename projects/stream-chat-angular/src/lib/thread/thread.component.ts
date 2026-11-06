@@ -1,11 +1,11 @@
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { Channel } from 'stream-chat';
+import { Channel, LocalMessage } from 'stream-chat';
 import { ChatClientService } from '../chat-client.service';
 import { ChannelService } from '../channel.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { getChannelDisplayText } from '../get-channel-display-text';
-import { StreamMessage, ThreadHeaderContext } from '../types';
+import { ThreadHeaderContext } from '../types';
 
 /**
  * The `Thread` component represents a [message thread](/chat/docs/javascript/threads/), it is a container component that displays a thread with a header, [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent) and [`MessageInput`](/chat/docs/sdk/angular/components/MessageInputComponent/) components.
@@ -17,7 +17,7 @@ import { StreamMessage, ThreadHeaderContext } from '../types';
 })
 export class ThreadComponent implements OnDestroy {
   @HostBinding('class') private class = 'str-chat__thread';
-  parentMessage: StreamMessage | undefined;
+  parentMessage: LocalMessage | undefined;
   channel: Channel | undefined;
   private subscriptions: Subscription[] = [];
 
