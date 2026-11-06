@@ -65,12 +65,11 @@ const normalizeGenericTypes = (line: string) => {
   );
 };
 
-const docsBaseUrl = '/chat/docs/sdk/angular/v8';
+// v8 is the latest version, its docs are served from the unversioned URL (the same URL the links in the source code use)
+const docsBaseUrl = '/chat/docs/sdk/angular';
 
-// Links in the source code point to the unversioned docs, generated docs link to the docs version they belong to
 const normalizeLinks = (line: string) =>
   line
-    .replace(/\]\(\/chat\/docs\/sdk\/angular\/(?!v\d)/g, `](${docsBaseUrl}/`)
     // Heading anchors don't contain $ (for example #querystate$)
     .replace(/(\]\([^)#\s]*#[\w-]+)\$\)/g, '$1)');
 
