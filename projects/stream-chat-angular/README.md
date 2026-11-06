@@ -1,4 +1,4 @@
-# Official Angular SDK for [Stream Chat](https://getstream.io/chat/sdk/react/)
+# Official Angular SDK for [Stream Chat](https://getstream.io/chat/sdk/angular/)
 
 > The official Angular components for Stream Chat 💬, a service for building chat applications.
 
@@ -9,9 +9,10 @@
 **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Chat
-- [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/)
+- [Angular Chat Tutorial](https://getstream.io/chat/sdk/angular/tutorial/)
 - [Demo Apps](https://getstream.io/chat/demos/)
-- [Docs](https://getstream.io/chat/docs/sdk/angular/)
+- [Docs](https://getstream.io/chat/docs/sdk/angular/v8/)
+- [Upgrade guide to v8](https://getstream.io/chat/docs/sdk/angular/v8/basics/upgrade-to-v8/)
 - [Chat UI Kit](https://getstream.io/chat/ui-kit/)
 
 With our component library, you can build a variety of chat use cases, including:
@@ -23,7 +24,7 @@ With our component library, you can build a variety of chat use cases, including
 
 ## Angular Chat Tutorial
 
-The best way to get started is to follow the [Angular Chat Tutorial](https://getstream.io/chat/angular/tutorial/). It shows you how to use this SDK to build a fully functional chat application and includes common customizations.
+The best way to get started is to follow the [Angular Chat Tutorial](https://getstream.io/chat/sdk/angular/tutorial/). It shows you how to use this SDK to build a fully functional chat application and includes common customizations.
 
 ## Free for Makers
 
@@ -32,9 +33,9 @@ For complete pricing and details visit our [Chat Pricing Page](https://getstream
 
 ## Docs
 
-The [docs](https://getstream.io/chat/docs/sdk/angular/) provide a brief description about the components and services in the library.
+The [docs](https://getstream.io/chat/docs/sdk/angular/v8/) provide a brief description about the components and services in the library.
 
-The Angular library is created using the [stream-chat-js](https://github.com/getstream/stream-chat-js) library. For the most common use cases our services should give a nice abstraction over this library, however you might need it for more advanced customization, the [documentation](https://getstream.io/chat/docs/js/) is on our website.
+The Angular library is created using the [stream-chat-js](https://github.com/getstream/stream-chat-js) library. For the most common use cases our services should give a nice abstraction over this library, however you might need it for more advanced customization, the [documentation](https://getstream.io/chat/docs/javascript/) is on our website.
 
 ## Contributing
 
@@ -50,6 +51,8 @@ Check out our current openings and apply via [Stream's website](https://getstrea
 ## Installation
 
 ### Install with NPM
+
+> v8 is built on [`stream-chat`](https://github.com/getstream/stream-chat-js) v10. If you are upgrading from v7, follow the [upgrade guide](https://getstream.io/chat/docs/sdk/angular/v8/basics/upgrade-to-v8/).
 
 Supported Angular versions: **Angular 17-22**
 
@@ -93,7 +96,7 @@ Run this command if you are using **Angular 17**:
 npm install stream-chat-angular stream-chat @ngx-translate/core@17 ngx-float-ui@17
 ```
 
-Supported node verisons: 18+
+Supported Node versions: 22.18+
 
 ## Sample App
 
@@ -129,12 +132,8 @@ STREAM_USER_TOKEN=<Your user token>
 
 ```
 
-Run `npm start:customizations-example` and navigate to `http://localhost:4200/`.
+Run `npm run start:customizations-example` and navigate to `http://localhost:4200/`.
 
 ## Local development
 
 Run `npm install` in the root of the project. You can use the `npm run start:dev` command to start the SampleApp with automatic reloading.
-
-```
-
-```

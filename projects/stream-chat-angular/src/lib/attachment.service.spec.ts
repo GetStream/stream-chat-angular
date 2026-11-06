@@ -1,10 +1,10 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { first } from 'rxjs/operators';
-import { AppSettings, Attachment } from 'stream-chat';
+import { Attachment, StreamAPIError } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
 import { ChannelService } from './channel.service';
 import { NotificationService } from './notification.service';
-import { AttachmentUpload } from './types';
+import { AppSettings, AttachmentUpload } from './types';
 import { Subject } from 'rxjs';
 import { ChatClientService } from './chat-client.service';
 import { MessageService } from './message.service';
@@ -109,17 +109,37 @@ describe('AttachmentService', () => {
       },
     ]);
     await service.filesSelected([file] as any as FileList);
-    deleteAttachmentSpy.and.rejectWith(new Error('error'));
+    const message = 'DeleteFile failed with error: "error"';
+    deleteAttachmentSpy.and.rejectWith(
+      new StreamAPIError(message, {
+        code: 4,
+        status: 400,
+        response: {
+          data: { code: 4, message, StatusCode: 400 },
+          status: 400,
+        } as unknown as StreamAPIError['response'],
+      })
+    );
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addTemporaryNotification');
     let attachmentUpload!: AttachmentUpload;
     service.attachmentUploads$
       .pipe(first())
       .subscribe((uploads) => (attachmentUpload = uploads[0]));
-    const uploadedAttachmentsSpy = jasmine.createSpy('uploadedAttachmentsSpy');
-    service.attachmentUploads$.subscribe(uploadAttachmentsSpy);
-    uploadedAttachmentsSpy.calls.reset();
     await service.deleteAttachment(attachmentUpload);
 
-    expect(uploadedAttachmentsSpy).not.toHaveBeenCalled();
+    expect(deleteAttachmentSpy).toHaveBeenCalledWith(attachmentUpload);
+    expect(notificationService.addTemporaryNotification).toHaveBeenCalledWith(
+      'streamChat.Error deleting attachment'
+    );
+    let uploads!: AttachmentUpload[];
+    service.attachmentUploads$
+      .pipe(first())
+      .subscribe((value) => (uploads = value));
+
+    expect(uploads.length).toBe(1);
+    expect(uploads[0].file).toBe(file);
+    expect(uploads[0].state).toBe('success');
   });
 
   it('should remove deleted attachments after upload', fakeAsync(() => {
@@ -145,7 +165,8 @@ describe('AttachmentService', () => {
   }));
 
   it(`shouldn't try to delete custom attachments from CDN`, fakeAsync(() => {
-    const customAttachment = {
+    const customAttachment: Attachment = {
+      custom: {},
       image_url: 'url/to/my/image',
       type: 'image',
     };
@@ -207,14 +228,14 @@ describe('AttachmentService', () => {
     spyOn(notificationService, 'addPermanentNotification');
     const attachments = new Array(30)
       .fill(null)
-      .map(() => ({ type: 'custom' }));
+      .map(() => ({ type: 'custom', custom: {} }));
     service.customAttachments$.next(attachments);
 
     expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
 
     service.customAttachments$.next([
       ...service.customAttachments$.value,
-      { type: 'custom' },
+      { type: 'custom', custom: {} },
     ]);
 
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
@@ -229,7 +250,7 @@ describe('AttachmentService', () => {
     spyOn(notificationService, 'addTemporaryNotification');
     const attachments = new Array(28)
       .fill(null)
-      .map(() => ({ type: 'custom' }));
+      .map(() => ({ type: 'custom', custom: {} }));
     service.customAttachments$.next(attachments);
 
     expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
@@ -254,7 +275,7 @@ describe('AttachmentService', () => {
     spyOn(notificationService, 'addTemporaryNotification');
     const attachments = new Array(29)
       .fill(null)
-      .map(() => ({ type: 'custom' }));
+      .map(() => ({ type: 'custom', custom: {} }));
     service.customAttachments$.next(attachments);
 
     expect(notificationService.addTemporaryNotification).not.toHaveBeenCalled();
@@ -478,7 +499,7 @@ describe('AttachmentService', () => {
     const errorNotificationHideSpy = jasmine.createSpy();
     service['attachmentLimitNotificationHide'] = errorNotificationHideSpy;
     const spy = jasmine.createSpy();
-    service.customAttachments$.next([{ type: 'custom' }]);
+    service.customAttachments$.next([{ type: 'custom', custom: {} }]);
     service.attachmentUploads$.subscribe(spy);
     spy.calls.reset();
     service.resetAttachmentUploads();
@@ -525,6 +546,7 @@ describe('AttachmentService', () => {
     ] as any as FileList);
 
     const customAttachment: Attachment = {
+      custom: {},
       type: 'video',
       asset_url: 'url/to/my/video',
       thumb_url: 'url/to/my/thumb',
@@ -534,10 +556,11 @@ describe('AttachmentService', () => {
 
     const customPaymentAttachment: Attachment = {
       type: 'custom',
-      // @ts-expect-error testing custom proerpty
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
 
     service.customAttachments$.next([customPaymentAttachment]);
@@ -547,29 +570,27 @@ describe('AttachmentService', () => {
         fallback: 'flower.png',
         image_url: 'http://url/to/img',
         type: 'image',
-        mime_type: 'image/png',
+        custom: { mime_type: 'image/png' },
       },
       {
         type: 'video',
         title: 'test.mp4',
-        file_size: 22233332,
         asset_url: 'http://url/to/file',
         thumb_url: 'http://url/to/thumb',
-        mime_type: 'video/mp4',
+        custom: { mime_type: 'video/mp4', file_size: 22233332 },
       },
       {
         title: 'note.txt',
-        file_size: 3272969,
         asset_url: 'http://url/to/data',
         type: 'file',
         thumb_url: undefined,
-        mime_type: 'plain/text',
+        custom: { mime_type: 'plain/text', file_size: 3272969 },
       },
       {
         type: 'video',
         asset_url: 'url/to/my/video',
         thumb_url: 'url/to/my/thumb',
-        isCustomAttachment: true,
+        custom: { isCustomAttachment: true },
       },
       customPaymentAttachment,
     ]);
@@ -581,40 +602,39 @@ describe('AttachmentService', () => {
       messageService,
       'isCustomAttachment'
     ).and.callThrough();
-    const customAttachment = {
+    const customAttachment: Attachment = {
       type: 'custom',
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
-    const attachments = [
+    const attachments: Attachment[] = [
       {
         fallback: 'flower.png',
         image_url: 'http://url/to/img',
         type: 'image',
-        mime_type: undefined,
+        custom: { mime_type: undefined },
       },
       {
         title: 'note.txt',
-        file_size: 3272969,
         asset_url: 'http://url/to/data',
         type: 'file',
-        mime_type: undefined,
+        custom: { mime_type: undefined, file_size: 3272969 },
       },
       {
         title: 'cute.mov',
-        file_size: 45367543,
         asset_url: 'http://url/to/video',
         type: 'video',
         thumb_url: 'http://url/to/poster',
-        mime_type: 'video/mov',
+        custom: { mime_type: 'video/mov', file_size: 45367543 },
       },
       {
         type: 'file',
         asset_url: 'url/to/my/file',
         title: 'my-file.pdf',
-        mime_type: 'application/pdf',
-        isCustomAttachment: true,
+        custom: { mime_type: 'application/pdf', isCustomAttachment: true },
       },
       customAttachment,
     ];
@@ -674,7 +694,11 @@ describe('AttachmentService', () => {
   });
 
   it('should ignore URL attachments if creating from attachments', () => {
-    const urlAttachment = { type: 'image', title_link: 'title_link' };
+    const urlAttachment: Attachment = {
+      type: 'image',
+      title_link: 'title_link',
+      custom: {},
+    };
     const spy = jasmine.createSpy();
     service.attachmentUploads$.subscribe(spy);
     spy.calls.reset();
@@ -687,9 +711,8 @@ describe('AttachmentService', () => {
     const customAttachment: Attachment = {
       type: 'file',
       asset_url: 'url/to/my/file',
-      file_size: undefined,
       title: 'my-file.pdf',
-      mime_type: undefined,
+      custom: { file_size: undefined, mime_type: undefined },
     };
 
     const spy = jasmine.createSpy();
@@ -707,7 +730,10 @@ describe('AttachmentService', () => {
           type: undefined,
         } as unknown as File,
         type: 'file',
-        fromAttachment: { ...customAttachment, isCustomAttachment: true },
+        fromAttachment: {
+          ...customAttachment,
+          custom: { ...customAttachment.custom, isCustomAttachment: true },
+        },
         thumb_url: undefined,
       },
     ]);
@@ -726,7 +752,7 @@ describe('AttachmentService', () => {
       image_upload_config: {
         size_limit: 3145728,
       },
-    });
+    } as unknown as AppSettings);
     let files = [{ name: 'test.pdf', type: 'application/pdf', size: 1048576 }];
     let result = await service.filesSelected(files as any as FileList);
 
@@ -778,7 +804,7 @@ describe('AttachmentService', () => {
         allowed_file_extensions: [],
         allowed_mime_types: [],
       },
-    });
+    } as unknown as AppSettings);
     let files = [{ name: 'test.pdf', type: 'application/pdf' }];
     let result = await service.filesSelected(files as any as FileList);
 
@@ -791,7 +817,7 @@ describe('AttachmentService', () => {
       image_upload_config: {
         blocked_mime_types: ['image/png'],
       },
-    });
+    } as unknown as AppSettings);
 
     files = [
       { name: 'test.pdf', type: 'application/pdf' },
@@ -824,7 +850,7 @@ describe('AttachmentService', () => {
       image_upload_config: {
         allowed_file_extensions: ['.jpg', '.png'],
       },
-    });
+    } as unknown as AppSettings);
     files = [
       { name: 'test.pdf', type: 'application/pdf' },
       { name: 'test2.doc', type: 'application/msword' },

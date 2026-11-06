@@ -12,14 +12,20 @@ import {
   ElementRef,
   NgZone,
 } from '@angular/core';
-import { Attachment, UserResponse } from 'stream-chat';
+import {
+  Attachment,
+  Channel,
+  LocalMessage,
+  nsToDate,
+  nsToRfc3339,
+  UserResponse,
+} from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { ChatClientService } from '../chat-client.service';
 import {
   AttachmentListContext,
   MessageActionsBoxContext,
   MessageReactionsContext,
-  StreamMessage,
   DeliveredStatusContext,
   SendingStatusContext,
   ReadStatusContext,
@@ -39,6 +45,8 @@ import {
 } from 'ngx-float-ui';
 import { TranslateService } from '@ngx-translate/core';
 import { isSafari } from '../is-safari';
+import { getMessageTranslation } from '../get-message-translation';
+import { watchReadBy } from '../read-by';
 
 /**
  * The `Message` component displays a message with additional information such as sender and date, and enables [interaction with the message (i.e. edit or react)](/chat/docs/sdk/angular/concepts/message-interactions/).
@@ -55,9 +63,13 @@ export class MessageComponent
   /**
    * The message to be displayed
    */
-  @Input() message: StreamMessage | undefined;
+  @Input() message: LocalMessage | undefined;
   /**
-   * The list of [channel capabilities](/chat/docs/javascript/channel_capabilities/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](/chat/docs/javascript/channel_capabilities/).
+   * The channel of the message, it's used to display who read the message. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this.
+   */
+  @Input() channel: Channel | undefined;
+  /**
+   * The list of [channel capabilities](/chat/docs/node/chat-permission-policies/) that are enabled for the current user, the list of [supported interactions](/chat/docs/sdk/angular/concepts/message-interactions/) can be found in our message interaction guide. Unathorized actions won't be displayed on the UI. The [`MessageList`](/chat/docs/sdk/angular/components/MessageListComponent/) component automatically sets this based on [channel capabilities](/chat/docs/node/chat-permission-policies/).
    */
   @Input() enabledMessageActions: string[] = [];
   /**
@@ -85,12 +97,22 @@ export class MessageComponent
   shouldDisplayThreadLink = false;
   isSentByCurrentUser = false;
   readByText = '';
-  lastReadUser: UserResponse | undefined = undefined;
-  isOnlyReadByMe = false;
-  isReadByMultipleUsers = false;
+  /**
+   * The users who have read the message, only set for the last message sent by the current user (in other cases it's an empty array)
+   */
+  readBy: UserResponse[] = [];
   isMessageDeliveredAndRead = false;
+  /**
+   * The translation of the message text, if there is any
+   */
+  translation?: string;
+  /**
+   * The translation of the quoted message text, if there is any
+   */
+  quotedMessageTranslation?: string;
   parsedDate = '';
   pasedEditedDate = '';
+  editedDateTime?: string;
   areOptionsVisible = false;
   hasAttachment = false;
   hasReactions = false;
@@ -116,6 +138,9 @@ export class MessageComponent
   private shouldPreventMessageMenuClose = false;
   private _visibleMessageActionsCount = 0;
   private channelMemberCount?: number;
+  private translationLanguage?: string;
+  private stopWatchingReadBy?: () => void;
+  private readByWatchedFor?: { message: LocalMessage; channel: Channel };
 
   constructor(
     private chatClientService: ChatClientService,
@@ -145,7 +170,8 @@ export class MessageComponent
         if (u?.id !== this.userId) {
           this.userId = u?.id;
           this.setIsSentByCurrentUser();
-          this.setLastReadUser();
+          this.updateTranslations();
+          this.updateReadByWatcher();
           if (this.isViewInited) {
             this.cdRef.detectChanges();
           }
@@ -168,6 +194,19 @@ export class MessageComponent
           }
         }
       })
+    );
+    this.subscriptions.push(
+      this.channelService.activeChannelTranslationLanguage$.subscribe(
+        (language) => {
+          if (language !== this.translationLanguage) {
+            this.translationLanguage = language;
+            this.updateTranslations();
+            if (this.isViewInited) {
+              this.cdRef.detectChanges();
+            }
+          }
+        }
+      )
     );
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((activeChannel) => {
@@ -202,47 +241,28 @@ export class MessageComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.message) {
-      this.displayedMessageTextContent = this.message?.translation
-        ? 'translation'
-        : 'original';
-      this.shouldDisplayTranslationNotice =
-        this.displayedMessageTextContent === 'translation';
+      this.updateTranslations();
       const originalAttachments = this.message?.quoted_message?.attachments;
       this.quotedMessageAttachments =
         originalAttachments && originalAttachments.length
           ? [originalAttachments[0]]
           : [];
       this.setIsSentByCurrentUser();
-      this.setLastReadUser();
-      this.updateReadByText();
-      this.isOnlyReadByMe = !!(
-        this.message &&
-        this.message.readBy &&
-        this.message.readBy.length === 0
-      );
-      this.isReadByMultipleUsers = !!(
-        this.message &&
-        this.message.readBy &&
-        this.message.readBy.length > 1
-      );
-      this.isMessageDeliveredAndRead = !!(
-        this.message &&
-        this.message.readBy &&
-        this.message.status === 'received' &&
-        this.message.readBy.length > 0
-      );
       this.parsedDate =
         (this.message &&
           this.message.created_at &&
-          this.dateParser.parseDateTime(this.message.created_at)) ||
+          this.dateParser.parseDateTime(nsToDate(this.message.created_at))) ||
         '';
       this.pasedEditedDate =
         (this.message &&
           this.message.message_text_updated_at &&
           this.dateParser.parseDateTime(
-            new Date(this.message.message_text_updated_at)
+            nsToDate(this.message.message_text_updated_at)
           )) ||
         '';
+      this.editedDateTime = this.message?.message_text_updated_at
+        ? nsToRfc3339(this.message.message_text_updated_at)
+        : undefined;
       this.hasAttachment =
         !!this.message?.attachments && !!this.message.attachments.length;
       this.hasReactions =
@@ -258,6 +278,14 @@ export class MessageComponent
       this.canDisplayReadStatus =
         this.canReceiveReadEvents !== false &&
         this.enabledMessageActions.indexOf('read-events') !== -1;
+    }
+    if (
+      changes.message ||
+      changes.channel ||
+      changes.isLastSentMessage ||
+      changes.mode
+    ) {
+      this.updateReadByWatcher();
     }
     if (changes.message || changes.enabledMessageActions || changes.mode) {
       this.shouldDisplayThreadLink =
@@ -324,6 +352,7 @@ export class MessageComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.stopWatchingReadBy?.();
     if (this.showMessageMenuTimeout) {
       clearTimeout(this.showMessageMenuTimeout);
     }
@@ -400,6 +429,7 @@ export class MessageComponent
   getMessageContext(): SystemMessageContext {
     return {
       message: this.message,
+      channel: this.channel,
       enabledMessageActions: this.enabledMessageActions,
       isHighlighted: this.isHighlighted,
       isLastSentMessage: this.isLastSentMessage,
@@ -415,6 +445,7 @@ export class MessageComponent
       message: this.message,
       isQuoted: false,
       shouldTranslate: this.displayedMessageTextContent === 'translation',
+      translation: this.translation,
     };
   }
 
@@ -423,6 +454,7 @@ export class MessageComponent
       message: this.message?.quoted_message,
       isQuoted: true,
       shouldTranslate: this.displayedMessageTextContent === 'translation',
+      translation: this.quotedMessageTranslation,
     };
   }
 
@@ -444,16 +476,20 @@ export class MessageComponent
     };
   }
 
+  get isBounced() {
+    return (
+      this.message?.type === 'error' &&
+      this.message?.moderation?.action === 'bounce'
+    );
+  }
+
   messageClicked() {
     if (
       this.message?.status === 'failed' &&
-      this.message?.errorStatusCode !== 403
+      this.message?.error?.status !== 403
     ) {
       this.resendMessage();
-    } else if (
-      this.message?.type === 'error' &&
-      this.message?.moderation_details
-    ) {
+    } else if (this.isBounced) {
       this.openMessageBouncePrompt();
     } else {
       this.isEditedFlagOpened = !this.isEditedFlagOpened;
@@ -493,6 +529,7 @@ export class MessageComponent
     return {
       message: this.message!,
       readByText: this.readByText,
+      readBy: this.readBy,
     };
   }
 
@@ -529,19 +566,95 @@ export class MessageComponent
       'streamChat.and others'
     ) as string;
     const hasMoreThan100Members = (this.channelMemberCount ?? 0) > 100;
-    this.readByText = this.message?.readBy
-      ? listUsers(this.message.readBy, !hasMoreThan100Members, others)
-      : '';
+    this.readByText = listUsers(this.readBy, !hasMoreThan100Members, others);
+  }
+
+  private updateTranslations() {
+    this.translation = getMessageTranslation(
+      this.message,
+      this.translationLanguage,
+      this.userId
+    );
+    this.quotedMessageTranslation = getMessageTranslation(
+      this.message?.quoted_message,
+      this.translationLanguage,
+      this.userId
+    );
+    this.displayedMessageTextContent = this.translation
+      ? 'translation'
+      : 'original';
+    this.shouldDisplayTranslationNotice =
+      this.displayedMessageTextContent === 'translation';
+  }
+
+  /**
+   * Read receipts are only displayed for the last message sent by the current user, so only that message watches them
+   */
+  private updateReadByWatcher() {
+    const message = this.message;
+    const channel = this.channel;
+    const shouldWatch =
+      !!message &&
+      !!channel &&
+      this.isSentByCurrentUser &&
+      !!this.isLastSentMessage &&
+      this.mode === 'main' &&
+      message.status === 'received';
+    if (
+      shouldWatch &&
+      this.readByWatchedFor?.channel === channel &&
+      this.readByWatchedFor.message.id === message.id &&
+      this.readByWatchedFor.message.created_at === message.created_at
+    ) {
+      return;
+    }
+    this.stopWatchingReadBy?.();
+    this.stopWatchingReadBy = undefined;
+    this.readByWatchedFor = undefined;
+    if (!shouldWatch) {
+      this.setReadBy([]);
+      return;
+    }
+    this.readByWatchedFor = { message, channel };
+    let isInitialCall = true;
+    this.stopWatchingReadBy = watchReadBy(message, channel, (readBy) => {
+      if (isInitialCall) {
+        this.setReadBy(readBy);
+      } else {
+        // Read receipts are updated by stream-chat (WebSocket events), outside of Angular's zone
+        this.ngZone.run(() => {
+          this.setReadBy(readBy);
+          this.cdRef.markForCheck();
+        });
+      }
+    });
+    isInitialCall = false;
+  }
+
+  private setReadBy(readBy: UserResponse[]) {
+    if (this.isSameUserList(readBy, this.readBy)) {
+      return;
+    }
+    this.readBy = readBy;
+    this.isMessageDeliveredAndRead =
+      this.message?.status === 'received' && this.readBy.length > 0;
+    this.updateReadByText();
+  }
+
+  private isSameUserList(users1: UserResponse[], users2: UserResponse[]) {
+    return (
+      users1.length === users2.length &&
+      users1.every(
+        (u, i) =>
+          u.id === users2[i]?.id &&
+          u.name === users2[i]?.name &&
+          u.image === users2[i]?.image
+      )
+    );
   }
 
   private setIsSentByCurrentUser() {
     this.isSentByCurrentUser = this.message?.user?.id === this.userId;
-  }
-
-  private setLastReadUser() {
-    this.lastReadUser = this.message?.readBy?.filter(
-      (u) => u.id !== this.userId
-    )[0];
   }
 
   private startMessageMenuShowTimer(options: { fromTouch: boolean }) {

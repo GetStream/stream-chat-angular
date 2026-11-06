@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { PollAnswer, PollVote } from 'stream-chat';
+import { nsToDate, PollVoteResponseData, TimestampNS } from 'stream-chat';
 import { DateParserService } from '../../../../date-parser.service';
 
 /**
@@ -16,7 +16,7 @@ export class PollVoteComponent {
   /**
    * The poll vote or answer to display
    */
-  @Input() vote: PollVote | PollAnswer | undefined;
+  @Input() vote: PollVoteResponseData | undefined;
   anonymousTranslation = 'Anonymous';
 
   constructor(
@@ -30,7 +30,7 @@ export class PollVoteComponent {
       });
   }
 
-  parseDate(date: string) {
-    return this.dateParser.parseDateTime(new Date(date));
+  parseDate(date: TimestampNS) {
+    return this.dateParser.parseDateTime(nsToDate(date));
   }
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { Channel, User } from 'stream-chat';
+import { Channel, UserResponse } from 'stream-chat';
 import { CustomTemplatesService } from '../custom-templates.service';
 import { AvatarContext, AvatarLocation, AvatarType } from '../types';
 
@@ -31,7 +31,7 @@ export class AvatarPlaceholderComponent implements OnChanges {
   /**
    * The user the avatar belongs to (if avatar of a user is displayed)
    */
-  @Input() user?: User;
+  @Input() user?: UserResponse;
   /**
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */

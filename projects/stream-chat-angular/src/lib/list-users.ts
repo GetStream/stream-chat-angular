@@ -1,7 +1,5 @@
-import { UserResponse } from 'stream-chat';
-
 export const listUsers = (
-  users: UserResponse[],
+  users: { id: string; name?: string }[],
   displayRestCount = true,
   othersText = ''
 ) => {

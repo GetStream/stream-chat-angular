@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { StreamMessage } from 'stream-chat-angular';
+import { LocalMessage, MessageResponse } from 'stream-chat';
 
 @Component({
   selector: 'app-message-text',
@@ -7,8 +7,9 @@ import { StreamMessage } from 'stream-chat-angular';
   styleUrls: ['./message-text.component.scss'],
 })
 export class MessageTextComponent {
-  @Input() message: StreamMessage | undefined | StreamMessage['quoted_message'];
+  @Input() message: LocalMessage | MessageResponse | undefined;
   @Input() isQuoted: boolean = false;
   @Input() shouldTranslate: boolean = false;
+  @Input() translation: string | undefined;
   isExpanded = false;
 }

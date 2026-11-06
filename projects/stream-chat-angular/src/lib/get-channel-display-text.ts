@@ -1,12 +1,12 @@
-import { Channel, UserResponse } from 'stream-chat';
+import { Channel } from 'stream-chat';
 import { listUsers } from './list-users';
 
 export const getChannelDisplayText = (
   channel: Channel,
-  currentUser: UserResponse
+  currentUser?: { id?: string }
 ) => {
-  if (channel.data?.name) {
-    return channel.data.name;
+  if (channel.data?.custom?.name) {
+    return channel.data.custom.name;
   }
   if (channel.state.members && Object.keys(channel.state.members).length > 0) {
     const members = Object.values(channel.state.members)

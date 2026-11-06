@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { normalizeGeneratedDocs } = require('./normalize-generated-docs');
 
 const generatedDocsPath = 'temp-component-docs/classes';
 const componentDocsPath = process.argv[2];
@@ -32,9 +33,11 @@ const insertGeneratedParts = (
   fileContent: string,
   generatedContent: string[]
 ) => {
-  generatedContent = generatedContent.map((l) =>
-    l.replace(/•\s/g, '').replace(/▸\s/g, '')
-  );
+  generatedContent = normalizeGeneratedDocs(
+    generatedContent
+      .map((l) => l.replace(/•\s/g, '').replace(/▸\s/g, ''))
+      .join('\n')
+  ).split('\n');
   const lines: string[] = fileContent.split('\n');
   const startOfGeneratedContentLineNumber = lines.indexOf(
     startOfGeneratedContentMark

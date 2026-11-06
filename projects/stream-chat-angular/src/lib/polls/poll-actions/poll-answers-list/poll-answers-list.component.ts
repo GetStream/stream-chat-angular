@@ -8,7 +8,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { BasePollComponent } from '../../base-poll.component';
-import { Poll, PollAnswer } from 'stream-chat';
+import { Poll, PollVoteResponseData } from 'stream-chat';
 
 /**
  *
@@ -30,9 +30,9 @@ export class PollAnswersListComponent
   @Output() readonly upsertOwnAnswer = new EventEmitter<void>();
   isLoading = false;
   next?: string | undefined;
-  answers: PollAnswer[] = [];
+  answers: PollVoteResponseData[] = [];
   isClosed = false;
-  ownAnswer: PollAnswer | undefined;
+  ownAnswer: PollVoteResponseData | undefined;
 
   ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
@@ -49,7 +49,7 @@ export class PollAnswersListComponent
       this.isLoading = true;
       const response = await this.poll.queryAnswers({
         filter: {},
-        sort: { created_at: -1 },
+        sort: [{ field: 'created_at', direction: -1 }],
         options: {
           next: this.next,
         },
@@ -70,7 +70,7 @@ export class PollAnswersListComponent
     }
   }
 
-  trackByAnswerId(_: number, answer: PollAnswer) {
+  trackByAnswerId(_: number, answer: PollVoteResponseData) {
     return answer.id;
   }
 

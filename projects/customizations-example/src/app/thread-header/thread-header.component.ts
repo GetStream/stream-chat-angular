@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { StreamMessage } from 'stream-chat-angular';
+import { LocalMessage } from 'stream-chat';
 
 @Component({
   selector: 'app-thread-header',
@@ -7,12 +7,12 @@ import { StreamMessage } from 'stream-chat-angular';
   styleUrls: ['./thread-header.component.scss'],
 })
 export class ThreadHeaderComponent {
-  @Input() parentMessage: StreamMessage | undefined;
+  @Input() parentMessage: LocalMessage | undefined;
   @Output() readonly closeThread = new EventEmitter<void>();
 
   constructor() {}
 
-  getReplyCountParam(parentMessage: StreamMessage | undefined) {
+  getReplyCountParam(parentMessage: LocalMessage | undefined) {
     return { replyCount: parentMessage?.reply_count };
   }
 }

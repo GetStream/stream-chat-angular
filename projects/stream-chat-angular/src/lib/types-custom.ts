@@ -14,4 +14,12 @@ export interface DefaultAttachmentData {
    * This is a non-standard property, other SDKs will ignore this property
    */
   isCustomAttachment?: boolean;
+  /**
+   * The duration of the attachment in seconds (used for voice recordings)
+   */
+  duration?: number;
+  /**
+   * The waveform data of a voice recording, values are between 0 and 1
+   */
+  waveform_data?: number[];
 }

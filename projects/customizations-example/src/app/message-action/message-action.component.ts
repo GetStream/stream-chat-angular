@@ -1,8 +1,6 @@
 import { Component, Input } from '@angular/core';
-import {
-  MessageActionHandlerExtraParams,
-  StreamMessage,
-} from 'stream-chat-angular';
+import { LocalMessage } from 'stream-chat';
+import { MessageActionHandlerExtraParams } from 'stream-chat-angular';
 
 @Component({
   selector: 'app-message-action',
@@ -11,13 +9,11 @@ import {
 })
 export class MessageActionComponent {
   @Input() actionName!: 'quote' | 'pin' | 'flag' | 'edit' | 'delete';
-  @Input() actionLabelOrTranslationKey!:
-    | ((_: StreamMessage) => string)
-    | string;
-  @Input() message!: StreamMessage;
+  @Input() actionLabelOrTranslationKey!: ((_: LocalMessage) => string) | string;
+  @Input() message!: LocalMessage;
   @Input() extraParams!: MessageActionHandlerExtraParams;
   @Input() actionHandler!: (
-    _: StreamMessage,
+    _: LocalMessage,
     __: MessageActionHandlerExtraParams
   ) => void;
 
@@ -35,7 +31,7 @@ export class MessageActionComponent {
   }
 
   getActionLabel(
-    actionLabelOrTranslationKey: ((_: StreamMessage) => string) | string
+    actionLabelOrTranslationKey: ((_: LocalMessage) => string) | string
   ) {
     return typeof actionLabelOrTranslationKey === 'string'
       ? actionLabelOrTranslationKey

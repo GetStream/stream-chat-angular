@@ -131,11 +131,13 @@
                 let-message="message"
                 let-isQuoted="isQuoted"
                 let-shouldTranslate="shouldTranslate"
+                let-translation="translation"
               >
                 <stream-message-text
                   [message]="message"
                   [isQuoted]="isQuoted"
                   [shouldTranslate]="shouldTranslate"
+                  [translation]="translation"
                   data-testid="quoted-message-text"
                 />
               </ng-template>

@@ -2,7 +2,7 @@ import {
   Channel,
   ChannelFilters,
   ChannelOptions,
-  ChannelSort,
+  SortParamRequest,
 } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import {
@@ -21,7 +21,7 @@ export class ChannelQuery {
    *
    * The method will be called with the result of the latest channel query.
    *
-   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/chat/docs/javascript/query_syntax_operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
+   * You can return either an offset, or a filter using the [`$lte`/`$gte` operator](/docs/platform/query-syntax-operators/). If you return a filter, it will be merged with the filter provided for the `init` method.
    */
   customPaginator?: (channelQueryResult: Channel[]) => NextPageConfiguration;
   private nextPageConfiguration?: NextPageConfiguration;
@@ -30,7 +30,9 @@ export class ChannelQuery {
     private chatService: ChatClientService,
     private channelService: ChannelService,
     private filters: ChannelFilters,
-    private sort: ChannelSort = { last_message_at: -1 },
+    private sort: SortParamRequest[] = [
+      { field: 'last_message_at', direction: -1 },
+    ],
     private options: ChannelOptions = {
       limit: 25,
       state: true,
@@ -65,11 +67,11 @@ export class ChannelQuery {
       filters = this.filters;
       options = this.options;
     }
-    const channels = await this.chatService.chatClient.queryChannels(
-      filters,
-      this.sort || {},
-      options
-    );
+    const channels = await this.chatService.chatClient.queryChannelsAndHydrate({
+      ...options,
+      filter_conditions: filters,
+      sort: this.sort,
+    });
     this.setNextPageConfiguration(channels);
 
     const currentActiveChannel = this.channelService.activeChannel;
@@ -78,16 +80,8 @@ export class ChannelQuery {
       currentActiveChannel &&
       !channels.find((c) => c.cid === currentActiveChannel?.cid)
     ) {
-      try {
-        await currentActiveChannel.watch();
-        channels.unshift(currentActiveChannel);
-      } catch (error) {
-        this.chatService.chatClient.logger(
-          'warn',
-          'Unable to refetch active channel after state recover',
-          error as Record<string, unknown>
-        );
-      }
+      // The active channel is activated, so stream-chat reloads it after reconnect, we just keep it in the list
+      channels.unshift(currentActiveChannel);
     }
 
     return {

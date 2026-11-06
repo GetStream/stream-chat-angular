@@ -6,7 +6,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
-import { VotingVisibility } from 'stream-chat';
 import { CustomTemplatesService } from '../../custom-templates.service';
 import { ModalContext } from '../../types';
 import { ChatClientService } from '../../chat-client.service';
@@ -132,8 +131,8 @@ export class PollComposerComponent {
           ? +maxVotesControl.value
           : undefined,
         voting_visibility: this.formGroup.get('is_anonymous')?.value
-          ? VotingVisibility.anonymous
-          : VotingVisibility.public,
+          ? 'anonymous'
+          : 'public',
         allow_user_suggested_options: !!this.formGroup.get(
           'allow_user_suggested_options'
         )?.value,

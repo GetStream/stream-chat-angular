@@ -17,6 +17,7 @@ describe('MessageService', () => {
 
   it('should filter custom attachments', () => {
     const attachment: Attachment = {
+      custom: {},
       type: 'image',
     };
 

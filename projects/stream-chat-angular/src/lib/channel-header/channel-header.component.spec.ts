@@ -27,7 +27,7 @@ describe('ChannelHeaderComponent', () => {
       activeChannel$: new Subject(),
     };
     chatClientServiceMock = {
-      chatClient: { user: { id: 'currentUser' } },
+      chatClient: { user: { id: 'currentUser' } as UserResponse },
     };
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
@@ -98,9 +98,12 @@ describe('ChannelHeaderComponent', () => {
     const channel = {
       id: 'running-club',
       data: {
-        name: 'Running club',
-        image: 'http://url/to/img',
+        custom: {
+          name: 'Running club',
+          image: 'http://url/to/img',
+        },
       },
+      state: {},
     } as any as Channel;
     channelServiceMock.activeChannel$.next(channel);
     const avatar = queryAvatar();

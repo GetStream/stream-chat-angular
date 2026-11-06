@@ -28,6 +28,7 @@ import { CustomTemplatesService } from '../custom-templates.service';
 import { AttachmentConfigurationService } from '../attachment-configuration.service';
 import { Subscription } from 'rxjs';
 import { MessageService } from '../message.service';
+import { areAttachmentsEqualIgnoringUrlSignatures } from '../attachment-utils';
 
 /**
  * The `AttachmentList` component displays the attachments of a message
@@ -71,6 +72,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     | ImageAttachmentConfiguration
   > = new Map();
   private subscriptions: Subscription[] = [];
+  private displayedAttachments?: Attachment[];
 
   constructor(
     public readonly customTemplatesService: CustomTemplatesService,
@@ -94,7 +96,18 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.attachments) {
+    if (
+      changes.attachments &&
+      // Keep the displayed attachments if only the URL signatures changed (for example a reaction was added), otherwise images/videos would be reloaded
+      !(
+        this.displayedAttachments &&
+        areAttachmentsEqualIgnoringUrlSignatures(
+          this.displayedAttachments,
+          this.attachments
+        )
+      )
+    ) {
+      this.displayedAttachments = this.attachments;
       const builtInAttachments: Attachment[] = [];
       const customAttachments: Attachment[] = [];
       this.attachments.forEach((a) => {
@@ -168,12 +181,13 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
 
   hasFileSize(attachment: Attachment) {
     return (
-      attachment.file_size && Number.isFinite(Number(attachment.file_size))
+      attachment.custom?.file_size &&
+      Number.isFinite(Number(attachment.custom.file_size))
     );
   }
 
   getFileSize(attachment: Attachment) {
-    return prettybytes(Number(attachment.file_size!));
+    return prettybytes(Number(attachment.custom?.file_size));
   }
 
   getModalContext(): ModalContext {
@@ -220,7 +234,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   trackByImageUrl(_: number, item: Attachment) {
-    return item.image_url || item.img_url || item.thumb_url;
+    return item.image_url || item.custom?.img_url || item.thumb_url;
   }
 
   getAttachmentContext(attachment: Attachment): AttachmentContext {
@@ -311,6 +325,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
     return [
       {
         type: 'gallery',
+        custom: {},
         images,
       },
     ];
@@ -324,7 +339,7 @@ export class AttachmentListComponent implements OnChanges, OnInit, OnDestroy {
   private getAttachmentUrl(attachment: Attachment) {
     return (
       attachment.image_url ||
-      attachment.img_url ||
+      attachment.custom?.img_url ||
       attachment.asset_url ||
       attachment.thumb_url
     );

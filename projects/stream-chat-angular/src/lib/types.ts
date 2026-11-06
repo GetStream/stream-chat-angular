@@ -1,17 +1,17 @@
 import { TemplateRef } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import type {
+  AppResponseFields,
   Attachment,
   Channel,
   ChannelFilters,
   ChannelMemberResponse,
-  CommandResponse,
+  Command,
   CustomMessageData,
-  FormatMessageResponse,
-  MessageResponseBase,
+  LocalMessage,
+  MessageResponse,
   ReactionGroupResponse,
   ReactionResponse,
-  User,
   UserResponse,
 } from 'stream-chat';
 import { AttachmentService } from './attachment.service';
@@ -26,11 +26,25 @@ export type CustomTrigger = {
   };
 };
 
-export type StreamMessage = FormatMessageResponse & {
-  readBy: UserResponse[];
-  translation?: string;
-  errorStatusCode?: number;
-  quoted_message?: MessageResponseBase & { translation?: string };
+export type AppSettings = Partial<AppResponseFields>;
+
+export type MessageListPaginationState = {
+  /**
+   * `true` if there are older messages that can be loaded
+   */
+  hasMoreOlder: boolean;
+  /**
+   * `true` if there are newer messages that can be loaded (for example after jumping to an older message)
+   */
+  hasMoreNewer: boolean;
+  /**
+   * `true` if a page is being loaded
+   */
+  isLoading: boolean;
+  /**
+   * The error of the last failed query (cleared on the next successful query)
+   */
+  error?: Error;
 };
 
 export type AttachmentUploadErrorReason =
@@ -66,7 +80,7 @@ export type MentionAutcompleteListItem = (
   autocompleteLabel: string;
 };
 
-export type ComandAutocompleteListItem = CommandResponse & {
+export type ComandAutocompleteListItem = Command & {
   autocompleteLabel: string;
 };
 
@@ -87,7 +101,7 @@ export type ChannelPreviewContext = {
 };
 
 export type ChannelPreviewInfoContext = ChannelPreviewContext & {
-  latestMessage?: StreamMessage;
+  latestMessage?: LocalMessage;
   /**
    * The text of the latest message, or some meta information (for example: "Nothing yet")
    */
@@ -121,7 +135,11 @@ export type TypingIndicatorContext = {
 };
 
 export type MessageContext = {
-  message: StreamMessage | undefined;
+  message: LocalMessage | undefined;
+  /**
+   * The channel of the message
+   */
+  channel: Channel | undefined;
   enabledMessageActions: string[];
   isLastSentMessage: boolean | undefined;
   mode: 'thread' | 'main';
@@ -164,7 +182,7 @@ export type AvatarContext = {
   type: AvatarType | undefined;
   location: AvatarLocation | undefined;
   channel?: Channel;
-  user?: User;
+  user?: UserResponse;
   initialsType?: 'first-letter-of-first-word' | 'first-letter-of-each-word';
   showOnlineIndicator?: boolean;
 };
@@ -182,7 +200,7 @@ export type IconContext = {
 
 export type MessageActionsBoxContext = {
   isMine: boolean;
-  message: StreamMessage | undefined;
+  message: LocalMessage | undefined;
   enabledActions: string[];
   messageTextHtmlElement: HTMLElement | undefined;
 };
@@ -193,14 +211,14 @@ export type MessageActionHandlerExtraParams = {
 };
 
 export type MessageActionHandler = (
-  message: StreamMessage,
+  message: LocalMessage,
   params: MessageActionHandlerExtraParams
 ) => void;
 
 export type MessageActionBoxItemContext = {
   actionName: string;
-  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
-  message: StreamMessage;
+  actionLabelOrTranslationKey: ((message: LocalMessage) => string) | string;
+  message: LocalMessage;
   actionHandlerExtraParams: MessageActionHandlerExtraParams;
   actionHandler: MessageActionHandler;
 };
@@ -210,16 +228,16 @@ export type MessageReactionActionItem = {
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage
+    message: LocalMessage
   ) => boolean;
 };
 
 type MessageActionItemBase = {
-  actionLabelOrTranslationKey: ((message: StreamMessage) => string) | string;
+  actionLabelOrTranslationKey: ((message: LocalMessage) => string) | string;
   isVisible: (
     enabledActions: string[],
     isMine: boolean,
-    message: StreamMessage
+    message: LocalMessage
   ) => boolean;
   actionHandler: MessageActionHandler;
 };
@@ -249,7 +267,7 @@ export type MessageReactionsContext = {
   messageId: string | undefined;
   /** @deprecated use `messageReactionGroups` */
   messageReactionCounts: { [key in MessageReactionType]?: number };
-  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send_reaction/&q=queryReactions#query-reactions) */
+  /** @deprecated you can fetch the reactions using [`chatService.chatClient.queryReactions()`](/chat/docs/javascript/send-reaction/#querying-reactions) */
   latestReactions: ReactionResponse[];
   ownReactions: ReactionResponse[];
   messageReactionGroups: {
@@ -269,7 +287,7 @@ export type NotificationContext = {
 };
 
 export type ThreadHeaderContext = {
-  parentMessage: StreamMessage | undefined;
+  parentMessage: LocalMessage | undefined;
   closeThreadHandler: () => void;
 };
 
@@ -291,20 +309,24 @@ export type VideoAttachmentConfiguration = ImageAttachmentConfiguration & {
 };
 
 export type DeliveredStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type SendingStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type CustomMetadataContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type ReadStatusContext = {
-  message: StreamMessage;
+  message: LocalMessage;
   readByText: string;
+  /**
+   * The users who have read the message (the current user isn't included)
+   */
+  readBy: UserResponse[];
 };
 
 export type ChannelHeaderInfoContext = { channel: Channel };
@@ -419,7 +441,7 @@ export type CustomAttachmentPreviewListContext = {
 };
 
 export type ThreadReplyButtonContext = {
-  message: StreamMessage;
+  message: LocalMessage;
 };
 
 export type CustomAutocompleteItemContext = {
@@ -463,17 +485,22 @@ export type CustomAutocomplete = {
 };
 
 export type MessageTextContext = {
-  message: StreamMessage | undefined | MessageResponseBase;
+  message: LocalMessage | MessageResponse | undefined;
   isQuoted: boolean;
   shouldTranslate: boolean;
+  /**
+   * The translation of the message text to the current translation language (if there is any), it's displayed if `shouldTranslate` is `true`
+   */
+  translation?: string;
 };
 
 export type GalleryAttachment = {
   type: 'gallery';
+  custom: Attachment['custom'];
   images: Attachment[];
 };
 
 export type MessageBlockedContext = {
-  message: StreamMessage;
+  message: LocalMessage;
   isMyMessage: boolean;
 };

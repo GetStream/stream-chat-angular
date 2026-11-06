@@ -5,7 +5,7 @@ import { ChatClientService } from './chat-client.service';
 import { NotificationService } from './notification.service';
 
 /**
- * The `MessageReactionsService` provides customization options to message [reactions](/chat/docs/javascript/send_reaction/).
+ * The `MessageReactionsService` provides customization options to message [reactions](/chat/docs/javascript/send-reaction/).
  *
  */
 @Injectable({
@@ -13,9 +13,9 @@ import { NotificationService } from './notification.service';
 })
 export class MessageReactionsService {
   /**
-   * The enabled [reactions](/chat/docs/javascript/send_reaction/) and the associated emoji
+   * The enabled [reactions](/chat/docs/javascript/send-reaction/) and the associated emoji
    *
-   * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](/chat/docs/sdk/angular/services/CustomTemplatesService/#messagereactionstemplate/)
+   * You can provide any string as a reaction. The emoji can be provided as a string, if you want to use custom images for reactions you have to provide a [custom reactions UI](/chat/docs/sdk/angular/services/CustomTemplatesService/#messagereactionstemplate)
    */
   reactions$ = new BehaviorSubject<{ [key in MessageReactionType]: string }>({
     haha: '😂',
@@ -51,7 +51,7 @@ export class MessageReactionsService {
   }
 
   /**
-   * Query reactions of a specific message, more info in the [API documentation](/chat/docs/javascript/send_reaction/#query-reactions)
+   * Query reactions of a specific message, more info in the [API documentation](/chat/docs/javascript/send-reaction/#querying-reactions)
    * @param messageId
    * @param type
    * @param next
@@ -65,10 +65,12 @@ export class MessageReactionsService {
     } else {
       try {
         const response = await this.chatClientService.chatClient.queryReactions(
-          messageId,
-          { type },
-          { created_at: -1 },
-          { next }
+          { id: messageId },
+          {
+            filter: { type: { $eq: type } },
+            sort: [{ field: 'created_at', direction: -1 }],
+            next,
+          }
         );
 
         return response;

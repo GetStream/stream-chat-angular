@@ -12,7 +12,6 @@ export const en = {
     Delete: 'Delete',
     Delivered: 'Delivered',
     'Edit Message': 'Edit Message',
-    'Edit message request failed': 'Edit message request failed',
     'Emoji matching': 'Emoji matching',
     'Empty message...': 'Empty message...',
     'Error adding flag': 'Error adding flag',
@@ -104,6 +103,7 @@ export const en = {
     'user is typing': '{{ user }} is typing',
     'users are typing': '{{ users }} are typing',
     'Error loading channels': 'Error loading channels',
+    'Error loading messages': 'Error loading messages',
     'See original (automatically translated)':
       'See original (automatically translated)',
     'See translation': 'See translation',

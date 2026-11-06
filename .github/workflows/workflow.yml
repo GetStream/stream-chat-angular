@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - feat/ngx-translate-v18-support
+      - feat/stream-chat-v10
   pull_request:
     branches:
       - master

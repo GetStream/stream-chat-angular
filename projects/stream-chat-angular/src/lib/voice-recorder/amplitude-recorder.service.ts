@@ -159,7 +159,7 @@ export class AmplitudeRecorderService {
   }
 
   private logError(error: Error) {
-    this.chatService.chatClient?.logger('error', error.message, {
+    this.chatService.logger.error(error.message, {
       error: error,
       tag: ['AmplitudeRecorderService'],
     });

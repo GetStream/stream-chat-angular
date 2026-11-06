@@ -31,7 +31,7 @@ export class PaginatedListComponent<T> implements AfterViewInit {
    */
   @Input() isLoading = false;
   /**
-   * If `false` the component won't ask for more data vua the `loadMore` output
+   * If `false` the component won't ask for more data via the `loadMore` output
    */
   @Input() hasMore = false;
   /**

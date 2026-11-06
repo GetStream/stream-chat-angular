@@ -9,7 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { ChatClientService } from '../chat-client.service';
-import { Poll, User } from 'stream-chat';
+import { ClientUser, Poll } from 'stream-chat';
 import { ChannelService } from '../channel.service';
 import { Subscription } from 'rxjs';
 import { CustomTemplatesService } from '../custom-templates.service';
@@ -37,6 +37,7 @@ export abstract class BasePollComponent
   canVote = false;
   canQueryVotes = false;
   private pollStateUnsubscribe?: () => void;
+  private pollLookupRetryTimeout?: ReturnType<typeof setTimeout>;
   private isViewInited = false;
   private capabilitySubscription?: Subscription;
   protected dismissNotificationFn: (() => void) | undefined;
@@ -64,6 +65,7 @@ export abstract class BasePollComponent
       if (this.pollId) {
         this.setupStateStoreSelector();
       } else {
+        clearTimeout(this.pollLookupRetryTimeout);
         this.pollStateUnsubscribe?.();
       }
       this.dismissNotificationFn?.();
@@ -75,6 +77,7 @@ export abstract class BasePollComponent
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.pollLookupRetryTimeout);
     this.pollStateUnsubscribe?.();
     this.dismissNotificationFn?.();
     this.capabilitySubscription?.unsubscribe();
@@ -84,8 +87,10 @@ export abstract class BasePollComponent
     return this.chatClientService.chatClient.polls.fromState(this.pollId ?? '');
   }
 
-  protected setupStateStoreSelector(): void {
+  protected setupStateStoreSelector(isRetry = false): void {
+    clearTimeout(this.pollLookupRetryTimeout);
     this.pollStateUnsubscribe?.();
+    this.pollStateUnsubscribe = undefined;
     const poll = this.chatClientService.chatClient.polls.fromState(
       this.pollId ?? ''
     );
@@ -93,6 +98,12 @@ export abstract class BasePollComponent
       this.pollStateUnsubscribe = this.stateStoreSelector(poll, () => {
         this.markForCheck();
       });
+    } else if (!isRetry) {
+      // A message received over WebSocket is rendered while stream-chat is still dispatching the event,
+      // before PollManager caches its poll (a client listener). The cache is filled once the dispatch finishes.
+      this.pollLookupRetryTimeout = setTimeout(() =>
+        this.setupStateStoreSelector(true)
+      );
     }
   }
 
@@ -111,7 +122,7 @@ export abstract class BasePollComponent
     markForCheck: () => void
   ): () => void;
 
-  protected get currentUser(): User | undefined {
+  protected get currentUser(): ClientUser | undefined {
     return this.chatClientService.chatClient.user;
   }
 

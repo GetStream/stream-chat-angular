@@ -142,9 +142,10 @@ describe('AttachmentListComponent', () => {
     expect(queryAttachments().length).toBe(0);
 
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'file', asset_url: 'http://url3' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'file', asset_url: 'http://url3' },
       {
+        custom: {},
         type: 'video',
         asset_url: 'http://url6',
       },
@@ -189,18 +190,58 @@ describe('AttachmentListComponent', () => {
     expect(queryVideos().length).toBe(1);
   });
 
+  it(`shouldn't reload images, if only the URL signatures changed (e.g. reaction added)`, () => {
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/image.png?Signature=first',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+    const imageBefore = queryImages()[0];
+
+    expect(imageBefore.src).toContain('Signature=first');
+
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/image.png?Signature=second',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(queryImages()[0]).toBe(imageBefore);
+    expect(queryImages()[0].src).toContain('Signature=first');
+
+    component.attachments = [
+      {
+        custom: {},
+        type: 'image',
+        image_url: 'https://cdn.example.com/other-image.png?Signature=third',
+      },
+    ];
+    component.ngOnChanges({ attachments: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(queryImages()[0].src).toContain('other-image.png');
+  });
+
   it('should filter custom attachments', () => {
     const messageService = TestBed.inject(MessageService);
     messageService.filterCustomAttachment = (attachment: Attachment) =>
-      // @ts-expect-error custom property
-      !attachment.customLink;
-    const imageAttachment = {
+      !(attachment.custom as Record<string, unknown>).customLink;
+    const imageAttachment: Attachment = {
       type: 'image',
       image_url: 'url/to/image',
+      custom: {},
     };
-    const customImageAttachment = {
+    const customImageAttachment: Attachment = {
       type: 'image',
-      customLink: 'load/from/here',
+      custom: { customLink: 'load/from/here' } as Attachment['custom'],
     };
     component.attachments = [imageAttachment, customImageAttachment];
     component.ngOnChanges({ attachments: {} as SimpleChange });
@@ -209,8 +250,9 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should display scraped videos', () => {
-    const scrapedVideoAttachments = [
+    const scrapedVideoAttachments: Attachment[] = [
       {
+        custom: {},
         type: 'video',
         author_name: 'YouTube',
         title: 'Rachmaninoff - Prelude in C Sharp Minor (Op. 3 No. 2)',
@@ -222,6 +264,7 @@ describe('AttachmentListComponent', () => {
         og_scrape_url: 'https://www.youtube.com/watch?v=sCtixpIWBto',
       },
       {
+        custom: {},
         type: 'video',
         author_name: 'Twitch',
         title: 'ledo_drito - Twitch',
@@ -246,7 +289,7 @@ describe('AttachmentListComponent', () => {
     expect(scrapedVideos.length).toBe(2);
 
     scrapedVideos.forEach((video, index) => {
-      expect(video.href).toBe(scrapedVideoAttachments[index].og_scrape_url);
+      expect(video.href).toBe(scrapedVideoAttachments[index].og_scrape_url!);
     });
   });
 
@@ -264,9 +307,9 @@ describe('AttachmentListComponent', () => {
 
   it('should create gallery', () => {
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'file', asset_url: 'http://url3' },
-      { type: 'image', image_url: 'http://url2' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'file', asset_url: 'http://url3' },
+      { custom: {}, type: 'image', image_url: 'http://url2' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -284,8 +327,8 @@ describe('AttachmentListComponent', () => {
 
   it('should display gallery', () => {
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'image', image_url: 'http://url2' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'image', image_url: 'http://url2' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -300,10 +343,10 @@ describe('AttachmentListComponent', () => {
     ).toBeNull();
 
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'image', image_url: 'http://url2' },
-      { type: 'image', thumb_url: 'http://url3' },
-      { type: 'image', image_url: 'http://url4' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'image', image_url: 'http://url2' },
+      { custom: {}, type: 'image', thumb_url: 'http://url3' },
+      { custom: {}, type: 'image', image_url: 'http://url4' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -320,11 +363,11 @@ describe('AttachmentListComponent', () => {
     ).not.toBeNull();
 
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'image', image_url: 'http://url2' },
-      { type: 'image', thumb_url: 'http://url3' },
-      { type: 'image', image_url: 'http://url4' },
-      { type: 'image', image_url: 'http://url5' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'image', image_url: 'http://url2' },
+      { custom: {}, type: 'image', thumb_url: 'http://url3' },
+      { custom: {}, type: 'image', image_url: 'http://url4' },
+      { custom: {}, type: 'image', image_url: 'http://url5' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -344,7 +387,8 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should display attachment actions and apply CSS class', () => {
-    const attachment = {
+    const attachment: Attachment = {
+      custom: {},
       type: 'giphy',
       title: 'cats',
       title_link: 'https://giphy.com/gifs/cat-funny-costume-3mq6k5fqe5g8o',
@@ -399,7 +443,8 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should send attachment action, if clicked', () => {
-    const attachment = {
+    const attachment: Attachment = {
+      custom: {},
       type: 'giphy',
       title: 'cats',
       title_link: 'https://giphy.com/gifs/cat-funny-costume-3mq6k5fqe5g8o',
@@ -460,7 +505,11 @@ describe('AttachmentListComponent', () => {
     it('should display image by img_url', () => {
       const imageUrl = 'http://image/url';
       component.attachments = [
-        { type: 'image', img_url: imageUrl, thumb_url: 'thumb/url' },
+        {
+          type: 'image',
+          custom: { img_url: imageUrl },
+          thumb_url: 'thumb/url',
+        },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -471,7 +520,12 @@ describe('AttachmentListComponent', () => {
     it('should display image by thumb_url', () => {
       const thumbUrl = 'http://thumb/url';
       component.attachments = [
-        { type: 'image', image_url: undefined, thumb_url: thumbUrl },
+        {
+          custom: {},
+          type: 'image',
+          image_url: undefined,
+          thumb_url: thumbUrl,
+        },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -484,7 +538,7 @@ describe('AttachmentListComponent', () => {
       component.attachments = [
         {
           type: 'image',
-          img_url: undefined,
+          custom: { img_url: undefined },
           thumb_url: undefined,
           image_url: imageUrl,
         },
@@ -498,7 +552,7 @@ describe('AttachmentListComponent', () => {
     it('should set alt text for image', () => {
       const fallback = 'Fallback is image can not be displayed';
       component.attachments = [
-        { type: 'image', image_url: 'http://url1', fallback },
+        { custom: {}, type: 'image', image_url: 'http://url1', fallback },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -508,7 +562,12 @@ describe('AttachmentListComponent', () => {
 
     it('should display add necessary CSS class for SVG images', () => {
       component.attachments = [
-        { type: 'image', image_url: 'http://image/url', fallback: 'image.svg' },
+        {
+          custom: {},
+          type: 'image',
+          image_url: 'http://image/url',
+          fallback: 'image.svg',
+        },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -518,7 +577,12 @@ describe('AttachmentListComponent', () => {
       ).not.toBeNull();
 
       component.attachments = [
-        { type: 'image', image_url: 'http://image/url', fallback: 'image.jpg' },
+        {
+          custom: {},
+          type: 'image',
+          image_url: 'http://image/url',
+          fallback: 'image.jpg',
+        },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -533,7 +597,7 @@ describe('AttachmentListComponent', () => {
     it('should display file link', () => {
       const title = 'contract.pdf';
       const asset_url = 'http://url/to/contract';
-      component.attachments = [{ type: 'file', title, asset_url }];
+      component.attachments = [{ custom: {}, type: 'file', title, asset_url }];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
       const link = queryFileLinks()[0];
@@ -546,11 +610,13 @@ describe('AttachmentListComponent', () => {
     it('should add CSS class for files', () => {
       component.attachments = [
         {
+          custom: {},
           type: 'file',
           title: 'contract.pdf',
           asset_url: 'http://url/to/contract',
         },
         {
+          custom: {},
           type: 'file',
           title: 'contract2.pdf',
           asset_url: 'http://url/to/contract2',
@@ -575,7 +641,7 @@ describe('AttachmentListComponent', () => {
     it('should sanitize file link', () => {
       const asset_url = 'javascript:alert(document.domain)';
       component.attachments = [
-        { type: 'file', title: 'contract.pdf', asset_url },
+        { custom: {}, type: 'file', title: 'contract.pdf', asset_url },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -588,7 +654,7 @@ describe('AttachmentListComponent', () => {
       const title = 'contract.pdf';
       const asset_url = 'http://url/to/contract';
       component.attachments = [
-        { type: 'file', title, asset_url, file_size: 3272969 },
+        { type: 'file', title, asset_url, custom: { file_size: 3272969 } },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -598,7 +664,12 @@ describe('AttachmentListComponent', () => {
       expect(fileSize?.textContent).toContain('3.27 MB');
 
       component.attachments = [
-        { type: 'file', title, asset_url, file_size: '3272969' },
+        {
+          type: 'file',
+          title,
+          asset_url,
+          custom: { file_size: '3272969' as unknown as number },
+        },
       ];
       component.ngOnChanges({ attachments: {} as SimpleChange });
       fixture.detectChanges();
@@ -619,6 +690,7 @@ describe('AttachmentListComponent', () => {
       const imageUrl = 'https://getstream.io/images/og/OG_Home.png';
       component.attachments = [
         {
+          custom: {},
           author_name: 'GetStream',
           image_url: imageUrl,
           og_scrape_url: 'https://getstream.io',
@@ -638,6 +710,7 @@ describe('AttachmentListComponent', () => {
       const thumbUrl = 'https://getstream.io/images/og/OG_Home.png';
       component.attachments = [
         {
+          custom: {},
           type: 'image',
           author_name: 'GetStream',
           image_url: undefined,
@@ -656,6 +729,7 @@ describe('AttachmentListComponent', () => {
     it(`shouldn't display url preview if there are other attachments`, () => {
       component.attachments = [
         {
+          custom: {},
           author_name: 'GetStream',
           image_url: 'https://getstream.io/images/og/OG_Home.png',
           og_scrape_url: 'https://getstream.io',
@@ -664,6 +738,7 @@ describe('AttachmentListComponent', () => {
           type: 'image',
         },
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url/to/flower.png',
         },
@@ -678,6 +753,7 @@ describe('AttachmentListComponent', () => {
       const title = 'Stream';
       component.attachments = [
         {
+          custom: {},
           author_name: 'GetStream',
           image_url: undefined,
           og_scrape_url: 'https://getstream.io',
@@ -701,6 +777,7 @@ describe('AttachmentListComponent', () => {
         'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.';
       component.attachments = [
         {
+          custom: {},
           author_name: 'GetStream',
           image_url: undefined,
           og_scrape_url: 'https://getstream.io',
@@ -724,6 +801,7 @@ describe('AttachmentListComponent', () => {
       const titleLink = 'https://getstream.io';
       component.attachments = [
         {
+          custom: {},
           type: 'image',
           author_name: 'GetStream',
           image_url: undefined,
@@ -745,6 +823,7 @@ describe('AttachmentListComponent', () => {
       const scrapeUrl = 'https://getstream.io';
       component.attachments = [
         {
+          custom: {},
           author_name: 'GetStream',
           image_url: undefined,
           og_scrape_url: scrapeUrl,
@@ -768,7 +847,8 @@ describe('AttachmentListComponent', () => {
       const imageModalSpy = jasmine.createSpy();
       component.imageModalStateChange.subscribe(imageModalSpy);
 
-      const attachment = {
+      const attachment: Attachment = {
+        custom: {},
         type: 'image',
         image_url: 'http://url1',
       };
@@ -790,12 +870,14 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should open image viewer modal - image gallery', () => {
-      const attachments = [
+      const attachments: Attachment[] = [
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url1',
         },
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url2',
         },
@@ -819,12 +901,14 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should open image viewer modal with preselected image', () => {
-      const attachments = [
+      const attachments: Attachment[] = [
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url1',
         },
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url2',
         },
@@ -848,16 +932,19 @@ describe('AttachmentListComponent', () => {
     });
 
     it('should move to next and previous images', () => {
-      const attachments = [
+      const attachments: Attachment[] = [
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url1',
         },
         {
+          custom: {},
           type: 'image',
           image_url: 'http://url2',
         },
         {
+          custom: {},
           type: 'image',
           thumb_url: 'http://url3',
         },
@@ -901,7 +988,8 @@ describe('AttachmentListComponent', () => {
       const imageModalSpy = jasmine.createSpy();
       component.imageModalStateChange.subscribe(imageModalSpy);
       imageModalSpy.calls.reset();
-      const attachment = {
+      const attachment: Attachment = {
+        custom: {},
         type: 'image',
         image_url: 'http://url1',
       };
@@ -918,7 +1006,8 @@ describe('AttachmentListComponent', () => {
   });
 
   it(`shouldn't display video links as video attachments`, () => {
-    const attachment = {
+    const attachment: Attachment = {
+      custom: {},
       asset_url: 'https://www.youtube.com/watch?v=m4-HM_sCvtQ',
       author_name: 'YouTube',
       image_url: 'https://i.ytimg.com/vi/m4-HM_sCvtQ/mqdefault.jpg',
@@ -964,14 +1053,16 @@ describe('AttachmentListComponent', () => {
 
     // Single image, link image, video, giphy
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
       {
+        custom: {},
         title: 'BBC - Homepage',
         title_link: 'https://www.bbc.com/',
         og_scrape_url: 'https://www.bbc.com/',
         image_url: 'https://assets/images/favicons/favicon-194x194.png',
       },
       {
+        custom: {},
         image_url: 'https://getstream.io/images/og/OG_Home.png',
         og_scrape_url: 'https://getstream.io/',
         text: 'Build scalable in-app chat or activity feeds in days. Product teams trust Stream to launch faster, iterate more often, and ship a better user experience.',
@@ -981,6 +1072,7 @@ describe('AttachmentListComponent', () => {
         type: 'image',
       },
       {
+        custom: {},
         thumb_url:
           'https://media3.giphy.com/media/Eq5pb4dR4DJQc/giphy.gif?cid=c4b036756eqt4bhl28q4lm1xxpqk5a1cwspozzn9q8f0za10&rid=giphy.gif&ct=g',
         title: 'cats',
@@ -988,6 +1080,7 @@ describe('AttachmentListComponent', () => {
         type: 'giphy',
       },
       {
+        custom: {},
         type: 'video',
         asset_url: 'http://url6',
       },
@@ -1016,11 +1109,11 @@ describe('AttachmentListComponent', () => {
 
     // Gallery
     component.attachments = [
-      { type: 'image', image_url: 'http://url1' },
-      { type: 'image', image_url: 'http://url2' },
-      { type: 'image', image_url: 'http://url3' },
-      { type: 'image', image_url: 'http://url4' },
-      { type: 'image', image_url: 'http://url5' },
+      { custom: {}, type: 'image', image_url: 'http://url1' },
+      { custom: {}, type: 'image', image_url: 'http://url2' },
+      { custom: {}, type: 'image', image_url: 'http://url3' },
+      { custom: {}, type: 'image', image_url: 'http://url4' },
+      { custom: {}, type: 'image', image_url: 'http://url5' },
     ];
     component.ngOnChanges({ attachments: {} as SimpleChange });
     fixture.detectChanges();
@@ -1045,7 +1138,8 @@ describe('AttachmentListComponent', () => {
     });
 
     // Image carousel
-    const attachment = {
+    const attachment: Attachment = {
+      custom: {},
       type: 'image',
       image_url: 'http://url1',
     };
@@ -1069,8 +1163,9 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should display video attachment with thumb url', () => {
-    const attachments = [
+    const attachments: Attachment[] = [
       {
+        custom: {},
         type: 'video',
         asset_url: 'http://url/to/video',
         thumb_url: 'http://url/to/thumb',
@@ -1081,8 +1176,8 @@ describe('AttachmentListComponent', () => {
     fixture.detectChanges();
     const videoElements = queryVideos();
 
-    expect(videoElements[0].src).toContain(attachments[0].asset_url);
-    expect(videoElements[0].poster).toContain(attachments[0].thumb_url);
+    expect(videoElements[0].src).toContain(attachments[0].asset_url!);
+    expect(videoElements[0].poster).toContain(attachments[0].thumb_url!);
   });
 });
 
@@ -1098,11 +1193,13 @@ describe('AttachmentListComponent with custom attachments', () => {
           class="custom-attachment-container"
           *ngFor="let attachment of attachments"
         >
-          <ng-container [ngSwitch]="attachment.subtype">
+          <ng-container [ngSwitch]="attachment.custom.subtype">
             <div *ngSwitchCase="'payment'" class="payment-link">
               Use the following
-              <a [href]="attachment.link" target="_blank">payment lint</a> to
-              pay me {{ value }}.
+              <a [href]="attachment.custom.link" target="_blank"
+                >payment lint</a
+              >
+              to pay me {{ value }}.
             </div>
           </ng-container>
         </div>
@@ -1145,11 +1242,13 @@ describe('AttachmentListComponent with custom attachments', () => {
       hostFixture.nativeElement.querySelectorAll('.payment-link').length
     ).toBe(0);
 
-    const customAttachment = {
+    const customAttachment: Attachment = {
       type: 'custom',
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
     hostComponent.attachments = [customAttachment];
     hostFixture.detectChanges();
@@ -1163,11 +1262,13 @@ describe('AttachmentListComponent with custom attachments', () => {
     const customTemplatesService = TestBed.inject(CustomTemplatesService);
     customTemplatesService.customAttachmentListTemplate$.next(undefined);
 
-    const customAttachment = {
+    const customAttachment: Attachment = {
       type: 'custom',
-      subtype: 'payment',
-      value: '30$',
-      link: 'pay/me/or/else',
+      custom: {
+        subtype: 'payment',
+        value: '30$',
+        link: 'pay/me/or/else',
+      } as Attachment['custom'],
     };
     hostComponent.attachments = [customAttachment];
     hostFixture.detectChanges();

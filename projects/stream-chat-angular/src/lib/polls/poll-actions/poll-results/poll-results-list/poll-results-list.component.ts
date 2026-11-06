@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { BasePollComponent } from '../../../base-poll.component';
-import { Poll, PollOption, PollVote } from 'stream-chat';
+import {
+  Poll,
+  PollOptionResponseData,
+  PollVoteResponseData,
+} from 'stream-chat';
 
 /**
  *
@@ -14,12 +18,12 @@ import { Poll, PollOption, PollVote } from 'stream-chat';
 export class PollResultsListComponent extends BasePollComponent {
   @HostBinding('class') class = 'str-chat__modal__poll-results';
   name = '';
-  options: PollOption[] = [];
-  optionToView: PollOption | undefined;
+  options: PollOptionResponseData[] = [];
+  optionToView: PollOptionResponseData | undefined;
   votePreviewCount = 5;
   maxVotedOptionIds: string[] = [];
   voteCountsByOption: Record<string, number> = {};
-  latestVotesByOption: Record<string, PollVote[]> = {};
+  latestVotesByOption: Record<string, PollVoteResponseData[]> = {};
 
   protected stateStoreSelector(
     poll: Poll,
@@ -59,11 +63,11 @@ export class PollResultsListComponent extends BasePollComponent {
     );
   }
 
-  trackByOptionId(_: number, option: PollOption) {
+  trackByOptionId(_: number, option: PollOptionResponseData) {
     return option.id;
   }
 
-  trackByVoteId(_: number, vote: PollVote) {
+  trackByVoteId(_: number, vote: PollVoteResponseData) {
     return vote.id;
   }
 }

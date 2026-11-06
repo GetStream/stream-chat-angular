@@ -8,7 +8,7 @@ describe('getChannelDisplayText', () => {
     const channel = {
       data: {
         id: 'hobby-chefs',
-        name: 'Hobby Chefs🧁🥩🥗🥑🥘',
+        custom: { name: 'Hobby Chefs🧁🥩🥗🥑🥘' },
         members: [{ id: 'hobby-chef1' }, { id: 'hobby-chef2' }],
       },
     } as any as Channel;
@@ -27,7 +27,7 @@ describe('getChannelDisplayText', () => {
     const channel = {
       data: {
         id: 'hobby-chefs',
-        name: undefined,
+        custom: { name: undefined },
       },
       state: {
         members: {
@@ -36,7 +36,7 @@ describe('getChannelDisplayText', () => {
           [currentUser.id]: { user: currentUser },
         },
       },
-    } as Channel;
+    } as unknown as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe(
       listUsers(members)
@@ -52,7 +52,7 @@ describe('getChannelDisplayText', () => {
     const channel = {
       data: {
         id: 'hobby-chefs',
-        name: undefined,
+        custom: { name: undefined },
       },
       state: {
         members: {
@@ -61,7 +61,7 @@ describe('getChannelDisplayText', () => {
           [currentUser.id]: { user: currentUser },
         },
       },
-    } as Channel;
+    } as unknown as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).not.toContain(
       currentUser.id
@@ -74,12 +74,12 @@ describe('getChannelDisplayText', () => {
       id: 'hobby-chefs',
       data: {
         id: 'hobby-chefs',
-        name: undefined,
+        custom: { name: undefined },
       },
       state: {
         members: {},
       },
-    } as Channel;
+    } as unknown as Channel;
 
     expect(getChannelDisplayText(channel, currentUser)).toBe('hobby-chefs');
 

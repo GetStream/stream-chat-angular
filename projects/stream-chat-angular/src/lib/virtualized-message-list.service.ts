@@ -1,8 +1,8 @@
+import { LocalMessage } from 'stream-chat';
 import { ChannelService } from './channel.service';
 import {
   VirtualizedListQueryDirection,
   VirtualizedListScrollPosition,
-  StreamMessage,
   VirtualizedListVerticalItemPosition,
 } from './types';
 import { map, Observable } from 'rxjs';
@@ -11,7 +11,7 @@ import { VirtualizedListService } from './virtualized-list.service';
 /**
  * The `VirtualizedMessageListService` removes messages from the message list that are currently not in view
  */
-export class VirtualizedMessageListService extends VirtualizedListService<StreamMessage> {
+export class VirtualizedMessageListService extends VirtualizedListService<LocalMessage> {
   constructor(
     public readonly mode: 'thread' | 'main',
     scrollPosition$: Observable<VirtualizedListScrollPosition>,
@@ -21,12 +21,12 @@ export class VirtualizedMessageListService extends VirtualizedListService<Stream
       map<
         { id?: string; parentId?: string },
         {
-          item: Partial<StreamMessage> | undefined;
+          item: Partial<LocalMessage> | undefined;
           position?: VirtualizedListVerticalItemPosition;
         }
       >((jumpToMessage) => {
         let result: {
-          item: Partial<StreamMessage> | undefined;
+          item: Partial<LocalMessage> | undefined;
           position?: VirtualizedListVerticalItemPosition;
         } = {
           item: undefined,
@@ -83,7 +83,7 @@ export class VirtualizedMessageListService extends VirtualizedListService<Stream
     });
   }
 
-  protected isEqual = (t1: StreamMessage, t2: StreamMessage) => t1.id === t2.id;
+  protected isEqual = (t1: LocalMessage, t2: LocalMessage) => t1.id === t2.id;
 
   protected query = (direction: VirtualizedListQueryDirection) => {
     const request =

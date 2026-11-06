@@ -1,9 +1,6 @@
 <ng-container
   *ngIf="
-    message?.type === 'error' &&
-      (message?.moderation_details?.action ===
-        'MESSAGE_RESPONSE_ACTION_REMOVE' ||
-        message?.moderation?.action === 'remove');
+    message?.type === 'error' && message?.moderation?.action === 'remove';
     else notBlockedMessage
   "
 >
@@ -37,8 +34,8 @@
     [class.str-chat__message--highlighted]="isHighlighted"
     [class.str-chat__message-with-thread-link]="shouldDisplayThreadLink"
     [class.str-chat__message-send-can-be-retried]="
-      (message?.status === 'failed' && message?.errorStatusCode !== 403) ||
-      (message?.type === 'error' && message?.moderation_details)
+      (message?.status === 'failed' && message?.error?.status !== 403) ||
+      isBounced
     "
     [class.str-chat__message-with-touch-support]="hasTouchSupport"
     [class.str-chat__message-without-touch-support]="!hasTouchSupport"
@@ -212,9 +209,8 @@
               tabindex="0"
               [class.str-chat__message-text--pointer-cursor]="
                 (message?.status === 'failed' &&
-                  message?.errorStatusCode !== 403) ||
-                (this.message?.type === 'error' &&
-                  this.message?.moderation_details) ||
+                  message?.error?.status !== 403) ||
+                isBounced ||
                 message?.message_text_updated_at
               "
               (click)="messageClicked()"
@@ -236,7 +232,7 @@
                   data-testid="client-error-message"
                   class="str-chat__simple-message--error-message str-chat__message--error-message"
                 >
-                  <ng-container *ngIf="!message?.moderation_details">{{
+                  <ng-container *ngIf="!message?.moderation">{{
                     "streamChat.Error · Unsent" | translate
                   }}</ng-container>
                 </div>
@@ -246,7 +242,7 @@
                   class="str-chat__simple-message--error-message str-chat__message--error-message"
                 >
                   {{
-                    (message?.errorStatusCode === 403
+                    (message?.error?.status === 403
                       ? "streamChat.Message Failed · Unauthorized"
                       : "streamChat.Message Failed · Click to try again"
                     ) | translate
@@ -264,11 +260,13 @@
                   let-message="message"
                   let-isQuoted="isQuoted"
                   let-shouldTranslate="shouldTranslate"
+                  let-translation="translation"
                 >
                   <stream-message-text
                     [message]="message"
                     [isQuoted]="isQuoted"
                     [shouldTranslate]="shouldTranslate"
+                    [translation]="translation"
                     data-testid="quoted-message-text"
                   />
                 </ng-template>
@@ -409,11 +407,13 @@
             let-message="message"
             let-isQuoted="isQuoted"
             let-shouldTranslate="shouldTranslate"
+            let-translation="translation"
           >
             <stream-message-text
               [message]="message"
               [isQuoted]="isQuoted"
               [shouldTranslate]="shouldTranslate"
+              [translation]="translation"
               data-testid="quoted-message-text"
             />
           </ng-template>
@@ -492,10 +492,7 @@
             }"
           >
             <span>{{ "streamChat.Edited" | translate }}</span>
-            <time
-              dateTime="{{ message?.message_text_updated_at }}"
-              title="{{ message?.message_text_updated_at }}"
-            >
+            <time dateTime="{{ editedDateTime }}" title="{{ editedDateTime }}">
               {{ pasedEditedDate }}
             </time>
           </div>

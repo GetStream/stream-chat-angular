@@ -4,7 +4,13 @@ import {
   TestBed,
   tick,
 } from '@angular/core/testing';
-import { QueryReactionsAPIResponse, ReactionResponse } from 'stream-chat';
+import {
+  dateToNs,
+  QueryReactionsResponse,
+  ReactionGroupResponse,
+  ReactionResponse,
+  UserResponse,
+} from 'stream-chat';
 import { AvatarComponent } from '../avatar/avatar.component';
 
 import { MessageReactionsComponent } from './message-reactions.component';
@@ -32,7 +38,7 @@ describe('MessageReactionsComponent', () => {
       Promise.resolve({
         reactions: [],
         next: undefined,
-      } as unknown as QueryReactionsAPIResponse),
+      } as unknown as QueryReactionsResponse),
   };
 
   beforeEach(async () => {
@@ -123,7 +129,7 @@ describe('MessageReactionsComponent', () => {
     const spy = spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
       reactions,
       next: undefined,
-    } as unknown as QueryReactionsAPIResponse);
+    } as unknown as QueryReactionsResponse);
 
     const wowEmoji = queryEmojis()[0];
     wowEmoji.click();
@@ -153,7 +159,7 @@ describe('MessageReactionsComponent', () => {
         { type: 'sad', user: { id: 'ben', name: 'Ben' } },
       ],
       next: undefined,
-    } as unknown as QueryReactionsAPIResponse);
+    } as unknown as QueryReactionsResponse);
     nativeElement
       .querySelector<HTMLDivElement>(
         '[data-testid="reaction-details-selector-sad"]'
@@ -173,7 +179,7 @@ describe('MessageReactionsComponent', () => {
     const spy = spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
       reactions: [],
       next: 'next-page',
-    } as unknown as QueryReactionsAPIResponse);
+    } as unknown as QueryReactionsResponse);
 
     await component.reactionSelected('wow');
 
@@ -192,7 +198,7 @@ describe('MessageReactionsComponent', () => {
       wow: {
         count: 4,
         sum_scores: 4,
-      },
+      } as ReactionGroupResponse,
     };
     component.ngOnChanges({ messageReactionGroups: {} as SimpleChange });
     fixture.detectChanges();
@@ -206,7 +212,7 @@ describe('MessageReactionsComponent', () => {
     spyOn(reactionsServiceMock, 'queryReactions').and.resolveTo({
       reactions: reactions,
       next: 'next-page',
-    } as unknown as QueryReactionsAPIResponse);
+    } as unknown as QueryReactionsResponse);
 
     void component.reactionSelected('wow');
     fixture.detectChanges();
@@ -228,7 +234,7 @@ describe('MessageReactionsComponent', () => {
       { id: 'saraid', name: 'Sara' },
       { id: 'benid', name: 'Ben' },
       { id: 'jackid' },
-    ]);
+    ] as UserResponse[]);
   }));
 
   it(`should call custom reaction details handler if that's provided`, () => {
@@ -264,7 +270,7 @@ describe('MessageReactionsComponent', () => {
     });
     fixture.detectChanges();
 
-    spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.rejectWith(
       new Error('Failed to get reactions')
     );
 
@@ -273,7 +279,100 @@ describe('MessageReactionsComponent', () => {
     tick();
 
     expect(component.selectedReactionType).toBe(undefined);
+
+    // Clicking the reaction again should retry loading the users
+    spy.and.resolveTo({
+      reactions: [
+        { type: 'wow', user: { id: 'jackid' } },
+      ] as ReactionResponse[],
+      next: undefined,
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    wowEmoji.click();
+    tick();
+
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(component.selectedReactionType).toBe('wow');
+    expect(component.usersByReactions['wow'].users.map((u) => u.id)).toEqual([
+      'jackid',
+    ]);
   }));
+
+  it('should handle if the modal is closed while reaction details are loading', async () => {
+    component.messageId = 'id';
+    let rejectQuery!: (error: Error) => void;
+    spyOn(reactionsServiceMock, 'queryReactions').and.returnValue(
+      new Promise((_, reject) => (rejectQuery = reject))
+    );
+    const selection = component.reactionSelected('wow');
+    component.isOpenChange(false);
+    rejectQuery(new Error('Failed to get reactions'));
+
+    await expectAsync(selection).toBeResolved();
+    expect(component.usersByReactions).toEqual({});
+    expect(component.selectedReactionType).toBeUndefined();
+  });
+
+  it('should add the loaded users to the requested reaction type, if another type is selected while loading', async () => {
+    component.messageId = 'id';
+    const resolvers: {
+      [key: string]: (
+        response: Awaited<ReturnType<MessageReactionsService['queryReactions']>>
+      ) => void;
+    } = {};
+    spyOn(reactionsServiceMock, 'queryReactions').and.callFake(
+      (_: string, type: string) =>
+        new Promise((resolve) => (resolvers[type] = resolve))
+    );
+    const wowSelection = component.reactionSelected('wow');
+    const sadSelection = component.reactionSelected('sad');
+    resolvers['wow']({
+      reactions: [
+        { type: 'wow', user: { id: 'jackid' } },
+      ] as ReactionResponse[],
+      next: 'wow-next',
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    await wowSelection;
+
+    expect(component.selectedReactionType).toBe('sad');
+    expect(component.usersByReactions['wow'].users.map((u) => u.id)).toEqual([
+      'jackid',
+    ]);
+    expect(component.usersByReactions['wow'].next).toBe('wow-next');
+    expect(component.usersByReactions['sad']).toBeUndefined();
+
+    resolvers['sad']({
+      reactions: [
+        { type: 'sad', user: { id: 'saraid' } },
+      ] as ReactionResponse[],
+      next: undefined,
+    } as Awaited<ReturnType<MessageReactionsService['queryReactions']>>);
+    await sadSelection;
+
+    expect(component.usersByReactions['sad'].users.map((u) => u.id)).toEqual([
+      'saraid',
+    ]);
+  });
+
+  it(`should keep the selected reaction type and retry the failed one, if loading fails after another type is selected`, async () => {
+    component.messageId = 'id';
+    const rejecters: { [key: string]: (error: Error) => void } = {};
+    const spy = spyOn(reactionsServiceMock, 'queryReactions').and.callFake(
+      (_: string, type: string) =>
+        new Promise((_resolve, reject) => (rejecters[type] = reject))
+    );
+    const wowSelection = component.reactionSelected('wow');
+    void component.reactionSelected('sad');
+    rejecters['wow'](new Error('Failed to get reactions'));
+    await wowSelection;
+
+    expect(component.selectedReactionType).toBe('sad');
+    expect(component.usersByReactions['wow']).toBeUndefined();
+
+    spy.calls.reset();
+    void component.reactionSelected('wow');
+
+    expect(spy).toHaveBeenCalledWith('id', 'wow', undefined);
+  });
 
   it('should mark reaction types of current user - list', () => {
     component.messageReactionCounts = {
@@ -320,32 +419,37 @@ describe('MessageReactionsComponent', () => {
       love: {
         count: 12,
         sum_scores: 12,
-        first_reaction_at: '2024-09-05T13:17:05.138248Z',
-        last_reaction_at: '2024-09-05T13:17:11.454912Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.138248Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:11.454912Z')),
+        latest_reactions_by: [],
       },
       sad: {
         count: 10,
         sum_scores: 10,
-        first_reaction_at: '2024-09-05T13:17:05.673605Z',
-        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.673605Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:13.211086Z')),
+        latest_reactions_by: [],
       },
       wow: {
         count: 20,
         sum_scores: 20,
-        first_reaction_at: '2024-09-05T13:17:05.059252Z',
-        last_reaction_at: '2024-09-05T13:17:13.066055Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.059252Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:13.066055Z')),
+        latest_reactions_by: [],
       },
       haha: {
         count: 9,
         sum_scores: 9,
-        first_reaction_at: '2024-09-05T13:17:05.522053Z',
-        last_reaction_at: '2024-09-05T13:17:10.87445Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.522053Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:10.87445Z')),
+        latest_reactions_by: [],
       },
       like: {
         count: 7,
         sum_scores: 7,
-        first_reaction_at: '2024-09-05T13:17:04.977203Z',
-        last_reaction_at: '2024-09-05T13:17:14.856949Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:04.977203Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:14.856949Z')),
+        latest_reactions_by: [],
       },
     };
     component.ngOnChanges({
@@ -374,8 +478,9 @@ describe('MessageReactionsComponent', () => {
       sad: {
         count: 10,
         sum_scores: 10,
-        first_reaction_at: '2024-09-05T12:17:05.673605Z',
-        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T12:17:05.673605Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:13.211086Z')),
+        latest_reactions_by: [],
       },
     };
     component.ngOnChanges({ messageReactionGroups: {} as SimpleChange });
@@ -394,32 +499,37 @@ describe('MessageReactionsComponent', () => {
       love: {
         count: 12,
         sum_scores: 12,
-        first_reaction_at: '2024-09-05T13:17:05.138248Z',
-        last_reaction_at: '2024-09-05T13:17:11.454912Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.138248Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:11.454912Z')),
+        latest_reactions_by: [],
       },
       sad: {
         count: 10,
         sum_scores: 10,
-        first_reaction_at: '2024-09-05T13:17:05.673605Z',
-        last_reaction_at: '2024-09-05T13:17:13.211086Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.673605Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:13.211086Z')),
+        latest_reactions_by: [],
       },
       wow: {
         count: 20,
         sum_scores: 20,
-        first_reaction_at: '2024-09-05T13:17:05.059252Z',
-        last_reaction_at: '2024-09-05T13:17:13.066055Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.059252Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:13.066055Z')),
+        latest_reactions_by: [],
       },
       haha: {
         count: 9,
         sum_scores: 9,
-        first_reaction_at: '2024-09-05T13:17:05.522053Z',
-        last_reaction_at: '2024-09-05T13:17:10.87445Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:05.522053Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:10.87445Z')),
+        latest_reactions_by: [],
       },
       like: {
         count: 7,
         sum_scores: 7,
-        first_reaction_at: '2024-09-05T13:17:04.977203Z',
-        last_reaction_at: '2024-09-05T13:17:14.856949Z',
+        first_reaction_at: dateToNs(new Date('2024-09-05T13:17:04.977203Z')),
+        last_reaction_at: dateToNs(new Date('2024-09-05T13:17:14.856949Z')),
+        latest_reactions_by: [],
       },
     };
     component.messageReactionCounts = {

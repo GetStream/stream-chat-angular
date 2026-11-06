@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MessageTextComponent } from './message-text.component';
-import { StreamMessage } from '../types';
+import { UserResponse, LocalMessage } from 'stream-chat';
 import { SimpleChange } from '@angular/core';
 import { MessageService } from '../message.service';
 import { generateMockMessages } from '../mocks';
@@ -29,7 +29,7 @@ describe('MessageTextComponent', () => {
   it('should display text', () => {
     component.message = {
       text: 'Hi',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -41,8 +41,7 @@ describe('MessageTextComponent', () => {
   it('should add class to quoted message text', () => {
     component.message = {
       text: 'Hi',
-      translation: 'Szia',
-    } as StreamMessage;
+    } as LocalMessage;
     component.isQuoted = true;
     component.ngOnChanges({ isQuoted: {} as SimpleChange });
     fixture.detectChanges();
@@ -63,8 +62,8 @@ describe('MessageTextComponent', () => {
   it('should translate, if #shouldTranslate is true', () => {
     component.message = {
       text: 'Hi',
-      translation: 'Szia',
-    } as StreamMessage;
+    } as LocalMessage;
+    component.translation = 'Szia';
     component.shouldTranslate = true;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -72,13 +71,38 @@ describe('MessageTextComponent', () => {
     expect(
       nativeElement.querySelector('[data-testid="text"]')?.textContent
     ).toContain('Szia');
+
+    component.shouldTranslate = false;
+    component.ngOnChanges({ shouldTranslate: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="text"]')?.textContent
+    ).toContain('Hi');
+  });
+
+  it('should update the displayed text if #translation changes', () => {
+    component.message = {
+      text: 'Hi',
+    } as LocalMessage;
+    component.shouldTranslate = true;
+    component.translation = 'Szia';
+    component.ngOnChanges({ message: {} as SimpleChange });
+    fixture.detectChanges();
+    component.translation = 'Hallo';
+    component.ngOnChanges({ translation: {} as SimpleChange });
+    fixture.detectChanges();
+
+    expect(
+      nativeElement.querySelector('[data-testid="text"]')?.textContent
+    ).toContain('Hallo');
   });
 
   it('should fallback to original text, if #shouldTranslate is true but no translation is provided', () => {
     component.message = {
       text: 'Hi',
-      translation: '',
-    } as StreamMessage;
+    } as LocalMessage;
+    component.translation = '';
     component.shouldTranslate = true;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
@@ -91,7 +115,7 @@ describe('MessageTextComponent', () => {
   it(`shouldn't display empty text`, () => {
     component.message = {
       text: '',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
     fixture.detectChanges();
 
@@ -101,7 +125,7 @@ describe('MessageTextComponent', () => {
   it('should create message parts', () => {
     component.message = {
       text: '',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual(undefined);
@@ -109,7 +133,7 @@ describe('MessageTextComponent', () => {
 
     component.message = {
       text: 'This is a message without user mentions',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual(undefined);
@@ -119,7 +143,7 @@ describe('MessageTextComponent', () => {
 
     component.message = {
       text: 'This is just an email, not a mention test@test.com',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual(undefined);
@@ -129,7 +153,7 @@ describe('MessageTextComponent', () => {
 
     component.message = {
       text: 'This is just an email, not a mention test@test.com',
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual(undefined);
@@ -140,7 +164,7 @@ describe('MessageTextComponent', () => {
     component.message = {
       text: 'Hello @Jack',
       mentioned_users: [{ id: 'jack', name: 'Jack' }],
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
@@ -148,14 +172,14 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
     ]);
 
     component.message = {
       text: 'Hello @Jack, how are you?',
       mentioned_users: [{ id: 'jack', name: 'Jack' }],
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
@@ -163,7 +187,7 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'jack', name: 'Jack' },
+        user: { id: 'jack', name: 'Jack' } as UserResponse,
       },
       { content: ', how are you?', type: 'text' },
     ]);
@@ -174,7 +198,7 @@ describe('MessageTextComponent', () => {
         { id: 'id2334', name: 'Jack' },
         { id: 'id3444', name: 'Lucie' },
       ],
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
@@ -182,13 +206,13 @@ describe('MessageTextComponent', () => {
       {
         content: '@Jack',
         type: 'mention',
-        user: { id: 'id2334', name: 'Jack' },
+        user: { id: 'id2334', name: 'Jack' } as UserResponse,
       },
       { content: ' and ', type: 'text' },
       {
         content: '@Lucie',
         type: 'mention',
-        user: { id: 'id3444', name: 'Lucie' },
+        user: { id: 'id3444', name: 'Lucie' } as UserResponse,
       },
       { content: ', how are you?', type: 'text' },
     ]);
@@ -196,7 +220,7 @@ describe('MessageTextComponent', () => {
     component.message = {
       text: 'https://getstream.io/ this is the link @sara',
       mentioned_users: [{ id: 'sara' }],
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts).toEqual([
@@ -205,14 +229,18 @@ describe('MessageTextComponent', () => {
           '<a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a> this is the link ',
         type: 'text',
       },
-      { content: '@sara', type: 'mention', user: { id: 'sara' } },
+      {
+        content: '@sara',
+        type: 'mention',
+        user: { id: 'sara' } as UserResponse,
+      },
     ]);
 
     component.message = {
       text: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
       html: `This is a message with lots of emojis: 😂😜😂😂, there are compound emojis as well 👨‍👩‍👧`,
       mentioned_users: [],
-    } as any as StreamMessage;
+    } as any as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     const content = component.messageTextParts![0].content;
@@ -229,7 +257,7 @@ describe('MessageTextComponent', () => {
     component.message = {
       text: 'This message contains an emoji 🥑',
       html: 'This message contains an emoji 🥑',
-    } as any as StreamMessage;
+    } as any as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
@@ -240,7 +268,7 @@ describe('MessageTextComponent', () => {
       text: '@sara what do you think about 🥑s? ',
       html: '@sara what do you think about 🥑s? ',
       mentioned_users: [{ id: 'sara' }],
-    } as StreamMessage;
+    } as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![2].content).toContain(
@@ -265,14 +293,17 @@ describe('MessageTextComponent', () => {
     component.message = {
       html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
       text: 'This is a message with a link https://getstream.io/',
-    } as any as StreamMessage;
+    } as any as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
       ' <a href="https://getstream.io/" target="_blank" rel="nofollow">https://getstream.io/</a>'
     );
 
-    component.message.html = undefined;
+    component.message = {
+      ...component.message,
+      html: undefined,
+    } as unknown as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
@@ -305,7 +336,7 @@ describe('MessageTextComponent', () => {
   it('should not double-prefix URLs with uppercase or mixed-case schemes', () => {
     component.message = {
       text: 'This is a message with a link HTTPS://example.com',
-    } as any as StreamMessage;
+    } as any as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(
@@ -345,7 +376,7 @@ describe('MessageTextComponent', () => {
     component.message = {
       html: '<p>This is a message with a link <a href="https://getstream.io/" rel="nofollow">https://getstream.io/</a></p>\n',
       text: 'This is a message with a link https://getstream.io/',
-    } as any as StreamMessage;
+    } as any as LocalMessage;
     component.ngOnChanges({ message: {} as SimpleChange });
 
     expect(component.messageTextParts![0].content).toContain(

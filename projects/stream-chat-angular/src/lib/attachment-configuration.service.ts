@@ -66,7 +66,10 @@ export class AttachmentConfigurationService {
 
     const defaultOriginalDimension = 1000000;
     const urlString =
-      attachment.img_url || attachment.thumb_url || attachment.image_url || '';
+      attachment.custom?.img_url ||
+      attachment.thumb_url ||
+      attachment.image_url ||
+      '';
     let url: URL;
     try {
       url = new URL(urlString);

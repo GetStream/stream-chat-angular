@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { FormatMessageResponse } from 'stream-chat';
+import { LocalMessage, nsToDate } from 'stream-chat';
 import { ChatClientService } from 'stream-chat-angular';
 
 @Component({
@@ -8,7 +8,7 @@ import { ChatClientService } from 'stream-chat-angular';
   styleUrls: ['./custom-message.component.scss'],
 })
 export class CustomMessageComponent {
-  @Input() message: FormatMessageResponse | undefined;
+  @Input() message: LocalMessage | undefined;
   userId: string | undefined;
 
   constructor(private chatClientService: ChatClientService) {
@@ -17,5 +17,9 @@ export class CustomMessageComponent {
 
   get isSentByCurrentUser() {
     return this.message?.user?.id === this.userId;
+  }
+
+  get createdAt() {
+    return this.message ? nsToDate(this.message.created_at) : undefined;
   }
 }

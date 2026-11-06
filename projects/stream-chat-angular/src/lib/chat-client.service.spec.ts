@@ -1,5 +1,10 @@
-import { TestBed } from '@angular/core/testing';
-import { Event, OwnUserResponse, StreamChat } from 'stream-chat';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import {
+  Event,
+  OwnUserResponse,
+  StreamAPIError,
+  StreamChat,
+} from 'stream-chat';
 import { ChatClientService } from './chat-client.service';
 import {
   mockCurrentUser,
@@ -31,7 +36,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, userToken);
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -49,7 +54,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, userId, 'guest');
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
     const userSpy = jasmine.createSpy();
@@ -65,7 +70,7 @@ describe('ChatClientService', () => {
     mockChatClient.connectUser.calls.reset();
     await service.init(apiKey, undefined, 'anonymous');
 
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, undefined);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, {});
     const spy = jasmine.createSpy();
     service.appSettings$.subscribe(spy);
 
@@ -84,7 +89,18 @@ describe('ChatClientService', () => {
 
     expect(spy).not.toHaveBeenCalled();
 
-    const error = new Error('error');
+    const error = new StreamAPIError('Token signature is invalid', {
+      code: 43,
+      status: 401,
+      response: {
+        data: {
+          code: 43,
+          message: 'Token signature is invalid',
+          StatusCode: 401,
+        },
+        status: 401,
+      } as unknown as StreamAPIError['response'],
+    });
     mockChatClient.connectUser.and.rejectWith(error);
 
     await expectAsync(service.init(apiKey, userId, userToken)).toBeRejectedWith(
@@ -140,11 +156,17 @@ describe('ChatClientService', () => {
       id: userId,
       name: 'Test user',
     } as OwnUserResponse;
-    const options = { timeout: 5000 };
-    await service.init(apiKey, user, userToken, options);
+    const options = { client: { axiosRequestConfig: { timeout: 5000 } } };
+    await service.init(apiKey, user, userToken, {
+      ...options,
+      trackPendingChannelInvites: false,
+    });
 
-    // @ts-expect-error don't know what's wrong here
-    expect(StreamChat.getInstance).toHaveBeenCalledWith(apiKey, options);
+    expect(StreamChat.getInstance).toHaveBeenCalledWith(
+      apiKey,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      options as any
+    );
   });
 
   it('should init with token provider', async () => {
@@ -265,43 +287,115 @@ describe('ChatClientService', () => {
     });
   });
 
-  it('should notify if the user goes offline', () => {
+  it('should emit the initial connection state on init', () => {
     const spy = jasmine.createSpy();
     service.connectionState$.subscribe(spy);
+
+    expect(spy).toHaveBeenCalledOnceWith('online');
+  });
+
+  it('should emit offline state and notify, if the connection is unhealthy on init', fakeAsync(() => {
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification');
-    const event = { id: 'mockevent', online: false } as any as Event;
-    mockChatClient.handleEvent('connection.changed', event);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    void service.init(apiKey, userId, userToken);
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
 
     expect(spy).toHaveBeenCalledWith('offline');
     expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
       'streamChat.Connection failure, reconnecting now...'
     );
-  });
+  }));
 
-  it('should notify if the user goes online', () => {
+  it('should notify if the user goes offline, after the offline notification delay of the client', fakeAsync(() => {
+    mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs = 3000;
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
+    spy.calls.reset();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(2999);
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+
+    tick(1);
+
+    expect(spy).toHaveBeenCalledWith('offline');
+    expect(notificationService.addPermanentNotification).toHaveBeenCalledWith(
+      'streamChat.Connection failure, reconnecting now...'
+    );
+  }));
+
+  it(`shouldn't notify if the connection recovers within the offline notification delay`, fakeAsync(() => {
+    const delay =
+      mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs;
+    const spy = jasmine.createSpy();
+    service.connectionState$.subscribe(spy);
+    spy.calls.reset();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification');
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(delay / 2);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    tick(delay);
+
+    expect(spy).not.toHaveBeenCalled();
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+  }));
+
+  it('should notify if the user goes online', fakeAsync(() => {
     const removeNotificationSpy = jasmine.createSpy();
     const notificationService = TestBed.inject(NotificationService);
     spyOn(notificationService, 'addPermanentNotification').and.returnValue(
       removeNotificationSpy
     );
-    mockChatClient.handleEvent('connection.changed', {
-      id: 'event',
-      online: false,
-    } as any as Event);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
     const stateSpy = jasmine.createSpy();
     service.connectionState$.subscribe(stateSpy);
-    const event = { id: 'mockevent', online: true } as any as Event;
-    mockChatClient.handleEvent('connection.changed', event);
+
+    expect(stateSpy).toHaveBeenCalledWith('offline');
+
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
 
     expect(removeNotificationSpy).toHaveBeenCalledWith();
     expect(stateSpy).toHaveBeenCalledWith('online');
-  });
+  }));
+
+  it('should cancel the pending offline notification and remove the displayed one, if the client is initialized again', fakeAsync(() => {
+    const removeNotificationSpy = jasmine.createSpy();
+    const notificationService = TestBed.inject(NotificationService);
+    spyOn(notificationService, 'addPermanentNotification').and.returnValue(
+      removeNotificationSpy
+    );
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+    void service.init(apiKey, userId, userToken);
+    tick();
+
+    expect(removeNotificationSpy).toHaveBeenCalledTimes(1);
+
+    // a drop right before re-init shouldn't be reported by the old subscription
+    (notificationService.addPermanentNotification as jasmine.Spy).calls.reset();
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: false });
+    void service.init(apiKey, userId, userToken);
+    mockChatClient.wsConnection.state.partialNext({ isHealthy: true });
+    tick(mockChatClient.wsConnection.config.offlineNotificationDisplayDelayMs);
+
+    expect(notificationService.addPermanentNotification).not.toHaveBeenCalled();
+  }));
 
   it('should flag message', async () => {
     await service.flagMessage('messageId');
 
-    expect(mockChatClient.flagMessage).toHaveBeenCalledWith('messageId');
+    expect(mockChatClient.moderation.flagMessage).toHaveBeenCalledWith({
+      message_id: 'messageId',
+    });
   });
 
   it('should query users', async () => {
@@ -315,21 +409,25 @@ describe('ChatClientService', () => {
     });
     const result = await service.autocompleteUsers('zi');
 
-    expect(mockChatClient.queryUsers).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        $or: [
-          { id: { $autocomplete: 'zi' } },
-          { name: { $autocomplete: 'zi' } },
-        ],
-      })
-    );
+    expect(mockChatClient.queryUsers).toHaveBeenCalledWith({
+      payload: jasmine.objectContaining({
+        filter_conditions: {
+          $or: [
+            { id: { $autocomplete: 'zi' } },
+            { name: { $autocomplete: 'zi' } },
+          ],
+        },
+      }),
+    });
 
     expect(result.length).toBe(1);
   });
 
   it('should initialize pending invites', async () => {
     const channelsWithPendingInvites = [{ cid: 'cat-lovers' }];
-    mockChatClient.queryChannels.and.resolveTo(channelsWithPendingInvites);
+    mockChatClient.queryChannelsAndHydrate.and.resolveTo(
+      channelsWithPendingInvites
+    );
     const invitesSpy = jasmine.createSpy();
     service.pendingInvites$.subscribe(invitesSpy);
     invitesSpy.calls.reset();
@@ -337,9 +435,11 @@ describe('ChatClientService', () => {
       trackPendingChannelInvites: true,
     });
 
-    expect(mockChatClient.queryChannels).toHaveBeenCalledWith({
-      invite: 'pending',
-      members: { $in: [mockChatClient.user.id] },
+    expect(mockChatClient.queryChannelsAndHydrate).toHaveBeenCalledWith({
+      filter_conditions: {
+        invite: 'pending',
+        members: { $in: [mockChatClient.user.id] },
+      },
     });
 
     expect(invitesSpy).toHaveBeenCalledWith(channelsWithPendingInvites);

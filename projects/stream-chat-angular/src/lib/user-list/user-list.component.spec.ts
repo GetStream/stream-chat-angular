@@ -29,8 +29,8 @@ describe('UserListComponent', () => {
 
   it('should display users', () => {
     component.users = [
-      { id: 'jane', name: 'Jane', image: 'link/to/image' },
-      { id: 'jack', name: 'Jack', image: 'link/to/image2' },
+      { id: 'jane', name: 'Jane', image: 'link/to/image' } as UserResponse,
+      { id: 'jack', name: 'Jack', image: 'link/to/image2' } as UserResponse,
     ];
     fixture.detectChanges();
 
@@ -60,8 +60,8 @@ describe('UserListComponent', () => {
 
   it('should provide data to paginated list component', () => {
     const users = [
-      { id: 'jane', name: 'Jane', image: 'link/to/image' },
-      { id: 'jack', name: 'Jack', image: 'link/to/image2' },
+      { id: 'jane', name: 'Jane', image: 'link/to/image' } as UserResponse,
+      { id: 'jack', name: 'Jack', image: 'link/to/image2' } as UserResponse,
     ];
     component.users = users;
     component.hasMore = true;
