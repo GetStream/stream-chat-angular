@@ -51,7 +51,7 @@ jobs:
         run: npx semantic-release
       - name: Deploy sample app to Vercel
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
           STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}

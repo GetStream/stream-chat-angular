@@ -10,8 +10,10 @@ describe('AvatarComponent', () => {
   let component: AvatarComponent;
   let fixture: ComponentFixture<AvatarComponent>;
   let nativeElement: HTMLElement;
+  // Inline images so the tests don't depend on network access
   const imageUrl =
-    'https://fastly.picsum.photos/id/615/200/300.jpg?hmac=ehJCfeXO1-ZbwBXgbYKroA97kTtoPKNoyEbCxnzsYfU';
+    'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  const brokenImageUrl = 'data:image/png;base64,invalid';
   let queryImg: () => HTMLImageElement | null;
   let queryFallbackImg: () => HTMLImageElement | null;
   let queryOnlineIndicator: () => HTMLElement | null;
@@ -70,7 +72,7 @@ describe('AvatarComponent', () => {
   });
 
   it(`should display fallback image if #imageUrl couldn't be loaded`, async () => {
-    component.imageUrl = imageUrl + 'not-existing';
+    component.imageUrl = brokenImageUrl;
     fixture.detectChanges();
     await waitForImgComplete();
     fixture.detectChanges();
