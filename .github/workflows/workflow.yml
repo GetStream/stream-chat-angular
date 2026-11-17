@@ -1,4 +1,4 @@
-name: Tests and release
+name: Tests
 on:
   push:
     branches:
@@ -8,8 +8,7 @@ on:
     branches:
       - master
 permissions:
-  id-token: write # Required for OIDC
-  contents: write # required for committing the version bump
+  contents: read
 jobs:
   workflow:
     runs-on: ubuntu-latest
@@ -45,10 +44,6 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      - name: Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
       - name: Deploy sample app to Vercel
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
