@@ -1,18 +1,16 @@
-name: Tests and release
+name: Tests
 on:
   push:
     branches:
-      - master
-      - feat/ngx-translate-v18-support
+      - 7.x.x
   pull_request:
     branches:
-      - master
+      - 7.x.x
 permissions:
-  id-token: write # Required for OIDC
-  contents: write # required for committing the version bump
+  contents: read
 jobs:
   workflow:
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     strategy:
       matrix:
         node-version: [24.x]
@@ -45,13 +43,9 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      - name: Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
       - name: Deploy sample app to Vercel
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
           STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}

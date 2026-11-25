@@ -1,0 +1,56 @@
+name: Release
+on:
+  # v7 maintenance releases are cut by hand (Actions -> Release -> Run workflow) on 7.x.x.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: compute the release version, publish nothing"
+        type: boolean
+        default: true
+concurrency:
+  group: release-${{ github.ref }}
+  # A new run (a dry run included) waits instead of cancelling a release that may be mid-publish.
+  cancel-in-progress: false
+permissions:
+  id-token: write # npm trusted publishing (OIDC)
+  contents: write # release commit, tags, GitHub release
+  issues: write # @semantic-release/github comments on released issues
+  pull-requests: write # @semantic-release/github comments on released PRs
+jobs:
+  release:
+    if: github.ref == 'refs/heads/7.x.x'
+    # Every run waits for a reviewer's approval, only allowed branches may use this environment,
+    # and the npm trusted publisher requires it.
+    environment: npm-release
+    runs-on: { group: github-public-amd64 }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Node 24.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 24.x
+      - name: Install dependencies
+        run: |
+          npm ci
+      - name: Build
+        run: |
+          npm run build:prod
+      - name: Linting
+        run: |
+          npm run lint
+      - name: Unit tests
+        run: |
+          npm run test:ci
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release ${{ inputs.dry_run && '--dry-run' || '' }}

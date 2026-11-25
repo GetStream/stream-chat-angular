@@ -49,11 +49,7 @@
   "release": {
     "branches": [
       "master",
-      {
-        "name": "feat/ngx-translate-v18-support",
-        "prerelease": "rc",
-        "channel": "rc"
-      }
+      "7.x.x"
     ],
     "dryRun": false,
     "plugins": [
