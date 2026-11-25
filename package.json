@@ -123,6 +123,7 @@
     "dotenv": "^16.4.5",
     "emoji-regex": "^10.3.0",
     "fix-webm-duration": "^1.0.6",
+    "linkifyjs": "^4.4.0",
     "ngx-float-ui": "^17.0.0",
     "npm-watch": "^0.13.0",
     "pretty-bytes": "^6.1.1",

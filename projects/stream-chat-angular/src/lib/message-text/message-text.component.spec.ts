@@ -353,6 +353,84 @@ describe('MessageTextComponent', () => {
     );
   });
 
+  it('should detect links in long or unusual text quickly', () => {
+    // Generous limit, so the test doesn't flake on slow CI runners
+    const maxDurationMs = 500;
+    // Warm up linkifyjs, its scanner is initialized lazily on first use
+    component.message = { text: 'getstream.io' } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    component.message = {
+      text: 'a@a.' + 'a'.repeat(28),
+    } as StreamMessage;
+
+    const start = performance.now();
+    component.ngOnChanges({ message: {} as SimpleChange });
+    const elapsed = performance.now() - start;
+
+    expect(elapsed).toBeLessThan(maxDurationMs);
+    expect(component.messageText).toBe('a@a.' + 'a'.repeat(28));
+
+    const longPayloads = [
+      'a@a.' + 'a'.repeat(5000),
+      'https://getstream.io/' + 'a'.repeat(5000) + '@a.io',
+      'a.'.repeat(2500) + 'io',
+      // Slow in linkifyjs < 4.4.0
+      'a.'.repeat(25000) + '@',
+    ];
+    longPayloads.forEach((text) => {
+      component.message = { text } as StreamMessage;
+      const longStart = performance.now();
+      component.ngOnChanges({ message: {} as SimpleChange });
+      expect(performance.now() - longStart).toBeLessThan(maxDurationMs);
+    });
+  });
+
+  it('should not turn emails or mailto links into anchors', () => {
+    component.message = {
+      text: 'Write to test@test.com or mailto:test@test.com',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    expect(component.messageTextParts).toBeUndefined();
+    expect(component.messageText).toBe(
+      'Write to test@test.com or mailto:test@test.com'
+    );
+  });
+
+  it('should not let a link swallow the emoji wrapper markup', () => {
+    component.message = {
+      text: 'Look at https://getstream.io/chat😀 and getstream.io😀',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    const content = component.messageTextParts![0].content;
+    expect(content).toContain(
+      '<a href="https://getstream.io/chat" target="_blank" rel="nofollow">https://getstream.io/chat</a><span'
+    );
+    expect(content).toContain(
+      '<a href="https://getstream.io" target="_blank" rel="nofollow">getstream.io</a><span'
+    );
+  });
+
+  it('should keep link detection in line with common link shapes', () => {
+    component.message = {
+      text: 'See https://en.wikipedia.org/wiki/Foo_(bar), mail.hoopit.no and example.com.',
+    } as StreamMessage;
+    component.ngOnChanges({ message: {} as SimpleChange });
+
+    const content = component.messageTextParts![0].content;
+    expect(content).toContain(
+      '<a href="https://en.wikipedia.org/wiki/Foo_(bar)" target="_blank" rel="nofollow">https://en.wikipedia.org/wiki/Foo_(bar)</a>,'
+    );
+    expect(content).toContain(
+      '<a href="https://mail.hoopit.no" target="_blank" rel="nofollow">mail.hoopit.no</a>'
+    );
+    expect(content).toContain(
+      '<a href="https://example.com" target="_blank" rel="nofollow">example.com</a>.'
+    );
+  });
+
   it('should respect #displayAs setting', () => {
     component.message = generateMockMessages()[0];
     fixture.detectChanges();
