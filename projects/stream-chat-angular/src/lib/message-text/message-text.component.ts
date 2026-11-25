@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { MentionTemplateContext } from '../types';
 import { UserResponse, LocalMessage, MessageResponse } from 'stream-chat';
 import emojiRegex from 'emoji-regex';
+import { find as findLinks } from 'linkifyjs';
 import { MessageService } from '../message.service';
 import { CustomTemplatesService } from '../custom-templates.service';
 
@@ -10,6 +11,17 @@ type MessagePart = {
   type: 'text' | 'mention';
   user?: UserResponse;
 };
+
+type DetectedLink = {
+  start: number;
+  end: number;
+  value: string;
+  href: string;
+};
+
+const linkifyOptions = { defaultProtocol: 'https' };
+const allowedLinkSchemes = /^(?:https?|ftp|file):\/\//i;
+const htmlTagDelimiters = /[<>]/;
 
 /**
  * The `MessageTextComponent` displays the text content of a message.
@@ -39,7 +51,6 @@ export class MessageTextComponent implements OnChanges {
   messageTextParts: MessagePart[] | undefined = [];
   messageText?: string;
   displayAs: 'text' | 'html';
-  private readonly urlRegexp: RegExp;
   private emojiRegexp = new RegExp(emojiRegex(), 'g');
 
   constructor(
@@ -47,15 +58,6 @@ export class MessageTextComponent implements OnChanges {
     readonly customTemplatesService: CustomTemplatesService
   ) {
     this.displayAs = this.messageService.displayAs;
-    try {
-      this.urlRegexp = new RegExp(
-        '(?:(?:https?|ftp|file):\\/\\/|www\\.|ftp\\.|(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(?![^\\s]*@[^\\s]*)(?:[^\\s()<>]+|\\([\\w\\d]+\\))*(?<!@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'gim'
-      );
-    } catch {
-      this.urlRegexp =
-        /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#/%=~_|$?!:,.]*\)|[A-Z0-9+&@#/%=~_|$])/gim;
-    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -79,7 +81,7 @@ export class MessageTextComponent implements OnChanges {
       (!this.message!.mentioned_users ||
         this.message!.mentioned_users.length === 0) &&
       !content?.match(this.emojiRegexp) &&
-      !content?.match(this.urlRegexp)
+      !(content && this.detectLinks(content).length > 0)
     ) {
       this.messageTextParts = undefined;
       this.messageText = content;
@@ -155,18 +157,52 @@ export class MessageTextComponent implements OnChanges {
     if (this.displayAs === 'html') {
       return content;
     }
-    content = content.replace(this.urlRegexp, (match) => {
+    const links = this.detectLinks(content);
+    if (links.length === 0) {
+      return content;
+    }
+    let result = '';
+    let lastIndex = 0;
+    links.forEach((link) => {
+      result += content.slice(lastIndex, link.start);
       if (this.messageService.customLinkRenderer) {
-        return this.messageService.customLinkRenderer(match);
+        result += this.messageService.customLinkRenderer(link.value);
       } else {
-        let href = match;
-        if (!/^(?:https?|ftp|file):\/\//i.test(href)) {
-          href = `https://${match}`;
-        }
-        return `<a href="${href}" target="_blank" rel="nofollow">${match}</a>`;
+        const href = link.href.replace(/"/g, '&quot;');
+        result += `<a href="${href}" target="_blank" rel="nofollow">${link.value}</a>`;
+      }
+      lastIndex = link.end;
+    });
+    result += content.slice(lastIndex);
+
+    return result;
+  }
+
+  // Finds links with linkifyjs, which tokenizes in linear time, so long
+  // messages stay fast to render. Keep the linkifyjs dependency at >= 4.4.0,
+  // older versions are slow on some long inputs (see the message-text spec)
+  private detectLinks(content: string): DetectedLink[] {
+    const links: DetectedLink[] = [];
+    findLinks(content, 'url', linkifyOptions).forEach((link) => {
+      let detected: DetectedLink | undefined = link;
+      // The content may already contain HTML (emoji wrappers), never let a link swallow a tag
+      const tagIndex = link.value.search(htmlTagDelimiters);
+      if (tagIndex !== -1) {
+        const [trimmed] = findLinks(
+          link.value.slice(0, tagIndex),
+          'url',
+          linkifyOptions
+        );
+        detected =
+          trimmed?.start === 0
+            ? { ...trimmed, start: link.start, end: link.start + trimmed.end }
+            : undefined;
+      }
+      if (detected && allowedLinkSchemes.test(detected.href)) {
+        links.push(detected);
       }
     });
 
-    return content;
+    return links;
   }
 }
