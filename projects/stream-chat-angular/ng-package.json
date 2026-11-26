@@ -12,6 +12,7 @@
     "uuid",
     "pretty-bytes",
     "emoji-regex",
+    "linkifyjs",
     "@floating-ui/dom",
     "@stream-io/angular-mentions",
     "ngx-float-ui"
