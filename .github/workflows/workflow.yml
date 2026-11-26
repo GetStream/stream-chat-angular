@@ -1,28 +1,26 @@
-name: Tests and release
+name: Tests
 on:
   push:
     branches:
-      - master
-      - feat/ngx-translate-v18-support
+      - 7.x.x
   pull_request:
     branches:
-      - master
+      - 7.x.x
 permissions:
-  id-token: write # Required for OIDC
-  contents: write # required for committing the version bump
+  contents: read
 jobs:
   workflow:
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     strategy:
       matrix:
         node-version: [24.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Cache node modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -30,7 +28,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
@@ -45,13 +43,9 @@ jobs:
       - name: Unit tests
         run: |
           npm run test:ci
-      - name: Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
       - name: Deploy sample app to Vercel
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
           STREAM_API_KEY: ${{ vars.STREAM_DEMO_API_KEY }}
           STREAM_TOKEN_URL: ${{ vars.STREAM_DEMO_TOKEN_URL }}
